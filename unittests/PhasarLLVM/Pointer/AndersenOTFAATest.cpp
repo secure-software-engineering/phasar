@@ -1132,6 +1132,42 @@ TEST(AndersenOTFAATest, AllocWrapperCallSitesDontAlias) {
   doAnalysisAndCheckExact("factory_01_c_dbg.ll", ExpectedResults);
 }
 
+TEST(AndersenOTFAATest, EscapingAllocWrapperStaysMerged) {
+  // factory_02: makeSlot() mallocs but also passes the pointer to setPtr(),
+  // which writes through it before returning. Must not be classified as a
+  // plain wrapper, else the write would be lost (Fld1/Fld2 would come back
+  // empty instead of aliasing &X/&Y).
+  const TSL XAlloca =
+      TSL(OperandOf{.OperandIndex = 0,
+                    .Inst = LineColFunOp{.Line = 17,
+                                         .Col = 0,
+                                         .InFunction = "main",
+                                         .OpCode = llvm::Instruction::Call}});
+  const TSL YAlloca =
+      TSL(OperandOf{.OperandIndex = 0,
+                    .Inst = LineColFunOp{.Line = 18,
+                                         .Col = 0,
+                                         .InFunction = "main",
+                                         .OpCode = llvm::Instruction::Call}});
+  // Fld1 = *P1, Fld2 = *P2 (field loads, col 13; col 14 is the P1/P2 load).
+  const TSL Fld1 = TSL(LineColFunOp{.Line = 19,
+                                    .Col = 13,
+                                    .InFunction = "main",
+                                    .OpCode = llvm::Instruction::Load});
+  const TSL Fld2 = TSL(LineColFunOp{.Line = 20,
+                                    .Col = 13,
+                                    .InFunction = "main",
+                                    .OpCode = llvm::Instruction::Load});
+  const std::vector<TSL> All = {XAlloca, YAlloca, Fld1, Fld2};
+  const GTMap ExpectedResults = {
+      {XAlloca, {XAlloca, Fld1, Fld2}},
+      {YAlloca, {YAlloca, Fld1, Fld2}},
+      {Fld1, All},
+      {Fld2, All},
+  };
+  doAnalysisAndCheckExact("factory_02_c_dbg.ll", ExpectedResults);
+}
+
 } // namespace
 
 int main(int Argc, char **Argv) {

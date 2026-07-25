@@ -718,15 +718,97 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
   enum class WrapperState : uint8_t { InProgress, IsWrapper, NotWrapper };
   llvm::DenseMap<const llvm::Function *, WrapperState> WrapperCache;
 
+  // Does V have any use that is not part of a "return-preserving" chain
+  // (pointer casts, PHI merges, a local scratch-alloca spill/reload, or the
+  // standard null-check idiom) and the eventual ReturnInst itself?  Called
+  // on the freshly allocated pointer (or a call to another classified
+  // wrapper); if it returns true, giving each call SITE its own fresh
+  // object would silently disconnect that escaping use from the object it
+  // actually observes/mutates.  This is exactly what went wrong for
+  // create_context() in the spec-mesa benchmark: it passes the freshly
+  // allocated pointer to init_api_function(), which stores function
+  // pointers into its fields -- writes that a synthetic per-call-site
+  // object would never see, so every field read after the call site
+  // spuriously came back empty.
+  bool hasEscapingUse(const llvm::Value *V,
+                      llvm::SmallPtrSetImpl<const llvm::Value *> &Visited) {
+    if (!Visited.insert(V).second) {
+      return false;
+    }
+    for (const llvm::Use &U : V->uses()) {
+      const auto *Usr = U.getUser();
+      if (llvm::isa<llvm::ReturnInst>(Usr)) {
+        continue;
+      }
+      if (const auto *Cmp = llvm::dyn_cast<llvm::ICmpInst>(Usr)) {
+        // Allow the standard OOM null-check idiom: compare against a null
+        // pointer constant only.
+        const unsigned OtherIdx = U.getOperandNo() == 0 ? 1 : 0;
+        if (llvm::isa<llvm::ConstantPointerNull>(Cmp->getOperand(OtherIdx))) {
+          continue;
+        }
+        return true;
+      }
+      if (const auto *II = llvm::dyn_cast<llvm::IntrinsicInst>(Usr)) {
+        if (llvm::isLifetimeIntrinsic(II->getIntrinsicID()) ||
+            llvm::isa<llvm::DbgInfoIntrinsic>(II)) {
+          continue;
+        }
+        return true;
+      }
+      if (llvm::isa<llvm::CastInst>(Usr) || llvm::isa<llvm::PHINode>(Usr)) {
+        if (hasEscapingUse(Usr, Visited)) {
+          return true;
+        }
+        continue;
+      }
+      if (const auto *St = llvm::dyn_cast<llvm::StoreInst>(Usr)) {
+        if (St->getPointerOperand() == V) {
+          // Something is written INTO V: only benign if V is itself a
+          // local scratch alloca (writes to it can't leak the allocated
+          // object's identity elsewhere).
+          if (llvm::isa<llvm::AllocaInst>(V)) {
+            continue;
+          }
+          return true;
+        }
+        // V is the stored value: only benign if spilled to a local scratch
+        // alloca, and only once we also check everything later reloaded
+        // from it (else a reload-then-leak before the final return, e.g.
+        // passing the reloaded pointer to another function, would go
+        // unnoticed).
+        if (llvm::isa<llvm::AllocaInst>(St->getPointerOperand())) {
+          if (hasEscapingUse(St->getPointerOperand(), Visited)) {
+            return true;
+          }
+          continue;
+        }
+        return true;
+      }
+      if (llvm::isa<llvm::LoadInst>(Usr)) {
+        // Only reached when V is a local scratch alloca (see above); the
+        // loaded value must stay within the same safe-use closure.
+        if (hasEscapingUse(Usr, Visited)) {
+          return true;
+        }
+        continue;
+      }
+      return true; // call argument, GEP, or any other unrecognized use
+    }
+    return false;
+  }
+
   // Does V, after stripping pointer casts, provably denote a freshly
   // allocated object (a direct call to a heap allocator or to another
   // classified wrapper, possibly reached through a load with exactly one
-  // reaching store, or a PHI merge of such values)?  MSSA must be the
-  // MemorySSA of the function containing V.  Visited guards against
-  // self-/mutually-referencing PHIs and load/store cycles introduced by
-  // loops (e.g. a loop-carried pointer that is unchanged around the back
-  // edge produces a self-referencing PHI); a revisit conservatively means
-  // "not provably fresh" rather than recursing forever.
+  // reaching store, or a PHI merge of such values) whose identity is not
+  // observed or mutated anywhere except along the path to the return?
+  // MSSA must be the MemorySSA of the function containing V.  Visited
+  // guards against self-/mutually-referencing PHIs and load/store cycles
+  // introduced by loops (e.g. a loop-carried pointer that is unchanged
+  // around the back edge produces a self-referencing PHI); a revisit
+  // conservatively means "not provably fresh" rather than recursing
+  // forever.
   bool traceIsFreshAlloc(const llvm::Value *V, llvm::MemorySSA &MSSA,
                          llvm::SmallPtrSetImpl<const llvm::Value *> &Visited) {
     V = V->stripPointerCasts();
@@ -736,8 +818,12 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     if (const auto *CB = llvm::dyn_cast<llvm::CallBase>(V)) {
       const auto *Callee = llvm::dyn_cast_or_null<llvm::Function>(
           CB->getCalledOperand()->stripPointerCastsAndAliases());
-      return Callee &&
-             (psr::isHeapAllocatingFunction(Callee) || isAllocWrapper(Callee));
+      if (!Callee ||
+          !(psr::isHeapAllocatingFunction(Callee) || isAllocWrapper(Callee))) {
+        return false;
+      }
+      llvm::SmallPtrSet<const llvm::Value *, 8> EscVisited;
+      return !hasEscapingUse(CB, EscVisited);
     }
     if (const auto *L = llvm::dyn_cast<llvm::LoadInst>(V)) {
       llvm::SmallPtrSet<const llvm::StoreInst *, 4> Defs;
