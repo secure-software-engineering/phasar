@@ -38,6 +38,21 @@ constexpr auto PathToLLFiles = PHASAR_BUILD_SUBFOLDER("pointers/");
 using TSL = TestingSrcLocation;
 using GTMap = std::map<TSL, std::vector<TSL>>;
 
+// First call in F whose callee isn't a direct llvm::Function reference.
+static const llvm::CallBase *findFirstIndirectCall(const llvm::Function *F) {
+  for (const auto &I : llvm::instructions(F)) {
+    const auto *CS = llvm::dyn_cast<llvm::CallBase>(&I);
+    if (!CS || CS->isDebugOrPseudoInst()) {
+      continue;
+    }
+    if (!llvm::isa<llvm::Function>(
+            CS->getCalledOperand()->stripPointerCastsAndAliases())) {
+      return CS;
+    }
+  }
+  return nullptr;
+}
+
 [[nodiscard]] ValueId asId(const ValueCompressor<PAGVariable> &Compressor,
                            const LLVMProjectIRDB &IRDB, TSL Var) {
   const auto *LLVMVar = testingLocInIR(Var, IRDB);
@@ -1166,6 +1181,155 @@ TEST(AndersenOTFAATest, EscapingAllocWrapperStaysMerged) {
       {Fld2, All},
   };
   doAnalysisAndCheckExact("factory_02_c_dbg.ll", ExpectedResults);
+}
+
+TEST(AndersenOTFAATest, FnPtrTableBasicPrecision) {
+  // Malloc'd dispatch table with two fields: each field's call must
+  // resolve only to its own function, not both.
+  auto IRDB = LLVMProjectIRDB::loadOrExit(
+      PathToLLFiles + "andersen_otf_fnptr_table_basic_c_dbg.ll");
+  const auto *CallFoo = IRDB.getFunctionDefinition("call_foo");
+  const auto *CallBar = IRDB.getFunctionDefinition("call_bar");
+  const auto *FooImpl = IRDB.getFunctionDefinition("foo_impl");
+  const auto *BarImpl = IRDB.getFunctionDefinition("bar_impl");
+  const auto *MainFn = IRDB.getFunctionDefinition("main");
+  ASSERT_NE(MainFn, nullptr);
+  ASSERT_NE(CallFoo, nullptr);
+  ASSERT_NE(CallBar, nullptr);
+  ASSERT_NE(FooImpl, nullptr);
+  ASSERT_NE(BarImpl, nullptr);
+
+  auto Res = computeAndersenOTFRaw(IRDB, {MainFn});
+
+  const auto *FooCS = findFirstIndirectCall(CallFoo);
+  const auto *BarCS = findFirstIndirectCall(CallBar);
+  ASSERT_NE(FooCS, nullptr);
+  ASSERT_NE(BarCS, nullptr);
+
+  const auto &FooCallees = Res.CG.getCalleesOfCallAt(FooCS);
+  EXPECT_TRUE(llvm::is_contained(FooCallees, FooImpl));
+  EXPECT_FALSE(llvm::is_contained(FooCallees, BarImpl));
+
+  const auto &BarCallees = Res.CG.getCalleesOfCallAt(BarCS);
+  EXPECT_TRUE(llvm::is_contained(BarCallees, BarImpl));
+  EXPECT_FALSE(llvm::is_contained(BarCallees, FooImpl));
+}
+
+TEST(AndersenOTFAATest, FnPtrTableTwoAllocSitesDontCrossContaminate) {
+  // Two malloc'd tables with different assignments; each dispatcher's own
+  // call site must resolve only to its own object's function.
+  auto IRDB = LLVMProjectIRDB::loadOrExit(
+      PathToLLFiles + "andersen_otf_fnptr_table_two_sites_c_dbg.ll");
+  const auto *CallVia1 = IRDB.getFunctionDefinition("call_via_1");
+  const auto *CallVia2 = IRDB.getFunctionDefinition("call_via_2");
+  const auto *Alpha = IRDB.getFunctionDefinition("alpha");
+  const auto *Beta = IRDB.getFunctionDefinition("beta");
+  const auto *MainFn = IRDB.getFunctionDefinition("main");
+  ASSERT_NE(MainFn, nullptr);
+  ASSERT_NE(CallVia1, nullptr);
+  ASSERT_NE(CallVia2, nullptr);
+  ASSERT_NE(Alpha, nullptr);
+  ASSERT_NE(Beta, nullptr);
+
+  auto Res = computeAndersenOTFRaw(IRDB, {MainFn});
+
+  const auto *CS1 = findFirstIndirectCall(CallVia1);
+  const auto *CS2 = findFirstIndirectCall(CallVia2);
+  ASSERT_NE(CS1, nullptr);
+  ASSERT_NE(CS2, nullptr);
+
+  const auto &Callees1 = Res.CG.getCalleesOfCallAt(CS1);
+  EXPECT_TRUE(llvm::is_contained(Callees1, Alpha));
+  EXPECT_FALSE(llvm::is_contained(Callees1, Beta));
+
+  const auto &Callees2 = Res.CG.getCalleesOfCallAt(CS2);
+  EXPECT_TRUE(llvm::is_contained(Callees2, Beta));
+  EXPECT_FALSE(llvm::is_contained(Callees2, Alpha));
+}
+
+TEST(AndersenOTFAATest, FnPtrTableDynamicIndexPoisonsFallback) {
+  // A non-constant-index write into one field poisons the whole object:
+  // call_fn must fall back to {real_fn, bogus}, not stay precise.
+  auto IRDB = LLVMProjectIRDB::loadOrExit(
+      PathToLLFiles + "andersen_otf_fnptr_table_dynamic_index_c_dbg.ll");
+  const auto *CallFn = IRDB.getFunctionDefinition("call_fn");
+  const auto *RealFn = IRDB.getFunctionDefinition("real_fn");
+  const auto *Bogus = IRDB.getFunctionDefinition("bogus");
+  const auto *MainFn = IRDB.getFunctionDefinition("main");
+  ASSERT_NE(MainFn, nullptr);
+  ASSERT_NE(CallFn, nullptr);
+  ASSERT_NE(RealFn, nullptr);
+  ASSERT_NE(Bogus, nullptr);
+
+  auto Res = computeAndersenOTFRaw(IRDB, {MainFn});
+
+  const auto *CS = findFirstIndirectCall(CallFn);
+  ASSERT_NE(CS, nullptr);
+
+  const auto &Callees = Res.CG.getCalleesOfCallAt(CS);
+  EXPECT_TRUE(llvm::is_contained(Callees, RealFn));
+  EXPECT_TRUE(llvm::is_contained(Callees, Bogus))
+      << "dynamic-index write elsewhere in the object must poison it, "
+         "falling back to the sound over-approximation";
+}
+
+TEST(AndersenOTFAATest, FnPtrTableIndirectValuePoisonsFallback) {
+  // A later write stores a function-pointer *variable*, not a literal
+  // function: call_fn must fall back to {real_fn, alt_fn}, not {real_fn}.
+  auto IRDB = LLVMProjectIRDB::loadOrExit(
+      PathToLLFiles + "andersen_otf_fnptr_table_indirect_value_c_dbg.ll");
+  const auto *CallFn = IRDB.getFunctionDefinition("call_fn");
+  const auto *RealFn = IRDB.getFunctionDefinition("real_fn");
+  const auto *AltFn = IRDB.getFunctionDefinition("alt_fn");
+  const auto *MainFn = IRDB.getFunctionDefinition("main");
+  ASSERT_NE(MainFn, nullptr);
+  ASSERT_NE(CallFn, nullptr);
+  ASSERT_NE(RealFn, nullptr);
+  ASSERT_NE(AltFn, nullptr);
+
+  auto Res = computeAndersenOTFRaw(IRDB, {MainFn});
+
+  const auto *CS = findFirstIndirectCall(CallFn);
+  ASSERT_NE(CS, nullptr);
+
+  const auto &Callees = Res.CG.getCalleesOfCallAt(CS);
+  EXPECT_TRUE(llvm::is_contained(Callees, RealFn));
+  EXPECT_TRUE(llvm::is_contained(Callees, AltFn))
+      << "write of a non-literal function-pointer value must poison the "
+         "slot, falling back to the sound over-approximation";
+}
+
+TEST(AndersenOTFAATest, FnPtrTableMemcpyPropagatesKnownFields) {
+  // Minimized spec-mesa pattern: H->A and H->B alias H (field-insensitively),
+  // only H->B is initialized, then H->A = H->B (an llvm.memcpy). Each
+  // field's call through H->A must still resolve to only its own function.
+  auto IRDB = LLVMProjectIRDB::loadOrExit(
+      PathToLLFiles + "andersen_otf_fnptr_table_memcpy_c_dbg.ll");
+  const auto *CallFoo = IRDB.getFunctionDefinition("call_foo");
+  const auto *CallBar = IRDB.getFunctionDefinition("call_bar");
+  const auto *FooImpl = IRDB.getFunctionDefinition("foo_impl");
+  const auto *BarImpl = IRDB.getFunctionDefinition("bar_impl");
+  const auto *MainFn = IRDB.getFunctionDefinition("main");
+  ASSERT_NE(MainFn, nullptr);
+  ASSERT_NE(CallFoo, nullptr);
+  ASSERT_NE(CallBar, nullptr);
+  ASSERT_NE(FooImpl, nullptr);
+  ASSERT_NE(BarImpl, nullptr);
+
+  auto Res = computeAndersenOTFRaw(IRDB, {MainFn});
+
+  const auto *FooCS = findFirstIndirectCall(CallFoo);
+  const auto *BarCS = findFirstIndirectCall(CallBar);
+  ASSERT_NE(FooCS, nullptr);
+  ASSERT_NE(BarCS, nullptr);
+
+  const auto &FooCallees = Res.CG.getCalleesOfCallAt(FooCS);
+  EXPECT_TRUE(llvm::is_contained(FooCallees, FooImpl));
+  EXPECT_FALSE(llvm::is_contained(FooCallees, BarImpl));
+
+  const auto &BarCallees = Res.CG.getCalleesOfCallAt(BarCS);
+  EXPECT_TRUE(llvm::is_contained(BarCallees, BarImpl));
+  EXPECT_FALSE(llvm::is_contained(BarCallees, FooImpl));
 }
 
 } // namespace

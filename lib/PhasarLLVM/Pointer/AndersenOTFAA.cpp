@@ -28,6 +28,7 @@
 
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/DenseSet.h"
+#include "llvm/ADT/Hashing.h"
 #include "llvm/ADT/PointerIntPair.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallPtrSet.h"
@@ -77,6 +78,18 @@ public:
 private:
   llvm::PointerIntPair<PAGVariable, 1, bool> Base{};
 };
+
+/// Key for FnPtrFieldWrites: an allocation-site object + constant GEP
+/// index sequence.
+struct FieldWriteKey {
+  const llvm::Value *Val = nullptr;
+  llvm::SmallVector<uint64_t, 3> Indices;
+
+  friend bool operator==(const FieldWriteKey &A,
+                         const FieldWriteKey &B) noexcept {
+    return A.Val == B.Val && A.Indices == B.Indices;
+  }
+};
 } // namespace
 
 namespace llvm {
@@ -89,6 +102,22 @@ template <> struct DenseMapInfo<AndersenVar> {
   }
   static unsigned getHashValue(AndersenVar V) noexcept { return hash_value(V); }
   static bool isEqual(AndersenVar A, AndersenVar B) noexcept { return A == B; }
+};
+
+template <> struct DenseMapInfo<FieldWriteKey> {
+  static FieldWriteKey getEmptyKey() noexcept {
+    return {DenseMapInfo<const Value *>::getEmptyKey(), {}};
+  }
+  static FieldWriteKey getTombstoneKey() noexcept {
+    return {DenseMapInfo<const Value *>::getTombstoneKey(), {}};
+  }
+  static unsigned getHashValue(const FieldWriteKey &K) noexcept {
+    auto H1 = llvm::hash_combine_range(K.Indices.begin(), K.Indices.end());
+    return llvm::hash_combine(H1, K.Val);
+  }
+  static bool isEqual(const FieldWriteKey &A, const FieldWriteKey &B) noexcept {
+    return A == B;
+  }
 };
 } // namespace llvm
 
@@ -143,6 +172,23 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     std::optional<ValueId> CSRetVal;
   };
 
+  // A store/memcpy observed while populating FnPtrFieldWrites (see below).
+  // Qualifying: `*GEP(base, Indices) = Callee`, a candidate precise
+  // dispatch-table write. Disqualifying: some other write that may target
+  // one of our tracked objects and must poison it. CopyForward: a memcpy
+  // that may propagate a source object's known field writes to a
+  // destination object (see resolveFieldWrite).
+  struct FieldWriteRecord {
+    enum class Kind : uint8_t { Disqualifying, Qualifying, CopyForward };
+    ValueId PtrId; // pts(PtrId) = candidate base objects (src, for CopyForward)
+    Kind RecKind = Kind::Disqualifying;
+    llvm::SmallVector<uint64_t, 3> Indices{}; // meaningful iff Qualifying
+    llvm::Type *GEPElemTy = nullptr;          // meaningful iff Qualifying
+    const llvm::Function *Callee = nullptr;   // meaningful iff Qualifying
+    ValueId DstPtrId{};                       // meaningful iff CopyForward
+    std::optional<uint64_t> CopyLength{};     // meaningful iff CopyForward
+  };
+
   // ---- Data fields ----------------------------------------------------
 
   const LLVMProjectIRDB &IRDB;              // NOLINT
@@ -173,6 +219,21 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
   llvm::SmallVector<FPCallRecord> UnresolvedFPCalls;
   llvm::SmallVector<VCallRecord> UnresolvedVCalls;
   llvm::SmallVector<StructVCallRecord> UnresolvedStructVCalls;
+
+  // Observed fn-ptr field writes for heap/stack dispatch tables.
+  struct FieldWriteInfo {
+    llvm::SmallVector<const llvm::Function *, 2> Callees;
+    llvm::Type *ElemTy = nullptr;
+  };
+  llvm::DenseMap<FieldWriteKey, FieldWriteInfo> FnPtrFieldWrites;
+  // Reverse index: all Indices tracked for a given object, so a memcpy can
+  // enumerate "every known field" of its source object (see CopyForward).
+  llvm::DenseMap<const llvm::Value *,
+                 llvm::SmallVector<llvm::SmallVector<uint64_t, 3>, 2>>
+      FieldsByObject;
+  // Objects with an untrusted write; FnPtrFieldWrites is ignored for these.
+  llvm::DenseSet<const llvm::Value *> ImpureObjects;
+  llvm::SmallVector<FieldWriteRecord> UnresolvedFieldWrites;
   llvm::DenseMap<const llvm::CallBase *, llvm::SmallDenseSet<ValueId, 4>>
       ConnectedCallees;
   CallGraphBuilder<const llvm::Instruction *, const llvm::Function *> CGBuilder;
@@ -615,9 +676,39 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     if (definitelyContainsNoPointer(S->getValueOperand())) {
       return;
     }
+    recordFieldWrite(S);
     forEachOpId(S->getPointerOperand(), [&](ValueId PtrId) {
       forEachOpId(S->getValueOperand(),
                   [&](ValueId ValId) { addStore(PtrId, ValId); });
+    });
+  }
+
+  // Populates FnPtrFieldWrites for a `*GEP(base, const-indices) = Function`
+  // write (qualifying); any other pointer store poisons every object it may
+  // target (disqualifying), since it could be clobbering a tracked field
+  // through a shape resolveStructVCall can't statically verify.
+  void recordFieldWrite(const llvm::StoreInst *S) {
+    if (auto Info = getConstGEPFieldAccess(S->getPointerOperand())) {
+      auto &[BasePtr, Indices, GEPElemTy] = *Info;
+      if (const auto *StoredFn = llvm::dyn_cast<llvm::Function>(
+              S->getValueOperand()->stripPointerCastsAndAliases())) {
+        const ValueId BaseId = getOrInsertVar(PAGVariable(BasePtr));
+        FieldWriteRecord Rec{
+            .PtrId = BaseId,
+            .RecKind = FieldWriteRecord::Kind::Qualifying,
+            .Indices = std::move(Indices),
+            .GEPElemTy = GEPElemTy,
+            .Callee = StoredFn,
+        };
+        resolveFieldWrite(Rec);
+        UnresolvedFieldWrites.push_back(std::move(Rec));
+        return;
+      }
+    }
+    forEachOpId(S->getPointerOperand(), [&](ValueId PtrId) {
+      FieldWriteRecord Rec{.PtrId = PtrId};
+      resolveFieldWrite(Rec);
+      UnresolvedFieldWrites.push_back(std::move(Rec));
     });
   }
 
@@ -660,9 +751,23 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
   }
 
   void handleMemTransfer(const llvm::MemTransferInst *M) {
+    // Bypasses handleStore/recordFieldWrite: may propagate the source
+    // object's known field writes to the destination object, or poison it
+    // if that can't be proven safe (see resolveFieldWrite, CopyForward).
+    std::optional<uint64_t> CopyLength;
+    if (const auto *Len = llvm::dyn_cast<llvm::ConstantInt>(M->getLength())) {
+      CopyLength = Len->getZExtValue();
+    }
     forEachOpId(M->getDest(), [&](ValueId DstPtr) {
-      forEachOpId(M->getSource(),
-                  [&](ValueId SrcPtr) { addMemCopy(SrcPtr, DstPtr); });
+      forEachOpId(M->getSource(), [&](ValueId SrcPtr) {
+        addMemCopy(SrcPtr, DstPtr);
+        FieldWriteRecord Rec{.PtrId = SrcPtr,
+                             .RecKind = FieldWriteRecord::Kind::CopyForward,
+                             .DstPtrId = DstPtr,
+                             .CopyLength = CopyLength};
+        resolveFieldWrite(Rec);
+        UnresolvedFieldWrites.push_back(std::move(Rec));
+      });
     });
   }
 
@@ -1066,6 +1171,22 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
         }
         const auto *GV = llvm::dyn_cast_or_null<llvm::GlobalVariable>(Val);
         if (!GV || !GV->isConstant() || !GV->hasInitializer()) {
+          // Not a usable const global: try the dynamically observed
+          // field-write table for heap/stack dispatch-table objects.
+          if (Val && !ImpureObjects.contains(Val)) {
+            auto It = FnPtrFieldWrites.find(
+                FieldWriteKey{.Val = Val, .Indices = Rec.Indices});
+            if (It != FnPtrFieldWrites.end() &&
+                It->second.ElemTy == Rec.GEPElemTy) {
+              for (const auto *Callee : It->second.Callees) {
+                if (isConsistentCall(Rec.CS, Callee)) {
+                  NewEdge |=
+                      connectCallee(Rec.CS, Callee, Rec.Args, Rec.CSRetVal);
+                }
+              }
+              continue;
+            }
+          }
           NeedFPFallback = true;
           continue;
         }
@@ -1092,6 +1213,175 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
       NewEdge |= resolveFPCall(Rec.CS, Rec.FPId, Rec.Args, Rec.CSRetVal);
     }
     return NewEdge;
+  }
+
+  [[nodiscard]] bool poisonObject(const llvm::Value *AllocVal) {
+    return ImpureObjects.insert(AllocVal).second;
+  }
+
+  // Merges one field's known writes (Src, e.g. a single-callee write, or an
+  // entry copied from another object) into AllocVal's own entry for
+  // Indices. A differently-typed pre-existing entry for the same slot means
+  // type punning: poison the whole object instead of trusting either write.
+  bool mergeFieldWriteInfo(const llvm::Value *AllocVal,
+                           const llvm::SmallVector<uint64_t, 3> &Indices,
+                           const FieldWriteInfo &Src) {
+    if (ImpureObjects.contains(AllocVal)) {
+      return false;
+    }
+    auto [It, Inserted] = FnPtrFieldWrites.try_emplace(
+        FieldWriteKey{.Val = AllocVal, .Indices = Indices});
+    if (Inserted) {
+      It->second.ElemTy = Src.ElemTy;
+      FieldsByObject[AllocVal].push_back(Indices);
+    } else if (It->second.ElemTy != Src.ElemTy) {
+      return poisonObject(AllocVal);
+    }
+    bool Changed = Inserted;
+    for (const auto *Callee : Src.Callees) {
+      if (!llvm::is_contained(It->second.Callees, Callee)) {
+        It->second.Callees.push_back(Callee);
+        Changed = true;
+      }
+    }
+    return Changed;
+  }
+
+  // Propagates a memcpy's source object's known field writes onto its
+  // destination object(s), when provably safe: the source object isn't
+  // impure, the copy length is a known constant covering every copied
+  // field, and the destination doesn't already have unrelated entries that
+  // the memcpy could silently overwrite with unverified bytes. Otherwise
+  // poisons the destination, exactly like any other unverifiable write.
+  bool resolveCopyForward(const FieldWriteRecord &Rec) {
+    const ValueId SrcPtrId = rep(Rec.PtrId);
+    const ValueId DstPtrId = rep(Rec.DstPtrId);
+    if (!Nodes.inbounds(SrcPtrId) || !Nodes.inbounds(DstPtrId)) {
+      return false;
+    }
+    bool Changed = false;
+    const auto &SrcPts = Nodes[SrcPtrId].PtsSet;
+    const auto &DstPts = Nodes[DstPtrId].PtsSet;
+    DstPts.foreach ([&](ValueId DstObjId) {
+      if (!Nodes.inbounds(DstObjId)) {
+        return false;
+      }
+      for (const auto &DstVar : LocalVC.id2vars(DstObjId)) {
+        const llvm::Value *DstVal = DstVar.getBase().valueOrNull();
+        if (!DstVal || ImpureObjects.contains(DstVal)) {
+          continue;
+        }
+        const auto DstFieldsIt = FieldsByObject.find(DstVal);
+        const bool DstHasEntries =
+            DstFieldsIt != FieldsByObject.end() && !DstFieldsIt->second.empty();
+        bool Poison = !Rec.CopyLength;
+        // Copy FieldWriteInfo by value: mergeFieldWriteInfo() below mutates
+        // FnPtrFieldWrites (possibly rehashing it), so pointers/references
+        // into that map can't be held across the merge loop.
+        llvm::SmallVector<
+            std::pair<llvm::SmallVector<uint64_t, 3>, FieldWriteInfo>, 4>
+            ToMerge;
+        if (!Poison) {
+          SrcPts.foreach ([&](ValueId SrcObjId) {
+            if (!Nodes.inbounds(SrcObjId)) {
+              return false;
+            }
+            for (const auto &SrcVar : LocalVC.id2vars(SrcObjId)) {
+              const llvm::Value *SrcVal = SrcVar.getBase().valueOrNull();
+              if (!SrcVal) {
+                continue;
+              }
+              if (ImpureObjects.contains(SrcVal)) {
+                Poison = true;
+                continue;
+              }
+              if (SrcVal != DstVal && DstHasEntries) {
+                // A genuinely external source could clobber DstVal's own
+                // separately-tracked fields with bytes we know nothing
+                // about. A self-copy (field-insensitively-aliased src/dst,
+                // as with a same-struct `ctx->A = ctx->B` pattern) is safe:
+                // merging an object's own known fields into itself is a
+                // no-op.
+                Poison = true;
+                continue;
+              }
+              const auto SrcFieldsIt = FieldsByObject.find(SrcVal);
+              if (SrcFieldsIt == FieldsByObject.end()) {
+                continue;
+              }
+              for (const auto &Indices : SrcFieldsIt->second) {
+                const auto FWIt = FnPtrFieldWrites.find(
+                    FieldWriteKey{.Val = SrcVal, .Indices = Indices});
+                assert(FWIt != FnPtrFieldWrites.end());
+                if (*Rec.CopyLength <
+                    DL.getTypeAllocSize(FWIt->second.ElemTy).getFixedValue()) {
+                  Poison = true;
+                  continue;
+                }
+                ToMerge.emplace_back(Indices, FWIt->second);
+              }
+            }
+            return true;
+          });
+        }
+        if (Poison) {
+          Changed |= poisonObject(DstVal);
+          continue;
+        }
+        for (const auto &[Indices, Info] : ToMerge) {
+          Changed |= mergeFieldWriteInfo(DstVal, Indices, Info);
+        }
+      }
+      return true;
+    });
+    return Changed;
+  }
+
+  // Updates FnPtrFieldWrites/ImpureObjects for every object in pts(PtrId).
+  // Returns whether anything changed (grew), so callers can drive the
+  // outer fixpoint like the other checkUnresolvedX functions do. Unlike
+  // resolveStructVCall/resolveFPCall, no snapshot is needed: these loop
+  // bodies never call connectCallee/grow(), so pts sets can't be
+  // invalidated mid-iteration.
+  bool resolveFieldWrite(const FieldWriteRecord &Rec) {
+    if (Rec.RecKind == FieldWriteRecord::Kind::CopyForward) {
+      return resolveCopyForward(Rec);
+    }
+    const ValueId PtrId = rep(Rec.PtrId);
+    if (!Nodes.inbounds(PtrId)) {
+      return false;
+    }
+    bool Changed = false;
+    const auto &Pts = Nodes[PtrId].PtsSet;
+    Pts.foreach ([&](ValueId ObjId) {
+      if (!Nodes.inbounds(ObjId)) {
+        return false;
+      }
+      for (const auto &Var : LocalVC.id2vars(ObjId)) {
+        const llvm::Value *AllocVal = Var.getBase().valueOrNull();
+        if (!AllocVal) {
+          continue;
+        }
+        if (Rec.RecKind == FieldWriteRecord::Kind::Disqualifying) {
+          Changed |= poisonObject(AllocVal);
+          continue;
+        }
+        FieldWriteInfo Info;
+        Info.ElemTy = Rec.GEPElemTy;
+        Info.Callees.push_back(Rec.Callee);
+        Changed |= mergeFieldWriteInfo(AllocVal, Rec.Indices, Info);
+      }
+      return true;
+    });
+    return Changed;
+  }
+
+  bool checkUnresolvedFieldWrites() {
+    bool Changed = false;
+    for (const auto &Rec : UnresolvedFieldWrites) {
+      Changed |= resolveFieldWrite(Rec);
+    }
+    return Changed;
   }
 
   bool resolveFPCall(const llvm::CallBase *CS, ValueId FPId,
@@ -1353,7 +1643,8 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
         // calls (connectCallee would otherwise be the only propagate site).
         propagate();
       }
-      Changed = checkUnresolvedFPCalls();
+      Changed = checkUnresolvedFieldWrites();
+      Changed |= checkUnresolvedFPCalls();
       Changed |= checkUnresolvedVCalls();
       Changed |= checkUnresolvedStructVCalls();
     } while (!FunctionWorklist.empty() || Changed);

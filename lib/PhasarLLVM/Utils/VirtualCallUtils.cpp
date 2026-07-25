@@ -52,14 +52,8 @@ psr::getVFTIndexAndVT(const llvm::CallBase *CallSite) {
 
 std::optional<std::tuple<const llvm::Value *, llvm::SmallVector<uint64_t, 3>,
                          llvm::Type *>>
-psr::getStructVCallInfo(const llvm::CallBase *CallSite) {
-  const auto *Load =
-      llvm::dyn_cast<llvm::LoadInst>(CallSite->getCalledOperand());
-  if (!Load) {
-    return std::nullopt;
-  }
-  const auto *GEP =
-      llvm::dyn_cast<llvm::GEPOperator>(Load->getPointerOperand());
+psr::getConstGEPFieldAccess(const llvm::Value *PtrOperand) {
+  const auto *GEP = llvm::dyn_cast<llvm::GEPOperator>(PtrOperand);
   if (!GEP || GEP->getNumOperands() < 3 || !GEP->hasAllConstantIndices()) {
     return std::nullopt;
   }
@@ -69,6 +63,17 @@ psr::getStructVCallInfo(const llvm::CallBase *CallSite) {
   }
   return {{GEP->getPointerOperand(), std::move(Indices),
            GEP->getSourceElementType()}};
+}
+
+std::optional<std::tuple<const llvm::Value *, llvm::SmallVector<uint64_t, 3>,
+                         llvm::Type *>>
+psr::getStructVCallInfo(const llvm::CallBase *CallSite) {
+  const auto *Load =
+      llvm::dyn_cast<llvm::LoadInst>(CallSite->getCalledOperand());
+  if (!Load) {
+    return std::nullopt;
+  }
+  return getConstGEPFieldAccess(Load->getPointerOperand());
 }
 
 bool psr::isConsistentCall(const llvm::CallBase *CallSite,

@@ -33,10 +33,16 @@ getVFTIndex(const llvm::CallBase *CallSite);
 [[nodiscard]] std::optional<std::pair<const llvm::Value *, uint64_t>>
 getVFTIndexAndVT(const llvm::CallBase *CallSite);
 
-/// Detects the pattern \c call(load(GEP(base, const_indices...))) with a
-/// typed (>=3-operand) GEP, i.e. an indirect call through a struct function
-/// pointer field. Distinct from the 2-operand raw-pointer C++ vptr case
-/// handled by \c getVFTIndexAndVT.
+/// A GEP with >= 3 operands and all-constant indices, i.e. a typed
+/// struct-field access. Returns \c {base_ptr, all_GEP_indices,
+/// gep_source_elem_ty}, or \c std::nullopt if \p PtrOperand doesn't match.
+[[nodiscard]] std::optional<std::tuple<
+    const llvm::Value *, llvm::SmallVector<uint64_t, 3>, llvm::Type *>>
+getConstGEPFieldAccess(const llvm::Value *PtrOperand);
+
+/// Detects the pattern \c call(load(GEP(base, const_indices...))), i.e. an
+/// indirect call through a struct function pointer field. Distinct from the
+/// 2-operand raw-pointer C++ vptr case handled by \c getVFTIndexAndVT.
 ///
 /// Returns \c {base_ptr, all_GEP_indices, gep_source_elem_ty} on match,
 /// or \c std::nullopt otherwise.

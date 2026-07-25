@@ -16,6 +16,11 @@ set(lca_files
   dynamic_01.cpp
   factory_01.c
   factory_02.c
+  andersen_otf_fnptr_table_basic.c
+  andersen_otf_fnptr_table_two_sites.c
+  andersen_otf_fnptr_table_dynamic_index.c
+  andersen_otf_fnptr_table_indirect_value.c
+  andersen_otf_fnptr_table_memcpy.c
   global_01.cpp
   inter_dynamic_01.cpp
   inter_dynamic_02.cpp
