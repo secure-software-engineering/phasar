@@ -124,7 +124,7 @@ constexpr llvm::StringRef EntryNames[] = {"main"};
 /// the domain and are not subject to the precision check.
 void doAnalysisAndCheckExact(
     const llvm::Twine &IRFile, const GTMap &ExpectedResults,
-    bool DumpResults = false,
+    ContextSensitivityOptions CSOpts = {}, bool DumpResults = false,
     std::source_location Loc = std::source_location::current()) {
 
   auto IRDB = LLVMProjectIRDB::loadOrExit(PathToLLFiles + IRFile);
@@ -141,7 +141,8 @@ void doAnalysisAndCheckExact(
   }
 
   ValueCompressor<PAGVariable> Compressor;
-  AndersenOTFResult Results = computeAndersenOTFRaw(IRDB, Entries, &Compressor);
+  AndersenOTFResult Results = computeAndersenOTFRaw(
+      IRDB, Entries, &Compressor, Soundness::Soundy, std::move(CSOpts));
 
   // Build domain from all values explicitly named in the GT.
   llvm::SmallDenseSet<ValueId, 16> Domain;
@@ -189,6 +190,22 @@ void doAnalysisAndCheckExact(
   if (DumpResults || ::testing::Test::HasFailure()) {
     dumpAnalysisState(Compressor, Results);
   }
+}
+
+using CSMode = ContextSensitivityOptions::Mode;
+
+ContextSensitivityOptions csOpts(CSMode Mode,
+                                 std::vector<std::string> Allow = {},
+                                 std::vector<std::string> Deny = {},
+                                 size_t Budget = 200000,
+                                 unsigned MaxContextsPerFunction = 8) {
+  ContextSensitivityOptions Opts;
+  Opts.SelectionMode = Mode;
+  Opts.AllowList = std::move(Allow);
+  Opts.DenyList = std::move(Deny);
+  Opts.MaxContextualNodes = Budget;
+  Opts.MaxContextsPerFunction = MaxContextsPerFunction;
+  return Opts;
 }
 
 // ---- Tests ----------------------------------------------------------------
@@ -263,6 +280,190 @@ TEST(AndersenOTFAATest, ContextInsensitiveCallsMerge) {
       {Call2, {Arg, Ret, Call1, Call2}},
   };
   doAnalysisAndCheckExact("context_01_c_dbg.ll", ExpectedResults);
+}
+
+TEST(AndersenOTFAATest, ContextSensitiveCallsStaySeparate) {
+  // Same fixture as ContextInsensitiveCallsMerge, with context-sensitivity on:
+  // each call site keeps its own clone of id's parameter/return nodes, so the
+  // two call results no longer alias each other.  The parameter and return
+  // slot themselves are the union over both contexts -- the external result
+  // has one id per PAGVariable, not one per context.
+  const TSL Arg = TSL(ArgInFun{.Idx = 0, .InFunction = "id"});
+  const TSL Ret = TSL(RetVal{.InFunction = "id"});
+  const TSL Call1 = TSL(LineColFunOp{.Line = 8,
+                                     .Col = 0,
+                                     .InFunction = "main",
+                                     .OpCode = llvm::Instruction::Call});
+  const TSL Call2 = TSL(LineColFunOp{.Line = 9,
+                                     .Col = 0,
+                                     .InFunction = "main",
+                                     .OpCode = llvm::Instruction::Call});
+  const GTMap ExpectedResults = {
+      {Arg, {Arg, Ret, Call1, Call2}},
+      {Ret, {Arg, Ret, Call1, Call2}},
+      {Call1, {Arg, Ret, Call1}},
+      {Call2, {Arg, Ret, Call2}},
+  };
+  doAnalysisAndCheckExact("context_01_c_dbg.ll", ExpectedResults,
+                          csOpts(CSMode::All));
+}
+
+TEST(AndersenOTFAATest, ReturnedParamSelectsDynamically) {
+  // context_01: id(p) returns p.  Only one pointer parameter and no indirect
+  // call, so id qualifies purely through "a param-derived value escapes via
+  // the return" -- the signal that generalizes beyond the end(p, q) shape.
+  const TSL Arg = TSL(ArgInFun{.Idx = 0, .InFunction = "id"});
+  const TSL Ret = TSL(RetVal{.InFunction = "id"});
+  const TSL Call1 = TSL(LineColFunOp{.Line = 8,
+                                     .Col = 0,
+                                     .InFunction = "main",
+                                     .OpCode = llvm::Instruction::Call});
+  const TSL Call2 = TSL(LineColFunOp{.Line = 9,
+                                     .Col = 0,
+                                     .InFunction = "main",
+                                     .OpCode = llvm::Instruction::Call});
+  const GTMap ExpectedResults = {
+      {Call1, {Arg, Ret, Call1}},
+      {Call2, {Arg, Ret, Call2}},
+  };
+  doAnalysisAndCheckExact("context_01_c_dbg.ll", ExpectedResults,
+                          csOpts(CSMode::Dynamic));
+}
+
+TEST(AndersenOTFAATest, ContextBudgetZeroMatchesInsensitive) {
+  // A budget of zero admits no function, so Mode::All degrades gracefully to
+  // exactly the context-insensitive result.
+  const TSL Arg = TSL(ArgInFun{.Idx = 0, .InFunction = "id"});
+  const TSL Ret = TSL(RetVal{.InFunction = "id"});
+  const TSL Call1 = TSL(LineColFunOp{.Line = 8,
+                                     .Col = 0,
+                                     .InFunction = "main",
+                                     .OpCode = llvm::Instruction::Call});
+  const TSL Call2 = TSL(LineColFunOp{.Line = 9,
+                                     .Col = 0,
+                                     .InFunction = "main",
+                                     .OpCode = llvm::Instruction::Call});
+  const GTMap ExpectedResults = {
+      {Arg, {Arg, Ret, Call1, Call2}},
+      {Ret, {Arg, Ret, Call1, Call2}},
+      {Call1, {Arg, Ret, Call1, Call2}},
+      {Call2, {Arg, Ret, Call1, Call2}},
+  };
+  doAnalysisAndCheckExact("context_01_c_dbg.ll", ExpectedResults,
+                          csOpts(CSMode::All, {}, {}, /*Budget=*/0));
+}
+
+TEST(AndersenOTFAATest, ContextManualAllowListSelectsOneFunction) {
+  // Only 'id' is allow-listed, so it gets per-call-site clones.
+  const TSL Arg = TSL(ArgInFun{.Idx = 0, .InFunction = "id"});
+  const TSL Call1 = TSL(LineColFunOp{.Line = 8,
+                                     .Col = 0,
+                                     .InFunction = "main",
+                                     .OpCode = llvm::Instruction::Call});
+  const TSL Call2 = TSL(LineColFunOp{.Line = 9,
+                                     .Col = 0,
+                                     .InFunction = "main",
+                                     .OpCode = llvm::Instruction::Call});
+  const GTMap Expected = {{Call1, {Arg, Call1}}, {Call2, {Arg, Call2}}};
+  doAnalysisAndCheckExact("context_01_c_dbg.ll", Expected,
+                          csOpts(CSMode::Manual, {"id"}));
+}
+
+TEST(AndersenOTFAATest, ContextDenyListOverridesAllowList) {
+  // 'id' is on both lists; deny wins, so the result stays insensitive.
+  const TSL Arg = TSL(ArgInFun{.Idx = 0, .InFunction = "id"});
+  const TSL Call1 = TSL(LineColFunOp{.Line = 8,
+                                     .Col = 0,
+                                     .InFunction = "main",
+                                     .OpCode = llvm::Instruction::Call});
+  const TSL Call2 = TSL(LineColFunOp{.Line = 9,
+                                     .Col = 0,
+                                     .InFunction = "main",
+                                     .OpCode = llvm::Instruction::Call});
+  const GTMap Expected = {{Call1, {Arg, Call1, Call2}},
+                          {Call2, {Arg, Call1, Call2}}};
+  doAnalysisAndCheckExact("context_01_c_dbg.ll", Expected,
+                          csOpts(CSMode::Manual, {"id"}, {"id"}));
+}
+
+// context_15: end(&O1, &x) and end(&O2, &y); end dispatches through a
+// function-pointer field of its first parameter.
+static GTMap endPatternGT(bool Separate) {
+  const TSL XX = TSL(LineColFunOp{.Line = 22,
+                                  .Col = 0,
+                                  .InFunction = "main",
+                                  .OpCode = llvm::Instruction::Call});
+  const TSL YY = TSL(LineColFunOp{.Line = 23,
+                                  .Col = 0,
+                                  .InFunction = "main",
+                                  .OpCode = llvm::Instruction::Call});
+  if (Separate) {
+    return {{XX, {XX}}, {YY, {YY}}};
+  }
+  return {{XX, {XX, YY}}, {YY, {XX, YY}}};
+}
+
+TEST(AndersenOTFAATest, EndPatternMergesWithoutContexts) {
+  // Baseline: both call results alias, because end's formals are shared.
+  doAnalysisAndCheckExact("context_15_c_dbg.ll", endPatternGT(false));
+}
+
+TEST(AndersenOTFAATest, EndPatternSeparatedByDynamicSelection) {
+  // The dispatch inside end resolves to two targets, which promotes end (and
+  // its two targets) mid-solve; afterwards the call results stay separate.
+  doAnalysisAndCheckExact("context_15_c_dbg.ll", endPatternGT(true),
+                          csOpts(CSMode::Dynamic));
+}
+
+TEST(AndersenOTFAATest, EndPatternSeparatedByAllMode) {
+  doAnalysisAndCheckExact("context_15_c_dbg.ll", endPatternGT(true),
+                          csOpts(CSMode::All));
+}
+
+TEST(AndersenOTFAATest, MutualRecursionTerminatesWithContexts) {
+  // context_17: ping/pong recurse into each other from two call sites.  The
+  // k = 1 call string is bounded, so the solver must still converge -- and
+  // must not lose the sound arg/ret alias inside the recursion.
+  const TSL PingArg = TSL(ArgInFun{.Idx = 0, .InFunction = "ping"});
+  const TSL PingRet = TSL(RetVal{.InFunction = "ping"});
+  const GTMap Expected = {{PingRet, {PingArg, PingRet}}};
+  doAnalysisAndCheckExact("context_17_c_dbg.ll", Expected, csOpts(CSMode::All));
+}
+
+TEST(AndersenOTFAATest, SharedTableHelperNoCrossContextContamination) {
+  // context_16: make() allocates and fills a dispatch table, called from two
+  // sites with different callees.  With context cloning, each call site's
+  // table is its own object with its own FnPtrFieldWrites entry.
+  auto IRDB =
+      LLVMProjectIRDB::loadOrExit(PathToLLFiles + "context_16_c_dbg.ll");
+  const auto *MainFn = IRDB.getFunctionDefinition("main");
+  const auto *Red = IRDB.getFunctionDefinition("red");
+  const auto *Blue = IRDB.getFunctionDefinition("blue");
+  ASSERT_NE(MainFn, nullptr);
+  ASSERT_NE(Red, nullptr);
+  ASSERT_NE(Blue, nullptr);
+
+  llvm::SmallVector<const llvm::CallBase *, 2> IndirectCalls;
+  for (const auto &Inst : llvm::instructions(MainFn)) {
+    const auto *CallSite = llvm::dyn_cast<llvm::CallBase>(&Inst);
+    if (CallSite && !CallSite->isDebugOrPseudoInst() &&
+        !llvm::isa<llvm::Function>(
+            CallSite->getCalledOperand()->stripPointerCastsAndAliases())) {
+      IndirectCalls.push_back(CallSite);
+    }
+  }
+  ASSERT_EQ(IndirectCalls.size(), 2U);
+
+  auto Res = computeAndersenOTFRaw(IRDB, {MainFn}, nullptr, Soundness::Soundy,
+                                   csOpts(CSMode::All));
+
+  const auto &CalleesA = Res.CG.getCalleesOfCallAt(IndirectCalls[0]);
+  EXPECT_TRUE(llvm::is_contained(CalleesA, Red));
+  EXPECT_FALSE(llvm::is_contained(CalleesA, Blue));
+
+  const auto &CalleesB = Res.CG.getCalleesOfCallAt(IndirectCalls[1]);
+  EXPECT_TRUE(llvm::is_contained(CalleesB, Blue));
+  EXPECT_FALSE(llvm::is_contained(CalleesB, Red));
 }
 
 TEST(AndersenOTFAATest, SeparateFunctionsDontAlias) {
@@ -902,6 +1103,46 @@ TEST(AndersenOTFAATest, TwoArgSecondRetFourCallSites) {
   YAliases.push_back(YAlloca);
   ExpectedResults[YAlloca] = YAliases;
   doAnalysisAndCheckExact("context_12_0_c_dbg.ll", ExpectedResults);
+}
+
+TEST(AndersenOTFAATest, MergingFormalsAloneSelectsDynamically) {
+  // Same fixture, context-sensitive.  argretq has no indirect call at all, so
+  // it qualifies only through "several call sites + several pointer
+  // parameters". Each call site now returns exactly its own second argument.
+  const auto MkCall = [](uint32_t Line) {
+    return TSL(LineColFunOp{.Line = Line,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Call});
+  };
+  // Lines 8/9 pass &x as the returned argument, lines 10/11 pass &y.
+  const GTMap ExpectedResults = {
+      {MkCall(8), {MkCall(8), MkCall(9)}},
+      {MkCall(9), {MkCall(8), MkCall(9)}},
+      {MkCall(10), {MkCall(10), MkCall(11)}},
+      {MkCall(11), {MkCall(10), MkCall(11)}},
+  };
+  doAnalysisAndCheckExact("context_12_0_c_dbg.ll", ExpectedResults,
+                          csOpts(CSMode::Dynamic));
+}
+
+TEST(AndersenOTFAATest, PerFunctionContextCapDegradesGracefully) {
+  // Same fixture with room for only two of argretq's four call sites.  The
+  // first two keep their own contexts; the rest fall back to the shared root
+  // context and merge, exactly as the context-insensitive solver would.
+  const auto MkCall = [](uint32_t Line) {
+    return TSL(LineColFunOp{.Line = Line,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Call});
+  };
+  const GTMap ExpectedResults = {
+      {MkCall(10), {MkCall(10), MkCall(11)}},
+      {MkCall(11), {MkCall(10), MkCall(11)}},
+  };
+  doAnalysisAndCheckExact("context_12_0_c_dbg.ll", ExpectedResults,
+                          csOpts(CSMode::Dynamic, {}, {}, /*Budget=*/200000,
+                                 /*MaxContextsPerFunction=*/2));
 }
 
 TEST(AndersenOTFAATest, VTableDispatch) {

@@ -48,6 +48,9 @@ set(lca_files
   context_14_0.c
   context_14_1.c
   context_14_2.c
+  context_15.c
+  context_16.c
+  context_17.c
   indirection_01.c
   indirection_02.c
   indirection_03.c

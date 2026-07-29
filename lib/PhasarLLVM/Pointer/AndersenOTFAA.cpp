@@ -18,10 +18,13 @@
 #include "phasar/PhasarLLVM/Utils/LLVMFunctionDataFlowFacts.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/PhasarLLVM/Utils/VirtualCallUtils.h"
+#include "phasar/Pointer/CallingContextConstructor.h"
+#include "phasar/Utils/Compressor.h"
 #include "phasar/Utils/IotaIterator.h"
 #include "phasar/Utils/LibCSummary.h"
 #include "phasar/Utils/LibrarySummary.h"
 #include "phasar/Utils/Soundness.h"
+#include "phasar/Utils/TypedVector.h"
 #include "phasar/Utils/UnionFind.h"
 #include "phasar/Utils/Utilities.h"
 #include "phasar/Utils/ValueCompressor.h"
@@ -45,7 +48,9 @@
 #include "llvm/IR/IntrinsicInst.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
+#include "llvm/Support/GlobPattern.h"
 
+#include <algorithm>
 #include <cassert>
 #include <memory>
 #include <optional>
@@ -79,15 +84,44 @@ private:
   llvm::PointerIntPair<PAGVariable, 1, bool> Base{};
 };
 
+/// A PAG node of a context-sensitively analyzed function: the plain node
+/// identity plus the calling context it belongs to.
+struct ContextualVar {
+  AndersenVar Var;
+  CallingContextId Ctx{};
+
+  friend bool operator==(ContextualVar A, ContextualVar B) noexcept {
+    return A.Var == B.Var && A.Ctx == B.Ctx;
+  }
+
+  friend auto hash_value(ContextualVar V) noexcept {
+    return llvm::hash_combine(hash_value(V.Var), uint32_t(V.Ctx));
+  }
+};
+
+/// An allocation-site object, qualified by the context it was allocated in.
+struct ObjectKey {
+  const llvm::Value *Val = nullptr;
+  CallingContextId Ctx{};
+
+  friend bool operator==(ObjectKey A, ObjectKey B) noexcept {
+    return A.Val == B.Val && A.Ctx == B.Ctx;
+  }
+
+  friend auto hash_value(ObjectKey K) noexcept {
+    return llvm::hash_combine(K.Val, uint32_t(K.Ctx));
+  }
+};
+
 /// Key for FnPtrFieldWrites: an allocation-site object + constant GEP
 /// index sequence.
 struct FieldWriteKey {
-  const llvm::Value *Val = nullptr;
+  ObjectKey Obj;
   llvm::SmallVector<uint64_t, 3> Indices;
 
   friend bool operator==(const FieldWriteKey &A,
                          const FieldWriteKey &B) noexcept {
-    return A.Val == B.Val && A.Indices == B.Indices;
+    return A.Obj == B.Obj && A.Indices == B.Indices;
   }
 };
 } // namespace
@@ -104,22 +138,99 @@ template <> struct DenseMapInfo<AndersenVar> {
   static bool isEqual(AndersenVar A, AndersenVar B) noexcept { return A == B; }
 };
 
-template <> struct DenseMapInfo<FieldWriteKey> {
-  static FieldWriteKey getEmptyKey() noexcept {
+template <> struct DenseMapInfo<ContextualVar> {
+  static ContextualVar getEmptyKey() noexcept {
+    return {DenseMapInfo<AndersenVar>::getEmptyKey(), {}};
+  }
+  static ContextualVar getTombstoneKey() noexcept {
+    return {DenseMapInfo<AndersenVar>::getTombstoneKey(), {}};
+  }
+  static unsigned getHashValue(ContextualVar V) noexcept {
+    return hash_value(V);
+  }
+  static bool isEqual(ContextualVar A, ContextualVar B) noexcept {
+    return A == B;
+  }
+};
+
+template <> struct DenseMapInfo<ObjectKey> {
+  static ObjectKey getEmptyKey() noexcept {
     return {DenseMapInfo<const Value *>::getEmptyKey(), {}};
   }
-  static FieldWriteKey getTombstoneKey() noexcept {
+  static ObjectKey getTombstoneKey() noexcept {
     return {DenseMapInfo<const Value *>::getTombstoneKey(), {}};
+  }
+  static unsigned getHashValue(ObjectKey K) noexcept { return hash_value(K); }
+  static bool isEqual(ObjectKey A, ObjectKey B) noexcept { return A == B; }
+};
+
+template <> struct DenseMapInfo<FieldWriteKey> {
+  static FieldWriteKey getEmptyKey() noexcept {
+    return {DenseMapInfo<ObjectKey>::getEmptyKey(), {}};
+  }
+  static FieldWriteKey getTombstoneKey() noexcept {
+    return {DenseMapInfo<ObjectKey>::getTombstoneKey(), {}};
   }
   static unsigned getHashValue(const FieldWriteKey &K) noexcept {
     auto H1 = llvm::hash_combine_range(K.Indices.begin(), K.Indices.end());
-    return llvm::hash_combine(H1, K.Val);
+    return llvm::hash_combine(H1, hash_value(K.Obj));
   }
   static bool isEqual(const FieldWriteKey &A, const FieldWriteKey &B) noexcept {
     return A == B;
   }
 };
 } // namespace llvm
+
+namespace {
+/// The k-limited call-string used as calling context; k is fixed at 1.
+using CallCtx = CallingContext<const llvm::CallBase *, 1>;
+
+/// A function analyzed under one particular calling context.
+using FuncCtx = std::pair<const llvm::Function *, CallingContextId>;
+
+/// Interning table for the PAG nodes of context-sensitively analyzed
+/// functions.  Node ids are *not* allocated here but carved out of the
+/// solver's shared ValueId space, so points-to sets, assignment edges and the
+/// union-find stay single-typed and never learn about contexts.
+///
+/// Stays empty -- and costs nothing -- while context-sensitivity is off.
+class ContextualNodeTable {
+public:
+  /// Id of \p CV, allocating a fresh one via \p AllocId on first use.
+  ValueId getOrInsert(ContextualVar CV, auto &&AllocId) {
+    auto [It, Inserted] = Var2Id.try_emplace(CV, ValueId{});
+    if (Inserted) {
+      It->second = AllocId();
+      recordVar(It->second, CV);
+    }
+    return It->second;
+  }
+
+  /// Registers \p CV as an additional name for the existing node \p Id.
+  void addAlias(ContextualVar CV, ValueId Id) {
+    if (Var2Id.try_emplace(CV, Id).second) {
+      recordVar(Id, CV);
+    }
+  }
+
+  /// All context-qualified names of node \p Id; empty for plain nodes.
+  [[nodiscard]] llvm::ArrayRef<ContextualVar> vars(ValueId Id) const noexcept {
+    return Id2Vars.inbounds(Id) ? llvm::ArrayRef<ContextualVar>(Id2Vars[Id])
+                                : llvm::ArrayRef<ContextualVar>{};
+  }
+
+private:
+  void recordVar(ValueId Id, ContextualVar CV) {
+    if (!Id2Vars.inbounds(Id)) {
+      Id2Vars.resize(size_t(Id) + 1);
+    }
+    Id2Vars[Id].push_back(CV);
+  }
+
+  llvm::DenseMap<ContextualVar, ValueId> Var2Id;
+  TypedVector<ValueId, llvm::SmallVector<ContextualVar, 1>> Id2Vars;
+};
+} // namespace
 
 struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
   // ---- Per-node state -------------------------------------------------
@@ -152,6 +263,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     ValueId FPId;
     ArgList Args;
     std::optional<ValueId> CSRetVal;
+    CallingContextId Ctx; // context of the calling function
   };
 
   struct VCallRecord {
@@ -160,6 +272,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     uint64_t VtableIndex;
     ArgList Args;
     std::optional<ValueId> CSRetVal;
+    CallingContextId Ctx;
   };
 
   struct StructVCallRecord {
@@ -170,6 +283,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     llvm::Type *GEPElemTy; // GEP source element type (for type check)
     ArgList Args;
     std::optional<ValueId> CSRetVal;
+    CallingContextId Ctx;
   };
 
   struct QualifyingFieldWriteRecord {
@@ -205,9 +319,9 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
       MemSSACache;
   llvm::MemorySSA *CurrentMemSSA = nullptr;
 
-  llvm::SmallVector<const llvm::Function *, 8> FunctionWorklist;
-  llvm::DenseSet<const llvm::Function *> Queued; // ever pushed to worklist
-  llvm::DenseSet<const llvm::Function *> Processed;
+  llvm::SmallVector<FuncCtx, 8> FunctionWorklist;
+  llvm::DenseSet<FuncCtx> Queued; // ever pushed to worklist
+  llvm::DenseSet<FuncCtx> Processed;
 
   UnionFind<ValueId> SCCUf;
   TypedVector<ValueId, NodeInfo> Nodes;
@@ -224,34 +338,64 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
   llvm::DenseMap<FieldWriteKey, FieldWriteInfo> FnPtrFieldWrites;
   // Reverse index: all Indices tracked for a given object, so a memcpy can
   // enumerate "every known field" of its source object (see CopyForward).
-  llvm::DenseMap<const llvm::Value *,
+  llvm::DenseMap<ObjectKey,
                  llvm::SmallVector<llvm::SmallVector<uint64_t, 3>, 2>>
       FieldsByObject;
   // Objects with an untrusted write; FnPtrFieldWrites is ignored for these.
-  llvm::DenseSet<const llvm::Value *> ImpureObjects;
+  llvm::DenseSet<ObjectKey> ImpureObjects;
   llvm::SmallVector<ValueId> UnresolvedPoisenFieldWrites;
   llvm::SmallVector<QualifyingFieldWriteRecord> UnresolvedQualFieldWrites;
   llvm::SmallVector<CopyForwardFieldWriteRecord> UnresolvedCopyFieldWrites;
-  llvm::DenseMap<const llvm::CallBase *, llvm::SmallDenseSet<ValueId, 4>>
+  // Per (call-site, caller-context): the (callee node, callee context) pairs
+  // already wired up.  One call site reached from several contexts must bind
+  // its actuals once per context, hence the context in both key and value.
+  llvm::DenseMap<std::pair<const llvm::CallBase *, CallingContextId>,
+                 llvm::SmallDenseSet<uint64_t, 4>>
       ConnectedCallees;
   CallGraphBuilder<const llvm::Instruction *, const llvm::Function *> CGBuilder;
   llvm::SmallVector<ValueId, 64> PropWorklist;
+
+  // ---- Context-sensitivity --------------------------------------------
+
+  ContextSensitivityOptions CSOpts;
+  llvm::SmallVector<llvm::GlobPattern, 0> AllowPatterns;
+  llvm::SmallVector<llvm::GlobPattern, 0> DenyPatterns;
+  Compressor<CallCtx, CallingContextId> Contexts;
+  ContextualNodeTable CtxNodes;
+  llvm::DenseMap<const llvm::Function *, bool> SelectedCache;
+  llvm::DenseMap<const llvm::Function *, unsigned> CallSiteCounts;
+  // Contexts already instantiated per selected function; see calleeContext().
+  llvm::DenseMap<const llvm::Function *,
+                 llvm::SmallDenseSet<CallingContextId, 4>>
+      ContextsPerFn;
+  size_t NumContextualNodes = 0;
+  bool BudgetExhausted = false;
+  // The function/context currently being translated by processFunction().
+  const llvm::Function *CurFunc = nullptr;
+  CallingContextId CurCtx = CallingContextId::None;
 
   // ---- Constructor ----------------------------------------------------
 
   SolverData(const LLVMProjectIRDB &IRDB,
              llvm::ArrayRef<const llvm::Function *> Entries,
-             ValueCompressor<PAGVariable> &VC, Soundness S)
+             ValueCompressor<PAGVariable> &VC, Soundness S,
+             ContextSensitivityOptions CSOpts)
       : IRDB(IRDB), DL(IRDB.getModule()->getDataLayout()), ExternalVC(VC),
-        SoundnessFlag(S), LibFacts(library_summary::readFromFDFF(
-                              getLibCSummary(), [&IRDB](llvm::StringRef Name) {
-                                return IRDB.getFunction(Name);
-                              })) {
+        SoundnessFlag(S),
+        LibFacts(library_summary::readFromFDFF(
+            getLibCSummary(),
+            [&IRDB](llvm::StringRef Name) { return IRDB.getFunction(Name); })),
+        CSOpts(std::move(CSOpts)) {
+
+    // Id 0 == CallingContextId::None is the root (context-insensitive) context.
+    std::ignore = Contexts.getOrInsert(CallCtx{});
+    AllowPatterns = compileGlobs(this->CSOpts.AllowList);
+    DenyPatterns = compileGlobs(this->CSOpts.DenyList);
 
     CGBuilder.reserve(IRDB.getNumFunctions());
     for (const auto *F : Entries) {
-      if (Queued.insert(F).second) {
-        FunctionWorklist.push_back(F);
+      if (Queued.insert({F, CallingContextId::None}).second) {
+        FunctionWorklist.emplace_back(F, CallingContextId::None);
 
         // entry functions may be missed in the CG, if they are never called
         // explicitly in the code
@@ -271,6 +415,20 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     }
   }
 
+  static llvm::SmallVector<llvm::GlobPattern, 0>
+  compileGlobs(llvm::ArrayRef<std::string> Patterns) {
+    llvm::SmallVector<llvm::GlobPattern, 0> Ret;
+    Ret.reserve(Patterns.size());
+    for (const auto &Pat : Patterns) {
+      if (auto Glob = llvm::GlobPattern::create(Pat)) {
+        Ret.push_back(std::move(*Glob));
+      } else {
+        llvm::consumeError(Glob.takeError());
+      }
+    }
+    return Ret;
+  }
+
   // ---- Node growth ----------------------------------------------------
 
   void grow(ValueId V) {
@@ -281,16 +439,52 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     }
   }
 
-  ValueId getOrInsertVar(PAGVariable Var) {
-    auto [Id, _] = LocalVC.insert(AndersenVar{Var, false});
+  // The context a node of \p Var belongs to while translating CurFunc.
+  // Globals, constants and values of other functions always stay in the root
+  // context.
+  [[nodiscard]] CallingContextId contextOf(PAGVariable Var) const noexcept {
+    if (CurCtx == CallingContextId::None) {
+      return CallingContextId::None;
+    }
+    return Var.getFunction() == CurFunc ? CurCtx : CallingContextId::None;
+  }
+
+  ValueId getOrInsertNode(AndersenVar Var, CallingContextId Ctx) {
+    const ValueId Id =
+        Ctx == CallingContextId::None
+            ? LocalVC.insert(Var).first
+            : CtxNodes.getOrInsert({.Var = Var, .Ctx = Ctx}, [this] {
+                ++NumContextualNodes;
+                return LocalVC.addDummy();
+              });
     grow(Id);
     return Id;
   }
 
+  ValueId getOrInsertVar(PAGVariable Var) {
+    return getOrInsertNode(AndersenVar{Var, false}, contextOf(Var));
+  }
+  ValueId getOrInsertVar(PAGVariable Var, CallingContextId Ctx) {
+    return getOrInsertNode(AndersenVar{Var, false}, Ctx);
+  }
+
   ValueId getOrInsertObj(PAGVariable Var) {
-    auto [Id, _] = LocalVC.insert(AndersenVar{Var, true});
-    grow(Id);
-    return Id;
+    return getOrInsertNode(AndersenVar{Var, true}, contextOf(Var));
+  }
+  ValueId getOrInsertObj(PAGVariable Var, CallingContextId Ctx) {
+    return getOrInsertNode(AndersenVar{Var, true}, Ctx);
+  }
+
+  // Visits every (base var, context) behind node \p Id.  A single id can carry
+  // both plain and context-qualified names, since addAlias() merges GEP/cast
+  // results into their base pointer's node.
+  void forEachVar(ValueId Id, std::invocable<ContextualVar> auto Fn) const {
+    for (const auto &Var : LocalVC.id2vars(Id)) {
+      std::invoke(Fn, ContextualVar{.Var = Var, .Ctx = {}});
+    }
+    for (const auto &CVar : CtxNodes.vars(Id)) {
+      std::invoke(Fn, CVar);
+    }
   }
 
   // pts(VarId) for global objects: functions self-point (the address IS
@@ -601,8 +795,12 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     return *Bundle;
   }
 
-  void processFunction(const llvm::Function *F) {
+  // Translates F's body once per calling context: nodes created here are
+  // qualified by Ctx (see contextOf).
+  void processFunction(const llvm::Function *F, CallingContextId Ctx) {
     CurrentMemSSA = &getOrCreateMemSSA(F).MSSA;
+    CurFunc = F;
+    CurCtx = Ctx;
     for (const auto &Arg : F->args()) {
       if (!definitelyContainsNoPointer(&Arg)) {
         (void)getOrInsertVar(PAGVariable(&Arg));
@@ -611,11 +809,23 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     for (const auto &I : llvm::instructions(F)) {
       processInstruction(I);
     }
+    CurFunc = nullptr;
+    CurCtx = CallingContextId::None;
   }
 
   void addPtrAlias(const llvm::Value *V, const llvm::Value *Src) {
+    const AndersenVar Var{PAGVariable(V), false};
+    // The context is loop-invariant, so branch on it before iterating.
+    if (const auto Ctx = contextOf(PAGVariable(V));
+        Ctx != CallingContextId::None) {
+      forEachOpId(Src, [&](ValueId OpId) {
+        CtxNodes.addAlias({.Var = Var, .Ctx = Ctx}, OpId);
+        grow(OpId);
+      });
+      return;
+    }
     forEachOpId(Src, [&](ValueId OpId) {
-      LocalVC.addAlias(AndersenVar{PAGVariable(V), false}, OpId);
+      LocalVC.addAlias(Var, OpId);
       grow(OpId);
     });
   }
@@ -826,12 +1036,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
   // on the freshly allocated pointer (or a call to another classified
   // wrapper); if it returns true, giving each call SITE its own fresh
   // object would silently disconnect that escaping use from the object it
-  // actually observes/mutates.  This is exactly what went wrong for
-  // create_context() in the spec-mesa benchmark: it passes the freshly
-  // allocated pointer to init_api_function(), which stores function
-  // pointers into its fields -- writes that a synthetic per-call-site
-  // object would never see, so every field read after the call site
-  // spuriously came back empty.
+  // actually observes/mutates.
   bool hasEscapingUse(const llvm::Value *V,
                       llvm::SmallPtrSetImpl<const llvm::Value *> &Visited) {
     if (!Visited.insert(V).second) {
@@ -1004,14 +1209,16 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
           if (!Nodes.inbounds(ObjId)) {
             return false;
           }
-          for (const auto &Var : LocalVC.id2vars(ObjId)) {
+          forEachVar(ObjId, [&](ContextualVar CVar) {
             const auto *Fun = llvm::dyn_cast_or_null<llvm::Function>(
-                Var.getBase().valueOrNull());
-            if (Fun && !Fun->isDeclaration() && Queued.insert(Fun).second) {
-              FunctionWorklist.push_back(Fun);
+                CVar.Var.getBase().valueOrNull());
+            // Callbacks have no known caller, so they run in the root context.
+            if (Fun && !Fun->isDeclaration() &&
+                Queued.insert({Fun, CallingContextId::None}).second) {
+              FunctionWorklist.emplace_back(Fun, CallingContextId::None);
               std::ignore = CGBuilder.addFunctionVertex(Fun);
             }
-          }
+          });
           return true;
         });
       }
@@ -1053,11 +1260,254 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     }
   }
 
+  // ---- Selection ------------------------------------------------------
+
+  static bool matchesAny(llvm::ArrayRef<llvm::GlobPattern> Patterns,
+                         llvm::StringRef Name) {
+    return llvm::any_of(Patterns,
+                        [&](const auto &Glob) { return Glob.match(Name); });
+  }
+
+  // Sticky once tripped, so selection can't oscillate mid-solve.
+  bool budgetExhausted() {
+    BudgetExhausted =
+        BudgetExhausted || NumContextualNodes >= CSOpts.MaxContextualNodes;
+    return BudgetExhausted;
+  }
+
+  // Whether Fun's PAG nodes are cloned per calling context.  Decided on first
+  // query and cached: selection must never change once nodes have been wired,
+  // since this solver has no way to retract an edge or shrink a pts-set.
+  [[nodiscard]] bool isSelected(const llvm::Function *Fun) {
+    if (CSOpts.isOff() || Fun->isDeclaration()) {
+      return false;
+    }
+    auto [It, Inserted] = SelectedCache.try_emplace(Fun, false);
+    if (Inserted) {
+      It->second = computeIsSelected(Fun);
+    }
+    return It->second;
+  }
+
+  bool computeIsSelected(const llvm::Function *Fun) {
+    const llvm::StringRef Name = Fun->getName();
+    if (matchesAny(DenyPatterns, Name)) {
+      return false;
+    }
+    if (matchesAny(AllowPatterns, Name)) {
+      return true;
+    }
+    switch (CSOpts.SelectionMode) {
+    case ContextSensitivityOptions::Mode::All:
+      return !budgetExhausted();
+    case ContextSensitivityOptions::Mode::Dynamic: {
+      // Cheapest tests first; only paramsEscapeOrDispatch scans the body.
+      if (budgetExhausted() || !hasMultipleCallSites(Fun)) {
+        return false;
+      }
+      const size_t Size = Fun->getInstructionCount();
+      if (Size > CSOpts.MaxContextualFunctionSize) {
+        return false;
+      }
+      if (paramsEscapeOrDispatch(Fun)) {
+        return true;
+      }
+      // Nothing a caller passed in ever leaves again, so merging the callers
+      // can only make the formals spuriously alias *within* the body. That
+      // is real but far weaker and far more common, so only pay for it where a
+      // clone is nearly free.
+      return Size <= CSOpts.MaxLocalMergeFunctionSize &&
+             hasMultiplePointerParams(Fun);
+    }
+    default:
+      return false;
+    }
+  }
+
+  // Once every caller is merged into one set of formals, several pointer
+  // parameters become mutually may-alias inside the body even though no
+  // single caller ever passed aliasing arguments -- the spec-mesa end(p, q)
+  // case, which nothing escapes, so paramsEscapeOrDispatch misses it.
+  [[nodiscard]] static bool
+  hasMultiplePointerParams(const llvm::Function *Fun) {
+    unsigned NumPtrParams = 0;
+    for (const auto &Param : Fun->args()) {
+      if (!definitelyContainsNoPointer(&Param) && ++NumPtrParams == 2) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Cheap over-approximation: several direct call sites, or address-taken.
+  [[nodiscard]] bool hasMultipleCallSites(const llvm::Function *Fun) {
+    auto [It, Inserted] = CallSiteCounts.try_emplace(Fun, 0);
+    if (Inserted) {
+      for (const auto *User : Fun->users()) {
+        const auto *CS = llvm::dyn_cast<llvm::CallBase>(User);
+        if (!CS || CS->getCalledOperand() != Fun) {
+          It->second = 2; // address-taken: reachable from unknown call sites
+          break;
+        }
+        if (++It->second >= 2) {
+          break;
+        }
+      }
+    }
+    return It->second >= 2;
+  }
+
+  // Scratch state for one function's worth of isParamDerived queries.
+  // OnPath breaks cycles within a single query; NotDerived memoizes completed
+  // negative answers across queries, which is what keeps the whole scan
+  // linear in the function size.
+  struct ParamDerivedCache {
+    llvm::SmallPtrSet<const llvm::Value *, 16> OnPath;
+    llvm::SmallPtrSet<const llvm::Value *, 32> NotDerived;
+  };
+
+  // Whether Val is derived from one of Fun's parameters.  Walks def-use
+  // chains backwards; on reaching a local alloca it continues through the
+  // values stored into it, which covers parameters spilled to the stack.
+  //
+  // May under-approximate through loop-carried cycles (a negative answer
+  // reached via a cut back-edge is still memoized).  This only gates
+  // selection, so a missed one costs precision, never soundness.
+  bool isParamDerived(const llvm::Value *Val, const llvm::Function *Fun,
+                      ParamDerivedCache &Cache) {
+    Val = Val->stripPointerCastsAndAliases();
+    if (Cache.NotDerived.contains(Val) || !Cache.OnPath.insert(Val).second) {
+      return false;
+    }
+    const bool Derived = computeIsParamDerived(Val, Fun, Cache);
+    Cache.OnPath.erase(Val);
+    if (!Derived) {
+      Cache.NotDerived.insert(Val);
+    }
+    return Derived;
+  }
+
+  bool computeIsParamDerived(const llvm::Value *Val, const llvm::Function *Fun,
+                             ParamDerivedCache &Cache) {
+    if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(Val)) {
+      return Arg->getParent() == Fun;
+    }
+    if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Val)) {
+      return llvm::any_of(Alloca->users(), [&](const llvm::User *User) {
+        const auto *Store = llvm::dyn_cast<llvm::StoreInst>(User);
+        return Store && Store->getPointerOperand() == Alloca &&
+               isParamDerived(Store->getValueOperand(), Fun, Cache);
+      });
+    }
+    if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Val)) {
+      return isParamDerived(Load->getPointerOperand(), Fun, Cache);
+    }
+    if (const auto *GEP = llvm::dyn_cast<llvm::GetElementPtrInst>(Val)) {
+      return isParamDerived(GEP->getPointerOperand(), Fun, Cache);
+    }
+    if (llvm::isa<llvm::PHINode, llvm::SelectInst>(Val)) {
+      const auto *Inst = llvm::cast<llvm::Instruction>(Val);
+      return llvm::any_of(Inst->operand_values(), [&](const llvm::Value *Op) {
+        return !Op->getType()->isVoidTy() && isParamDerived(Op, Fun, Cache);
+      });
+    }
+    return false;
+  }
+
+  // The generalizing signal: does anything a caller passed in *leave* Fun
+  // again?  If not, merging Fun's callers cannot pollute anything outside its
+  // body.  These are the syntactic counterparts of the precision-loss
+  // patterns Zipper identifies (Li, Tan, Xue, OOPSLA 2018):
+  //
+  //   1. a param-derived value is returned      -> pollutes callers
+  //   2. it is stored somewhere callers can see -> pollutes the heap
+  //   3. it is the callee of an indirect call   -> pollutes the call graph
+  //
+  // One pass with one shared cache, so the whole test is linear in |Fun|.
+  //
+  // Deciding this syntactically, before anything is wired, is what makes the
+  // choice usable: observing the same imprecision from the solver's own state
+  // would come too late, because the merged facts have already propagated out
+  // through the shared formals and cannot be taken back.
+  bool paramsEscapeOrDispatch(const llvm::Function *Fun) {
+    ParamDerivedCache Cache;
+    for (const auto &Inst : llvm::instructions(Fun)) {
+      if (const auto *Ret = llvm::dyn_cast<llvm::ReturnInst>(&Inst)) {
+        const auto *Val = Ret->getReturnValue();
+        if (Val && !definitelyContainsNoPointer(Val) &&
+            isParamDerived(Val, Fun, Cache)) {
+          return true;
+        }
+        continue;
+      }
+      if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(&Inst)) {
+        const auto *Val = Store->getValueOperand();
+        if (definitelyContainsNoPointer(Val) ||
+            !isParamDerived(Val, Fun, Cache)) {
+          continue;
+        }
+        // A store into a local alloca stays inside Fun; only stores through a
+        // global or a param-derived pointer are visible to the caller.
+        const auto *Ptr =
+            Store->getPointerOperand()->stripPointerCastsAndAliases();
+        if (llvm::isa<llvm::GlobalValue>(Ptr) ||
+            isParamDerived(Ptr, Fun, Cache)) {
+          return true;
+        }
+        continue;
+      }
+      const auto *CS = llvm::dyn_cast<llvm::CallBase>(&Inst);
+      if (!CS || CS->isInlineAsm() || CS->isDebugOrPseudoInst()) {
+        continue;
+      }
+      const auto *Callee =
+          CS->getCalledOperand()->stripPointerCastsAndAliases();
+      if (!llvm::isa<llvm::Function>(Callee) &&
+          isParamDerived(Callee, Fun, Cache)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Pushes CS onto CallerCtx; with k = 1 the result depends on CS alone.
+  CallingContextId pushContext(CallingContextId CallerCtx,
+                               const llvm::CallBase *CS) {
+    return Contexts.getOrInsert(Contexts[CallerCtx].withPrefix(CS));
+  }
+
+  // The context the body of Callee runs in for this call.  Once Callee has
+  // been cloned MaxContextsPerFunction times, further call sites fall back to
+  // the shared root context -- sound, just as imprecise as before, and it
+  // keeps one heavily-called function from consuming the whole node budget.
+  CallingContextId calleeContext(const llvm::Function *Callee,
+                                 CallingContextId CallerCtx,
+                                 const llvm::CallBase *CS) {
+    if (!isSelected(Callee)) {
+      return CallingContextId::None;
+    }
+    const CallingContextId Ctx = pushContext(CallerCtx, CS);
+    auto &Seen = ContextsPerFn[Callee];
+    if (Seen.contains(Ctx)) {
+      return Ctx;
+    }
+    if (Seen.size() >= CSOpts.MaxContextsPerFunction) {
+      return CallingContextId::None;
+    }
+    Seen.insert(Ctx);
+    return Ctx;
+  }
+
   bool connectCallee(const llvm::CallBase *CS, const llvm::Function *Callee,
                      llvm::ArrayRef<llvm::SmallVector<ValueId, 2>> Args,
-                     std::optional<ValueId> CSRetVal) {
-    const ValueId CalleeId = getOrInsertVar(PAGVariable(Callee));
-    if (!ConnectedCallees[CS].insert(CalleeId).second) {
+                     std::optional<ValueId> CSRetVal,
+                     CallingContextId CallerCtx) {
+    const ValueId CalleeId =
+        getOrInsertVar(PAGVariable(Callee), CallingContextId::None);
+    const CallingContextId CalleeCtx = calleeContext(Callee, CallerCtx, CS);
+    const uint64_t Connection =
+        uint64_t(uint32_t(CalleeId)) << 32 | uint32_t(CalleeCtx);
+    if (!ConnectedCallees[{CS, CallerCtx}].insert(Connection).second) {
       return false;
     }
     CGBuilder.addCallEdge(CS, Callee);
@@ -1073,8 +1523,8 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
       return false;
     }
 
-    if (Queued.insert(Callee).second) {
-      FunctionWorklist.push_back(Callee);
+    if (Queued.insert({Callee, CalleeCtx}).second) {
+      FunctionWorklist.emplace_back(Callee, CalleeCtx);
     }
 
     if (CSRetVal && !Callee->getReturnType()->isVoidTy()) {
@@ -1082,10 +1532,11 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
         // Give this call SITE its own fresh object instead of merging
         // through Callee's shared internal allocation site, which would
         // spuriously alias every call to this wrapper.
-        const ValueId ObjId = getOrInsertObj(PAGVariable(CS));
+        const ValueId ObjId = getOrInsertObj(PAGVariable(CS), CallerCtx);
         addPointee(*CSRetVal, ObjId);
       } else {
-        const ValueId RetSlotId = getOrInsertVar(PAGVariable::Return{Callee});
+        const ValueId RetSlotId =
+            getOrInsertVar(PAGVariable::Return{Callee}, CalleeCtx);
         addAssignEdge(RetSlotId, *CSRetVal);
       }
     }
@@ -1094,7 +1545,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
       if (ArgIds.empty() || definitelyContainsNoPointer(&Param)) {
         continue;
       }
-      const ValueId ParamId = getOrInsertVar(PAGVariable(&Param));
+      const ValueId ParamId = getOrInsertVar(PAGVariable(&Param), CalleeCtx);
       for (ValueId ArgId : ArgIds) {
         addAssignEdge(ArgId, ParamId);
       }
@@ -1106,7 +1557,8 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
 
   bool resolveVtableCall(const llvm::CallBase *CS, ValueId VtablePtrId,
                          uint64_t VtableIndex, const ArgList &Args,
-                         std::optional<ValueId> CSRetVal) {
+                         std::optional<ValueId> CSRetVal,
+                         CallingContextId CallerCtx) {
     VtablePtrId = rep(VtablePtrId);
     if (!Nodes.inbounds(VtablePtrId)) {
       llvm::report_fatal_error("Invalid Vtable Id #" +
@@ -1119,29 +1571,29 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
       if (!Nodes.inbounds(ObjId)) {
         return false;
       }
-      for (const auto &Var : LocalVC.id2vars(ObjId)) {
+      forEachVar(ObjId, [&](ContextualVar CVar) {
         const auto *GV = llvm::dyn_cast_or_null<llvm::GlobalVariable>(
-            Var.getBase().valueOrNull());
+            CVar.Var.getBase().valueOrNull());
         if (!GV || !GV->hasName() ||
             !GV->getName().starts_with(DIBasedTypeHierarchy::VTablePrefix) ||
             !GV->hasInitializer()) {
-          continue;
+          return;
         }
         const auto *VTStruct =
             llvm::dyn_cast<llvm::ConstantStruct>(GV->getInitializer());
         if (!VTStruct) {
-          continue;
+          return;
         }
         auto VFs = LLVMVFTable::getVFVectorFromIRVTable(*VTStruct);
         if (VtableIndex >= VFs.size()) {
-          continue;
+          return;
         }
         const auto *Callee = VFs[VtableIndex];
         if (!Callee || !isConsistentCall(CS, Callee)) {
-          continue;
+          return;
         }
-        NewEdge |= connectCallee(CS, Callee, Args, CSRetVal);
-      }
+        NewEdge |= connectCallee(CS, Callee, Args, CSRetVal, CallerCtx);
+      });
       return true;
     });
     return NewEdge;
@@ -1160,9 +1612,9 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
       if (!Nodes.inbounds(ObjId)) {
         return false;
       }
-      for (const auto &Var : LocalVC.id2vars(ObjId)) {
+      forEachVar(ObjId, [&](ContextualVar CVar) {
         // Resolve GlobalAlias to the underlying GlobalVariable.
-        const llvm::Value *Val = Var.getBase().valueOrNull();
+        const llvm::Value *Val = CVar.Var.getBase().valueOrNull();
         if (const auto *GA = llvm::dyn_cast_or_null<llvm::GlobalAlias>(Val)) {
           Val = GA->getAliaseeObject();
         }
@@ -1170,22 +1622,23 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
         if (!GV || !GV->isConstant() || !GV->hasInitializer()) {
           // Not a usable const global: try the dynamically observed
           // field-write table for heap/stack dispatch-table objects.
-          if (Val && !ImpureObjects.contains(Val)) {
+          const ObjectKey Obj{.Val = Val, .Ctx = CVar.Ctx};
+          if (Val && !ImpureObjects.contains(Obj)) {
             auto It = FnPtrFieldWrites.find(
-                FieldWriteKey{.Val = Val, .Indices = Rec.Indices});
+                FieldWriteKey{.Obj = Obj, .Indices = Rec.Indices});
             if (It != FnPtrFieldWrites.end() &&
                 It->second.ElemTy == Rec.GEPElemTy) {
               for (const auto *Callee : It->second.Callees) {
                 if (isConsistentCall(Rec.CS, Callee)) {
-                  NewEdge |=
-                      connectCallee(Rec.CS, Callee, Rec.Args, Rec.CSRetVal);
+                  NewEdge |= connectCallee(Rec.CS, Callee, Rec.Args,
+                                           Rec.CSRetVal, Rec.Ctx);
                 }
               }
-              continue;
+              return;
             }
           }
           NeedFPFallback = true;
-          continue;
+          return;
         }
         // Type check: GV must be of GEPElemTy or [N x GEPElemTy].
         // Field-insensitive aliasing can put wrong-type objects in pts.
@@ -1194,45 +1647,47 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
           const auto *ArrTy = llvm::dyn_cast<llvm::ArrayType>(GVTy);
           if (!ArrTy || ArrTy->getElementType() != Rec.GEPElemTy) {
             NeedFPFallback = true;
-            continue;
+            return;
           }
         }
         const auto *Callee =
             walkConstInitPath(GV->getInitializer(), Rec.Indices);
         if (!Callee || !isConsistentCall(Rec.CS, Callee)) {
-          continue;
+          return;
         }
-        NewEdge |= connectCallee(Rec.CS, Callee, Rec.Args, Rec.CSRetVal);
-      }
+        NewEdge |=
+            connectCallee(Rec.CS, Callee, Rec.Args, Rec.CSRetVal, Rec.Ctx);
+      });
       return true;
     });
     if (NeedFPFallback) {
-      NewEdge |= resolveFPCall(Rec.CS, Rec.FPId, Rec.Args, Rec.CSRetVal);
+      NewEdge |=
+          resolveFPCall(Rec.CS, Rec.FPId, Rec.Args, Rec.CSRetVal, Rec.Ctx);
     }
     return NewEdge;
   }
 
-  [[nodiscard]] bool poisonObject(const llvm::Value *AllocVal) {
-    return ImpureObjects.insert(AllocVal).second;
+  [[nodiscard]] bool poisonObject(ObjectKey AllocObj) {
+    return ImpureObjects.insert(AllocObj).second;
   }
 
   // Merges one field's known writes (Src, e.g. a single-callee write, or an
   // entry copied from another object) into AllocVal's own entry for
   // Indices. A differently-typed pre-existing entry for the same slot means
   // type punning: poison the whole object instead of trusting either write.
-  bool mergeFieldWriteInfo(const llvm::Value *AllocVal,
+  bool mergeFieldWriteInfo(ObjectKey AllocObj,
                            const llvm::SmallVector<uint64_t, 3> &Indices,
                            const FieldWriteInfo &Src) {
-    if (ImpureObjects.contains(AllocVal)) {
+    if (ImpureObjects.contains(AllocObj)) {
       return false;
     }
     auto [It, Inserted] = FnPtrFieldWrites.try_emplace(
-        FieldWriteKey{.Val = AllocVal, .Indices = Indices});
+        FieldWriteKey{.Obj = AllocObj, .Indices = Indices});
     if (Inserted) {
       It->second.ElemTy = Src.ElemTy;
-      FieldsByObject[AllocVal].push_back(Indices);
+      FieldsByObject[AllocObj].push_back(Indices);
     } else if (It->second.ElemTy != Src.ElemTy) {
-      return poisonObject(AllocVal);
+      return poisonObject(AllocObj);
     }
     bool Changed = Inserted;
     for (const auto *Callee : Src.Callees) {
@@ -1263,12 +1718,13 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
       if (!Nodes.inbounds(DstObjId)) {
         return false;
       }
-      for (const auto &DstVar : LocalVC.id2vars(DstObjId)) {
-        const llvm::Value *DstVal = DstVar.getBase().valueOrNull();
-        if (!DstVal || ImpureObjects.contains(DstVal)) {
-          continue;
+      forEachVar(DstObjId, [&](ContextualVar DstVar) {
+        const llvm::Value *DstVal = DstVar.Var.getBase().valueOrNull();
+        const ObjectKey DstObj{.Val = DstVal, .Ctx = DstVar.Ctx};
+        if (!DstVal || ImpureObjects.contains(DstObj)) {
+          return;
         }
-        const auto DstFieldsIt = FieldsByObject.find(DstVal);
+        const auto DstFieldsIt = FieldsByObject.find(DstObj);
         const bool DstHasEntries =
             DstFieldsIt != FieldsByObject.end() && !DstFieldsIt->second.empty();
         bool Poison = !Rec.CopyLength;
@@ -1283,16 +1739,17 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
             if (!Nodes.inbounds(SrcObjId)) {
               return false;
             }
-            for (const auto &SrcVar : LocalVC.id2vars(SrcObjId)) {
-              const llvm::Value *SrcVal = SrcVar.getBase().valueOrNull();
+            forEachVar(SrcObjId, [&](ContextualVar SrcVar) {
+              const llvm::Value *SrcVal = SrcVar.Var.getBase().valueOrNull();
               if (!SrcVal) {
-                continue;
+                return;
               }
-              if (ImpureObjects.contains(SrcVal)) {
+              const ObjectKey SrcObj{.Val = SrcVal, .Ctx = SrcVar.Ctx};
+              if (ImpureObjects.contains(SrcObj)) {
                 Poison = true;
-                continue;
+                return;
               }
-              if (SrcVal != DstVal && DstHasEntries) {
+              if (SrcObj != DstObj && DstHasEntries) {
                 // A genuinely external source could clobber DstVal's own
                 // separately-tracked fields with bytes we know nothing
                 // about. A self-copy (field-insensitively-aliased src/dst,
@@ -1300,15 +1757,15 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
                 // merging an object's own known fields into itself is a
                 // no-op.
                 Poison = true;
-                continue;
+                return;
               }
-              const auto SrcFieldsIt = FieldsByObject.find(SrcVal);
+              const auto SrcFieldsIt = FieldsByObject.find(SrcObj);
               if (SrcFieldsIt == FieldsByObject.end()) {
-                continue;
+                return;
               }
               for (const auto &Indices : SrcFieldsIt->second) {
                 const auto FWIt = FnPtrFieldWrites.find(
-                    FieldWriteKey{.Val = SrcVal, .Indices = Indices});
+                    FieldWriteKey{.Obj = SrcObj, .Indices = Indices});
                 assert(FWIt != FnPtrFieldWrites.end());
                 if (*Rec.CopyLength <
                     DL.getTypeAllocSize(FWIt->second.ElemTy).getFixedValue()) {
@@ -1317,18 +1774,18 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
                 }
                 ToMerge.emplace_back(Indices, FWIt->second);
               }
-            }
+            });
             return true;
           });
         }
         if (Poison) {
-          Changed |= poisonObject(DstVal);
-          continue;
+          Changed |= poisonObject(DstObj);
+          return;
         }
         for (const auto &[Indices, Info] : ToMerge) {
-          Changed |= mergeFieldWriteInfo(DstVal, Indices, Info);
+          Changed |= mergeFieldWriteInfo(DstObj, Indices, Info);
         }
-      }
+      });
       return true;
     });
     return Changed;
@@ -1351,17 +1808,18 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
       if (!Nodes.inbounds(ObjId)) {
         return false;
       }
-      for (const auto &Var : LocalVC.id2vars(ObjId)) {
-        const llvm::Value *AllocVal = Var.getBase().valueOrNull();
+      forEachVar(ObjId, [&](ContextualVar CVar) {
+        const llvm::Value *AllocVal = CVar.Var.getBase().valueOrNull();
         if (!AllocVal) {
-          continue;
+          return;
         }
 
         FieldWriteInfo Info;
         Info.ElemTy = Rec.GEPElemTy;
         Info.Callees.push_back(Rec.Callee);
-        Changed |= mergeFieldWriteInfo(AllocVal, Rec.Indices, Info);
-      }
+        Changed |= mergeFieldWriteInfo({.Val = AllocVal, .Ctx = CVar.Ctx},
+                                       Rec.Indices, Info);
+      });
       return true;
     });
     return Changed;
@@ -1378,14 +1836,14 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
       if (!Nodes.inbounds(ObjId)) {
         return false;
       }
-      for (const auto &Var : LocalVC.id2vars(ObjId)) {
-        const llvm::Value *AllocVal = Var.getBase().valueOrNull();
+      forEachVar(ObjId, [&](ContextualVar CVar) {
+        const llvm::Value *AllocVal = CVar.Var.getBase().valueOrNull();
         if (!AllocVal) {
-          continue;
+          return;
         }
 
-        Changed |= poisonObject(AllocVal);
-      }
+        Changed |= poisonObject({.Val = AllocVal, .Ctx = CVar.Ctx});
+      });
       return true;
     });
     return Changed;
@@ -1407,7 +1865,8 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
   }
 
   bool resolveFPCall(const llvm::CallBase *CS, ValueId FPId,
-                     const ArgList &Args, std::optional<ValueId> CSRetVal) {
+                     const ArgList &Args, std::optional<ValueId> CSRetVal,
+                     CallingContextId CallerCtx) {
     FPId = rep(FPId);
     if (!Nodes.inbounds(FPId)) {
       llvm::report_fatal_error("Invalid FPId");
@@ -1420,13 +1879,13 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
         // Iteration is in sorted order
         return false;
       }
-      for (const auto &Var : LocalVC.id2vars(ObjId)) {
-        const auto *Fun =
-            llvm::dyn_cast_or_null<llvm::Function>(Var.getBase().valueOrNull());
+      forEachVar(ObjId, [&](ContextualVar CVar) {
+        const auto *Fun = llvm::dyn_cast_or_null<llvm::Function>(
+            CVar.Var.getBase().valueOrNull());
         if (Fun && isConsistentCall(CS, Fun)) {
-          NewEdge |= connectCallee(CS, Fun, Args, CSRetVal);
+          NewEdge |= connectCallee(CS, Fun, Args, CSRetVal, CallerCtx);
         }
-      }
+      });
       return true;
     });
     return NewEdge;
@@ -1462,7 +1921,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     const auto *FnPtr = C->getCalledOperand()->stripPointerCastsAndAliases();
 
     if (const auto *Callee = llvm::dyn_cast<llvm::Function>(FnPtr)) {
-      connectCallee(C, Callee, Args, CSRetVal);
+      connectCallee(C, Callee, Args, CSRetVal, CurCtx);
       return;
     }
 
@@ -1470,13 +1929,14 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     if (auto VCallInfo = getVFTIndexAndVT(C)) {
       auto [VtablePtr, VtableIndex] = *VCallInfo;
       const ValueId VtablePtrId = getOrInsertVar(PAGVariable(VtablePtr));
-      resolveVtableCall(C, VtablePtrId, VtableIndex, Args, CSRetVal);
+      resolveVtableCall(C, VtablePtrId, VtableIndex, Args, CSRetVal, CurCtx);
       UnresolvedVCalls.push_back(VCallRecord{
           .CS = C,
           .VtablePtrId = VtablePtrId,
           .VtableIndex = VtableIndex,
           .Args = std::move(Args),
           .CSRetVal = CSRetVal,
+          .Ctx = CurCtx,
       });
       return;
     }
@@ -1497,6 +1957,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
           .GEPElemTy = GEPElemTy,
           .Args = std::move(Args),
           .CSRetVal = CSRetVal,
+          .Ctx = CurCtx,
       };
       resolveStructVCall(Rec);
       UnresolvedStructVCalls.push_back(std::move(Rec));
@@ -1505,19 +1966,21 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
 
     // Indirect call: connect already-known targets, record for fixpoint.
     const ValueId FPId = getOrInsertVar(PAGVariable(FnPtr));
-    resolveFPCall(C, FPId, Args, CSRetVal);
+    resolveFPCall(C, FPId, Args, CSRetVal, CurCtx);
     UnresolvedFPCalls.push_back(FPCallRecord{
         .CS = C,
         .FPId = FPId,
         .Args = std::move(Args),
         .CSRetVal = CSRetVal,
+        .Ctx = CurCtx,
     });
   }
 
   bool checkUnresolvedFPCalls() {
     bool NewEdge = false;
     for (const auto &Rec : UnresolvedFPCalls) {
-      NewEdge |= resolveFPCall(Rec.CS, Rec.FPId, Rec.Args, Rec.CSRetVal);
+      NewEdge |=
+          resolveFPCall(Rec.CS, Rec.FPId, Rec.Args, Rec.CSRetVal, Rec.Ctx);
     }
     return NewEdge;
   }
@@ -1526,7 +1989,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     bool NewEdge = false;
     for (const auto &Rec : UnresolvedVCalls) {
       NewEdge |= resolveVtableCall(Rec.CS, Rec.VtablePtrId, Rec.VtableIndex,
-                                   Rec.Args, Rec.CSRetVal);
+                                   Rec.Args, Rec.CSRetVal, Rec.Ctx);
     }
     return NewEdge;
   }
@@ -1546,20 +2009,23 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
 
     // Map variable local IDs → external VC IDs.
     // Object nodes are internal only and do not appear in the external result.
+    // Context clones of one PAGVariable share an external id, so the reported
+    // alias set of a formal is the union over its contexts, while call sites
+    // and locals -- distinct PAGVariables -- keep their per-context precision.
     TypedVector<ValueId, std::optional<ValueId>> LocalToExt(NumLocal);
     for (auto VId : iota<ValueId>(NumLocal)) {
       std::optional<ValueId> FirstExtId;
-      for (const auto &V : LocalVC.id2vars(VId)) {
-        if (V.isObject()) {
-          continue;
+      forEachVar(VId, [&](ContextualVar CVar) {
+        if (CVar.Var.isObject()) {
+          return;
         }
         if (!FirstExtId) {
-          FirstExtId = ExternalVC.insert(V.getBase()).first;
+          FirstExtId = ExternalVC.insert(CVar.Var.getBase()).first;
           LocalToExt[VId] = FirstExtId;
         } else {
-          ExternalVC.addAlias(V.getBase(), *FirstExtId);
+          ExternalVC.addAlias(CVar.Var.getBase(), *FirstExtId);
         }
-      }
+      });
     }
 
     // Build rep → bitset of external IDs for all vars in that SCC.
@@ -1656,11 +2122,11 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     bool Changed{};
     do {
       while (!FunctionWorklist.empty()) {
-        const auto *F = FunctionWorklist.pop_back_val();
-        if (!Processed.insert(F).second) {
+        const auto [F, Ctx] = FunctionWorklist.pop_back_val();
+        if (!Processed.insert({F, Ctx}).second) {
           continue;
         }
-        processFunction(F);
+        processFunction(F, Ctx);
         // Drain pending pts for functions that make no pointer-relevant
         // calls (connectCallee would otherwise be the only propagate site).
         propagate();
@@ -1679,11 +2145,12 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
 
 AndersenOTFSolver::AndersenOTFSolver(
     const LLVMProjectIRDB &IRDB, llvm::ArrayRef<const llvm::Function *> Entries,
-    ValueCompressor<PAGVariable> &VC, Soundness S) noexcept
-    : IRDB(IRDB), Entries(Entries), VC(VC), S(S) {}
+    ValueCompressor<PAGVariable> &VC, Soundness S,
+    ContextSensitivityOptions CSOpts) noexcept
+    : IRDB(IRDB), Entries(Entries), VC(VC), S(S), CSOpts(std::move(CSOpts)) {}
 
 AndersenOTFResult AndersenOTFSolver::solve() {
-  SolverData Impl{*IRDB, Entries, *VC, S};
+  SolverData Impl{*IRDB, Entries, *VC, S, CSOpts};
   return Impl.run();
 }
 
@@ -1693,11 +2160,11 @@ AndersenOTFResult
 psr::computeAndersenOTFRaw(const LLVMProjectIRDB &IRDB,
                            llvm::ArrayRef<const llvm::Function *> EntryPoints,
                            MaybeUniquePtr<ValueCompressor<PAGVariable>> VC,
-                           Soundness S) {
+                           Soundness S, ContextSensitivityOptions CSOpts) {
   if (!VC) {
     VC = std::make_unique<ValueCompressor<PAGVariable>>();
   }
-  AndersenOTFSolver Solver(IRDB, EntryPoints, *VC, S);
+  AndersenOTFSolver Solver(IRDB, EntryPoints, *VC, S, std::move(CSOpts));
   return Solver.solve();
 }
 
@@ -1705,11 +2172,11 @@ LLVMUnionFindAliasIterator<AndersenOTFResult>
 psr::computeAndersenOTF(const LLVMProjectIRDB &IRDB,
                         llvm::ArrayRef<const llvm::Function *> EntryPoints,
                         MaybeUniquePtr<ValueCompressor<PAGVariable>> VC,
-                        Soundness S) {
+                        Soundness S, ContextSensitivityOptions CSOpts) {
   if (!VC) {
     VC = std::make_unique<ValueCompressor<PAGVariable>>();
   }
-  AndersenOTFSolver Solver(IRDB, EntryPoints, *VC, S);
+  AndersenOTFSolver Solver(IRDB, EntryPoints, *VC, S, std::move(CSOpts));
   auto Res = Solver.solve();
   return LLVMUnionFindAliasIterator{std::move(Res), std::move(VC)};
 }

@@ -71,6 +71,8 @@ ufaaTypeFromSupported(SupportedAnalysisTypes AT) {
   case SupportedAnalysisTypes::CFLAnders:
   case SupportedAnalysisTypes::CFLSteens:
   case SupportedAnalysisTypes::AndersOTF:
+  case SupportedAnalysisTypes::AndersOTFCtxDyn:
+  case SupportedAnalysisTypes::AndersOTFCtxAll:
     llvm::report_fatal_error("Not a union-find analysis");
   case SupportedAnalysisTypes::UFAACtx:
     return psr::UnionFindAliasAnalysisType::CtxSens;
@@ -148,11 +150,14 @@ static void performUnionFindAliasAnalysis(
 static void
 performAndersenOTFAA(psr::LLVMProjectIRDB &IRDB,
                      llvm::ArrayRef<psr::ptaben::QueryLocation> QueryLocs,
-                     auto &&RC) {
+                     auto &&RC, psr::ContextSensitivityOptions::Mode CtxMode) {
   auto EntryFunctions =
       getEntryFunctions(IRDB, psr::getDefaultEntryPoints(IRDB));
   auto VC = psr::ValueCompressor<psr::PAGVariable>();
-  auto AARes = psr::computeAndersenOTF(IRDB, EntryFunctions, &VC);
+  psr::ContextSensitivityOptions CSOpts;
+  CSOpts.SelectionMode = CtxMode;
+  auto AARes = psr::computeAndersenOTF(
+      IRDB, EntryFunctions, &VC, psr::Soundness::Soundy, std::move(CSOpts));
 
   for (const auto &Loc : QueryLocs) {
     auto Res = checkLLVMQueryLoc(AARes, Loc.Inst);
@@ -178,7 +183,14 @@ performAnalysis(psr::LLVMProjectIRDB &IRDB,
     return performUnionFindAliasAnalysis(IRDB, BaseCG, QueryLocs, PSR_FWD(RC),
                                          ufaaTypeFromSupported(AType));
   case SupportedAnalysisTypes::AndersOTF:
-    return performAndersenOTFAA(IRDB, QueryLocs, PSR_FWD(RC));
+    return performAndersenOTFAA(IRDB, QueryLocs, PSR_FWD(RC),
+                                psr::ContextSensitivityOptions::Mode::Off);
+  case SupportedAnalysisTypes::AndersOTFCtxDyn:
+    return performAndersenOTFAA(IRDB, QueryLocs, PSR_FWD(RC),
+                                psr::ContextSensitivityOptions::Mode::Dynamic);
+  case SupportedAnalysisTypes::AndersOTFCtxAll:
+    return performAndersenOTFAA(IRDB, QueryLocs, PSR_FWD(RC),
+                                psr::ContextSensitivityOptions::Mode::All);
   }
 }
 

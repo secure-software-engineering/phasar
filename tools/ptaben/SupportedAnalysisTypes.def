@@ -19,5 +19,7 @@ PSR_PTABEN_SUPPORTED_ANALYSIS_TYPES(UFAACtxInd, "ctx-ind-table", "ctx-ind-result
 PSR_PTABEN_SUPPORTED_ANALYSIS_TYPES(UFAABotCtx, "bot-table", "bot-results.csv")
 PSR_PTABEN_SUPPORTED_ANALYSIS_TYPES(UFAABotCtxInd, "bot-ctx-ind-table", "bot-ctx-ind-results.csv")
 PSR_PTABEN_SUPPORTED_ANALYSIS_TYPES(AndersOTF, "anders-otf-table", "anders-otf-results.csv")
+PSR_PTABEN_SUPPORTED_ANALYSIS_TYPES(AndersOTFCtxDyn, "anders-otf-ctx-dyn-table", "anders-otf-ctx-dyn-results.csv")
+PSR_PTABEN_SUPPORTED_ANALYSIS_TYPES(AndersOTFCtxAll, "anders-otf-ctx-all-table", "anders-otf-ctx-all-results.csv")
 
 #undef PSR_PTABEN_SUPPORTED_ANALYSIS_TYPES
