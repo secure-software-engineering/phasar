@@ -20,9 +20,10 @@ var searchData=
   ['maybeuniqueptr_3c_20psr_3a_3asccholder_3c_20funvtxty_20_3e_20_3e_17',['MaybeUniquePtr&lt; psr::SCCHolder&lt; FunVtxTy &gt; &gt;',['../classpsr_1_1MaybeUniquePtr.html',1,'psr']]],
   ['maybeuniqueptr_3c_20z3_3a_3acontext_20_3e_18',['MaybeUniquePtr&lt; z3::context &gt;',['../classpsr_1_1MaybeUniquePtr.html',1,'psr']]],
   ['memorylocationallocator_19',['MemoryLocationAllocator',['../classpsr_1_1MemoryLocationAllocator.html',1,'psr']]],
-  ['modulestoslottracker_20',['ModulesToSlotTracker',['../classpsr_1_1ModulesToSlotTracker.html',1,'psr']]],
-  ['modulewiseanalysis_21',['ModuleWiseAnalysis',['../classpsr_1_1ModuleWiseAnalysis.html',1,'psr']]],
-  ['monoifdfssolverbase_22',['MonoIFDFSSolverBase',['../classpsr_1_1monoifds_1_1MonoIFDFSSolverBase.html',1,'psr::monoifds']]],
-  ['monoifdsconfig_23',['MonoIfdsConfig',['../structpsr_1_1monoifds_1_1MonoIfdsConfig.html',1,'psr::monoifds']]],
-  ['monoifdssolver_24',['MonoIFDSSolver',['../classpsr_1_1monoifds_1_1MonoIFDSSolver.html',1,'psr::monoifds']]]
+  ['memssabundle_20',['MemSSABundle',['../structpsr_1_1MemSSABundle.html',1,'psr']]],
+  ['modulestoslottracker_21',['ModulesToSlotTracker',['../classpsr_1_1ModulesToSlotTracker.html',1,'psr']]],
+  ['modulewiseanalysis_22',['ModuleWiseAnalysis',['../classpsr_1_1ModuleWiseAnalysis.html',1,'psr']]],
+  ['monoifdfssolverbase_23',['MonoIFDFSSolverBase',['../classpsr_1_1monoifds_1_1MonoIFDFSSolverBase.html',1,'psr::monoifds']]],
+  ['monoifdsconfig_24',['MonoIfdsConfig',['../structpsr_1_1monoifds_1_1MonoIfdsConfig.html',1,'psr::monoifds']]],
+  ['monoifdssolver_25',['MonoIFDSSolver',['../classpsr_1_1monoifds_1_1MonoIFDSSolver.html',1,'psr::monoifds']]]
 ];

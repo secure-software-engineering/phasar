@@ -1,7 +1,9 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" title=" " alt="" coords="5,31,171,56"/>
-<area shape="rect" id="Node000001" href="$structpsr_1_1SCCId.html" title=" " alt="" coords="227,5,413,31"/>
-<area shape="poly" id="edge260_Node000000_Node000001" title=" " alt="" coords="184,30,227,25,228,31,185,35"/>
-<area shape="rect" id="Node000002" href="$structpsr_1_1SCCId.html" title="The Id of a strongly&#45;connected component in a graph." alt="" coords="219,55,421,80"/>
-<area shape="poly" id="edge261_Node000000_Node000002" title=" " alt="" coords="185,51,219,54,218,60,184,56"/>
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,53,207,93"/>
+<area shape="rect" id="Node000001" href="$classpsr_1_1LLVMLocalUnionFindAliasIteratorMixin.html" title=" " alt="" coords="255,5,509,60"/>
+<area shape="poly" id="edge242_Node000000_Node000001" title=" " alt="" coords="220,53,254,49,255,54,221,59"/>
+<area shape="rect" id="Node000003" href="$classpsr_1_1LLVMLocalUnionFindAliasIteratorMixin.html" title=" " alt="" coords="275,84,489,139"/>
+<area shape="poly" id="edge244_Node000000_Node000003" title=" " alt="" coords="221,86,275,94,274,99,220,91"/>
+<area shape="rect" id="Node000002" href="$classpsr_1_1LLVMLocalUnionFindAliasIterator.html" title=" " alt="" coords="557,13,772,53"/>
+<area shape="poly" id="edge243_Node000001_Node000002" title=" " alt="" coords="523,30,557,30,557,35,523,35"/>
 </map>

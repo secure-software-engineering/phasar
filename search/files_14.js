@@ -5,5 +5,6 @@ var searchData=
   ['valueidmap_2eh_2',['ValueIdMap.h',['../ValueIdMap_8h.html',1,'']]],
   ['variationalanalysis_2eh_3',['VariationalAnalysis.h',['../VariationalAnalysis_8h.html',1,'']]],
   ['vftable_2eh_4',['VFTable.h',['../VFTable_8h.html',1,'']]],
-  ['vtaresolver_2eh_5',['VTAResolver.h',['../VTAResolver_8h.html',1,'']]]
+  ['virtualcallutils_2eh_5',['VirtualCallUtils.h',['../VirtualCallUtils_8h.html',1,'']]],
+  ['vtaresolver_2eh_6',['VTAResolver.h',['../VTAResolver_8h.html',1,'']]]
 ];

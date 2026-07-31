@@ -90,10 +90,10 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="LLVMAliasInfo_8h_source.html">phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="VirtualCallUtils_8h_source.html">phasar/PhasarLLVM/Utils/VirtualCallUtils.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="MaybeUniquePtr_8h_source.html">phasar/Utils/MaybeUniquePtr.h</a>&quot;</code><br />
 <code>#include &quot;llvm/ADT/DenseSet.h&quot;</code><br />
 <code>#include &quot;llvm/ADT/SmallVector.h&quot;</code><br />
-<code>#include &quot;llvm/IR/DerivedTypes.h&quot;</code><br />
 <code>#include &lt;memory&gt;</code><br />
 <code>#include &lt;optional&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
@@ -115,19 +115,12 @@ Namespaces</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a679d9acea54c1a3f985bbfab74f34e2e" id="r_a679d9acea54c1a3f985bbfab74f34e2e"><td class="memItemLeft" align="right" valign="top">std::optional&lt; unsigned &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a679d9acea54c1a3f985bbfab74f34e2e">psr::getVFTIndex</a> (const llvm::CallBase *CallSite)</td></tr>
-<tr class="separator:a679d9acea54c1a3f985bbfab74f34e2e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa78e21a7839c7e3a0c77c4d5b78790c5" id="r_aa78e21a7839c7e3a0c77c4d5b78790c5"><td class="memItemLeft" align="right" valign="top">std::optional&lt; std::pair&lt; const llvm::Value *, uint64_t &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#aa78e21a7839c7e3a0c77c4d5b78790c5">psr::getVFTIndexAndVT</a> (const llvm::CallBase *CallSite)</td></tr>
-<tr class="memdesc:aa78e21a7839c7e3a0c77c4d5b78790c5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Similar to <a class="el" href="namespacepsr.html#a679d9acea54c1a3f985bbfab74f34e2e">getVFTIndex()</a>, but also returns a pointer to the vtable.  <br /></td></tr>
-<tr class="separator:aa78e21a7839c7e3a0c77c4d5b78790c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a525c1623c5f37d06002abd3de5de71ca" id="r_a525c1623c5f37d06002abd3de5de71ca"><td class="memItemLeft" align="right" valign="top">const llvm::DIType *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a525c1623c5f37d06002abd3de5de71ca">psr::getReceiverType</a> (const llvm::CallBase *CallSite)</td></tr>
 <tr class="separator:a525c1623c5f37d06002abd3de5de71ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2d60ab57214bbfc8497c831250b6532f" id="r_a2d60ab57214bbfc8497c831250b6532f"><td class="memItemLeft" align="right" valign="top">const llvm::Function *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a2d60ab57214bbfc8497c831250b6532f">psr::getNonPureVirtualVFTEntry</a> (const llvm::DIType *T, unsigned Idx, const llvm::CallBase *CallSite, const <a class="el" href="classpsr_1_1LLVMVFTableProvider.html">psr::LLVMVFTableProvider</a> &amp;VTP, const llvm::DIType *ReceiverType)</td></tr>
 <tr class="separator:a2d60ab57214bbfc8497c831250b6532f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6e7d666c7b77cf91aeaadea609655995" id="r_a6e7d666c7b77cf91aeaadea609655995"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a6e7d666c7b77cf91aeaadea609655995">psr::getReceiverTypeName</a> (const llvm::CallBase *CallSite)</td></tr>
 <tr class="separator:a6e7d666c7b77cf91aeaadea609655995"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1d7e8e0325ae290072875ea2a35f9332" id="r_a1d7e8e0325ae290072875ea2a35f9332"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a1d7e8e0325ae290072875ea2a35f9332">psr::isConsistentCall</a> (const llvm::CallBase *CallSite, const llvm::Function *DestFun)</td></tr>
-<tr class="separator:a1d7e8e0325ae290072875ea2a35f9332"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa07c6073aa988b829a7cafd4cbc2b34d" id="r_aa07c6073aa988b829a7cafd4cbc2b34d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#aa07c6073aa988b829a7cafd4cbc2b34d">psr::isVirtualCall</a> (const llvm::Instruction *Inst, const <a class="el" href="classpsr_1_1LLVMVFTableProvider.html">LLVMVFTableProvider</a> &amp;VTP)</td></tr>
 <tr class="separator:aa07c6073aa988b829a7cafd4cbc2b34d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab29947d8961b853bef8cdb53f252dfeb" id="r_ab29947d8961b853bef8cdb53f252dfeb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#ab29947d8961b853bef8cdb53f252dfeb">psr::isAddressTakenFunction</a> (const llvm::Function *F)</td></tr>
@@ -136,7 +129,7 @@ Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Jul 9 2026 17:08:27 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Fri Jul 31 2026 17:18:44 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

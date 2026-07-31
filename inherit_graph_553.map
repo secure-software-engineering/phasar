@@ -1,7 +1,9 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" title=" " alt="" coords="5,60,113,85"/>
-<area shape="rect" id="Node000001" href="$structpsr_1_1DefaultAnalysisPrinterSelector.html" title=" " alt="" coords="185,5,399,60"/>
-<area shape="poly" id="edge385_Node000000_Node000001" title=" " alt="" coords="126,59,184,48,185,54,127,64"/>
-<area shape="rect" id="Node000002" href="$structpsr_1_1DefaultAnalysisPrinterSelector_3_01LLVMIFDSAnalysisDomainDefault_01_4.html" title=" " alt="" coords="161,84,423,139"/>
-<area shape="poly" id="edge386_Node000000_Node000002" title=" " alt="" coords="127,81,161,87,161,92,126,86"/>
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,70,101,95"/>
+<area shape="rect" id="Node000001" href="$structpsr_1_1LatticeDomain.html" title=" " alt="" coords="168,5,313,45"/>
+<area shape="poly" id="edge384_Node000000_Node000001" title=" " alt="" coords="108,63,174,43,176,48,110,68"/>
+<area shape="rect" id="Node000002" href="$structpsr_1_1LatticeDomain.html" title="A easy shorthand to construct a complete lattice of L." alt="" coords="149,70,332,95"/>
+<area shape="poly" id="edge385_Node000000_Node000002" title=" " alt="" coords="115,80,149,80,149,85,115,85"/>
+<area shape="rect" id="Node000003" href="$structpsr_1_1pag_1_1Edge.html" title="Tagged union of all PAG edge kinds, see above." alt="" coords="183,119,298,145"/>
+<area shape="poly" id="edge386_Node000000_Node000003" title=" " alt="" coords="115,96,192,117,191,122,114,101"/>
 </map>

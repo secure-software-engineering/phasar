@@ -1,5 +1,7 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" title=" " alt="" coords="5,5,192,60"/>
-<area shape="rect" id="Node000001" href="$classpsr_1_1SolverResults.html" title=" " alt="" coords="240,13,379,53"/>
-<area shape="poly" id="edge263_Node000000_Node000001" title=" " alt="" coords="206,30,240,30,240,35,206,35"/>
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,31,171,56"/>
+<area shape="rect" id="Node000001" href="$structpsr_1_1SCCId.html" title=" " alt="" coords="227,5,413,31"/>
+<area shape="poly" id="edge260_Node000000_Node000001" title=" " alt="" coords="184,30,227,25,228,31,185,35"/>
+<area shape="rect" id="Node000002" href="$structpsr_1_1SCCId.html" title="The Id of a strongly&#45;connected component in a graph." alt="" coords="219,55,421,80"/>
+<area shape="poly" id="edge261_Node000000_Node000002" title=" " alt="" coords="185,51,219,54,218,60,184,56"/>
 </map>

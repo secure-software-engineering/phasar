@@ -1,19 +1,19 @@
 <map id="psr::CallGraphBase&lt; Derived &gt;" name="psr::CallGraphBase&lt; Derived &gt;">
-<area shape="rect" id="Node000001" title=" " alt="" coords="251,123,397,163"/>
-<area shape="rect" id="Node000003" href="$classpsr_1_1CallGraph.html" title=" " alt="" coords="1273,5,1427,45"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="358,112,387,92,420,76,469,64,541,54,727,37,1057,20,1273,20,1273,25,1057,25,727,42,542,59,470,69,422,81,390,97,361,116"/>
-<area shape="rect" id="Node000004" href="$classpsr_1_1CallGraph.html" title=" " alt="" coords="1259,86,1441,141"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="412,138,1259,113,1259,119,412,143"/>
-<area shape="rect" id="Node000005" href="$classpsr_1_1CallGraphBase.html" title=" " alt="" coords="632,65,804,105"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="411,123,421,121,631,92,632,98,422,127,411,128"/>
-<area shape="rect" id="Node000007" href="$classpsr_1_1CallGraphBase.html" title=" " alt="" coords="623,180,813,220"/>
-<area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="370,167,422,188,473,198,524,203,622,205,622,210,524,209,472,203,421,193,368,172"/>
-<area shape="rect" id="Node000008" href="$classpsr_1_1CallGraphBase.html" title=" " alt="" coords="626,244,810,313"/>
-<area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="345,173,377,217,398,237,423,254,472,273,525,283,577,287,626,287,626,292,577,293,524,288,471,278,420,258,395,242,373,220,340,176"/>
-<area shape="rect" id="Node000002" href="$classpsr_1_1CRTPBase.html" title=" " alt="" coords="5,130,201,155"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="215,140,250,140,250,145,215,145"/>
-<area shape="rect" id="Node000006" href="$classpsr_1_1CallGraph.html" title=" " alt="" coords="863,73,1033,98"/>
-<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="818,83,862,83,862,88,818,88"/>
-<area shape="poly" id="edge6_Node000006_Node000003" title=" " alt="" coords="1041,68,1057,65,1273,33,1274,39,1058,71,1042,73"/>
-<area shape="poly" id="edge7_Node000006_Node000004" title=" " alt="" coords="1047,94,1058,95,1258,107,1258,112,1057,100,1047,99"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="251,119,397,159"/>
+<area shape="rect" id="Node000003" href="$classpsr_1_1CallGraph.html" title=" " alt="" coords="1259,5,1441,60"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="358,109,387,89,420,73,469,61,541,50,727,34,1057,17,1146,14,1235,17,1259,18,1258,24,1235,22,1146,19,1057,22,727,39,542,56,470,66,422,78,390,94,361,113"/>
+<area shape="rect" id="Node000004" href="$classpsr_1_1CallGraph.html" title=" " alt="" coords="1273,93,1427,133"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="411,134,1273,112,1273,117,411,140"/>
+<area shape="rect" id="Node000005" href="$classpsr_1_1CallGraphBase.html" title=" " alt="" coords="632,62,804,102"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="411,120,421,118,631,89,632,94,422,123,411,125"/>
+<area shape="rect" id="Node000007" href="$classpsr_1_1CallGraphBase.html" title=" " alt="" coords="626,177,810,246"/>
+<area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="360,166,390,185,422,199,473,212,526,218,625,218,625,224,526,223,472,217,420,205,387,189,358,170"/>
+<area shape="rect" id="Node000008" href="$classpsr_1_1CallGraphBase.html" title=" " alt="" coords="623,270,813,310"/>
+<area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="344,170,377,215,398,237,423,254,471,275,523,287,574,293,623,294,622,300,574,298,522,292,469,280,420,259,395,241,372,219,340,173"/>
+<area shape="rect" id="Node000002" href="$classpsr_1_1CRTPBase.html" title=" " alt="" coords="5,127,201,152"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="215,137,250,137,250,142,215,142"/>
+<area shape="rect" id="Node000006" href="$classpsr_1_1CallGraph.html" title=" " alt="" coords="863,69,1033,95"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="818,79,862,79,862,85,818,85"/>
+<area shape="poly" id="edge6_Node000006_Node000003" title=" " alt="" coords="1047,69,1234,46,1258,43,1259,48,1235,51,1047,74"/>
+<area shape="poly" id="edge7_Node000006_Node000004" title=" " alt="" coords="1047,90,1058,91,1273,106,1273,111,1057,97,1047,96"/>
 </map>

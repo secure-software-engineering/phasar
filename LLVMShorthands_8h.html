@@ -91,14 +91,20 @@ $(function() {
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="BitSet_8h_source.html">phasar/Utils/BitSet.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="Utilities_8h_source.html">phasar/Utils/Utilities.h</a>&quot;</code><br />
+<code>#include &quot;llvm/ADT/ArrayRef.h&quot;</code><br />
 <code>#include &quot;llvm/ADT/SmallBitVector.h&quot;</code><br />
+<code>#include &quot;llvm/ADT/SmallPtrSet.h&quot;</code><br />
+<code>#include &quot;llvm/ADT/SmallVector.h&quot;</code><br />
 <code>#include &quot;llvm/BinaryFormat/Dwarf.h&quot;</code><br />
 <code>#include &quot;llvm/IR/Argument.h&quot;</code><br />
 <code>#include &quot;llvm/IR/Constants.h&quot;</code><br />
 <code>#include &quot;llvm/IR/DebugInfoMetadata.h&quot;</code><br />
+<code>#include &quot;llvm/IR/GlobalObject.h&quot;</code><br />
 <code>#include &quot;llvm/IR/Instruction.h&quot;</code><br />
 <code>#include &quot;llvm/IR/Type.h&quot;</code><br />
 <code>#include &quot;llvm/Support/Casting.h&quot;</code><br />
+<code>#include &lt;concepts&gt;</code><br />
+<code>#include &lt;functional&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
 <code>#include &lt;unordered_map&gt;</code><br />
 <code>#include &lt;vector&gt;</code><br />
@@ -215,6 +221,9 @@ Functions</h2></td></tr>
 <tr class="separator:a7fb4b680bd5ad69c2a50a0264fa60a92"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa4e64f921182fbd116069edc9039ba70" id="r_aa4e64f921182fbd116069edc9039ba70"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#aa4e64f921182fbd116069edc9039ba70">psr::definitelyContainsNoPointer</a> (const llvm::Value *Val)</td></tr>
 <tr class="separator:aa4e64f921182fbd116069edc9039ba70"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa6ca80a45607750c02d80d2290e91544" id="r_aa6ca80a45607750c02d80d2290e91544"><td class="memTemplParams" colspan="2">template&lt;std::invocable&lt; const llvm::Value * &gt; HandlerT&gt; </td></tr>
+<tr class="memitem:aa6ca80a45607750c02d80d2290e91544"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#aa6ca80a45607750c02d80d2290e91544">psr::forEachPointerOperand</a> (const llvm::Value *V, HandlerT Handler)</td></tr>
+<tr class="separator:aa6ca80a45607750c02d80d2290e91544"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a83dee58f7634a33d8b7e3bcc3a5c7b83" id="r_a83dee58f7634a33d8b7e3bcc3a5c7b83"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a83dee58f7634a33d8b7e3bcc3a5c7b83">psr::isAddressTakenVariable</a> (const llvm::Value *Var) noexcept</td></tr>
 <tr class="separator:a83dee58f7634a33d8b7e3bcc3a5c7b83"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab92b0f8d07380383053453c643b32ef6" id="r_ab92b0f8d07380383053453c643b32ef6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#ab92b0f8d07380383053453c643b32ef6">psr::isAddressTakenArg</a> (const llvm::Argument *Arg) noexcept</td></tr>
@@ -243,11 +252,13 @@ Functions</h2></td></tr>
 <tr class="separator:af61d0c31860bf7b59fec9e727b4da235"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a03415155db9f1bbab43632f0135bd1ac" id="r_a03415155db9f1bbab43632f0135bd1ac"><td class="memItemLeft" align="right" valign="top">const llvm::DIType *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a03415155db9f1bbab43632f0135bd1ac">psr::stripPointerTypes</a> (const llvm::DIType *DITy)</td></tr>
 <tr class="separator:a03415155db9f1bbab43632f0135bd1ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0ad874a190afec188e3ea187ab861870" id="r_a0ad874a190afec188e3ea187ab861870"><td class="memItemLeft" align="right" valign="top">const llvm::Function *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a0ad874a190afec188e3ea187ab861870">psr::walkConstInitPath</a> (const llvm::Constant *Init, llvm::ArrayRef&lt; uint64_t &gt; Indices)</td></tr>
+<tr class="separator:a0ad874a190afec188e3ea187ab861870"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Jul 9 2026 17:08:27 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Fri Jul 31 2026 17:18:44 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

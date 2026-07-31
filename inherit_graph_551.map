@@ -1,3 +1,29 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$classtypename_01std_1_1allocator__traits_3_01std_1_1allocator_3_01psr_1_1EquivalenceClassMapNG_39b90bac1c4e8950d0b5e50f7317a39bc.html" title=" " alt="" coords="5,5,232,75"/>
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,443,177,469"/>
+<area shape="rect" id="Node000001" href="$classpsr_1_1NonNullPtr.html" title=" " alt="" coords="256,5,436,45"/>
+<area shape="poly" id="edge367_Node000000_Node000001" title=" " alt="" coords="91,429,97,355,117,255,134,201,156,148,186,99,224,55,255,36,257,41,227,59,190,102,161,150,139,203,122,256,102,356,96,430"/>
+<area shape="rect" id="Node000002" href="$classpsr_1_1NonNullPtr.html" title=" " alt="" coords="257,70,435,125"/>
+<area shape="poly" id="edge368_Node000000_Node000002" title=" " alt="" coords="94,429,105,369,129,291,146,249,167,208,193,169,224,135,255,115,258,119,227,139,197,173,172,210,151,251,134,292,111,371,99,430"/>
+<area shape="rect" id="Node000003" href="$classpsr_1_1NonNullPtr.html" title=" " alt="" coords="261,149,431,189"/>
+<area shape="poly" id="edge369_Node000000_Node000003" title=" " alt="" coords="96,429,111,380,136,318,173,254,197,225,224,199,259,180,261,185,227,203,201,228,178,257,141,320,116,382,101,430"/>
+<area shape="rect" id="Node000004" href="$classpsr_1_1NonNullPtr.html" title=" " alt="" coords="261,213,431,253"/>
+<area shape="poly" id="edge370_Node000000_Node000004" title=" " alt="" coords="101,430,119,392,146,347,181,302,224,263,259,245,262,250,227,268,185,305,150,350,124,395,106,432"/>
+<area shape="rect" id="Node000005" href="$classpsr_1_1NonNullPtr.html" title=" " alt="" coords="261,278,431,333"/>
+<area shape="poly" id="edge371_Node000000_Node000005" title=" " alt="" coords="112,431,161,386,191,363,224,342,259,326,261,331,227,346,194,367,164,390,116,435"/>
+<area shape="rect" id="Node000006" href="$classpsr_1_1NonNullPtr.html" title=" " alt="" coords="259,357,433,411"/>
+<area shape="poly" id="edge372_Node000000_Node000006" title=" " alt="" coords="150,437,258,406,259,411,151,442"/>
+<area shape="rect" id="Node000007" href="$classpsr_1_1NonNullPtr.html" title=" " alt="" coords="261,436,431,476"/>
+<area shape="poly" id="edge373_Node000000_Node000007" title=" " alt="" coords="191,453,260,453,260,459,191,459"/>
+<area shape="rect" id="Node000008" href="$classpsr_1_1NonNullPtr.html" title=" " alt="" coords="242,501,450,526"/>
+<area shape="poly" id="edge374_Node000000_Node000008" title=" " alt="" coords="158,469,226,485,284,498,283,503,225,491,157,475"/>
+<area shape="rect" id="Node000009" href="$classpsr_1_1NonNullPtr.html" title=" " alt="" coords="225,550,467,575"/>
+<area shape="poly" id="edge375_Node000000_Node000009" title=" " alt="" coords="122,474,169,506,226,535,267,547,265,552,224,540,166,510,119,479"/>
+<area shape="rect" id="Node000010" href="$classpsr_1_1NonNullPtr.html" title=" " alt="" coords="236,599,456,625"/>
+<area shape="poly" id="edge376_Node000000_Node000010" title=" " alt="" coords="112,478,160,533,191,561,227,584,258,597,256,602,224,589,188,565,156,536,108,482"/>
+<area shape="rect" id="Node000011" href="$classpsr_1_1NonNullPtr.html" title=" " alt="" coords="259,649,433,719"/>
+<area shape="poly" id="edge377_Node000000_Node000011" title=" " alt="" coords="107,479,154,555,188,597,227,634,261,654,258,659,224,638,184,601,150,558,103,482"/>
+<area shape="rect" id="Node000012" href="$classpsr_1_1NonNullPtr.html" title=" " alt="" coords="245,743,447,798"/>
+<area shape="poly" id="edge378_Node000000_Node000012" title=" " alt="" coords="101,482,115,534,140,600,177,669,200,701,227,729,246,742,243,747,224,733,196,704,172,672,135,602,110,535,96,483"/>
+<area shape="rect" id="Node000013" href="$classpsr_1_1NonNullPtr.html" title=" " alt="" coords="267,822,425,847"/>
+<area shape="poly" id="edge379_Node000000_Node000013" title=" " alt="" coords="97,482,105,548,126,637,143,684,165,729,193,771,227,807,246,819,267,827,265,832,243,824,224,811,189,774,160,732,138,686,121,638,100,549,92,482"/>
 </map>

@@ -101,26 +101,40 @@ $(function() {
 <div class="line">  { ConstSet.contains(ValId) } -&gt; std::convertible_to&lt;bool&gt;;</div>
 <div class="line">  </div>
 <div class="line">  </div>
+<div class="line"> </div>
+<div class="line">  </div>
 <div class="line">  ConstSet.foreach (DummyFn&lt;typename ASet::value_type&gt;{});</div>
 <div class="line">  MutSet |= ConstSet;</div>
 <div class="line">  MutSet &amp;= ConstSet;</div>
 <div class="line">  MutSet -= ConstSet;</div>
+<div class="line">  { ConstSet - ConstSet } -&gt; std::convertible_to&lt;ASet&gt;;</div>
 <div class="line">  { ConstSet == ConstSet } <span class="keyword">noexcept</span> -&gt; std::convertible_to&lt;bool&gt;;</div>
 <div class="line">  { ConstSet != ConstSet } <span class="keyword">noexcept</span> -&gt; std::convertible_to&lt;bool&gt;;</div>
 <div class="line">  { MutSet.tryMergeWith(ConstSet) } -&gt; std::convertible_to&lt;bool&gt;;</div>
 <div class="line">  { MutSet.clear() } <span class="keyword">noexcept</span>;</div>
 <div class="line">  { ConstSet.empty() } <span class="keyword">noexcept</span> -&gt; std::convertible_to&lt;bool&gt;;</div>
 <div class="line">  { ConstSet.size() } <span class="keyword">noexcept</span> -&gt; std::convertible_to&lt;size_t&gt;;</div>
+<div class="line">  {</div>
+<div class="line">    </div>
+<div class="line">    </div>
+<div class="line">    </div>
+<div class="line">    MutSet.mergeWithDiff(ConstSet, DummyFn&lt;typename ASet::value_type&gt;{}, MutSet)</div>
+<div class="line">  } -&gt; std::convertible_to&lt;bool&gt;;</div>
+<div class="line">  {</div>
+<div class="line">    </div>
+<div class="line">    </div>
+<div class="line">    MutSet.mergeWithDiff(ConstSet, DummyFn&lt;typename ASet::value_type&gt;{})</div>
+<div class="line">  } -&gt; std::convertible_to&lt;bool&gt;;</div>
 <div class="line">}</div>
-<div class="ttc" id="aconceptpsr_1_1IsRawAliasSet_html"><div class="ttname"><a href="conceptpsr_1_1IsRawAliasSet.html">psr::IsRawAliasSet</a></div><div class="ttdef"><b>Definition</b> <a href="RawAliasSet_8h_source.html#l00024">RawAliasSet.h:24</a></div></div>
+<div class="ttc" id="aconceptpsr_1_1IsRawAliasSet_html"><div class="ttname"><a href="conceptpsr_1_1IsRawAliasSet.html">psr::IsRawAliasSet</a></div><div class="ttdef"><b>Definition</b> <a href="RawAliasSet_8h_source.html#l00029">RawAliasSet.h:29</a></div></div>
 </div><!-- fragment --><a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Concept for alias-set containers used inside the union-find analyses. The container must support set insertion, membership test, bitwise union/intersection/difference, a <code>foreach()</code> visitor, and comparison. </p>
 
-<p class="definition">Definition at line <a class="el" href="RawAliasSet_8h_source.html#l00024">24</a> of file <a class="el" href="RawAliasSet_8h_source.html">RawAliasSet.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="RawAliasSet_8h_source.html#l00029">29</a> of file <a class="el" href="RawAliasSet_8h_source.html">RawAliasSet.h</a>.</p>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Jul 9 2026 17:08:28 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Fri Jul 31 2026 17:18:45 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

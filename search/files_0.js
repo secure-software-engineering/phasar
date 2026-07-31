@@ -23,8 +23,9 @@ var searchData=
   ['analysisproperties_2eh_20',['AnalysisProperties.h',['../AnalysisProperties_8h.html',1,'']]],
   ['analysissetup_2eh_21',['AnalysisSetup.h',['../AnalysisSetup_8h.html',1,'']]],
   ['analysisstrategy_2eh_22',['AnalysisStrategy.h',['../AnalysisStrategy_8h.html',1,'']]],
-  ['annotation_2eh_23',['Annotation.h',['../Annotation_8h.html',1,'']]],
-  ['arrayset_2eh_24',['ArraySet.h',['../ArraySet_8h.html',1,'']]],
-  ['arraysetworklist_2eh_25',['ArraySetWorkList.h',['../ArraySetWorkList_8h.html',1,'']]],
-  ['average_2eh_26',['Average.h',['../Average_8h.html',1,'']]]
+  ['andersenotfaa_2eh_23',['AndersenOTFAA.h',['../AndersenOTFAA_8h.html',1,'']]],
+  ['annotation_2eh_24',['Annotation.h',['../Annotation_8h.html',1,'']]],
+  ['arrayset_2eh_25',['ArraySet.h',['../ArraySet_8h.html',1,'']]],
+  ['arraysetworklist_2eh_26',['ArraySetWorkList.h',['../ArraySetWorkList_8h.html',1,'']]],
+  ['average_2eh_27',['Average.h',['../Average_8h.html',1,'']]]
 ];
