@@ -16,6 +16,7 @@ ALIAS_ANALYSIS_TYPE(CFLSteens, "cflsteens", "Steensgaard-style alias analysis (e
 ALIAS_ANALYSIS_TYPE(CFLAnders, "cflanders", "Andersen-style alias analysis (subset-based) (default)")
 ALIAS_ANALYSIS_TYPE(PointsTo, "points-to", "Alias-information based on (external) points-to information")
 ALIAS_ANALYSIS_TYPE(UnionFind, "union-find", "Steensgaard-style alias analysis based on union-find structures")
+ALIAS_ANALYSIS_TYPE(AndersenOTF, "andersen-otf", "Andersen-style inclusion-based on-the-fly points-to analysis")
 
 #ifdef PHASAR_USE_SVF
 ALIAS_ANALYSIS_TYPE(SVFDDA, "svf-dda", "Alias-information based on SVF's ContextDDA analysis. Requires SVF.")

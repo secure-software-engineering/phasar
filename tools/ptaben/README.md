@@ -25,8 +25,8 @@ The analyses were run on the LLVM-16 IR of the tests in the PTABen folders `basi
 
 Note that we treat `EXPECTEDFAIL_*` assertions as-if the `EXPECTEDFAIL_`-part was not there.
 
-|           | cfl-anders | cfl-steens | ctx-sens | bot-sens | ind-sens | ctx-ind-sens | bot-ctx-ind-sens |
-|-----------|------------|------------|----------|----------|----------|--------------|------------------|
-| precision | 0.712      | 0.709      | 0.819    | 0.793    | 0.684    | 0.819        | 0.793            |
-| recall    | 0.961      | 0.975      | 0.930    | 0.874    | 0.963    | 0.930        | 0.874            |
-| F1-score  | 0.818      | 0.821      | 0.871    | 0.832    | 0.800    | 0.871        | 0.832            |
+|           | cfl-anders | cfl-steens | ctx-sens | bot-sens | ind-sens | ctx-ind-sens | bot-ctx-ind-sens | anders-otf |
+|-----------|------------|------------|----------|----------|----------|--------------|------------------|------------|
+| precision | 0.712      | 0.709      | 0.819    | 0.793    | 0.684    | 0.819        | 0.793            | 0.801      |
+| recall    | 0.961      | 0.975      | 0.930    | 0.874    | 0.963    | 0.930        | 0.874            | 0.869      |
+| F1-score  | 0.818      | 0.821      | 0.871    | 0.832    | 0.800    | 0.871        | 0.832            | 0.833      |
