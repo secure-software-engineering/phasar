@@ -30,6 +30,13 @@ int main(int Argc, char *Argv[]) {
   // it.
   psr::LLVMAliasInfoRef ASRef = &AS;
 
+  // For APIs that don't need the expressiveness of the LLVMAliasInfoRef, PhASAR
+  // provides a simpler interface: LLVMAliasIteratorRef. It only provides a
+  // function forallAliasesOf() that allows invoking a callback for all aliases
+  // of a pointer; for most applications, this is sufficient.
+  // Similar to LLVMAliasInfoRef, it is a non-owning reference.
+  psr::LLVMAliasIteratorRef AIt = &AS;
+
   // You can print and load alias information from/to JSON:
   AS.printAsJson();
 

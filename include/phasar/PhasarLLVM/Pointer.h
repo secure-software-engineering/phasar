@@ -12,10 +12,16 @@
 
 #include "phasar/Config/phasar-config.h" // for PHASAR_USE_SVF
 #include "phasar/PhasarLLVM/Pointer/AliasAnalysisView.h"
+#include "phasar/PhasarLLVM/Pointer/AndersenOTFAA.h"
 #include "phasar/PhasarLLVM/Pointer/FilteredLLVMAliasSet.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMGlobalInitCache.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMUnionFindAA.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMUnionFindAliasSet.h"
+#include "phasar/PhasarLLVM/Pointer/MemSSAUtils.h"
 
 #ifdef PHASAR_USE_SVF
 #include "phasar/PhasarLLVM/Pointer/SVF/SVFPointsToSet.h"

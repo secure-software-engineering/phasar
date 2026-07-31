@@ -1,10 +1,26 @@
 set(lca_files
+  andersen_otf_interproc.c
+  andersen_otf_fp.c
+  andersen_otf_global_init.c
+  andersen_otf_merge_load.c
+  andersen_otf_fp_already_processed.c
+  andersen_otf_extern_callback.c
+  andersen_otf_fp_struct_field.c
+  andersen_otf_vtable.cpp
+  andersen_otf_vtable2.cpp
   basic_01.c
   basic_02.c
   basic_03.c
   basic_04.c
   call_01.cpp
   dynamic_01.cpp
+  factory_01.c
+  factory_02.c
+  andersen_otf_fnptr_table_basic.c
+  andersen_otf_fnptr_table_two_sites.c
+  andersen_otf_fnptr_table_dynamic_index.c
+  andersen_otf_fnptr_table_indirect_value.c
+  andersen_otf_fnptr_table_memcpy.c
   global_01.cpp
   inter_dynamic_01.cpp
   inter_dynamic_02.cpp
@@ -47,6 +63,10 @@ set(lca_files
 )
 
 set(lca_files_mem2reg
+  andersen_otf_interproc.c
+  andersen_otf_fp.c
+  andersen_otf_libc.c
+  andersen_otf_struct_vtable.c
   basic_01.c
   basic_02.c
   basic_03.c

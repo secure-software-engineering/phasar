@@ -9,9 +9,8 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
+#include "phasar/Utils/StrongTypeDef.h"
+
 #include <cstdint>
 
-namespace psr::ptaben {
-enum class [[clang::enum_extensibility(open)]] QueryId : uint64_t {};
-
-} // namespace psr::ptaben
+PHASAR_STRONG_TYPEDEF(psr::ptaben, uint64_t, QueryId);
