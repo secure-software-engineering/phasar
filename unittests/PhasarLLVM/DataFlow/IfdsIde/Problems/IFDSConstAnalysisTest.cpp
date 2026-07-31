@@ -8,7 +8,9 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/DebugOutput.h"
 
+#include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/Support/Casting.h"
@@ -71,7 +73,8 @@ protected:
       }
     }
 
-    EXPECT_EQ(GroundTruth, AllMutableAllocas);
+    EXPECT_EQ(GroundTruth, AllMutableAllocas)
+        << " Expected " << PrettyPrinter{GroundTruth};
   }
 
   void compareResults(const std::set<TestingSrcLocation> &GroundTruth,

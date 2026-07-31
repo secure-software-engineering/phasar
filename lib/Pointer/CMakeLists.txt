@@ -10,6 +10,9 @@ add_phasar_library(phasar_pointer
   LLVM_LINK_COMPONENTS
     Support
 
+  LINK_PUBLIC
+    roaring::roaring
+
   MODULE_FILES
     PhasarPointer.cppm
 )

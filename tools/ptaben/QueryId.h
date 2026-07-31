@@ -13,4 +13,4 @@
 
 #include <cstdint>
 
-PHASAR_STRONG_TYPEDEF(psr::ptaben, uint64_t, QueryId)
+PHASAR_STRONG_TYPEDEF(psr::ptaben, uint64_t, QueryId);

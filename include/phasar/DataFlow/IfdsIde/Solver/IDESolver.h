@@ -1449,7 +1449,7 @@ protected:
         if (ICF->isCallSite(Edge.first)) {
           ValidInCallerContext[Edge.second].insert(D2s.begin(), D2s.end());
         }
-        IF_LOG_LEVEL_ENABLED(DEBUG, [this](const auto &D2s) {
+        IF_LOG_LEVEL_ENABLED(DEBUG, [](const auto &D2s) {
           for (auto D2 : D2s) {
             PHASAR_LOG_LEVEL(DEBUG, "d2: " << DToString(D2));
           }
