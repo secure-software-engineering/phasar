@@ -478,15 +478,15 @@ public:
       PHASAR_LOG_LEVEL(INFO, "Summary-flow function constructions: "
                                  << SummaryFF_Construction.value());
       PHASAR_LOG_LEVEL(
-          INFO, "Total flow function cache hits: " << GET_SUM_COUNT(
+          INFO, "Total flow function cache hits: " << pamm::getSumCount(
                     NormalFF_CacheHit, CallFF_CacheHit, ReturnFF_CacheHit,
                     CallToRetFF_CacheHit, SummaryFF_CacheHit));
       //"Summary-FF Cache Hit"});
-      PHASAR_LOG_LEVEL(INFO,
-                       "Total flow function constructions: " << GET_SUM_COUNT(
-                           NormalFF_Construction, CallFF_Construction,
-                           CallToRetFF_Construction, ReturnFF_Construction,
-                           SummaryFF_Construction));
+      PHASAR_LOG_LEVEL(
+          INFO, "Total flow function constructions: " << pamm::getSumCount(
+                    NormalFF_Construction, CallFF_Construction,
+                    CallToRetFF_Construction, ReturnFF_Construction,
+                    SummaryFF_Construction));
       PHASAR_LOG_LEVEL(INFO, ' ');
       PHASAR_LOG_LEVEL(
           INFO, "Normal edge function cache hits: " << NormalEF_CacheHit);
@@ -509,14 +509,14 @@ public:
       PHASAR_LOG_LEVEL(INFO, "Summary edge function constructions: "
                                  << SummaryEF_Construction);
       PHASAR_LOG_LEVEL(
-          INFO, "Total edge function cache hits: " << GET_SUM_COUNT(
+          INFO, "Total edge function cache hits: " << pamm::getSumCount(
                     NormalEF_CacheHit, CallEF_CacheHit, ReturnEF_CacheHit,
                     CallToRetEF_CacheHit, SummaryEF_CacheHit));
-      PHASAR_LOG_LEVEL(INFO,
-                       "Total edge function constructions: " << GET_SUM_COUNT(
-                           NormalEF_Construction, CallEF_Construction,
-                           ReturnEF_Construction, CallToRetEF_Construction,
-                           SummaryEF_Construction));
+      PHASAR_LOG_LEVEL(
+          INFO,
+          "Total edge function constructions: " << pamm::getSumCount(
+              NormalEF_Construction, CallEF_Construction, ReturnEF_Construction,
+              CallToRetEF_Construction, SummaryEF_Construction));
       PHASAR_LOG_LEVEL(INFO, "----------------------------------------------");
     } else {
       PHASAR_LOG_LEVEL(

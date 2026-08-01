@@ -33,7 +33,7 @@ TEST_F(PAMMTest, HandleTimer) {
 
   {
     pamm::ScopedTimer TmScope{Tm1};
-    std::this_thread::sleep_for(std::chrono::milliseconds(120));
+    std::this_thread::sleep_for(120ms);
   }
   auto Elapsed = Tm1.elapsedNanos();
   EXPECT_GE(Elapsed, 120ms) << "Bad time measurement";

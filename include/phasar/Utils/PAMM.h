@@ -52,13 +52,14 @@ class raw_ostream;
 /// tracking. Use the macros from PAMMMacros.h to declare static instances
 /// of these metrics. On construction, they are automatically registered in the
 /// static pamm::Registry, so that report-generation can be automated.
-/// The macros expect a valid C++ identifier as name, and a severify-level
+/// The macros expect a valid C++ identifier as name, and a severity-level
 /// (Core/Full) under which the metric should be active.
 ///
 /// Metrics are categorizable via a pamm::Category. The
 /// performance report groups by category; categories can be enabled/disabled at
 /// runtime. By convention, the macros register the metrics under the category
-/// 'PAMMCategory'; create a new category with PAMM_CATEGORY(name).
+/// with the identifier 'PAMMCategory'; create a new static PAMMCategory with
+/// the macro PAMM_CATEGORY(name).
 ///
 /// Currently, PAMM can be run with all metrics (severity level 2 = Full) or
 /// only core metrics (severity level 1 = Core) enabled. The severity level can
@@ -67,7 +68,7 @@ class raw_ostream;
 ///
 /// Thread-safety:
 /// If PhASAR is configured with the cmake-option -DPHASAR_THREAD_SAFE_PAMM=ON,
-/// PAMM provides some thread-safety guarentees. Generally, construction and
+/// PAMM provides some thread-safety guarentees: Generally, construction and
 /// destruction of metrics is NOT thread-safe. The pamm::Registry is therefore
 /// also NOT thread-safe. Adding data, i.e, incrementing counters, adding to
 /// histograms, starting/stopping timers is protected by suitable
