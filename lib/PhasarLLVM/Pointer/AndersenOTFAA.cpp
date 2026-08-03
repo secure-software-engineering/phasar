@@ -610,9 +610,13 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
   // across a grow() call.  addAssignEdge does not call grow(), so references
   // into Nodes remain valid across it.
 
+  // NOTE: \p Obj is stored as-is, *not* resolved through rep(). Pts-set
+  // membership is what defines may-alias, so letting SCC collapsing rewrite an
+  // object's identity would conflate distinct abstract objects for good. Cycle
+  // collapsing still drives propagation: every constraint helper reached from a
+  // pts element re-resolves through rep() itself.
   void addPointee(ValueId Ptr, ValueId Obj) {
     Ptr = rep(Ptr);
-    Obj = rep(Obj);
     grow(Ptr);
     grow(Obj); // grow before indexing Nodes[Ptr]
     if (Nodes[Ptr].PtsSet.tryInsert(Obj)) {
