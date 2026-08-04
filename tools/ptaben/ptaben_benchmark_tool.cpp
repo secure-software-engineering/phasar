@@ -48,10 +48,15 @@ static cl::OptionCategory PTABenCat("PTABen Benchmark Tool");
 static cl::SubCommand
     CheckFileCmd("check-file", "Check a single file instead of a directory");
 
-static cl::opt<std::string> IRPath(cl::Positional, cl::Required,
-                                   cl::desc("ptaben-ir-directory"),
-                                   cl::cat(PTABenCat),
-                                   cl::sub(cl::SubCommand::getAll()));
+static cl::list<std::string> IRPaths(cl::Positional, cl::OneOrMore,
+                                     cl::desc("ptaben-ir-directory"),
+                                     cl::cat(PTABenCat),
+                                     cl::sub(cl::SubCommand::getTopLevel()));
+
+static cl::opt<std::string> IRFilePath(cl::Positional, cl::Required,
+                                       cl::desc("ptaben-ir-file"),
+                                       cl::cat(PTABenCat),
+                                       cl::sub(CheckFileCmd));
 static cl::opt<std::string>
     QueryTablePath("queries-table",
                    cl::desc("The Output-Path to the queries table"),
@@ -203,9 +208,9 @@ static auto openFileOrExit(llvm::StringRef Filepath) {
 }
 
 static int checkSingleFile() {
-  llvm::WithColor::note() << "Analyzing " << IRPath << '\n';
+  llvm::WithColor::note() << "Analyzing " << IRFilePath << '\n';
 
-  auto IRDB = psr::LLVMProjectIRDB::loadOrExit(IRPath);
+  auto IRDB = psr::LLVMProjectIRDB::loadOrExit(IRFilePath);
   auto *Mod = IRDB.getModule();
   assert(Mod != nullptr);
   llvm::SmallVector<psr::ptaben::QueryLocation, 4> QueryLocs;
@@ -305,7 +310,8 @@ static int performCompleteExperiment() {
                 }};
 
   llvm::SmallVector<std::string, 4> Failures;
-  psr::ptaben::checkDir(IRPath, Failures, [&](llvm::StringRef FileName) {
+
+  psr::ptaben::checkDirs(IRPaths, Failures, [&](llvm::StringRef FileName) {
     llvm::WithColor::note() << "Analyzing " << FileName << '\n';
 
     auto IRDB = psr::LLVMProjectIRDB::loadOrExit(FileName);
@@ -337,6 +343,7 @@ static int performCompleteExperiment() {
 
     return true;
   });
+
   return 0;
 }
 
