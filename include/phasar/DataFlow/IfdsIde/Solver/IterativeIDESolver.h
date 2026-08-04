@@ -19,6 +19,7 @@
 #include "phasar/Domain/BinaryDomain.h"
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/EmptyBaseOptimizationUtils.h"
+#include "phasar/Utils/Lazy.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Printer.h"
 #include "phasar/Utils/StableVector.h"
@@ -728,6 +729,23 @@ private:
                              const CalleesTy &Callees, uint32_t FunId) {
     auto CSFact = FactCompressor[PropagatedFactId];
 
+    std::optional<bool> HasNoCalleeInformation;
+    auto EdgesKind = lazy{[&] {
+      if (!HasNoCalleeInformation) {
+        HasNoCalleeInformation =
+            llvm::all_of(Callees, [&](ByConstRef<f_t> Callee) {
+              auto SpecialSum = FECache.getSummaryFlowFunction(
+                  Problem, AtInstruction, Callee,
+                  combineIds(AtInstructionId,
+                             FunCompressor.getOrInsert(Callee)));
+              return SpecialSum == nullptr &&
+                     ICFG.getStartPointsOf(Callee).empty();
+            });
+      }
+      return *HasNoCalleeInformation ? ESGEdgeKind::SkipUnknownFn
+                                     : ESGEdgeKind::CallToRet;
+    }};
+
     for (ByConstRef<n_t> RetSite : ICFG.getReturnSitesOfCallAt(AtInstruction)) {
       auto RetSiteId = NodeCompressor.getOrInsert(RetSite);
       auto Facts = FECache
@@ -736,8 +754,7 @@ private:
                            combineIds(AtInstructionId, RetSiteId))
                        .computeTargets(CSFact);
 
-      // TODO: SkipUnknownFn
-      saveEdges(AtInstruction, RetSite, CSFact, Facts, ESGEdgeKind::CallToRet);
+      saveEdges(AtInstruction, RetSite, CSFact, Facts, EdgesKind);
 
       for (ByConstRef<d_t> Fact : Facts) {
         auto FactId = FactCompressor.getOrInsert(Fact);

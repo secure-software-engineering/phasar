@@ -14,7 +14,7 @@
 #include "phasar/DataFlow/PathSensitivity/ExplodedSuperGraph.h"
 
 namespace psr {
-template <typename Base> struct PathAwareIDESolverConfig {
+template <typename Base> struct PathAwareIDESolverConfig : public Base {
   template <typename AnalysisDomainTy>
   using PathTrackingData = ExplodedSuperGraph<AnalysisDomainTy>;
 
@@ -45,6 +45,19 @@ public:
   using IterativeIDESolver<ProblemTy,
                            PathAwareIDESolverConfig<StaticSolverConfigTy>,
                            ICFGTy>::IterativeIDESolver;
+
+  [[nodiscard]] decltype(auto) getExplicitESG() const & noexcept {
+    return this->getPathAwareData();
+  }
+
+  [[nodiscard]] decltype(auto) getExplicitESG() && noexcept {
+    return std::move(*this).getPathAwareData();
+  }
 };
+
+template <typename ProblemTy, typename ICFGTy>
+PathAwareIterIDESolver(ProblemTy *, ICFGTy *)
+    -> PathAwareIterIDESolver<ProblemTy, DefaultIDESolverConfig<ProblemTy>,
+                              ICFGTy>;
 
 } // namespace psr

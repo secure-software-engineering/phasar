@@ -9,6 +9,7 @@
 #include "phasar/Utils/TableWrappers.h"
 #include "phasar/Utils/TypeTraits.h"
 
+#include <concepts>
 #include <type_traits>
 #include <utility>
 
@@ -66,7 +67,8 @@ struct IDESolverConfigBase {
                         ByConstRef<typename AnalysisDomainTy::n_t> Curr,
                         ByConstRef<typename AnalysisDomainTy::n_t> Succ,
                         ByConstRef<typename AnalysisDomainTy::d_t> CurrNode,
-                        const auto &SuccNodes, ESGEdgeKind Kind) {}
+                        const auto &SuccNodes,
+                        std::convertible_to<ESGEdgeKind> auto Kind) {}
 
   static constexpr bool AutoAddZero = true;
   static constexpr bool EnableStatistics = false;
