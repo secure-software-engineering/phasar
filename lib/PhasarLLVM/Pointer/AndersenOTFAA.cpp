@@ -329,6 +329,9 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
   llvm::SmallVector<FPCallRecord> UnresolvedFPCalls;
   llvm::SmallVector<VCallRecord> UnresolvedVCalls;
   llvm::SmallVector<StructVCallRecord> UnresolvedStructVCalls;
+  // Argument lists of calls to declarations, whose fn-ptr arguments are
+  // treated as reachable callbacks; see checkUnresolvedCallbacks().
+  llvm::SmallVector<ArgList> UnresolvedCallbacks;
 
   // Observed fn-ptr field writes for heap/stack dispatch tables.
   struct FieldWriteInfo {
@@ -1201,8 +1204,10 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
   // For each argument, add every function in pts(ArgId) to the worklist
   // as an entry point.  Used when a callee is a declaration and we want to
   // treat fn-ptr arguments as reachable callbacks (Soundy / Sound mode).
-  void
+  // Returns whether a new entry point was queued.
+  bool
   addFnPtrArgsAsEntries(llvm::ArrayRef<llvm::SmallVector<ValueId, 2>> Args) {
+    bool NewEntry = false;
     for (const auto &ArgIds : Args) {
       for (ValueId ArgId : ArgIds) {
         ArgId = rep(ArgId);
@@ -1221,12 +1226,31 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
                 Queued.insert({Fun, CallingContextId::None}).second) {
               FunctionWorklist.emplace_back(Fun, CallingContextId::None);
               std::ignore = CGBuilder.addFunctionVertex(Fun);
+              NewEntry = true;
             }
           });
           return true;
         });
       }
     }
+    return NewEntry;
+  }
+
+  // Re-runs callback discovery for every recorded declaration call site.
+  //
+  // addFnPtrArgsAsEntries() reads pts(arg) at the moment the call site is
+  // first connected, and connectCallee()'s ConnectedCallees guard makes that
+  // happen exactly once.  Points-to sets keep growing afterwards, so a
+  // function pointer reaching such an argument later would never be
+  // discovered and its whole callee subgraph would go unanalyzed.  Like the
+  // other unresolved-call tables, the records are therefore re-checked once
+  // per outer round until no new entry point appears.
+  bool checkUnresolvedCallbacks() {
+    bool NewEntry = false;
+    for (const auto &Args : UnresolvedCallbacks) {
+      NewEntry |= addFnPtrArgsAsEntries(Args);
+    }
+    return NewEntry;
   }
 
   void applyLibrarySummary(
@@ -1521,8 +1545,11 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
         applyLibrarySummary(*LibSum, Callee, Args, CSRetVal);
         return false;
       }
-      if (SoundnessFlag != Soundness::Unsound) {
-        addFnPtrArgsAsEntries(Args);
+      if (SoundnessFlag != Soundness::Unsound &&
+          llvm::any_of(Args,
+                       [](const auto &ArgIds) { return !ArgIds.empty(); })) {
+        std::ignore = addFnPtrArgsAsEntries(Args);
+        UnresolvedCallbacks.emplace_back(Args.begin(), Args.end());
       }
       return false;
     }
@@ -2139,6 +2166,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
       Changed |= checkUnresolvedFPCalls();
       Changed |= checkUnresolvedVCalls();
       Changed |= checkUnresolvedStructVCalls();
+      Changed |= checkUnresolvedCallbacks();
     } while (!FunctionWorklist.empty() || Changed);
 
     return buildResult();
