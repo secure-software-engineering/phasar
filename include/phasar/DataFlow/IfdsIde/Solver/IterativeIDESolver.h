@@ -4,6 +4,7 @@
 #include "phasar/ControlFlow/SparseCFGProvider.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
 #include "phasar/DataFlow/IfdsIde/Solver/Compressor.h"
+#include "phasar/DataFlow/IfdsIde/Solver/ESGEdgeKind.h"
 #include "phasar/DataFlow/IfdsIde/Solver/EdgeFunctionCache.h"
 #include "phasar/DataFlow/IfdsIde/Solver/FlowEdgeFunctionCacheNG.h"
 #include "phasar/DataFlow/IfdsIde/Solver/FlowFunctionCache.h"
@@ -23,6 +24,7 @@
 #include "phasar/Utils/StableVector.h"
 #include "phasar/Utils/TableWrappers.h"
 #include "phasar/Utils/TypeTraits.h"
+#include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/DenseMapInfo.h"
@@ -133,7 +135,8 @@ private:
 public:
   IterativeIDESolver(ProblemTy *Problem, const ICFGTy *ICFG,
                      StaticSolverConfigTy /*Config*/ = {}) noexcept
-      : Problem(assertNotNull(Problem)), ICFG(assertNotNull(ICFG)) {}
+      : Problem(assertNotNull(Problem)), ICFG(assertNotNull(ICFG)),
+        PathData(StaticSolverConfigTy::initPathData(assertNotNull(Problem))) {}
 
   auto solve() & {
     solveImpl();
@@ -156,6 +159,16 @@ public:
 
   void dumpResults(llvm::raw_ostream &OS = llvm::outs()) const {
     getSolverResults().dumpResults(ICFG, OS);
+  }
+
+  [[nodiscard]] const auto &getPathAwareData() const & noexcept {
+    return PathData;
+  }
+  [[nodiscard]] auto getPathAwareData() && noexcept {
+    return std::move(PathData);
+  }
+  [[nodiscard]] auto consumePathAwareData() noexcept {
+    return std::move(PathData);
   }
 
   [[nodiscard]] IterativeIDESolverStats getStats() const noexcept
@@ -651,6 +664,8 @@ private:
                                      combineIds(AtInstructionId, SuccId))
               .computeTargets(CSFact);
 
+      saveEdges(AtInstruction, Succ, CSFact, Facts, ESGEdgeKind::Normal);
+
       for (ByConstRef<d_t> Fact : Facts) {
         auto FactId = FactCompressor.getOrInsert(Fact);
         auto EF = [&] {
@@ -720,6 +735,9 @@ private:
                            Problem, AtInstruction, RetSite, Callees /*Vec*/,
                            combineIds(AtInstructionId, RetSiteId))
                        .computeTargets(CSFact);
+
+      // TODO: SkipUnknownFn
+      saveEdges(AtInstruction, RetSite, CSFact, Facts, ESGEdgeKind::CallToRet);
 
       for (ByConstRef<d_t> Fact : Facts) {
         auto FactId = FactCompressor.getOrInsert(Fact);
@@ -858,6 +876,8 @@ private:
     for (ByConstRef<n_t> SP : ICFG.getStartPointsOf(Callee)) {
       auto SPId = NodeCompressor.getOrInsert(SP);
 
+      saveEdges(AtInstruction, SP, CSFact, CalleeFacts, ESGEdgeKind::Call);
+
       for (ByConstRef<d_t> Fact : CalleeFacts) {
         auto FactId = FactCompressor.getOrInsert(Fact);
 
@@ -917,6 +937,9 @@ private:
     for (ByConstRef<n_t> RetSite : ICFG.getReturnSitesOfCallAt(AtInstruction)) {
       auto RetSiteId = NodeCompressor.getOrInsert(RetSite);
 
+      saveEdges(AtInstruction, RetSite, CSFact, SummaryFacts,
+                ESGEdgeKind::Summary);
+
       for (ByConstRef<d_t> Fact : SummaryFacts) {
         auto FactId = FactCompressor.getOrInsert(Fact);
 
@@ -954,6 +977,9 @@ private:
         uint32_t SummaryFactId{Summary.first};
         auto SummaryFact = FactCompressor[SummaryFactId];
         auto RetFacts = RetFF.computeTargets(SummaryFact);
+
+        saveEdges(ExitInst, RetSite, SummaryFact, RetFacts, ESGEdgeKind::Ret);
+
         for (ByConstRef<d_t> RetFact : RetFacts) {
           auto RetFactId = FactCompressor.getOrInsert(RetFact);
 
@@ -1288,6 +1314,13 @@ private:
     }
   }
 
+  void saveEdges(ByConstRef<n_t> SourceNode, ByConstRef<n_t> SinkStmt,
+                 ByConstRef<d_t> SourceVal, const auto &DestVals,
+                 ESGEdgeKind Kind) {
+    StaticSolverConfigTy::template saveEdges<domain_t>(
+        PathData, SourceNode, SinkStmt, SourceVal, DestVals, Kind);
+  }
+
   static constexpr uint64_t combineIds(uint32_t LHS, uint32_t RHS) noexcept {
     return (uint64_t(LHS) << 32) | RHS;
   }
@@ -1339,6 +1372,9 @@ private:
   llvm::BitVector CandidateFunctionsForGC{};
 
   flow_edge_function_cache_t FECache{Problem};
+
+  [[no_unique_address]]
+  typename config_t::template PathTrackingData<domain_t> PathData;
 };
 
 } // namespace psr
