@@ -21,6 +21,8 @@ set(lca_files
   andersen_otf_fnptr_table_dynamic_index.c
   andersen_otf_fnptr_table_indirect_value.c
   andersen_otf_fnptr_table_memcpy.c
+  andersen_otf_bug_a4_aggregate_ret.c
+  andersen_otf_bug_a4_atomics.c
   global_01.cpp
   inter_dynamic_01.cpp
   inter_dynamic_02.cpp
@@ -70,6 +72,8 @@ set(lca_files_mem2reg
   andersen_otf_fp.c
   andersen_otf_libc.c
   andersen_otf_struct_vtable.c
+  andersen_otf_bug_a1_poison_scc.c
+  andersen_otf_bug_a2_loop_gep.c
   basic_01.c
   basic_02.c
   basic_03.c

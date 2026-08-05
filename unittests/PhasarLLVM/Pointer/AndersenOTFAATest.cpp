@@ -1573,6 +1573,200 @@ TEST(AndersenOTFAATest, FnPtrTableMemcpyPropagatesKnownFields) {
   EXPECT_FALSE(llvm::is_contained(BarCallees, FooImpl));
 }
 
+// ---- Known defects from docs/andersen-otfaa-review.md ---------------------
+//
+// The tests below encode the *intended* behaviour for findings that are still
+// open; each one fails against the current implementation.  The item id in
+// each comment refers to the review document.
+
+TEST(AndersenOTFAATest, A1_PoisonSurvivesSCCCollapse) {
+  // resolveFieldWrite(ValueId) never resolves its recorded pointer through
+  // rep().  pong's disqualifying store (`o->Fn = f`, f not a literal) lands
+  // on the node that LCD later folds into the ping/pong SCC, so the re-check
+  // reads the cleared non-representative and O is never poisoned -- leaving
+  // call_fn wrongly precise at {real_fn}.
+  auto IRDB = LLVMProjectIRDB::loadOrExit(
+      PathToLLFiles + "andersen_otf_bug_a1_poison_scc_c_m2r_dbg.ll");
+  const auto *CallFn = IRDB.getFunctionDefinition("call_fn");
+  const auto *RealFn = IRDB.getFunctionDefinition("real_fn");
+  const auto *OtherFn = IRDB.getFunctionDefinition("other_fn");
+  const auto *MainFn = IRDB.getFunctionDefinition("main");
+  ASSERT_NE(MainFn, nullptr);
+  ASSERT_NE(CallFn, nullptr);
+  ASSERT_NE(RealFn, nullptr);
+  ASSERT_NE(OtherFn, nullptr);
+
+  auto Res = computeAndersenOTFRaw(IRDB, {MainFn});
+
+  const auto *CS = findFirstIndirectCall(CallFn);
+  ASSERT_NE(CS, nullptr);
+
+  const auto &Callees = Res.CG.getCalleesOfCallAt(CS);
+  EXPECT_TRUE(llvm::is_contained(Callees, RealFn));
+  EXPECT_TRUE(llvm::is_contained(Callees, OtherFn))
+      << "pong's non-literal field write must poison O even after its "
+         "pointer node collapses into the ping/pong SCC";
+}
+
+TEST(AndersenOTFAATest, A2_LoopCarriedGEPKeepsBaseAliases) {
+  // handlePhi interns the loop-carried GEP via forEachOpId before the GEP
+  // itself is translated, so addPtrAlias's addAlias() no-ops and the GEP node
+  // keeps an empty pts-set instead of aliasing Buf.
+  const TSL Buf =
+      TSL(OperandOf{.OperandIndex = 0,
+                    .Inst = LineColFunOp{.Line = 15,
+                                         .Col = 0,
+                                         .InFunction = "main",
+                                         .OpCode = llvm::Instruction::Call}});
+  const TSL Gep = TSL(LineColFunOp{.Line = 8,
+                                   .Col = 0,
+                                   .InFunction = "findEnd",
+                                   .OpCode = llvm::Instruction::GetElementPtr});
+  const TSL Arg = TSL(ArgInFun{.Idx = 0, .InFunction = "findEnd"});
+  const std::vector<TSL> All = {Buf, Gep, Arg};
+  const GTMap Expected = {{Gep, All}, {Arg, All}, {Buf, All}};
+  doAnalysisAndCheckExact("andersen_otf_bug_a2_loop_gep_c_m2r_dbg.ll",
+                          Expected);
+}
+
+TEST(AndersenOTFAATest, A4_AggregateReturnReachesCaller) {
+  // make() returns { ptr, i64 }: handleReturn fills its return slot, but
+  // handleCall only binds the call result for pointer-typed calls and there
+  // is no ExtractValueInst case, so Q.P never learns about A.
+  const TSL A =
+      TSL(OperandOf{.OperandIndex = 0,
+                    .Inst = LineColFunOp{.Line = 18,
+                                         .Col = 0,
+                                         .InFunction = "main",
+                                         .OpCode = llvm::Instruction::Call}});
+  const TSL BVal = TSL(LineColFunOp{.Line = 19,
+                                    .Col = 0,
+                                    .InFunction = "main",
+                                    .OpCode = llvm::Instruction::Load});
+  const std::vector<TSL> All = {A, BVal};
+  const GTMap Expected = {{A, All}, {BVal, All}};
+  doAnalysisAndCheckExact("andersen_otf_bug_a4_aggregate_ret_c_dbg.ll",
+                          Expected);
+}
+
+TEST(AndersenOTFAATest, A4_AtomicExchangeIsAStoreAndALoad) {
+  // Clang lowers the pointer exchange to `atomicrmw xchg ptr %P, i64 ...`,
+  // which processInstruction drops entirely.  Soundly, Old must alias A (the
+  // exchanged-out value) and Cur must alias both A and B.
+  const TSL A =
+      TSL(OperandOf{.OperandIndex = 0,
+                    .Inst = LineColFunOp{.Line = 9,
+                                         .Col = 0,
+                                         .InFunction = "main",
+                                         .OpCode = llvm::Instruction::Store}});
+  const TSL B =
+      TSL(OperandOf{.OperandIndex = 0,
+                    .Inst = LineColFunOp{.Line = 10,
+                                         .Col = 0,
+                                         .InFunction = "main",
+                                         .OpCode = llvm::Instruction::Store}});
+  const TSL OldVal = TSL(LineColFunOp{.Line = 13,
+                                      .Col = 0,
+                                      .InFunction = "main",
+                                      .OpCode = llvm::Instruction::Load});
+  const TSL CurVal = TSL(LineColFunOp{.Line = 14,
+                                      .Col = 0,
+                                      .InFunction = "main",
+                                      .OpCode = llvm::Instruction::Load});
+  const GTMap Expected = {
+      {A, {A, OldVal, CurVal}},
+      {B, {B, CurVal}},
+      {OldVal, {A, OldVal, CurVal}},
+      {CurVal, {A, B, OldVal, CurVal}},
+  };
+  doAnalysisAndCheckExact("andersen_otf_bug_a4_atomics_c_dbg.ll", Expected);
+}
+
+TEST(AndersenOTFAATest, B1_ContextPrecisionComposesDownTheChain) {
+  // context_04_1: id3 -> id2 -> id1, called four times from main.  With
+  // k = 1, withPrefix discards the caller string, so all four id3 clones feed
+  // the single id2@{CS} clone and the call results re-merge one level down.
+  const TSL XX1 = TSL(LineColFunOp{.Line = 10,
+                                   .Col = 0,
+                                   .InFunction = "main",
+                                   .OpCode = llvm::Instruction::Call});
+  const TSL XX2 = TSL(LineColFunOp{.Line = 11,
+                                   .Col = 0,
+                                   .InFunction = "main",
+                                   .OpCode = llvm::Instruction::Call});
+  const TSL YY1 = TSL(LineColFunOp{.Line = 12,
+                                   .Col = 0,
+                                   .InFunction = "main",
+                                   .OpCode = llvm::Instruction::Call});
+  const TSL YY2 = TSL(LineColFunOp{.Line = 13,
+                                   .Col = 0,
+                                   .InFunction = "main",
+                                   .OpCode = llvm::Instruction::Call});
+  const TSL XAlloca =
+      TSL(OperandOf{.OperandIndex = 0,
+                    .Inst = LineColFunOp{.Line = 10,
+                                         .Col = 0,
+                                         .InFunction = "main",
+                                         .OpCode = llvm::Instruction::Call}});
+  const TSL YAlloca =
+      TSL(OperandOf{.OperandIndex = 0,
+                    .Inst = LineColFunOp{.Line = 12,
+                                         .Col = 0,
+                                         .InFunction = "main",
+                                         .OpCode = llvm::Instruction::Call}});
+  const GTMap Expected = {
+      {XX1, {XX1, XX2, XAlloca}},     {XX2, {XX1, XX2, XAlloca}},
+      {YY1, {YY1, YY2, YAlloca}},     {YY2, {YY1, YY2, YAlloca}},
+      {XAlloca, {XX1, XX2, XAlloca}}, {YAlloca, {YY1, YY2, YAlloca}},
+  };
+  doAnalysisAndCheckExact("context_04_1_c_dbg.ll", Expected,
+                          csOpts(CSMode::All));
+}
+
+TEST(AndersenOTFAATest, B4_PrePopulatedCompressorKeepsAllAliases) {
+  // buildResult discards the result of ExternalVC.addAlias.  A caller-supplied
+  // compressor that already maps both a GEP and its base pointer to distinct
+  // external ids therefore leaves one of the two with an empty alias set,
+  // even though they are the same PAG node.
+  auto IRDB = LLVMProjectIRDB::loadOrExit(
+      PathToLLFiles + "andersen_otf_fnptr_table_basic_c_dbg.ll");
+  const auto *MainFn = IRDB.getFunctionDefinition("main");
+  const auto *CallFoo = IRDB.getFunctionDefinition("call_foo");
+  ASSERT_NE(MainFn, nullptr);
+  ASSERT_NE(CallFoo, nullptr);
+
+  const llvm::GetElementPtrInst *Gep = nullptr;
+  for (const auto &Inst : llvm::instructions(CallFoo)) {
+    if (const auto *G = llvm::dyn_cast<llvm::GetElementPtrInst>(&Inst)) {
+      Gep = G;
+      break;
+    }
+  }
+  ASSERT_NE(Gep, nullptr);
+  const auto *Base = Gep->getPointerOperand();
+
+  // Pre-intern both ends of the aliasing pair, in the order the solver cannot
+  // reproduce: each gets its own external id.
+  ValueCompressor<PAGVariable> Compressor;
+  Compressor.insert(PAGVariable(Gep));
+  Compressor.insert(PAGVariable(Base));
+
+  auto Res = computeAndersenOTFRaw(IRDB, {MainFn}, &Compressor);
+
+  const auto GepId = Compressor.getOrNull(PAGVariable(Gep));
+  const auto BaseId = Compressor.getOrNull(PAGVariable(Base));
+  ASSERT_TRUE(GepId.has_value());
+  ASSERT_TRUE(BaseId.has_value());
+
+  const auto &GepAliases = Res.getRawAliasSet(*GepId);
+  const auto &BaseAliases = Res.getRawAliasSet(*BaseId);
+  EXPECT_FALSE(GepAliases.empty());
+  EXPECT_FALSE(BaseAliases.empty());
+  EXPECT_EQ(GepAliases, BaseAliases)
+      << "the GEP and its base are one PAG node, so a caller-supplied "
+         "compressor must not lose either one's alias set";
+}
+
 } // namespace
 
 int main(int Argc, char **Argv) {
