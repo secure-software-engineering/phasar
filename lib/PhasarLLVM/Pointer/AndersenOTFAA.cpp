@@ -50,7 +50,6 @@
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/GlobPattern.h"
 
-#include <algorithm>
 #include <cassert>
 #include <memory>
 #include <optional>
@@ -207,10 +206,14 @@ public:
   }
 
   /// Registers \p CV as an additional name for the existing node \p Id.
-  void addAlias(ContextualVar CV, ValueId Id) {
-    if (Var2Id.try_emplace(CV, Id).second) {
+  /// \returns the id \p CV maps to afterwards -- \p Id, or the id it was
+  /// already bound to, in which case no alias was recorded.
+  ValueId addAlias(ContextualVar CV, ValueId Id) {
+    auto [It, Inserted] = Var2Id.try_emplace(CV, Id);
+    if (Inserted) {
       recordVar(Id, CV);
     }
+    return It->second;
   }
 
   /// All context-qualified names of node \p Id; empty for plain nodes.
@@ -346,7 +349,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
       FieldsByObject;
   // Objects with an untrusted write; FnPtrFieldWrites is ignored for these.
   llvm::DenseSet<ObjectKey> ImpureObjects;
-  llvm::SmallVector<ValueId> UnresolvedPoisenFieldWrites;
+  llvm::SmallVector<ValueId> UnresolvedPoisonFieldWrites;
   llvm::SmallVector<QualifyingFieldWriteRecord> UnresolvedQualFieldWrites;
   llvm::SmallVector<CopyForwardFieldWriteRecord> UnresolvedCopyFieldWrites;
   // Per (call-site, caller-context): the (callee node, callee context) pairs
@@ -585,14 +588,24 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     }
 
     Nodes[NonRep] = NodeInfo{};
+
+    // The pts merge above may have left a pending wave that no addAssignEdge
+    // queued: it re-marks Rep's pts only when that pts is non-empty, so an
+    // empty Rep absorbing a non-empty NonRep strands the whole diff.
+    if (!Nodes[Rep].PendingPts.empty()) {
+      PropWorklist.push_back(Rep);
+    }
     return Rep;
   }
 
   // ---- Operand traversal ----------------------------------------------
 
-  void forEachOpId(const llvm::Value *V, std::invocable<ValueId> auto Handler) {
+  // \p Punned suppresses the no-pointer early-out, for values whose integer
+  // type hides a pointer (see isPunnedPointerAccess).
+  void forEachOpId(const llvm::Value *V, std::invocable<ValueId> auto Handler,
+                   bool Punned = false) {
     const llvm::Value *Stripped = V->stripPointerCastsAndAliases();
-    if (definitelyContainsNoPointer(Stripped)) {
+    if (!Punned && definitelyContainsNoPointer(Stripped)) {
       return;
     }
     psr::forEachPointerOperand(
@@ -820,20 +833,29 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     CurCtx = CallingContextId::None;
   }
 
+  // If V already owns a node -- handlePhi interns incoming values eagerly, so
+  // a loop-carried GEP/cast is reached before it is translated -- the alias
+  // can't be recorded anymore; merge the two nodes instead.
   void addPtrAlias(const llvm::Value *V, const llvm::Value *Src) {
     const AndersenVar Var{PAGVariable(V), false};
     // The context is loop-invariant, so branch on it before iterating.
     if (const auto Ctx = contextOf(PAGVariable(V));
         Ctx != CallingContextId::None) {
       forEachOpId(Src, [&](ValueId OpId) {
-        CtxNodes.addAlias({.Var = Var, .Ctx = Ctx}, OpId);
         grow(OpId);
+        const ValueId Mapped =
+            CtxNodes.addAlias({.Var = Var, .Ctx = Ctx}, OpId);
+        if (Mapped != OpId) {
+          merge(Mapped, OpId);
+        }
       });
       return;
     }
     forEachOpId(Src, [&](ValueId OpId) {
-      LocalVC.addAlias(Var, OpId);
       grow(OpId);
+      if (!LocalVC.addAlias(Var, OpId)) {
+        merge(*LocalVC.getOrNull(Var), OpId);
+      }
     });
   }
 
@@ -850,6 +872,14 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     }
     if (const auto *L = llvm::dyn_cast<llvm::LoadInst>(&I)) {
       handleLoad(L);
+      return;
+    }
+    if (const auto *RMW = llvm::dyn_cast<llvm::AtomicRMWInst>(&I)) {
+      handleAtomicAccess(RMW, RMW->getPointerOperand(), RMW->getValOperand());
+      return;
+    }
+    if (const auto *CX = llvm::dyn_cast<llvm::AtomicCmpXchgInst>(&I)) {
+      handleAtomicAccess(CX, CX->getPointerOperand(), CX->getNewValOperand());
       return;
     }
     if (const auto *M = llvm::dyn_cast<llvm::MemTransferInst>(&I)) {
@@ -872,6 +902,14 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
       handleSelect(S);
       return;
     }
+    if (const auto *EV = llvm::dyn_cast<llvm::ExtractValueInst>(&I)) {
+      handleExtractValue(EV);
+      return;
+    }
+    if (const auto *IV = llvm::dyn_cast<llvm::InsertValueInst>(&I)) {
+      handleInsertValue(IV);
+      return;
+    }
 
     // Casts: alias result to stripped operand (field-insensitive).
     if (const auto *Cast = llvm::dyn_cast<llvm::CastInst>(&I)) {
@@ -887,14 +925,51 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     }
   }
 
+  // Clang lowers pointer atomics by punning through a pointer-sized integer.
+  // Such a value carries a pointer iff the memory it is read from or written
+  // to does, so the plain integer-type gate would drop the whole chain.
+  [[nodiscard]] bool isPunnedPointerAccess(const llvm::Value *Ptr,
+                                           const llvm::Type *Ty) const {
+    if (!Ty->isIntegerTy(
+            IRDB.getModule()->getDataLayout().getPointerSizeInBits())) {
+      return false;
+    }
+    const llvm::Value *Base = Ptr->stripPointerCastsAndAliases();
+    if (const auto *A = llvm::dyn_cast<llvm::AllocaInst>(Base)) {
+      return !definitelyContainsNoPointer(A->getAllocatedType());
+    }
+    if (const auto *G = llvm::dyn_cast<llvm::GlobalVariable>(Base)) {
+      return !definitelyContainsNoPointer(G->getValueType());
+    }
+    return false;
+  }
+
   void handleStore(const llvm::StoreInst *S) {
-    if (definitelyContainsNoPointer(S->getValueOperand())) {
+    const auto *Val = S->getValueOperand();
+    const bool Punned =
+        isPunnedPointerAccess(S->getPointerOperand(), Val->getType());
+    if (!Punned && definitelyContainsNoPointer(Val)) {
       return;
     }
     recordFieldWrite(S);
     forEachOpId(S->getPointerOperand(), [&](ValueId PtrId) {
-      forEachOpId(S->getValueOperand(),
-                  [&](ValueId ValId) { addStore(PtrId, ValId); });
+      forEachOpId(Val, [&](ValueId ValId) { addStore(PtrId, ValId); }, Punned);
+    });
+  }
+
+  // Field-insensitively an atomicrmw is a store of the new value plus a load
+  // of the old one; cmpxchg likewise, into its { ty, i1 } result.
+  void handleAtomicAccess(const llvm::Instruction *I, const llvm::Value *Ptr,
+                          const llvm::Value *NewVal) {
+    const bool Punned = isPunnedPointerAccess(Ptr, NewVal->getType());
+    if (!Punned && definitelyContainsNoPointer(NewVal)) {
+      return;
+    }
+    const ValueId DstId = getOrInsertVar(PAGVariable(I));
+    forEachOpId(Ptr, [&](ValueId PtrId) {
+      forEachOpId(
+          NewVal, [&](ValueId ValId) { addStore(PtrId, ValId); }, Punned);
+      addLoad(PtrId, DstId);
     });
   }
 
@@ -921,12 +996,13 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     }
     forEachOpId(S->getPointerOperand(), [&](ValueId PtrId) {
       resolveFieldWrite(PtrId);
-      UnresolvedPoisenFieldWrites.push_back(PtrId);
+      UnresolvedPoisonFieldWrites.push_back(PtrId);
     });
   }
 
   void handleLoad(const llvm::LoadInst *L) {
-    if (definitelyContainsNoPointer(L)) {
+    if (definitelyContainsNoPointer(L) &&
+        !isPunnedPointerAccess(L->getPointerOperand(), L->getType())) {
       return;
     }
     if (CurrentMemSSA) {
@@ -1012,6 +1088,27 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     if (!definitelyContainsNoPointer(FV)) {
       forEachOpId(FV, [&](ValueId Id) { addAssignEdge(Id, SelId); });
     }
+  }
+
+  // Aggregates are field-insensitive: one node stands for the whole value.
+  void handleExtractValue(const llvm::ExtractValueInst *EV) {
+    if (definitelyContainsNoPointer(EV)) {
+      return;
+    }
+    const ValueId Id = getOrInsertVar(PAGVariable(EV));
+    forEachOpId(EV->getAggregateOperand(),
+                [&](ValueId AggId) { addAssignEdge(AggId, Id); });
+  }
+
+  void handleInsertValue(const llvm::InsertValueInst *IV) {
+    if (definitelyContainsNoPointer(IV)) {
+      return;
+    }
+    const ValueId Id = getOrInsertVar(PAGVariable(IV));
+    forEachOpId(IV->getAggregateOperand(),
+                [&](ValueId AggId) { addAssignEdge(AggId, Id); });
+    forEachOpId(IV->getInsertedValueOperand(),
+                [&](ValueId ValId) { addAssignEdge(ValId, Id); });
   }
 
   void handleReturn(const llvm::ReturnInst *R) {
@@ -1856,8 +1953,9 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     return Changed;
   }
 
-  // Poisen all
+  // Poison all objects in pts(PtrId).
   bool resolveFieldWrite(ValueId PtrId) {
+    PtrId = rep(PtrId);
     if (!Nodes.inbounds(PtrId)) {
       return false;
     }
@@ -1889,7 +1987,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     for (const auto &Rec : UnresolvedQualFieldWrites) {
       Changed |= resolveFieldWrite(Rec);
     }
-    for (const auto &Rec : UnresolvedPoisenFieldWrites) {
+    for (const auto &Rec : UnresolvedPoisonFieldWrites) {
       Changed |= resolveFieldWrite(Rec);
     }
     return Changed;
@@ -1937,12 +2035,13 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     }
 
     std::optional<ValueId> CSRetVal;
-    if (C->getType()->isPointerTy()) {
+    // Mirrors handleReturn's gate: an aggregate return also fills a slot.
+    if (!definitelyContainsNoPointer(C->getType())) {
       const ValueId VarId = getOrInsertVar(PAGVariable(C));
       CSRetVal = VarId;
       const auto *DirectCallee = llvm::dyn_cast<llvm::Function>(
           C->getCalledOperand()->stripPointerCastsAndAliases());
-      if (DirectCallee &&
+      if (DirectCallee && C->getType()->isPointerTy() &&
           psr::isHeapAllocatingFunction(DirectCallee->getName())) {
         const ValueId ObjId = getOrInsertObj(PAGVariable(C));
         addPointee(VarId, ObjId);
@@ -2043,7 +2142,10 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     // Context clones of one PAGVariable share an external id, so the reported
     // alias set of a formal is the union over its contexts, while call sites
     // and locals -- distinct PAGVariables -- keep their per-context precision.
-    TypedVector<ValueId, std::optional<ValueId>> LocalToExt(NumLocal);
+    // A node normally gets one external id; it gets more when a caller-supplied
+    // ExternalVC already mapped two of its names to distinct ids, which
+    // addAlias cannot undo. Keeping both makes them share the alias set.
+    TypedVector<ValueId, llvm::SmallVector<ValueId, 1>> LocalToExt(NumLocal);
     for (auto VId : iota<ValueId>(NumLocal)) {
       std::optional<ValueId> FirstExtId;
       forEachVar(VId, [&](ContextualVar CVar) {
@@ -2052,9 +2154,12 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
         }
         if (!FirstExtId) {
           FirstExtId = ExternalVC.insert(CVar.Var.getBase()).first;
-          LocalToExt[VId] = FirstExtId;
-        } else {
-          ExternalVC.addAlias(CVar.Var.getBase(), *FirstExtId);
+          LocalToExt[VId].push_back(*FirstExtId);
+        } else if (!ExternalVC.addAlias(CVar.Var.getBase(), *FirstExtId)) {
+          const ValueId Existing = *ExternalVC.getOrNull(CVar.Var.getBase());
+          if (!llvm::is_contained(LocalToExt[VId], Existing)) {
+            LocalToExt[VId].push_back(Existing);
+          }
         }
       });
     }
@@ -2062,14 +2167,14 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     // Build rep → bitset of external IDs for all vars in that SCC.
     TypedVector<ValueId, llvm::SmallVector<ValueId>> RepToExtVIds(NumLocal);
     for (auto VId : iota<ValueId>(NumLocal)) {
-      if (!LocalToExt[VId]) {
+      if (LocalToExt[VId].empty()) {
         continue;
       }
       const ValueId RepId = rep(VId);
       if (!Nodes.inbounds(RepId)) {
         continue;
       }
-      RepToExtVIds[RepId].push_back(*LocalToExt[VId]);
+      llvm::append_range(RepToExtVIds[RepId], LocalToExt[VId]);
     }
 
     // Reverse map: abstract object → bitset of representatives pointing to it.
@@ -2107,7 +2212,8 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
             Buf.push_back(uint32_t(EId));
           }
         });
-        std::ranges::sort(Buf);
+        // Context clones share an external id, so Buf routinely has duplicates.
+        sortUnique(Buf);
         ObjToAliasExtVIds[Obj].insertSorted(Buf);
         Buf.clear();
       }

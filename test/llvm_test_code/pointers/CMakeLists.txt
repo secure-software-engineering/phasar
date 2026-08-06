@@ -74,6 +74,7 @@ set(lca_files_mem2reg
   andersen_otf_struct_vtable.c
   andersen_otf_bug_a1_poison_scc.c
   andersen_otf_bug_a2_loop_gep.c
+  andersen_otf_bug_a3_stranded_pending.c
   basic_01.c
   basic_02.c
   basic_03.c

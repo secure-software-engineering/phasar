@@ -1,6 +1,6 @@
 #include <stdlib.h>
 
-// Review item A1: the disqualifying store in pong() records its pointer node
+// The disqualifying store in pong() records its pointer node
 // unresolved.  LCD collapses that node into the ping/pong SCC, and the
 // re-check reads the cleared non-representative, so O is never poisoned and
 // call_fn stays wrongly precise at {real_fn}.

@@ -1,8 +1,5 @@
-// Review item A4 (atomics), in the shape clang actually emits: a pointer
-// exchange is lowered to `atomicrmw xchg ptr %P, i64 ...`, so the operation
-// is dropped twice over -- processInstruction has no AtomicRMWInst case, and
-// the i64-punned value chain is skipped by definitelyContainsNoPointer.
-// Old therefore aliases nothing, and B never reaches P's object.
+// Check that the analysis handles atomic operations properly; Note: Clang
+// treats the Q argument below as i64, not as ptr
 int main() {
   int A = 0;
   int B = 0;

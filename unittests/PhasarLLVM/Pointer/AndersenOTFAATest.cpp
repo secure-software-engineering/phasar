@@ -1629,6 +1629,49 @@ TEST(AndersenOTFAATest, A2_LoopCarriedGEPKeepsBaseAliases) {
                           Expected);
 }
 
+TEST(AndersenOTFAATest, A3_MergeDoesNotStrandPendingPts) {
+  // handlePhi interns the loop-carried GEP first, so its still-empty node wins
+  // the join when the GEP is translated and merged with the load it is based
+  // on.  addAssignEdge re-marks Rep's pts only when that pts is non-empty, so
+  // the absorbed diff strands in PendingPts and never crosses GEP -> %P.0.
+  auto IRDB = LLVMProjectIRDB::loadOrExit(
+      PathToLLFiles + "andersen_otf_bug_a3_stranded_pending_c_m2r_dbg.ll");
+  const auto *MainFn = IRDB.getFunctionDefinition("main");
+  const auto *WalkFn = IRDB.getFunctionDefinition("walk");
+  ASSERT_NE(MainFn, nullptr);
+  ASSERT_NE(WalkFn, nullptr);
+
+  const llvm::AllocaInst *Local = nullptr;
+  for (const auto &Inst : llvm::instructions(MainFn)) {
+    if (const auto *A = llvm::dyn_cast<llvm::AllocaInst>(&Inst);
+        A && A->getName() == "Local") {
+      Local = A;
+      break;
+    }
+  }
+  const llvm::PHINode *P = nullptr;
+  for (const auto &Inst : llvm::instructions(WalkFn)) {
+    if (const auto *N = llvm::dyn_cast<llvm::PHINode>(&Inst);
+        N && N->getType()->isPointerTy()) {
+      P = N;
+      break;
+    }
+  }
+  ASSERT_NE(Local, nullptr);
+  ASSERT_NE(P, nullptr);
+
+  ValueCompressor<PAGVariable> Compressor;
+  auto Res = computeAndersenOTFRaw(IRDB, {MainFn}, &Compressor);
+
+  const auto PId = Compressor.getOrNull(PAGVariable(P));
+  const auto LocalId = Compressor.getOrNull(PAGVariable(Local));
+  ASSERT_TRUE(PId.has_value());
+  ASSERT_TRUE(LocalId.has_value());
+  EXPECT_TRUE(Res.getRawAliasSet(*PId).contains(*LocalId))
+      << "P is assigned Base + 1 each round, so it must alias whatever "
+         "*Slot points to";
+}
+
 TEST(AndersenOTFAATest, A4_AggregateReturnReachesCaller) {
   // make() returns { ptr, i64 }: handleReturn fills its return slot, but
   // handleCall only binds the call result for pointer-typed calls and there
@@ -1650,42 +1693,43 @@ TEST(AndersenOTFAATest, A4_AggregateReturnReachesCaller) {
 }
 
 TEST(AndersenOTFAATest, A4_AtomicExchangeIsAStoreAndALoad) {
-  // Clang lowers the pointer exchange to `atomicrmw xchg ptr %P, i64 ...`,
-  // which processInstruction drops entirely.  Soundly, Old must alias A (the
-  // exchanged-out value) and Cur must alias both A and B.
+  // Clang lowers the pointer exchange to `atomicrmw xchg ptr %P, i64 ...`.
+  // Flow-insensitively P holds both A and B, so the exchanged-out value and
+  // the reloaded one each alias both.
   const TSL A =
       TSL(OperandOf{.OperandIndex = 0,
-                    .Inst = LineColFunOp{.Line = 9,
+                    .Inst = LineColFunOp{.Line = 6,
                                          .Col = 0,
                                          .InFunction = "main",
                                          .OpCode = llvm::Instruction::Store}});
   const TSL B =
       TSL(OperandOf{.OperandIndex = 0,
-                    .Inst = LineColFunOp{.Line = 10,
+                    .Inst = LineColFunOp{.Line = 7,
                                          .Col = 0,
                                          .InFunction = "main",
                                          .OpCode = llvm::Instruction::Store}});
-  const TSL OldVal = TSL(LineColFunOp{.Line = 13,
+  const TSL OldVal = TSL(LineColFunOp{.Line = 10,
                                       .Col = 0,
                                       .InFunction = "main",
                                       .OpCode = llvm::Instruction::Load});
-  const TSL CurVal = TSL(LineColFunOp{.Line = 14,
+  const TSL CurVal = TSL(LineColFunOp{.Line = 11,
                                       .Col = 0,
                                       .InFunction = "main",
                                       .OpCode = llvm::Instruction::Load});
   const GTMap Expected = {
       {A, {A, OldVal, CurVal}},
-      {B, {B, CurVal}},
-      {OldVal, {A, OldVal, CurVal}},
+      {B, {B, OldVal, CurVal}},
+      {OldVal, {A, B, OldVal, CurVal}},
       {CurVal, {A, B, OldVal, CurVal}},
   };
   doAnalysisAndCheckExact("andersen_otf_bug_a4_atomics_c_dbg.ll", Expected);
 }
 
-TEST(AndersenOTFAATest, B1_ContextPrecisionComposesDownTheChain) {
-  // context_04_1: id3 -> id2 -> id1, called four times from main.  With
-  // k = 1, withPrefix discards the caller string, so all four id3 clones feed
-  // the single id2@{CS} clone and the call results re-merge one level down.
+TEST(AndersenOTFAATest, B1_ContextsDoNotComposeAtK1) {
+  // context_04_1: id3 -> id2 -> id1, called four times from main.  k = 1 makes
+  // withPrefix drop the caller string, so all four id3 clones feed the single
+  // id2@{CS} clone and the results re-merge one level down.  Pins that; a
+  // future k > 1 must break it.
   const TSL XX1 = TSL(LineColFunOp{.Line = 10,
                                    .Col = 0,
                                    .InFunction = "main",
@@ -1714,10 +1758,16 @@ TEST(AndersenOTFAATest, B1_ContextPrecisionComposesDownTheChain) {
                                          .Col = 0,
                                          .InFunction = "main",
                                          .OpCode = llvm::Instruction::Call}});
+  const std::vector<TSL> AllRets = {XX1, XX2, YY1, YY2};
+  std::vector<TSL> WithX = AllRets;
+  WithX.push_back(XAlloca);
+  std::vector<TSL> WithY = AllRets;
+  WithY.push_back(YAlloca);
+  std::vector<TSL> Both = WithX;
+  Both.push_back(YAlloca);
   const GTMap Expected = {
-      {XX1, {XX1, XX2, XAlloca}},     {XX2, {XX1, XX2, XAlloca}},
-      {YY1, {YY1, YY2, YAlloca}},     {YY2, {YY1, YY2, YAlloca}},
-      {XAlloca, {XX1, XX2, XAlloca}}, {YAlloca, {YY1, YY2, YAlloca}},
+      {XX1, Both}, {XX2, Both},      {YY1, Both},
+      {YY2, Both}, {XAlloca, WithX}, {YAlloca, WithY},
   };
   doAnalysisAndCheckExact("context_04_1_c_dbg.ll", Expected,
                           csOpts(CSMode::All));

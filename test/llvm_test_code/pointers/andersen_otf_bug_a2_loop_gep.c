@@ -1,4 +1,4 @@
-// Review item A2: after mem2reg the loop pointer is a PHI whose second
+// After mem2reg the loop pointer is a PHI whose second
 // incoming value is the GEP below.  handlePhi interns the GEP first, so
 // addPtrAlias's addAlias() call fails and the GEP node keeps an empty
 // points-to set instead of aliasing Buf.

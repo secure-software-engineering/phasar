@@ -1,4 +1,4 @@
-// Review item A4: make() returns { ptr, i64 }.  handleReturn populates its
+// make() returns { ptr, i64 }.  handleReturn populates its
 // return slot, but handleCall only binds the call result for pointer-typed
 // calls and there is no extractvalue case, so B never learns about A.
 struct Pair {
