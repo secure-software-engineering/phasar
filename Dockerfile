@@ -63,4 +63,6 @@ RUN chmod +x /usr/local/bin/phasar-analyze
 # `-e PHASAR_IR_LLVM_VERSION=NN`.
 ENV PHASAR_IR_LLVM_VERSION=${llvm_version}
 
+WORKDIR /work
+
 ENTRYPOINT [ "phasar-analyze" ]
