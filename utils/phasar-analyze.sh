@@ -104,20 +104,30 @@ EOF
 # ---------------------------------------------------------------------------
 # argument parsing
 # ---------------------------------------------------------------------------
+# Fail with a friendly message (never a bash 'unbound variable' crash) when an
+# option that expects a value is given without one. $1 = flag, $2 = the value
+# (may be unset), $3 = remaining arg count ($#).
+require_value() {
+    if [ "$3" -lt 2 ]; then
+        echo "phasar-analyze: option '$1' requires an argument (try --help)" >&2
+        exit 2
+    fi
+}
+
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --project)          MODE="project"; PROJECT_DIR="$2"; shift 2 ;;
-        --sources)          MODE="sources"; SOURCES="$2"; shift 2 ;;
-        --module)           MODE="module";  MODULE="$2"; shift 2 ;;
-        --build-cmd)        BUILD_CMD="$2"; shift 2 ;;
-        --binary)           BINARY="$2"; shift 2 ;;
+        --project)          require_value "$1" "${2:-}" "$#"; MODE="project"; PROJECT_DIR="$2"; shift 2 ;;
+        --sources)          require_value "$1" "${2:-}" "$#"; MODE="sources"; SOURCES="$2"; shift 2 ;;
+        --module)           require_value "$1" "${2:-}" "$#"; MODE="module";  MODULE="$2"; shift 2 ;;
+        --build-cmd)        require_value "$1" "${2:-}" "$#"; BUILD_CMD="$2"; shift 2 ;;
+        --binary)           require_value "$1" "${2:-}" "$#"; BINARY="$2"; shift 2 ;;
         --keep-going)       KEEP_GOING="true"; shift ;;
-        -a|--analysis)      ANALYSES+=("$2"); shift 2 ;;
-        -E|--entry)         ENTRY_POINTS+=("$2"); shift 2 ;;
-        -C|--call-graph)    CALL_GRAPH="$2"; shift 2 ;;
-        -P|--alias-analysis) ALIAS_ANALYSIS="$2"; shift 2 ;;
-        --analysis-config)  ANALYSIS_CONFIG="$2"; shift 2 ;;
-        -o|--out)           OUT_DIR="$2"; shift 2 ;;
+        -a|--analysis)      require_value "$1" "${2:-}" "$#"; ANALYSES+=("$2"); shift 2 ;;
+        -E|--entry)         require_value "$1" "${2:-}" "$#"; ENTRY_POINTS+=("$2"); shift 2 ;;
+        -C|--call-graph)    require_value "$1" "${2:-}" "$#"; CALL_GRAPH="$2"; shift 2 ;;
+        -P|--alias-analysis) require_value "$1" "${2:-}" "$#"; ALIAS_ANALYSIS="$2"; shift 2 ;;
+        --analysis-config)  require_value "$1" "${2:-}" "$#"; ANALYSIS_CONFIG="$2"; shift 2 ;;
+        -o|--out)           require_value "$1" "${2:-}" "$#"; OUT_DIR="$2"; shift 2 ;;
         -h|--help)          usage; exit 0 ;;
         --)                 shift; PASSTHROUGH=("$@"); break ;;
         *) echo "phasar-analyze: unknown option '$1' (try --help)" >&2; exit 2 ;;
