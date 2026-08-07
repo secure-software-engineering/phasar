@@ -104,19 +104,19 @@ Select a data-flow analysis with `-a` (repeatable). Available analyses:
 | Flag (`-a`) | Analysis | Needs `--analysis-config` |
 |-------------|----------|:---:|
 | `ifds-uninit` | Uses of uninitialized variables | |
-| `ifds-const` | Variables actually mutated through the program | |
-| `ifds-type` | Simple type analysis | |
+| `ifds-const` | **EXPERIMENTAL:** Variables actually mutated through the program | |
+| `ifds-type` | **EXPERIMENTAL:** Simple type analysis | |
 | `ide-lca` | Linear constant propagation | |
 | `ide-iia` | Instruction-interaction (what influences what) | |
-| `ide-stdio-ts` | libc file-I/O typestate (invalid usages) | |
-| `ide-openssl-ts` | OpenSSL EVP typestate | |
+| `ide-stdio-ts` | **EXPERIMENTAL:** libc file-I/O typestate (invalid usages) | |
+| `ide-openssl-ts` | **EXPERIMENTAL:** OpenSSL EVP typestate | |
 | `ifds-taint` | Alias-aware taint analysis | ✔ |
 | `ide-xtaint` | Taint analysis with limited field-sensitivity | ✔ |
 | `ifds-fieldsens-taint` | Field-sensitive taint (CFL) | ✔ |
 | `monoifds-taint` | Taint on the MonoIFDS solver | ✔ |
 | `sparse-ifds-taint` | Taint on the SparseIFDS solver | ✔ |
-| `inter-mono-taint` | Taint via inter-procedural Monotone Framework | ✔ |
-| `intra-mono-fca` | Intra-procedural full constant propagation (Monotone) | |
+| `inter-mono-taint` | **EXPERIMENTAL:** Taint via inter-procedural Monotone Framework | ✔ |
+| `intra-mono-fca` | **EXPERIMENTAL:** Intra-procedural full constant propagation (Monotone) | |
 
 If you omit `-a` (and don't request an emitter), the wrapper just builds the
 module and emits its IR (`--emit-ir`), which is handy to confirm the build.
