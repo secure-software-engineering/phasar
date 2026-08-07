@@ -1,0 +1,10 @@
+{
+  "name": "double-free",
+  "version": 1.0,
+  "functions": [
+    {
+      "name": "free",
+      "params": { "source": [0], "sink": [0] }
+    }
+  ]
+}
