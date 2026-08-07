@@ -4,7 +4,25 @@
   "functions": [
     {
       "name": "free",
-      "params": { "source": [0], "sink": [0] }
+      "params": {
+        "source": [
+          0
+        ],
+        "sink": [
+          0
+        ]
+      }
+    },
+    {
+      "name": "_ZdlPv",
+      "params": {
+        "source": [
+          0
+        ],
+        "sink": [
+          0
+        ]
+      }
     }
   ]
 }

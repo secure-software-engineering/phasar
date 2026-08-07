@@ -13,10 +13,13 @@ ARG llvm_version
 
 # Install the LLVM/clang toolchain plus the pieces the whole-program wrapper needs:
 # `llvm-<v>` provides llvm-link/llvm-dis used by WLLVM, `python3-pip` installs wllvm.
+# `lld-<v>` is LLVM's linker: PhASAR's Release build uses ThinLTO, whose bitcode
+# objects the default GNU ld (gold plugin) fails to link on LLVM 22 — lld links
+# them natively, so we keep LTO enabled and link with it (see -fuse-ld=lld below).
 RUN --mount=type=bind,source=./utils/InstallAptDependencies.sh,target=/InstallAptDependencies.sh \
   set -eux; \
   ./InstallAptDependencies.sh --noninteractive --llvm-version "${llvm_version}" \
-    tzdata "clang-tools-${llvm_version}" "llvm-${llvm_version}" python3-pip file; \
+    tzdata "clang-tools-${llvm_version}" "llvm-${llvm_version}" "lld-${llvm_version}" python3-pip file; \
   pip3 install --no-cache-dir --break-system-packages wllvm
 
 ENV CC=/usr/bin/clang-${llvm_version} \
@@ -37,7 +40,9 @@ RUN --mount=type=bind,source=.,target=/usr/src/phasar,rw \
     -DPHASAR_LLVM_VERSION="${phasar_llvm_version}" \
     -DPHASAR_TARGET_ARCH="" \
     -DPHASAR_ENABLE_SANITIZERS=ON \
-    -DPHASAR_ALLOW_LTO_IN_RELEASE_BUILD=OFF \
+    -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=lld" \
+    -DCMAKE_SHARED_LINKER_FLAGS="-fuse-ld=lld" \
+    -DCMAKE_MODULE_LINKER_FLAGS="-fuse-ld=lld" \
     -DPHASAR_USE_Z3=ON \
     -DPHASAR_BUILD_UNITTESTS=$RUN_TESTS \
     -DPHASAR_BUILD_IR=$RUN_TESTS \
