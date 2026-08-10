@@ -498,24 +498,19 @@ int main(int Argc, const char **Argv) {
     ExternCallbackModel::rewriteCalls(*IRDB);
   }
 
-  HelperAnalyses HA(
-      std::move(IRDB), EntryPoints,
-      {
-          .PrecomputedCG = std::move(PrecomputedCallGraph),
-          .PTATy = AliasTypeOpt,
-          .UFAATy = UFAliasTypeOpt,
-          .CGTy = CGTypeOpt,
-          .SoundnessLevel = SoundnessOpt,
-          .AutoGlobalSupport = false,
-          .AllowLazyPTS = !AnalysisController::needsToEmitPTA(EmitterOptions),
-      });
-  if (!HA.getProjectIRDB().isValid()) {
-    // Note: Error message has already been printed
-    return 1;
-  }
-
   AnalysisController Controller{
-      .HA = &HA,
+      .HA = HelperAnalyses(
+          std::move(IRDB), EntryPoints,
+          {
+              .PrecomputedCG = std::move(PrecomputedCallGraph),
+              .PTATy = AliasTypeOpt,
+              .UFAATy = UFAliasTypeOpt,
+              .CGTy = CGTypeOpt,
+              .SoundnessLevel = SoundnessOpt,
+              .AutoGlobalSupport = false,
+              .AllowLazyPTS =
+                  !AnalysisController::needsToEmitPTA(EmitterOptions),
+          }),
       .DataFlowAnalyses = DataFlowAnalysisOpt,
       .AnalysisConfigs = {AnalysisConfigOpt.getValue()},
       .EntryPoints = std::move(EntryPoints),

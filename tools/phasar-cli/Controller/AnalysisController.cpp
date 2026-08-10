@@ -31,7 +31,7 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
   };
 
   auto EmitterOptions = this->EmitterOptions;
-  auto &HA = *this->HA;
+  auto &HA = this->HA;
 
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitIR) {
     WithResultFileOrStdout("/psr-preprocess-ir.ll", [&HA](auto &OS) {
@@ -211,9 +211,9 @@ LLVMTaintConfig controller::makeTaintConfig(AnalysisController &Data) {
   std::string AnalysisConfigPath =
       !Data.AnalysisConfigs.empty() ? Data.AnalysisConfigs[0] : "";
   return !AnalysisConfigPath.empty()
-             ? LLVMTaintConfig(Data.HA->getProjectIRDB(),
+             ? LLVMTaintConfig(Data.HA.getProjectIRDB(),
                                parseTaintConfig(AnalysisConfigPath))
-             : LLVMTaintConfig(Data.HA->getProjectIRDB());
+             : LLVMTaintConfig(Data.HA.getProjectIRDB());
 }
 
 } // namespace psr

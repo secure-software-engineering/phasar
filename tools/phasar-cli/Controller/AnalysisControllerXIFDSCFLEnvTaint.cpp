@@ -25,12 +25,12 @@ void controller::executeIFDSCFLEnvTaint(AnalysisController &Data) {
   auto Config = makeTaintConfig(Data);
 
   auto UserProblem = createAnalysisProblem<IFDSTaintAnalysis>(
-      *Data.HA, &Config, Data.EntryPoints, /*TaintMainArgs*/ false,
+      Data.HA, &Config, Data.EntryPoints, /*TaintMainArgs*/ false,
       /*EnableStrongUpdateStore*/ false);
   auto Printer = UserProblem.consumePrinter();
   auto FieldSensProblem = CFLFieldSensIFDSProblem(&UserProblem);
 
-  IterativeIDESolver Solver(&FieldSensProblem, &Data.HA->getICFG());
+  IterativeIDESolver Solver(&FieldSensProblem, &Data.HA.getICFG());
 
   SimpleTimer MeasureTime;
 

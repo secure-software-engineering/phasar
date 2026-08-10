@@ -21,7 +21,7 @@
 namespace psr {
 
 struct AnalysisController {
-  HelperAnalyses *HA{};
+  HelperAnalyses HA;
   std::vector<DataFlowAnalysisType> DataFlowAnalyses;
   std::vector<std::string> AnalysisConfigs;
   std::vector<std::string> EntryPoints;
