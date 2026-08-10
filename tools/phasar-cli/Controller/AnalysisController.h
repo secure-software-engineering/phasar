@@ -15,9 +15,10 @@
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 
+#include "llvm/ADT/SmallString.h"
+
 #include "AnalysisControllerEmitterOptions.h"
 
-#include <filesystem>
 namespace psr {
 
 struct AnalysisController {
@@ -29,8 +30,8 @@ struct AnalysisController {
   AnalysisControllerEmitterOptions EmitterOptions =
       AnalysisControllerEmitterOptions::None;
   IFDSIDESolverConfig SolverConfig{};
-  std::string ProjectID = "default-phasar-project";
-  std::filesystem::path ResultDirectory;
+  llvm::SmallString<128> ProjectID;
+  llvm::SmallString<128> ResultDirectory;
 
   static constexpr bool
   needsToEmitPTA(AnalysisControllerEmitterOptions EmitterOptions) {

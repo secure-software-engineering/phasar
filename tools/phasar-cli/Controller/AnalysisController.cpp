@@ -9,6 +9,8 @@
 
 #include "AnalysisController.h"
 
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysis.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
@@ -22,7 +24,7 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
   auto WithResultFileOrStdout = [&ResultDirectory = this->ResultDirectory](
                                     const auto &FileName, auto Callback) {
     if (!ResultDirectory.empty()) {
-      if (auto OFS = openFileStream(ResultDirectory.string() + FileName)) {
+      if (auto OFS = openFileStream(ResultDirectory + llvm::Twine(FileName))) {
         Callback(*OFS);
       }
     } else {

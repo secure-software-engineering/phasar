@@ -52,7 +52,7 @@ void controller::executeIFDSCFLEnvTaint(AnalysisController &Data) {
                               HasResultsDir = !Data.ResultDirectory.empty()](
                                  const llvm::Twine &FileName, auto Handler) {
     if (HasResultsDir) {
-      if (auto OFS = openFileStream(Data.ResultDirectory.string() + FileName)) {
+      if (auto OFS = openFileStream(Data.ResultDirectory + FileName)) {
         Handler(*OFS);
       }
     } else {

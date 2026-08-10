@@ -8,6 +8,7 @@
  *****************************************************************************/
 
 #include "phasar/DataFlow/MonoIfds/MonoIFDSSolver.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlow/MonoIfds/Problems/MonoIFDSTaintAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/FilteredLLVMAliasIterator.h"
 
