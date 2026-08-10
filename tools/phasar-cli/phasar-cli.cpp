@@ -299,28 +299,6 @@ void validateParamOutput() {
   }
 }
 
-void validateParamPointerAnalysis() {
-  if (AliasTypeOpt == AliasAnalysisType::Invalid) {
-    llvm::WithColor::error() << "'Invalid' is not a valid pointer analysis!\n";
-    exit(1);
-  }
-}
-
-void validateParamCallGraphAnalysis() {
-  if (CGTypeOpt == CallGraphAnalysisType::Invalid) {
-    llvm::WithColor::error()
-        << "'Invalid' is not a valid call-graph analysis!\n";
-    exit(1);
-  }
-}
-
-void validateSoundnessFlag() {
-  if (SoundnessOpt == Soundness::Invalid) {
-    llvm::WithColor::error() << "'Invalid' is not a valid soundness level!\n";
-    exit(1);
-  }
-}
-
 void validateParamAnalysisConfig() {
   if (!AnalysisConfigOpt.empty() &&
       !(llvm::sys::fs::exists(AnalysisConfigOpt.getValue()) &&
@@ -374,10 +352,6 @@ int main(int Argc, const char **Argv) {
   cl::ParseCommandLineOptions(Argc, Argv);
 
 #ifdef DYNAMIC_LOG
-  if (LogSeverityOpt == SeverityLevel::INVALID) {
-    llvm::WithColor::error() << "Invalid log-severity\n";
-    return 1;
-  }
   if (LogOpt) {
     Logger::initializeStderrLogger(LogSeverityOpt);
   } else if (!SilentOpt) {
@@ -394,16 +368,8 @@ int main(int Argc, const char **Argv) {
                  << "\nA LLVM-based static analysis framework\n\n";
   }
 
-  if (StrategyOpt == AnalysisStrategy::None) {
-    llvm::errs() << "Invalid analysis strategy!\n";
-    return 1;
-  }
-
   validateParamModule();
   validateParamOutput();
-  validateParamPointerAnalysis();
-  validateParamCallGraphAnalysis();
-  validateSoundnessFlag();
   validateParamAnalysisConfig();
   validatePTAJsonFile();
 
