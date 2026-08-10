@@ -97,7 +97,9 @@ TEST_P(LinearConstant, ResultsEquivalentSolveUntilAsync) {
     EXPECT_EQ(std::nullopt, Result);
     if (!Result) {
       IsCancelled = false;
-      return std::move(Solver).solveWithAsyncCancellation(IsCancelled).value();
+      return std::move(Solver)
+          .continueWithAsyncCancellation(IsCancelled)
+          .value();
     }
     return Solver.consumeSolverResults();
   }();

@@ -1,38 +1,803 @@
+#pragma once
+
 /******************************************************************************
  * Copyright (c) 2017 Philipp Schubert.
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of LICENSE.txt.
  *
  * Contributors:
- *     Philipp Schubert and others
+ *     Philipp Schubert, Fabian Schiebel, and others
  *****************************************************************************/
 
-/*
- * PAMM.h
- *
- *  Created on: 06.12.2017
- *      Author: rleer
- */
+#include "phasar/Config/phasar-config.h"
+#include "phasar/Utils/ChronoUtils.h"
+#include "phasar/Utils/NonNullPtr.h"
+#include "phasar/Utils/TemplateString.h"
+#include "phasar/Utils/TypeTraits.h"
+#include "phasar/Utils/Utilities.h"
 
-#ifndef PHASAR_UTILS_PAMM_H_
-#define PHASAR_UTILS_PAMM_H_
-
-#include "llvm/ADT/ArrayRef.h"
+#include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/StringMap.h"
 #include "llvm/ADT/StringRef.h"
+#include "llvm/ADT/Twine.h"
+#include "llvm/Support/Compiler.h"
+#include "llvm/Support/ErrorHandling.h"
+#include "llvm/Support/Format.h"
+#include "llvm/Support/WithColor.h"
 
 #include <chrono> // high_resolution_clock::time_point, milliseconds
-#include <initializer_list>
+#include <concepts>
+#include <cstddef>
+#include <cstdint>
 #include <optional>
-#include <set>    // set
+#include <source_location>
 #include <string> // string
-#include <vector> // vector
+#include <type_traits>
+#include <utility>
+
+#ifdef PHASAR_THREAD_SAFE_PAMM
+#include <atomic>
+#include <mutex>
+#else
+#include "phasar/Utils/Average.h"
+#endif
 
 namespace llvm {
 class raw_ostream;
 } // namespace llvm
 
+/// \file
+/// PhASAR's performance measurement mechanism (PAMM).
+/// Provides counters, histograms, and timers for fine-grained performance
+/// tracking. Use the macros from PAMMMacros.h to declare static instances
+/// of these metrics. On construction, they are automatically registered in the
+/// static pamm::Registry, so that report-generation can be automated.
+/// The macros expect a valid C++ identifier as name, and a severity-level
+/// (Core/Full) under which the metric should be active.
+///
+/// Metrics are categorizable via a pamm::Category. The
+/// performance report groups by category; categories can be enabled/disabled at
+/// runtime. By convention, the macros register the metrics under the category
+/// with the identifier 'PAMMCategory'; create a new static PAMMCategory with
+/// the macro PAMM_CATEGORY(name).
+///
+/// Currently, PAMM can be run with all metrics (severity level 2 = Full) or
+/// only core metrics (severity level 1 = Core) enabled. The severity level can
+/// be changed when building PhASAR. The CMake option is
+/// -DPHASAR_ENABLE_PAMM=[Off/Core/Full].
+///
+/// Thread-safety:
+/// If PhASAR is configured with the cmake-option -DPHASAR_THREAD_SAFE_PAMM=ON,
+/// PAMM provides some thread-safety guarentees: Generally, construction and
+/// destruction of metrics is NOT thread-safe. The pamm::Registry is therefore
+/// also NOT thread-safe. Adding data, i.e, incrementing counters, adding to
+/// histograms, starting/stopping timers is protected by suitable
+/// synchronization primitives and can therefore be safely performed
+/// concurrently.
+
 namespace psr {
+
+/// Defines the different level of severity of PAMM's performance evaluation
+enum class PAMM_SEVERITY_LEVEL { Off = 0, Core, Full }; // NOLINT
+
+// NOLINTNEXTLINE
+inline constexpr PAMM_SEVERITY_LEVEL PAMM_CURR_SEV_LEVEL =
+#if defined(PAMM_FULL)
+    PAMM_SEVERITY_LEVEL::Full;
+#elif defined(PAMM_CORE)
+    PAMM_SEVERITY_LEVEL::Core;
+#else
+    PAMM_SEVERITY_LEVEL::Off;
+#endif
+
+namespace pamm {
+
+class Registry;
+
+template <bool Enabled = PAMM_CURR_SEV_LEVEL != PAMM_SEVERITY_LEVEL::Off>
+class Category {
+public:
+  explicit constexpr Category(llvm::StringLiteral Name,
+                              bool IsEnabled = true) noexcept
+      : Name(Name), IsEnabled(IsEnabled) {}
+
+  constexpr operator llvm::StringRef() const noexcept { return Name; }
+
+  [[nodiscard]] constexpr llvm::StringRef name() const noexcept { return Name; }
+
+  [[nodiscard]] constexpr bool isEnabled() const noexcept {
+    return IsEnabled
+#ifdef PHASAR_THREAD_SAFE_PAMM
+        .load(std::memory_order_relaxed)
+#endif
+        ;
+  }
+
+  constexpr void disable() noexcept { IsEnabled = false; }
+  constexpr void enable() noexcept { IsEnabled = true; }
+
+private:
+  llvm::StringRef Name;
+#ifdef PHASAR_THREAD_SAFE_PAMM
+  std::atomic_bool
+#else
+  bool
+#endif
+      IsEnabled = true;
+};
+
+template <> class Category<false> {
+public:
+  explicit constexpr Category(llvm::StringLiteral Name,
+                              bool /*IsEnabled*/ = true) noexcept
+      : Name(Name) {}
+
+  constexpr operator llvm::StringRef() const noexcept { return Name; }
+
+  [[nodiscard]] constexpr llvm::StringRef name() const noexcept { return Name; }
+
+  [[nodiscard]] constexpr auto isEnabled() const noexcept {
+    return std::false_type{};
+  }
+
+  constexpr void disable() noexcept {}
+
+  void enable() noexcept {
+    llvm::WithColor::warning()
+        << "Cannot enable PAMM category '" << Name
+        << "', because PAMM is disabled at compile time\n";
+  }
+
+private:
+  llvm::StringRef Name;
+};
+
+template <typename T>
+concept IsCategory =
+    std::same_as<T, Category<false>> || std::same_as<T, Category<true>>;
+
+template <const auto *Var>
+concept IsCategoryVar =
+    IsCategory<std::remove_const_t<std::remove_pointer_t<decltype(Var)>>>;
+
+namespace detail {
+struct PAMMBase {
+  std::source_location Loc{};
+};
+#ifdef PHASAR_THREAD_SAFE_PAMM
+struct CounterBase : PAMMBase {
+  std::atomic_ptrdiff_t Ctr{};
+
+  constexpr void add(ptrdiff_t Offset) noexcept {
+    Ctr.fetch_add(Offset, std::memory_order_relaxed);
+  }
+
+  [[nodiscard]] constexpr ptrdiff_t value() const noexcept {
+    return Ctr.load(std::memory_order_relaxed);
+  }
+};
+
+struct MinMaxCounterBase : PAMMBase {
+  std::atomic_size_t Min = SIZE_MAX;
+  std::atomic_size_t Max = 0;
+  std::atomic_size_t Sum{};
+  std::atomic_size_t NumSamples{};
+
+  constexpr void add(size_t Offset) noexcept {
+    Sum.fetch_add(Offset, std::memory_order_relaxed);
+    NumSamples.fetch_add(1, std::memory_order_relaxed);
+
+    {
+      auto PrevMin = Min.load(std::memory_order_relaxed);
+      while (PrevMin > Offset &&
+             Min.compare_exchange_weak(PrevMin, Offset,
+                                       std::memory_order_relaxed)) {
+      }
+    }
+    {
+      auto PrevMax = Max.load(std::memory_order_relaxed);
+      while (PrevMax < Offset &&
+             Max.compare_exchange_weak(PrevMax, Offset,
+                                       std::memory_order_relaxed)) {
+      }
+    }
+  };
+
+  [[nodiscard]] double getAverage() const noexcept {
+    return double(Sum.load(std::memory_order_relaxed)) /
+           double(getNumSamples());
+  }
+  [[nodiscard]] size_t getNumSamples() const noexcept {
+    return NumSamples.load(std::memory_order_relaxed);
+  }
+
+  void clear() noexcept {
+    Min = SIZE_MAX;
+    Max = 0;
+    Sum = 0;
+    NumSamples = 0;
+  }
+};
+
+struct TimerBase : PAMMBase {
+
+  static constexpr std::chrono::steady_clock::time_point None =
+      std::chrono::steady_clock::time_point::max();
+
+  std::atomic<std::chrono::steady_clock::time_point> StartPoint = None;
+  // no atomic arithmetic with nanoseconds, so use int64_t here:
+  std::atomic<int64_t> Acc{};
+
+  [[nodiscard]] constexpr bool isStarted() const noexcept {
+    // XXX: Revisit the memory-order here: Can it be relaxed?
+    return StartPoint.load(std::memory_order_acquire) != None;
+  }
+
+  void start() noexcept {
+    assert(!isStarted() && "Starting an already running timer is not allowed");
+    StartPoint.store(std::chrono::steady_clock::now(),
+                     std::memory_order_release);
+  }
+
+  void stop() noexcept {
+    auto EndPoint = std::chrono::steady_clock::now();
+    auto StartPoint =
+        this->StartPoint.exchange(None, std::memory_order_acq_rel);
+    assert(StartPoint != None && "Stopping a not-running timer is not allowed");
+    Acc.fetch_add((EndPoint - StartPoint).count(), std::memory_order_relaxed);
+  }
+
+  void reset() noexcept {
+    Acc = 0;
+    StartPoint = None;
+  }
+
+  [[nodiscard]] constexpr auto elapsedNanos() const noexcept {
+    return std::chrono::nanoseconds(Acc.load(std::memory_order_relaxed));
+  }
+
+  [[nodiscard]] constexpr std::chrono::nanoseconds
+  pendingNanos() const noexcept {
+    auto StartPoint = this->StartPoint.load(std::memory_order_relaxed);
+    if (StartPoint == None) {
+      return {};
+    }
+    auto EndPoint = std::chrono::steady_clock::now();
+    return EndPoint - StartPoint;
+  }
+
+  [[nodiscard]] hms elapsed() const noexcept { return elapsedNanos(); }
+};
+
+#else
+struct CounterBase : PAMMBase {
+  ptrdiff_t Ctr{};
+
+  constexpr void add(ptrdiff_t Offset) noexcept { Ctr += Offset; }
+
+  [[nodiscard]] constexpr ptrdiff_t value() const noexcept { return Ctr; }
+};
+
+struct MinMaxCounterBase : PAMMBase {
+  size_t Min = SIZE_MAX;
+  size_t Max = 0;
+  Sampler Avg{};
+
+  constexpr void add(size_t Offset) noexcept {
+    Avg.addSample(Offset);
+    if (Offset > Max) {
+      Max = Offset;
+    }
+    if (Offset < Min) {
+      Min = Offset;
+    }
+  };
+
+  [[nodiscard]] double getAverage() const noexcept { return Avg.getAverage(); }
+  [[nodiscard]] size_t getNumSamples() const noexcept {
+    return Avg.getNumSamples();
+  }
+
+  void clear() noexcept {
+    Min = SIZE_MAX;
+    Max = 0;
+    Avg = {};
+  }
+};
+
+struct TimerBase : PAMMBase {
+
+  static constexpr std::chrono::steady_clock::time_point None =
+      std::chrono::steady_clock::time_point::max();
+
+  std::chrono::steady_clock::time_point StartPoint = None;
+  std::chrono::nanoseconds Acc{};
+
+  [[nodiscard]] constexpr bool isStarted() const noexcept {
+    return StartPoint != None;
+  }
+
+  void start() noexcept {
+    assert(!isStarted() && "Starting an already running timer is not allowed");
+    StartPoint = std::chrono::steady_clock::now();
+  }
+
+  void stop() noexcept {
+    assert(isStarted() && "Stopping a not-running timer is not allowed");
+    auto EndPoint = std::chrono::steady_clock::now();
+    Acc += (EndPoint - StartPoint);
+    StartPoint = None;
+  }
+
+  void reset() noexcept {
+    Acc = {};
+    StartPoint = None;
+  }
+
+  [[nodiscard]] constexpr std::chrono::nanoseconds
+  elapsedNanos() const noexcept {
+    return Acc;
+  }
+
+  [[nodiscard]] constexpr std::chrono::nanoseconds
+  pendingNanos() const noexcept {
+    if (!isStarted()) {
+      return {};
+    }
+    auto EndPoint = std::chrono::steady_clock::now();
+    return EndPoint - StartPoint;
+  }
+
+  [[nodiscard]] hms elapsed() const noexcept { return Acc; }
+};
+
+#endif
+
+struct HistogramBase : PAMMBase {
+  llvm::StringMap<uint64_t> HistData{};
+#ifdef PHASAR_THREAD_SAFE_PAMM
+  std::mutex Mx{};
+#endif
+};
+
+template <TemplateString Name, const auto *Cat> struct Qualified {
+  [[nodiscard]] constexpr std::string qualifier() const {
+    auto Ret = std::string(Cat->name());
+    Ret += "::";
+    Ret += llvm::StringRef(Name);
+    return Ret;
+  }
+};
+} // namespace detail
+
+class Registry;
+
+template <bool Enabled, TemplateString Name, const auto *Cat>
+  requires IsCategoryVar<Cat>
+class Counter : private detail::CounterBase,
+                private detail::Qualified<Name, Cat> {
+  friend Registry;
+
+public:
+  using detail::Qualified<Name, Cat>::qualifier;
+
+  inline explicit Counter(
+      std::source_location Loc = std::source_location::current()) noexcept;
+
+  using detail::CounterBase::add;
+  using detail::CounterBase::value;
+
+  constexpr void operator++() noexcept { add(1); }
+  constexpr void operator++(int) noexcept { add(1); }
+  constexpr void operator+=(ptrdiff_t Offset) noexcept { add(Offset); }
+  constexpr void operator-=(ptrdiff_t Offset) noexcept { add(-Offset); }
+
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const Counter &C) {
+    return OS << Cat->name() << "::" << Name << ": " << C.Ctr;
+  }
+
+private:
+  [[nodiscard]] constexpr detail::CounterBase *base() noexcept { return this; }
+};
+
+template <TemplateString Name, const auto *Cat>
+  requires IsCategoryVar<Cat>
+class Counter<false, Name, Cat> : private detail::Qualified<Name, Cat> {
+public:
+  using detail::Qualified<Name, Cat>::qualifier;
+
+  LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr void add(ptrdiff_t Offset) noexcept {}
+  LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr void operator++() noexcept {}
+  LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr void operator++(int) noexcept {}
+  LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr void
+  operator+=(ptrdiff_t Offset) noexcept {}
+  LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr void
+  operator-=(ptrdiff_t Offset) noexcept {}
+
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, Counter /*C*/) {
+    return OS << Cat->name() << "::" << Name;
+  }
+
+  [[nodiscard]] constexpr std::nullopt_t value() const noexcept {
+    return std::nullopt;
+  }
+};
+
+namespace detail {
+struct IsCounterImpl {
+  template <bool Enabled, TemplateString Name, const auto *Cat>
+    requires IsCategoryVar<Cat>
+  static std::true_type test(const Counter<Enabled, Name, Cat> &);
+
+  static std::false_type test(...);
+};
+
+template <typename T>
+concept IsCounter =
+    decltype(IsCounterImpl::test(std::declval<const T &>()))::value;
+} // namespace detail
+
+template <bool Enabled, TemplateString Name, const auto *Cat>
+  requires IsCategoryVar<Cat>
+class MinMaxCounter : private detail::MinMaxCounterBase,
+                      private detail::Qualified<Name, Cat> {
+  friend Registry;
+
+public:
+  using detail::Qualified<Name, Cat>::qualifier;
+
+  inline explicit MinMaxCounter(
+      std::source_location Loc = std::source_location::current()) noexcept;
+
+  using detail::MinMaxCounterBase::add;
+
+  constexpr void operator++() noexcept { add(1); }
+  constexpr void operator++(int) noexcept { add(1); }
+  constexpr void operator+=(size_t Offset) noexcept { add(Offset); }
+
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const MinMaxCounter &C) {
+    return OS << Cat->name() << "::" << Name << ": min(" << C.Min << "), max("
+              << C.Max << "), avg: " << llvm::format("%g", C.getAverage())
+              << ", #samples(" << C.getNumSamples() << ')';
+  }
+
+private:
+  [[nodiscard]] constexpr detail::CounterBase *base() noexcept { return this; }
+};
+
+template <TemplateString Name, const auto *Cat>
+  requires IsCategoryVar<Cat>
+class MinMaxCounter<false, Name, Cat> : private detail::Qualified<Name, Cat> {
+public:
+  using detail::Qualified<Name, Cat>::qualifier;
+
+  LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr void add(size_t Offset) noexcept {}
+
+  LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr void operator++() noexcept {}
+  LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr void operator++(int) noexcept {}
+  LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr void
+  operator+=(size_t Offset) noexcept {}
+
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       MinMaxCounter /*C*/) {
+    return OS << Cat->name() << "::" << Name;
+  }
+};
+
+template <bool Enabled, TemplateString Name, const auto *Cat>
+  requires IsCategoryVar<Cat>
+class Histogram : private detail::HistogramBase,
+                  private detail::Qualified<Name, Cat> {
+  friend Registry;
+
+public:
+  using detail::Qualified<Name, Cat>::qualifier;
+
+  inline explicit Histogram(
+      std::source_location Loc = std::source_location::current()) noexcept;
+
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const Histogram &H) {
+    OS << Cat->name() << "::" << Name << ":\n";
+    OS << "Value\t| #Occurrences\n";
+#ifdef PHASAR_THREAD_SAFE_PAMM
+    std::lock_guard Lck(H.Mx);
+#endif
+    for (const auto &[Dat, Val] : H.HistData) {
+      OS << Dat << "\t| " << Val << '\n';
+    }
+    return OS;
+  }
+
+  void add(llvm::StringRef DataPointId, uint64_t Increment) {
+    if (Cat->isEnabled()) {
+#ifdef PHASAR_THREAD_SAFE_PAMM
+      std::lock_guard Lck(Mx);
+#endif
+      this->HistData[DataPointId] += Increment;
+    }
+  }
+  template <has_adl_to_string_v T>
+    requires(!std::convertible_to<T, llvm::StringRef>)
+  void add(T &&DataPointId, uint64_t Increment) {
+    add(psr::adl_to_string(PSR_FWD(DataPointId)), Increment);
+  }
+
+  // For unit-tests
+  [[nodiscard]] const auto &internalRawData() const noexcept {
+    return HistData;
+  }
+
+private:
+  [[nodiscard]] constexpr detail::HistogramBase *base() noexcept {
+    return this;
+  }
+};
+
+template <TemplateString Name, const auto *Cat>
+  requires IsCategoryVar<Cat>
+class Histogram<false, Name, Cat> : private detail::Qualified<Name, Cat> {
+  friend Registry;
+
+public:
+  using detail::Qualified<Name, Cat>::qualifier;
+
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, Histogram /*H*/) {
+    return OS << Cat->name() << "::" << Name << "\n";
+  }
+
+  LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr void
+  add(llvm::StringRef /*DataPointId*/, uint64_t /*Increment*/) {}
+
+  template <has_adl_to_string_v T>
+    requires(!std::convertible_to<T, llvm::StringRef>)
+  LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr void add(T && /*DataPointId*/,
+                                                  uint64_t /*Increment*/) {}
+};
+
+template <bool Enabled, TemplateString Name, const auto *Cat>
+  requires IsCategoryVar<Cat>
+class Timer : private detail::TimerBase, private detail::Qualified<Name, Cat> {
+  friend Registry;
+  template <bool Enabled2> friend class ScopedTimer;
+
+public:
+  using detail::Qualified<Name, Cat>::qualifier;
+
+  inline explicit Timer(
+      std::source_location Loc = std::source_location::current()) noexcept;
+
+  using detail::TimerBase::elapsed;
+  using detail::TimerBase::elapsedNanos;
+  using detail::TimerBase::reset;
+  using detail::TimerBase::start;
+  using detail::TimerBase::stop;
+
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const Timer &T) {
+    return OS << Cat->name() << "::" << Name << ": " << T.elapsed();
+  }
+
+private:
+  [[nodiscard]] constexpr detail::TimerBase *base() noexcept { return this; }
+};
+
+template <TemplateString Name, const auto *Cat>
+  requires IsCategoryVar<Cat>
+class Timer<false, Name, Cat> : private detail::Qualified<Name, Cat> {
+public:
+  using detail::Qualified<Name, Cat>::qualifier;
+
+  LLVM_ATTRIBUTE_ALWAYS_INLINE void start() noexcept {}
+  LLVM_ATTRIBUTE_ALWAYS_INLINE void stop() noexcept {}
+
+  [[nodiscard]] constexpr std::chrono::nanoseconds
+  elapsedNanos() const noexcept {
+    return {};
+  }
+
+  [[nodiscard]] hms elapsed() const noexcept { return {}; }
+
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, Timer /*T*/) {
+    return OS << Cat->name() << "::" << Name;
+  }
+};
+
+template <bool Enabled> class ScopedTimer {
+public:
+  template <TemplateString Name, const auto *Cat>
+  constexpr ScopedTimer(Timer<Enabled, Name, Cat> &Tm) : Tm(&Tm) {
+    if (Cat->isEnabled()) {
+      Tm.start();
+    }
+  }
+
+  ~ScopedTimer() {
+    if (Tm->isStarted()) {
+      Tm->stop();
+    }
+  }
+
+  ScopedTimer(const ScopedTimer &) = delete;
+  ScopedTimer &operator=(const ScopedTimer &) = delete;
+  ScopedTimer(ScopedTimer &&) = delete;
+  ScopedTimer &operator=(ScopedTimer &&) = delete;
+
+private:
+  NonNullPtr<detail::TimerBase> Tm;
+};
+
+template <> class ScopedTimer<false> {
+public:
+  template <TemplateString Name, const auto *Cat>
+  constexpr ScopedTimer(Timer<false, Name, Cat> &Tm) {}
+};
+
+class Registry {
+  template <bool Enabled, TemplateString Name, const auto *Cat>
+    requires IsCategoryVar<Cat>
+  friend class Counter;
+  template <bool Enabled, TemplateString Name, const auto *Cat>
+    requires IsCategoryVar<Cat>
+  friend class MinMaxCounter;
+  template <bool Enabled, TemplateString Name, const auto *Cat>
+    requires IsCategoryVar<Cat>
+  friend class Histogram;
+  template <bool Enabled, TemplateString Name, const auto *Cat>
+    requires IsCategoryVar<Cat>
+  friend class Timer;
+
+public:
+  static Registry &instance() {
+    static Registry Reg;
+    return Reg;
+  }
+
+  void printCounters(llvm::raw_ostream &OS) const;
+  void printCounters(llvm::raw_ostream &OS, const Category<true> &Cat) const;
+  void printCounters(llvm::raw_ostream &OS, const Category<false> &Cat) const {}
+
+  void printMinMaxCounters(llvm::raw_ostream &OS) const;
+  void printMinMaxCounters(llvm::raw_ostream &OS,
+                           const Category<true> &Cat) const;
+  void printMinMaxCounters(llvm::raw_ostream &OS,
+                           const Category<false> &Cat) const {}
+
+  void printHistograms(llvm::raw_ostream &OS) const;
+  void printHistograms(llvm::raw_ostream &OS, const Category<true> &Cat) const;
+  void printHistograms(llvm::raw_ostream &OS,
+                       const Category<false> &Cat) const {}
+
+  void printTimers(llvm::raw_ostream &OS) const;
+  void printTimers(llvm::raw_ostream &OS, const Category<true> &Cat) const;
+  void printTimers(llvm::raw_ostream &OS, const Category<false> &Cat) const {}
+
+  [[nodiscard]] const Category<true> *findCategory(llvm::StringRef Name) const;
+
+  // Sets all counters, histograms and timers back to 0. Useful for unit-tests
+  void reset() noexcept;
+
+  // Erases all registered PAMM-elements. Useful for unit-tests
+  void clear() noexcept;
+
+private:
+  void registerImpl(auto *Elem, auto &Into, const Category<true> *Cat,
+                    llvm::StringRef Name, llvm::StringRef ElemKind,
+                    std::source_location Loc) {
+    assert(Elem != nullptr);
+    assert(Cat != nullptr);
+
+    RegisteredCategories.try_emplace(Cat->name(), Cat);
+
+    auto [It, Inserted] =
+        Into[Cat].try_emplace(llvm::StringRef(Name), Elem->base());
+    if (!Inserted) [[unlikely]] {
+      llvm::report_fatal_error(
+          "At " + llvm::Twine(locToString(Loc)) + ": " + ElemKind + " " +
+          llvm::Twine(Elem->qualifier()) +
+          " already registered! Previous definition was here: " +
+          llvm::Twine(locToString(It->second->Loc)));
+    }
+  }
+
+  template <TemplateString Name, const Category<true> *Cat>
+  void registerCounter(
+      Counter<true, Name, Cat> *Ctr,
+      std::source_location Loc = std::source_location::current()) noexcept {
+    registerImpl(Ctr, Counters, Cat, Name, "Counter", Loc);
+  }
+
+  template <TemplateString Name, const Category<true> *Cat>
+  void registerMMCounter(
+      MinMaxCounter<true, Name, Cat> *Ctr,
+      std::source_location Loc = std::source_location::current()) noexcept {
+    registerImpl(Ctr, MMCounters, Cat, Name, "MinMaxCounter", Loc);
+  }
+
+  template <TemplateString Name, const Category<true> *Cat>
+  void registerHistogram(
+      Histogram<true, Name, Cat> *Hist,
+      std::source_location Loc = std::source_location::current()) noexcept {
+    registerImpl(Hist, Histograms, Cat, Name, "Histogram", Loc);
+  }
+
+  template <TemplateString Name, const Category<true> *Cat>
+  void registerTimer(
+      Timer<true, Name, Cat> *Tm,
+      std::source_location Loc = std::source_location::current()) noexcept {
+    registerImpl(Tm, Timers, Cat, Name, "Timer", Loc);
+  }
+
+  llvm::DenseMap<const Category<true> *,
+                 llvm::DenseMap<llvm::StringRef, detail::CounterBase *>>
+      Counters;
+
+  llvm::DenseMap<const Category<true> *,
+                 llvm::DenseMap<llvm::StringRef, detail::MinMaxCounterBase *>>
+      MMCounters;
+
+  llvm::DenseMap<const Category<true> *,
+                 llvm::DenseMap<llvm::StringRef, detail::HistogramBase *>>
+      Histograms;
+
+  llvm::DenseMap<const Category<true> *,
+                 llvm::DenseMap<llvm::StringRef, detail::TimerBase *>>
+      Timers;
+
+  llvm::StringMap<const Category<true> *> RegisteredCategories;
+};
+
+template <bool Enabled, TemplateString Name, const auto *Cat>
+  requires IsCategoryVar<Cat>
+inline Counter<Enabled, Name, Cat>::Counter(std::source_location Loc) noexcept {
+  static_assert(Cat != nullptr);
+  this->Loc = Loc;
+  Registry::instance().registerCounter(this, Loc);
+}
+
+template <bool Enabled, TemplateString Name, const auto *Cat>
+  requires IsCategoryVar<Cat>
+inline MinMaxCounter<Enabled, Name, Cat>::MinMaxCounter(
+    std::source_location Loc) noexcept {
+  static_assert(Cat != nullptr);
+  this->Loc = Loc;
+  Registry::instance().registerMMCounter(this, Loc);
+}
+
+template <bool Enabled, TemplateString Name, const auto *Cat>
+  requires IsCategoryVar<Cat>
+inline Histogram<Enabled, Name, Cat>::Histogram(
+    std::source_location Loc) noexcept {
+  static_assert(Cat != nullptr);
+  this->Loc = Loc;
+  Registry::instance().registerHistogram(this, Loc);
+}
+
+template <bool Enabled, TemplateString Name, const auto *Cat>
+  requires IsCategoryVar<Cat>
+inline Timer<Enabled, Name, Cat>::Timer(std::source_location Loc) noexcept {
+  static_assert(Cat != nullptr);
+  this->Loc = Loc;
+  Registry::instance().registerTimer(this, Loc);
+}
+
+/// \brief Prints the measured data from all registered categories into the
+/// given output stream
+void printMeasuredData(llvm::raw_ostream &OS);
+
+/// \brief Prints the measured data from the given category into the given
+/// output stream
+void printMeasuredData(llvm::raw_ostream &OS, const pamm::Category<true> &Cat);
+inline void printMeasuredData(llvm::raw_ostream &OS,
+                              const pamm::Category<false> &Cat) {}
+
+[[nodiscard]] inline ptrdiff_t
+getSumCount(pamm::detail::IsCounter auto const &...Counters) noexcept {
+  return (Counters.value() + ...);
+}
+
+} // namespace pamm
 
 /// This class offers functionality to measure different performance metrics.
 /// All relevant functions are wrapped into preprocessor macros and should only
@@ -54,10 +819,11 @@ namespace psr {
 /// @note This class implements the Singleton Pattern - use the
 /// PAMM_GET_INSTANCE macro to retrieve an instance of PAMM before you use any
 /// other macro from this class.
-class PAMM final {
+class [[deprecated("Use the new PAMM functionality from the psr::pamm "
+                   "namespace instead")]] PAMM final {
 public:
-  using TimePoint_t = std::chrono::high_resolution_clock::time_point;
-  using Duration_t = std::chrono::milliseconds;
+  using TimePoint_t = std::chrono::steady_clock::time_point;
+  using Duration_t = std::chrono::nanoseconds;
 
   PAMM() noexcept = default;
   ~PAMM() = default;
@@ -71,108 +837,10 @@ public:
   /// macro: PAMM_GET_INSTANCE.
   [[nodiscard]] static PAMM &getInstance();
 
-  /// \brief Resets PAMM, i.e. discards all gathered information (timer, counter
-  /// etc.) - associated macro: RESET_PAMM.
-  /// \note Only used for unit testing to reset PAMM in between test runs.
-  void reset();
-
-  /// \brief Starts a timer under the given timer id - associated macro:
-  /// START_TIMER(TIMER_ID, SEV_LVL).
-  /// \param TimerId Unique timer id.
-  void startTimer(llvm::StringRef TimerId);
-
-  /// \brief Resets timer under the given timer id - associated macro:
-  /// RESET_TIMER(TIMER_ID, SEV_LVL).
-  /// \param TimerId Unique timer id.
-  void resetTimer(llvm::StringRef TimerId);
-
-  /// If pauseTimer is true, a running timer gets paused, its start time point
-  /// will paired with a current time point, and stored as an accumulated timer.
-  /// This enables us to repeatedly compute execution time for a certain portion
-  /// of code which is executed multiple times, e.g. a loop or a function
-  /// call, without using a different timer id for every time computation.
-  /// Times of all executions of one timer are saved as distinct time point
-  /// pairs. Associated macro:
-  ///    PAUSE_TIMER(TIMER_ID, SEV_LVL)
-  ///
-  /// Otherwise, the timer will be simply stopped. Associated macro:
-  ///    STOP_TIMER(TIMER_ID, SEV_LVL)
-  /// \brief Stops or pauses a timer under the given timer id.
-  /// \param TimerId Unique timer id.
-  /// \param PauseTimer If true, timer will be paused instead of stopped.
-  void stopTimer(llvm::StringRef TimerId, bool PauseTimer = false);
-
-  /// \brief Computes the elapsed time of the given timer up until now or up to
-  /// the moment the timer was stopped - associated macro: GET_TIMER(TIMERID)
-  /// \param TimerId Unique timer id.
-  /// \return Timer duration.
-  uint64_t elapsedTime(llvm::StringRef TimerId);
-
-  /// For each accumulated timer a vector holds all recorded durations.
-  /// \brief Computes the elapsed time for all accumulated timer being used.
-  /// \return Map containing measured durations of all accumulated timer.
-  [[nodiscard]] llvm::StringMap<std::vector<uint64_t>>
-  elapsedTimeOfRepeatingTimer();
-
-  /// A running timer will not be stopped. The precision for time computation
-  /// is set to milliseconds and the output is similar to a timestamp, e.g.
-  /// '4h 8m 15sec 16ms'.
-  ///
-  /// Associated macro PRINT_TIMER(TIMERID) does not check PAMM's severity level
-  /// explicitly.
-  /// \brief Returns the elapsed time for a given timer id.
-  /// \param timerId Unique timer id.
-  [[nodiscard]] static std::string getPrintableDuration(uint64_t Duration);
-
-  /// \brief Registers a new counter under the given counter id - associated
-  /// macro: REG_COUNTER(COUNTER_ID, INIT_VALUE, SEV_LVL).
-  /// \param CounterId Unique counter id.
-  void regCounter(llvm::StringRef CounterId, unsigned IntialValue = 0);
-
-  /// \brief Increases the count for the given counter - associated macro:
-  /// INC_COUNTER(COUNTER_ID, VALUE, SEV_LVL).
-  /// \param CounterId Unique counter id.
-  /// \param CValue to be added to the current counter.
-  void incCounter(llvm::StringRef CounterId, unsigned CValue = 1);
-
-  /// \brief Decreases the count for the given counter - associated macro:
-  /// DEC_COUNTER(COUNTER_ID, VALUE, SEV_LVL).
-  /// \param CounterId Unique counter id.
-  /// \param CValue to be subtracted from the current counter.
-  void decCounter(llvm::StringRef CounterId, unsigned CValue = 1);
-
-  /// The associated macro does not check PAMM's severity level explicitly.
-  /// \brief Returns the current count for the given counter - associated macro:
-  /// GET_COUNTER(COUNTER_ID).
-  /// \param CounterId Unique counter id.
-  std::optional<unsigned> getCounter(llvm::StringRef CounterId);
-
-  /// The associated macro does not check PAMM's severity level explicitly.
-  /// \brief Sums the counts for the given counter ids - associated macro:
-  /// GET_SUM_COUNT(...).
-  /// \param CounterIds Unique counter ids.
-  /// \note Macro uses variadic parameters, e.g. GET_SUM_COUNT({"foo", "bar"}).
-  std::optional<uint64_t> getSumCount(const std::set<std::string> &CounterIds);
-  std::optional<uint64_t>
-  getSumCount(llvm::ArrayRef<llvm::StringRef> CounterIds);
-  std::optional<uint64_t>
-  getSumCount(std::initializer_list<llvm::StringRef> CounterIds);
-
-  /// \brief Registers a new histogram - associated macro:
-  /// REG_HISTOGRAM(HISTOGRAM_ID, SEV_LVL).
-  /// \param HistogramId Unique hitogram id.
-  void regHistogram(llvm::StringRef HistogramId);
-
-  /// \brief Adds a new observed data point to the corresponding histogram -
-  /// associated macro: ADD_TO_HISTOGRAM(HISTOGRAM_ID, DATAPOINT_ID,
-  /// DATAPOINT_VALUE, SEV_LVL).
-  /// \param HistogramId ID of the histogram that tracks given data points.
-  /// \param DataPointId ID of the given data point.
-  /// \param DataPointValue Value of the given data point.
-  void addToHistogram(llvm::StringRef HistogramId, llvm::StringRef DataPointId,
-                      uint64_t DataPointValue = 1);
-
-  void stopAllTimers();
+  [[nodiscard]] static ptrdiff_t
+  getSumCount(pamm::detail::IsCounter auto const &...Counters) {
+    return (Counters.value() + ...);
+  }
 
   void printTimers(llvm::raw_ostream &OS);
 
@@ -180,30 +848,14 @@ public:
 
   void printHistograms(llvm::raw_ostream &OS);
 
-  /// \brief Prints the measured data to the commandline - associated macro:
-  /// PRINT_MEASURED_DATA
-  void printMeasuredData(llvm::raw_ostream &OS);
-
-  /// \brief Exports the measured data to JSON - associated macro:
-  /// EXPORT_MEASURED_DATA(PATH).
-  /// \param OutputPath to exported JSON file.
-  void exportMeasuredData(
-      const llvm::Twine &OutputPath,
-      llvm::StringRef ProjectId = "default-phasar-project",
-      const std::vector<std::string> *Modules = nullptr,
-      const std::vector<std::string> *DataFlowAnalyses = nullptr);
-
-  [[nodiscard]] const auto &getHistogram() const noexcept { return Histogram; }
-
-private:
-  llvm::StringMap<TimePoint_t> RunningTimer;
-  llvm::StringMap<std::pair<TimePoint_t, TimePoint_t>> StoppedTimer;
-  llvm::StringMap<std::vector<std::pair<TimePoint_t, TimePoint_t>>>
-      RepeatingTimer;
-  llvm::StringMap<unsigned> Counter;
-  llvm::StringMap<llvm::StringMap<uint64_t>> Histogram;
+  /// \brief Prints the measured data to the commandline
+  void printMeasuredData(llvm::raw_ostream &OS) { pamm::printMeasuredData(OS); }
+  void printMeasuredData(llvm::raw_ostream &OS,
+                         const pamm::Category<true> &Cat) {
+    pamm::printMeasuredData(OS, Cat);
+  }
 };
 
 } // namespace psr
 
-#endif
+inline constexpr psr::pamm::Category PAMMCategory{"<global>"};
