@@ -340,6 +340,75 @@ std::vector<std::string> setupIRAndEntrypoints(LLVMProjectIRDB &IRDB) {
   return EntryPoints;
 }
 
+[[nodiscard]] AnalysisControllerEmitterOptions setupEmitterOptions() {
+  auto EmitterOptions = AnalysisControllerEmitterOptions::None;
+
+  if (EmitIROpt) {
+    EmitterOptions |= AnalysisControllerEmitterOptions::EmitIR;
+  }
+  if (EmitRawResultsOpt) {
+    EmitterOptions |= AnalysisControllerEmitterOptions::EmitRawResults;
+  }
+  if (EmitTextReportOpt) {
+    EmitterOptions |= AnalysisControllerEmitterOptions::EmitTextReport;
+  }
+  if (EmitGraphicalReportOpt) {
+    EmitterOptions |= AnalysisControllerEmitterOptions::EmitGraphicalReport;
+  }
+  if (EmitESGAsDotOpt) {
+    EmitterOptions |= AnalysisControllerEmitterOptions::EmitESGAsDot;
+  }
+  if (EmitTHAsTextOpt) {
+    EmitterOptions |= AnalysisControllerEmitterOptions::EmitTHAsText;
+  }
+  if (EmitTHAsDotOpt) {
+    EmitterOptions |= AnalysisControllerEmitterOptions::EmitTHAsDot;
+  }
+  if (EmitTHAsJsonOpt) {
+    EmitterOptions |= AnalysisControllerEmitterOptions::EmitTHAsJson;
+  }
+  if (EmitCGAsDotOpt) {
+    EmitterOptions |= AnalysisControllerEmitterOptions::EmitCGAsDot;
+  }
+  if (EmitCGAsJsonOpt) {
+    EmitterOptions |= AnalysisControllerEmitterOptions::EmitCGAsJson;
+  }
+  if (EmitCGAsTextOpt) {
+    llvm::WithColor::error()
+        << "'--emit-cg-as-text' is currently not supported. Did you mean "
+           "'--emit-cg-as-dot'? For reversible serialization use "
+           "'--emit-cg-as-json'\n";
+    exit(1);
+  }
+  if (EmitPTAAsTextOpt) {
+    EmitterOptions |= AnalysisControllerEmitterOptions::EmitPTAAsText;
+  }
+  if (EmitPTAAsDotOpt) {
+    EmitterOptions |= AnalysisControllerEmitterOptions::EmitPTAAsDot;
+  }
+  if (EmitPTAAsJsonOpt) {
+    EmitterOptions |= AnalysisControllerEmitterOptions::EmitPTAAsJson;
+  }
+  if (StatisticsOpt) {
+    EmitterOptions |= AnalysisControllerEmitterOptions::EmitStatisticsAsText;
+  }
+  if (EmitStatsAsJsonOpt) {
+    EmitterOptions |= AnalysisControllerEmitterOptions::EmitStatisticsAsJson;
+  }
+  return EmitterOptions;
+}
+
+[[nodiscard]] IFDSIDESolverConfig setupSolverConfig() {
+  IFDSIDESolverConfig SolverConfig{};
+  SolverConfig.setFollowReturnsPastSeeds(FollowReturnPastSeedsOpt);
+  SolverConfig.setAutoAddZero(AutoAddZeroOpt);
+  SolverConfig.setComputeValues(ComputeValuesOpt);
+  SolverConfig.setRecordEdges(RecordEdgesOpt || EmitESGAsDotOpt);
+  SolverConfig.setComputePersistedSummaries(PersistedSummariesOpt);
+  SolverConfig.setEmitESG(EmitESGAsDotOpt);
+  return SolverConfig;
+}
+
 } // anonymous namespace
 
 int main(int Argc, const char **Argv) {
@@ -376,68 +445,7 @@ int main(int Argc, const char **Argv) {
   [[maybe_unused]] auto &PConfig = PhasarConfig::getPhasarConfig();
 
   // setup the emitter options to display the computed analysis results
-  auto EmitterOptions = AnalysisControllerEmitterOptions::None;
-
-  IFDSIDESolverConfig SolverConfig{};
-  if (EmitIROpt) {
-    EmitterOptions |= AnalysisControllerEmitterOptions::EmitIR;
-  }
-  if (EmitRawResultsOpt) {
-    EmitterOptions |= AnalysisControllerEmitterOptions::EmitRawResults;
-  }
-  if (EmitTextReportOpt) {
-    EmitterOptions |= AnalysisControllerEmitterOptions::EmitTextReport;
-  }
-  if (EmitGraphicalReportOpt) {
-    EmitterOptions |= AnalysisControllerEmitterOptions::EmitGraphicalReport;
-  }
-  if (EmitESGAsDotOpt) {
-    EmitterOptions |= AnalysisControllerEmitterOptions::EmitESGAsDot;
-  }
-  if (EmitTHAsTextOpt) {
-    EmitterOptions |= AnalysisControllerEmitterOptions::EmitTHAsText;
-  }
-  if (EmitTHAsDotOpt) {
-    EmitterOptions |= AnalysisControllerEmitterOptions::EmitTHAsDot;
-  }
-  if (EmitTHAsJsonOpt) {
-    EmitterOptions |= AnalysisControllerEmitterOptions::EmitTHAsJson;
-  }
-  if (EmitCGAsDotOpt) {
-    EmitterOptions |= AnalysisControllerEmitterOptions::EmitCGAsDot;
-  }
-  if (EmitCGAsJsonOpt) {
-    EmitterOptions |= AnalysisControllerEmitterOptions::EmitCGAsJson;
-  }
-  if (EmitCGAsTextOpt) {
-    llvm::WithColor::error()
-        << "'--emit-cg-as-text' is currently not supported. Did you mean "
-           "'--emit-cg-as-dot'? For reversible serialization use "
-           "'--emit-cg-as-json'\n";
-    return 1;
-  }
-  if (EmitPTAAsTextOpt) {
-    EmitterOptions |= AnalysisControllerEmitterOptions::EmitPTAAsText;
-  }
-  if (EmitPTAAsDotOpt) {
-    EmitterOptions |= AnalysisControllerEmitterOptions::EmitPTAAsDot;
-  }
-  if (EmitPTAAsJsonOpt) {
-    EmitterOptions |= AnalysisControllerEmitterOptions::EmitPTAAsJson;
-  }
-  if (StatisticsOpt) {
-    EmitterOptions |= AnalysisControllerEmitterOptions::EmitStatisticsAsText;
-  }
-  if (EmitStatsAsJsonOpt) {
-    EmitterOptions |= AnalysisControllerEmitterOptions::EmitStatisticsAsJson;
-  }
-
-  SolverConfig.setFollowReturnsPastSeeds(FollowReturnPastSeedsOpt);
-  SolverConfig.setAutoAddZero(AutoAddZeroOpt);
-  SolverConfig.setComputeValues(ComputeValuesOpt);
-  SolverConfig.setRecordEdges(RecordEdgesOpt || EmitESGAsDotOpt);
-  SolverConfig.setComputePersistedSummaries(PersistedSummariesOpt);
-  SolverConfig.setEmitESG(EmitESGAsDotOpt);
+  auto EmitterOptions = setupEmitterOptions();
 
   std::optional<LLVMAliasSetData> PrecomputedAliasSet;
   if (!LoadPTAFromJsonOpt.empty()) {
@@ -464,9 +472,9 @@ int main(int Argc, const char **Argv) {
     }
   }
 
+  // create directory for results
   llvm::SmallString<128> OutDir(OutDirOpt);
   if (!OutDir.empty()) {
-    // create directory for results
     llvm::sys::path::append(OutDir,
                             ProjectId + llvm::Twine("-") + createTimeStamp());
     auto EC = llvm::sys::fs::create_directory(OutDir);
@@ -478,23 +486,24 @@ int main(int Argc, const char **Argv) {
 
   AnalysisController Controller{
       .HA = HelperAnalyses(
-          std::move(IRDB), EntryPoints,
+          std::move(IRDB), std::move(EntryPoints),
           {
+              .PrecomputedPTS = std::move(PrecomputedAliasSet),
               .PrecomputedCG = std::move(PrecomputedCallGraph),
               .PTATy = AliasTypeOpt,
               .UFAATy = UFAliasTypeOpt,
               .CGTy = CGTypeOpt,
               .SoundnessLevel = SoundnessOpt,
-              .AutoGlobalSupport = false,
+              .AutoGlobalSupport =
+                  false, // already handled in setupIRAndEntrypoints()
               .AllowLazyPTS =
                   !AnalysisController::needsToEmitPTA(EmitterOptions),
           }),
       .DataFlowAnalyses = DataFlowAnalysisOpt,
       .AnalysisConfigs = {AnalysisConfigOpt.getValue()},
-      .EntryPoints = std::move(EntryPoints),
       .Strategy = StrategyOpt,
       .EmitterOptions = EmitterOptions,
-      .SolverConfig = SolverConfig,
+      .SolverConfig = setupSolverConfig(),
       .ProjectID = std::move(ProjectId),
       .ResultDirectory = std::move(OutDir),
   };

@@ -25,7 +25,6 @@ struct AnalysisController {
   HelperAnalyses HA;
   std::vector<DataFlowAnalysisType> DataFlowAnalyses;
   std::vector<std::string> AnalysisConfigs;
-  std::vector<std::string> EntryPoints;
   [[maybe_unused]] AnalysisStrategy Strategy{};
   AnalysisControllerEmitterOptions EmitterOptions =
       AnalysisControllerEmitterOptions::None;
@@ -42,6 +41,10 @@ struct AnalysisController {
 
   void emitRequestedHelperAnalysisResults();
   void run();
+
+  [[nodiscard]] const auto &getEntryPoints() const noexcept {
+    return HA.getEntryPoints();
+  }
 };
 
 } // namespace psr

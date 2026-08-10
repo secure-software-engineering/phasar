@@ -79,6 +79,10 @@ public:
   [[nodiscard]] const SCCDependencyGraph<FunctionId> &getCGSCCCallers();
   [[nodiscard]] const UsedGlobalsHolder<const llvm::GlobalVariable *> &
   getUsedGlobals();
+  [[nodiscard]] const std::vector<std::string> &
+  getEntryPoints() const noexcept {
+    return EntryPoints;
+  }
 
 private:
   std::unique_ptr<LLVMProjectIRDB> IRDB;
