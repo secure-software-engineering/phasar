@@ -43,6 +43,7 @@
 #include <atomic>
 #include <chrono>
 #include <cstdint>
+#include <iterator>
 #include <memory>
 #include <string>
 #include <type_traits>
@@ -713,38 +714,22 @@ private:
                           EdgeFunctionPtrType SourceEF, uint32_t FunId) {
     const auto &Callees = ICFG.getCalleesOfCallAt(AtInstruction);
 
-    applyCallToReturnFlow(AtInstruction, AtInstructionId, SourceFactId,
-                          PropagatedFactId, SourceEF, Callees, FunId);
+    bool HasNoCalleeInformation = handleOrDeferCallFlow(
+        AtInstruction, AtInstructionId, SourceFactId, PropagatedFactId,
+        std::move(SourceEF), Callees, FunId);
 
-    handleOrDeferCallFlow(AtInstruction, AtInstructionId, SourceFactId,
-                          PropagatedFactId, std::move(SourceEF), Callees,
-                          FunId);
+    applyCallToReturnFlow(AtInstruction, AtInstructionId, SourceFactId,
+                          PropagatedFactId, SourceEF, Callees, FunId,
+                          HasNoCalleeInformation);
   }
 
   template <typename CalleesTy>
-  void applyCallToReturnFlow(ByConstRef<n_t> AtInstruction,
-                             uint32_t AtInstructionId, uint32_t SourceFactId,
-                             uint32_t PropagatedFactId,
-                             EdgeFunctionPtrType SourceEF,
-                             const CalleesTy &Callees, uint32_t FunId) {
+  void
+  applyCallToReturnFlow(ByConstRef<n_t> AtInstruction, uint32_t AtInstructionId,
+                        uint32_t SourceFactId, uint32_t PropagatedFactId,
+                        EdgeFunctionPtrType SourceEF, const CalleesTy &Callees,
+                        uint32_t FunId, bool HasNoCalleeInformation) {
     auto CSFact = FactCompressor[PropagatedFactId];
-
-    std::optional<bool> HasNoCalleeInformation;
-    auto EdgesKind = lazy{[&] {
-      if (!HasNoCalleeInformation) {
-        HasNoCalleeInformation =
-            llvm::all_of(Callees, [&](ByConstRef<f_t> Callee) {
-              auto SpecialSum = FECache.getSummaryFlowFunction(
-                  Problem, AtInstruction, Callee,
-                  combineIds(AtInstructionId,
-                             FunCompressor.getOrInsert(Callee)));
-              return SpecialSum == nullptr &&
-                     ICFG.getStartPointsOf(Callee).empty();
-            });
-      }
-      return *HasNoCalleeInformation ? ESGEdgeKind::SkipUnknownFn
-                                     : ESGEdgeKind::CallToRet;
-    }};
 
     for (ByConstRef<n_t> RetSite : ICFG.getReturnSitesOfCallAt(AtInstruction)) {
       auto RetSiteId = NodeCompressor.getOrInsert(RetSite);
@@ -754,7 +739,9 @@ private:
                            combineIds(AtInstructionId, RetSiteId))
                        .computeTargets(CSFact);
 
-      saveEdges(AtInstruction, RetSite, CSFact, Facts, EdgesKind);
+      saveEdges(AtInstruction, RetSite, CSFact, Facts,
+                HasNoCalleeInformation ? ESGEdgeKind::SkipUnknownFn
+                                       : ESGEdgeKind::CallToRet);
 
       for (ByConstRef<d_t> Fact : Facts) {
         auto FactId = FactCompressor.getOrInsert(Fact);
@@ -780,12 +767,13 @@ private:
   }
 
   template <typename CalleesTy>
-  void handleOrDeferCallFlow(ByConstRef<n_t> AtInstruction,
+  bool handleOrDeferCallFlow(ByConstRef<n_t> AtInstruction,
                              uint32_t AtInstructionId, uint32_t SourceFactId,
                              uint32_t PropagatedFactId,
                              EdgeFunctionPtrType SourceEF,
                              const CalleesTy &Callees, uint32_t FunId) {
     auto CSFact = FactCompressor[PropagatedFactId];
+    bool HasNoCalleeInformation = true;
     for (ByConstRef<f_t> Callee : Callees) {
       auto CalleeId = FunCompressor.getOrInsert(Callee);
       auto SummaryFF =
@@ -795,9 +783,11 @@ private:
       if (SummaryFF == nullptr) {
         /// No summary. Start inTRA propagation for the callee and defer
         /// return-propagation
-        deferCallFlow(AtInstruction, AtInstructionId, SourceFactId, CSFact,
-                      PropagatedFactId, SourceEF, Callee, CalleeId, FunId);
+        HasNoCalleeInformation =
+            deferCallFlow(AtInstruction, AtInstructionId, SourceFactId, CSFact,
+                          PropagatedFactId, SourceEF, Callee, CalleeId, FunId);
       } else {
+        HasNoCalleeInformation = false;
         /// Apply SummaryFF and ignore this CSCallee pair in the
         /// inter-propagation
         applySummaryFlow(SummaryFF.computeTargets(CSFact), AtInstruction,
@@ -805,6 +795,7 @@ private:
                          PropagatedFactId, SourceEF, FunId);
       }
     }
+    return HasNoCalleeInformation;
   }
 
   void countSummaryLinearSearch(size_t SearchLen, size_t NumSummaries) {
@@ -872,7 +863,7 @@ private:
     }
   }
 
-  void deferCallFlow(ByConstRef<n_t> AtInstruction, uint32_t AtInstructionId,
+  bool deferCallFlow(ByConstRef<n_t> AtInstruction, uint32_t AtInstructionId,
                      uint32_t SourceFactId, ByConstRef<d_t> CSFact,
                      uint32_t CSFactId, EdgeFunctionPtrType SourceEF,
                      ByConstRef<f_t> Callee, uint32_t CalleeId,
@@ -890,7 +881,11 @@ private:
         return EdgeFunctionPtrType{};
       }
     }();
-    for (ByConstRef<n_t> SP : ICFG.getStartPointsOf(Callee)) {
+
+    auto &&StartPoints = ICFG.getStartPointsOf(Callee);
+    bool HasNoCalleeInformation = std::empty(StartPoints);
+
+    for (ByConstRef<n_t> SP : StartPoints) {
       auto SPId = NodeCompressor.getOrInsert(SP);
 
       saveEdges(AtInstruction, SP, CSFact, CalleeFacts, ESGEdgeKind::Call);
@@ -943,6 +938,7 @@ private:
         }
       }
     }
+    return HasNoCalleeInformation;
   }
 
   template <typename SummaryFactsTy>
