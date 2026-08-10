@@ -11,20 +11,24 @@
 #include "phasar/Config/Configuration.h"
 #include "phasar/ControlFlow/CallGraphAnalysisType.h"
 #include "phasar/ControlFlow/CallGraphData.h"
+#include "phasar/PhasarLLVM/ControlFlow/EntryFunctionUtils.h"
+#include "phasar/PhasarLLVM/ControlFlow/ExternCallbackModel.h"
+#include "phasar/PhasarLLVM/ControlFlow/GlobalCtorsDtorsModel.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
-#include "phasar/PhasarLLVM/HelperAnalysisConfig.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSetData.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 #include "phasar/Pointer/AliasAnalysisType.h"
 #include "phasar/Pointer/UnionFindAliasAnalysisType.h"
 #include "phasar/Utils/InitPhasar.h"
+#include "phasar/Utils/Lazy.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Soundness.h"
 #include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/CommandLine.h"
+#include "llvm/Support/WithColor.h"
 
 #include "Controller/AnalysisController.h"
 #include "Controller/AnalysisControllerEmitterOptions.h"
@@ -154,6 +158,12 @@ cl::opt<Soundness> SoundnessOpt("soundness",
                                 cl::Hidden);
 PSR_OPTION_FLAG(AutoGlobalsOpt, "auto-globals",
                 "Enable automated support for global initializers",
+                cl::init(true));
+
+PSR_OPTION_FLAG(ExternalCallsRewriteOpt, "rewrite-external-calls",
+                "Whether to rewrite calls-to known external functions, such as "
+                "pthread_create, s.t., their callback calls are not lost in "
+                "the call-graph",
                 cl::init(true));
 
 PSR_SHORTLONG_OPTION(
@@ -467,21 +477,38 @@ int main(int Argc, const char **Argv) {
     PrecomputedCallGraph = CallGraphData::deserializeJson(LoadCGFromJsonOpt);
   }
 
-  if (EntryOpt.empty()) {
-    EntryOpt.push_back("main");
+  auto IRDB = std::make_unique<LLVMProjectIRDB>(
+      PSR_LAZY(LLVMProjectIRDB::loadOrExit(ModuleOpt)));
+
+  std::vector<std::string> EntryPoints = std::move(EntryOpt);
+  if (EntryPoints.empty()) {
+    EntryPoints = getDefaultEntryPoints(*IRDB);
+  }
+  if (AutoGlobalsOpt) {
+    if (EntryPoints.size() == 1 && EntryPoints.front() == "main") {
+      GlobalCtorsDtorsModel::buildModel(*IRDB, EntryPoints);
+      EntryPoints = {GlobalCtorsDtorsModel::ModelName.str()};
+    } else if (AutoGlobalsOpt.getNumOccurrences() > 0) {
+      llvm::WithColor::warning()
+          << "'--auto-globals' is currently not supported for libraries, only "
+             "for applications with 'main' as entry-point'\n";
+    }
+  }
+  if (ExternalCallsRewriteOpt) {
+    ExternCallbackModel::rewriteCalls(*IRDB);
   }
 
-  HelperAnalysisConfig HAConfig{
-      .PrecomputedCG = std::move(PrecomputedCallGraph),
-      .PTATy = AliasTypeOpt,
-      .UFAATy = UFAliasTypeOpt,
-      .CGTy = CGTypeOpt,
-      .SoundnessLevel = SoundnessOpt,
-      .AutoGlobalSupport = AutoGlobalsOpt,
-      .AllowLazyPTS = !AnalysisController::needsToEmitPTA(EmitterOptions),
-  };
-  HelperAnalyses HA(std::move(ModuleOpt.getValue()), EntryOpt,
-                    std::move(HAConfig));
+  HelperAnalyses HA(
+      std::move(IRDB), EntryPoints,
+      {
+          .PrecomputedCG = std::move(PrecomputedCallGraph),
+          .PTATy = AliasTypeOpt,
+          .UFAATy = UFAliasTypeOpt,
+          .CGTy = CGTypeOpt,
+          .SoundnessLevel = SoundnessOpt,
+          .AutoGlobalSupport = false,
+          .AllowLazyPTS = !AnalysisController::needsToEmitPTA(EmitterOptions),
+      });
   if (!HA.getProjectIRDB().isValid()) {
     // Note: Error message has already been printed
     return 1;
@@ -491,7 +518,7 @@ int main(int Argc, const char **Argv) {
       .HA = &HA,
       .DataFlowAnalyses = DataFlowAnalysisOpt,
       .AnalysisConfigs = {AnalysisConfigOpt.getValue()},
-      .EntryPoints = EntryOpt,
+      .EntryPoints = std::move(EntryPoints),
       .Strategy = StrategyOpt,
       .EmitterOptions = EmitterOptions,
       .SolverConfig = SolverConfig,

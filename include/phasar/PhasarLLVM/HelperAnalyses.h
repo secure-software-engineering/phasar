@@ -63,6 +63,9 @@ public:
   explicit HelperAnalyses(std::unique_ptr<llvm::Module> IRModule,
                           std::vector<std::string> EntryPoints,
                           HelperAnalysisConfig Config = {});
+  explicit HelperAnalyses(std::unique_ptr<LLVMProjectIRDB> IRDB,
+                          std::vector<std::string> EntryPoints,
+                          HelperAnalysisConfig Config = {});
   ~HelperAnalyses() noexcept;
 
   [[nodiscard]] LLVMProjectIRDB &getProjectIRDB();
