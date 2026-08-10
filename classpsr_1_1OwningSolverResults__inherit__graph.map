@@ -1,7 +1,10 @@
 <map id="psr::OwningSolverResults&lt; N, D, L &gt;" name="psr::OwningSolverResults&lt; N, D, L &gt;">
-<area shape="rect" id="Node000001" title=" " alt="" coords="15,227,203,267"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,123,212,177"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="111,191,111,226,106,226,106,191"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="15,5,202,45"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="111,59,111,122,106,122,106,59"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="24,301,212,341"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="15,197,221,252"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="121,266,121,301,115,301,115,266"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,5,220,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="116,44,120,197,115,197,111,44"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="134,80,321,120"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="142,36,202,78,199,82,139,41"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="203,132,143,199,139,195,199,129"/>
 </map>

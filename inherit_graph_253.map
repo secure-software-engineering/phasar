@@ -1,3 +1,31 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$structpsr_1_1IdentityFn.html" title=" " alt="" coords="5,5,121,31"/>
+<area shape="rect" id="Node000000" href="$classpsr_1_1IDESolverAPIMixin.html" title=" " alt="" coords="107,245,278,285"/>
+<area shape="rect" id="Node000001" href="$classpsr_1_1IDESolver.html" title=" " alt="" coords="428,321,743,391"/>
+<area shape="poly" id="edge293_Node000000_Node000001" title=" " alt="" coords="292,280,381,299,460,319,459,324,379,304,291,285"/>
+<area shape="rect" id="Node000003" href="$classpsr_1_1IDESolver.html" title=" " alt="" coords="458,5,713,75"/>
+<area shape="poly" id="edge294_Node000000_Node000003" title=" " alt="" coords="291,263,337,251,359,241,378,227,392,211,399,194,402,159,405,122,412,103,426,85,456,63,459,68,430,89,417,106,410,123,408,159,405,196,397,214,382,231,362,246,339,256,292,268"/>
+<area shape="rect" id="Node000004" href="$classpsr_1_1IDESolver.html" title=" " alt="" coords="446,99,725,154"/>
+<area shape="poly" id="edge295_Node000000_Node000004" title=" " alt="" coords="291,257,336,246,379,227,394,213,402,196,410,179,426,163,447,152,449,156,430,167,414,183,407,199,398,216,381,232,338,251,292,263"/>
+<area shape="rect" id="Node000005" href="$classpsr_1_1IDESolver.html" title=" " alt="" coords="481,178,689,233"/>
+<area shape="poly" id="edge296_Node000000_Node000005" title=" " alt="" coords="291,248,481,219,482,224,292,253"/>
+<area shape="rect" id="Node000006" href="$classpsr_1_1IDESolver.html" title=" " alt="" coords="472,257,699,297"/>
+<area shape="poly" id="edge297_Node000000_Node000006" title=" " alt="" coords="292,266,472,271,472,277,292,271"/>
+<area shape="rect" id="Node000009" href="$classpsr_1_1IterativeIDESolver.html" title=" " alt="" coords="469,415,701,470"/>
+<area shape="poly" id="edge300_Node000000_Node000009" title=" " alt="" coords="292,265,339,276,382,299,394,312,401,325,407,351,412,377,419,389,430,401,449,414,470,423,468,428,446,418,426,405,414,392,407,379,402,352,396,327,390,315,378,303,337,281,291,270"/>
+<area shape="rect" id="Node000007" href="$classpsr_1_1IFDSSolver.html" title="Solves the given IFDSTabulationProblem as described in the 1995 paper by Reps, Horwitz and Sagiv...." alt="" coords="793,221,1020,261"/>
+<area shape="poly" id="edge298_Node000006_Node000007" title=" " alt="" coords="712,260,793,251,793,257,713,266"/>
+<area shape="rect" id="Node000008" href="$classpsr_1_1PathAwareIDESolver.html" title=" " alt="" coords="791,286,1023,341"/>
+<area shape="poly" id="edge299_Node000006_Node000008" title=" " alt="" coords="713,289,791,298,790,303,712,294"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="101,193,285,218"/>
+<area shape="poly" id="edge301_Node000002_Node000001" title=" " alt="" coords="299,203,341,212,382,231,399,250,407,270,414,289,430,307,448,319,445,323,426,311,409,292,402,271,395,252,378,236,340,217,297,208"/>
+<area shape="poly" id="edge302_Node000002_Node000003" title=" " alt="" coords="227,183,316,135,427,84,459,72,461,77,429,89,318,140,229,188"/>
+<area shape="poly" id="edge303_Node000002_Node000004" title=" " alt="" coords="270,187,448,151,449,157,271,193"/>
+<area shape="poly" id="edge304_Node000002_Node000005" title=" " alt="" coords="298,203,481,203,481,208,298,208"/>
+<area shape="poly" id="edge305_Node000002_Node000006" title=" " alt="" coords="299,217,381,231,429,241,490,255,489,260,427,247,379,236,298,222"/>
+<area shape="rect" id="Node000010" href="$classpsr_1_1IterativeIDESolverBase.html" title=" " alt="" coords="93,314,293,369"/>
+<area shape="poly" id="edge306_Node000010_Node000009" title=" " alt="" coords="307,359,381,379,429,400,470,413,468,418,427,405,379,384,305,364"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="5,393,380,492"/>
+<area shape="poly" id="edge307_Node000011_Node000009" title=" " alt="" coords="394,440,469,440,469,445,394,445"/>
+<area shape="rect" id="Node000012" href="$structpsr_1_1SolverStatsSelector.html" title=" " alt="" coords="104,517,281,571"/>
+<area shape="poly" id="edge308_Node000012_Node000009" title=" " alt="" coords="294,521,379,501,498,467,499,473,381,507,295,526"/>
 </map>

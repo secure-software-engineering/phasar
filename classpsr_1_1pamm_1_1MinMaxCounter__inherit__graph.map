@@ -1,0 +1,9 @@
+<map id="psr::pamm::MinMaxCounter&lt; Enabled, Name, Cat &gt;" name="psr::pamm::MinMaxCounter&lt; Enabled, Name, Cat &gt;">
+<area shape="rect" id="Node000001" title=" " alt="" coords="79,181,281,221"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,93,163,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="117,141,161,179,157,183,114,145"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="11,5,157,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="87,59,87,93,81,93,81,59"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="187,93,365,133"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="246,145,203,183,199,179,243,141"/>
+</map>

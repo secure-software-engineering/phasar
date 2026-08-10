@@ -100,12 +100,14 @@ var searchData=
   ['psr_3a_3apag_3a_3acanwithcalleesofcallat_97',['CanWithCalleesOfCallAt',['../conceptpsr_1_1pag_1_1CanWithCalleesOfCallAt.html',1,'psr::pag']]],
   ['psr_3a_3apag_3a_3apbstrategy_98',['PBStrategy',['../conceptpsr_1_1pag_1_1PBStrategy.html',1,'psr::pag']]],
   ['psr_3a_3apag_3a_3apbstrategybase_99',['PBStrategyBase',['../conceptpsr_1_1pag_1_1PBStrategyBase.html',1,'psr::pag']]],
-  ['psr_3a_3aprojectirdb_100',['ProjectIRDB',['../conceptpsr_1_1ProjectIRDB.html',1,'psr']]],
-  ['psr_3a_3aprojectsymboltable_101',['ProjectSymbolTable',['../conceptpsr_1_1ProjectSymbolTable.html',1,'psr']]],
-  ['psr_3a_3aproper_5fsubclass_5fof_102',['proper_subclass_of',['../conceptpsr_1_1proper__subclass__of.html',1,'psr']]],
-  ['psr_3a_3asame_5fas_5fdecay_103',['same_as_decay',['../conceptpsr_1_1same__as__decay.html',1,'psr']]],
-  ['psr_3a_3asmallidtype_104',['SmallIdType',['../conceptpsr_1_1SmallIdType.html',1,'psr']]],
-  ['psr_3a_3aunionfindaaresult_105',['UnionFindAAResult',['../conceptpsr_1_1UnionFindAAResult.html',1,'psr']]],
-  ['psr_3a_3awpds_3a_3acaninjectadditionalpushedges_106',['CanInjectAdditionalPushEdges',['../conceptpsr_1_1wpds_1_1CanInjectAdditionalPushEdges.html',1,'psr::wpds']]],
-  ['psr_3a_3awpds_3a_3aruleprovider_107',['RuleProvider',['../conceptpsr_1_1wpds_1_1RuleProvider.html',1,'psr::wpds']]]
+  ['psr_3a_3apamm_3a_3aiscategory_100',['IsCategory',['../conceptpsr_1_1pamm_1_1IsCategory.html',1,'psr::pamm']]],
+  ['psr_3a_3apamm_3a_3aiscategoryvar_101',['IsCategoryVar',['../conceptpsr_1_1pamm_1_1IsCategoryVar.html',1,'psr::pamm']]],
+  ['psr_3a_3aprojectirdb_102',['ProjectIRDB',['../conceptpsr_1_1ProjectIRDB.html',1,'psr']]],
+  ['psr_3a_3aprojectsymboltable_103',['ProjectSymbolTable',['../conceptpsr_1_1ProjectSymbolTable.html',1,'psr']]],
+  ['psr_3a_3aproper_5fsubclass_5fof_104',['proper_subclass_of',['../conceptpsr_1_1proper__subclass__of.html',1,'psr']]],
+  ['psr_3a_3asame_5fas_5fdecay_105',['same_as_decay',['../conceptpsr_1_1same__as__decay.html',1,'psr']]],
+  ['psr_3a_3asmallidtype_106',['SmallIdType',['../conceptpsr_1_1SmallIdType.html',1,'psr']]],
+  ['psr_3a_3aunionfindaaresult_107',['UnionFindAAResult',['../conceptpsr_1_1UnionFindAAResult.html',1,'psr']]],
+  ['psr_3a_3awpds_3a_3acaninjectadditionalpushedges_108',['CanInjectAdditionalPushEdges',['../conceptpsr_1_1wpds_1_1CanInjectAdditionalPushEdges.html',1,'psr::wpds']]],
+  ['psr_3a_3awpds_3a_3aruleprovider_109',['RuleProvider',['../conceptpsr_1_1wpds_1_1RuleProvider.html',1,'psr::wpds']]]
 ];

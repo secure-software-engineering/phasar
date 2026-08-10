@@ -92,6 +92,10 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
 Macros</h2></td></tr>
+<tr class="memitem:ad6492470a59a60a2b2587d6d2349af1f" id="r_ad6492470a59a60a2b2587d6d2349af1f"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="Macros_8h.html#ad6492470a59a60a2b2587d6d2349af1f">PSR_CONCAT_IMPL</a>(X,  Y)&#160;&#160;&#160;X##Y</td></tr>
+<tr class="separator:ad6492470a59a60a2b2587d6d2349af1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a63560f1f43c6bead517e78c755b9e5c7" id="r_a63560f1f43c6bead517e78c755b9e5c7"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="Macros_8h.html#a63560f1f43c6bead517e78c755b9e5c7">PSR_CONCAT</a>(X,  Y)&#160;&#160;&#160;<a class="el" href="Macros_8h.html#ad6492470a59a60a2b2587d6d2349af1f">PSR_CONCAT_IMPL</a>(X, Y)</td></tr>
+<tr class="separator:a63560f1f43c6bead517e78c755b9e5c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a886bb5afef08c49ad3edb43f16df19b0" id="r_a886bb5afef08c49ad3edb43f16df19b0"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="Macros_8h.html#a886bb5afef08c49ad3edb43f16df19b0">PSR_FWD</a>(...)&#160;&#160;&#160;::std::forward&lt;decltype(__VA_ARGS__)&gt;(__VA_ARGS__)</td></tr>
 <tr class="separator:a886bb5afef08c49ad3edb43f16df19b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2a61702ca9be186404c0447bbd84a05f" id="r_a2a61702ca9be186404c0447bbd84a05f"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="Macros_8h.html#a2a61702ca9be186404c0447bbd84a05f">PSR_CONCEPT</a>&#160;&#160;&#160;concept</td></tr>
@@ -122,7 +126,67 @@ Macros</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="Macros_8h_source.html#l00020">20</a> of file <a class="el" href="Macros_8h_source.html">Macros.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Macros_8h_source.html#l00023">23</a> of file <a class="el" href="Macros_8h_source.html">Macros.h</a>.</p>
+
+</div>
+</div>
+<a id="a63560f1f43c6bead517e78c755b9e5c7" name="a63560f1f43c6bead517e78c755b9e5c7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a63560f1f43c6bead517e78c755b9e5c7">&#9670;&#160;</a></span>PSR_CONCAT</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define PSR_CONCAT</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">X, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">Y&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td>&#160;&#160;&#160;<a class="el" href="Macros_8h.html#ad6492470a59a60a2b2587d6d2349af1f">PSR_CONCAT_IMPL</a>(X, Y)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="Macros_8h_source.html#l00014">14</a> of file <a class="el" href="Macros_8h_source.html">Macros.h</a>.</p>
+
+</div>
+</div>
+<a id="ad6492470a59a60a2b2587d6d2349af1f" name="ad6492470a59a60a2b2587d6d2349af1f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad6492470a59a60a2b2587d6d2349af1f">&#9670;&#160;</a></span>PSR_CONCAT_IMPL</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define PSR_CONCAT_IMPL</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">X, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">Y&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td>&#160;&#160;&#160;X##Y</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="Macros_8h_source.html#l00013">13</a> of file <a class="el" href="Macros_8h_source.html">Macros.h</a>.</p>
 
 </div>
 </div>
@@ -138,7 +202,7 @@ Macros</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="Macros_8h_source.html#l00015">15</a> of file <a class="el" href="Macros_8h_source.html">Macros.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Macros_8h_source.html#l00018">18</a> of file <a class="el" href="Macros_8h_source.html">Macros.h</a>.</p>
 
 </div>
 </div>
@@ -154,7 +218,7 @@ Macros</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="Macros_8h_source.html#l00017">17</a> of file <a class="el" href="Macros_8h_source.html">Macros.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Macros_8h_source.html#l00020">20</a> of file <a class="el" href="Macros_8h_source.html">Macros.h</a>.</p>
 
 </div>
 </div>
@@ -184,7 +248,7 @@ Macros</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="Macros_8h_source.html#l00027">27</a> of file <a class="el" href="Macros_8h_source.html">Macros.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Macros_8h_source.html#l00030">30</a> of file <a class="el" href="Macros_8h_source.html">Macros.h</a>.</p>
 
 </div>
 </div>
@@ -204,7 +268,7 @@ Macros</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="Macros_8h_source.html#l00013">13</a> of file <a class="el" href="Macros_8h_source.html">Macros.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Macros_8h_source.html#l00016">16</a> of file <a class="el" href="Macros_8h_source.html">Macros.h</a>.</p>
 
 </div>
 </div>
@@ -220,14 +284,14 @@ Macros</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="Macros_8h_source.html#l00035">35</a> of file <a class="el" href="Macros_8h_source.html">Macros.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Macros_8h_source.html#l00038">38</a> of file <a class="el" href="Macros_8h_source.html">Macros.h</a>.</p>
 
 </div>
 </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jul 31 2026 17:18:44 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Mon Aug 10 2026 16:07:49 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

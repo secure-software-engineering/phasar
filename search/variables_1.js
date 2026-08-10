@@ -8,5 +8,6 @@ var searchData=
   ['bits_5',['Bits',['../structpsr_1_1glca_1_1TypecastEdgeFunction.html#a6cbe9e3cb0a507bfc8e0c75ce83d73f0',1,'psr::glca::TypecastEdgeFunction']]],
   ['bottomvalue_6',['BottomValue',['../structpsr_1_1AllBottom.html#a1343d3b9d439dba6e687d6f7c17061b0',1,'psr::AllBottom']]],
   ['branches_7',['Branches',['../structpsr_1_1GeneralStatistics.html#ac5ce8bef5bce31e7cf286a8451cf95f5',1,'psr::GeneralStatistics']]],
-  ['byteoffset_8',['ByteOffset',['../structpsr_1_1vta_1_1Field.html#a736e8444f3758d8405b959f2e8f2a379',1,'psr::vta::Field']]]
+  ['buf_8',['Buf',['../structpsr_1_1TemplateString.html#ae48c6f64ab6ab31e8c56c07e1f6c0d5f',1,'psr::TemplateString']]],
+  ['byteoffset_9',['ByteOffset',['../structpsr_1_1vta_1_1Field.html#a736e8444f3758d8405b959f2e8f2a379',1,'psr::vta::Field']]]
 ];

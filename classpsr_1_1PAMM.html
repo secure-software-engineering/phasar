@@ -98,10 +98,10 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:af367454b8bf276d418f9f852650296b9" id="r_af367454b8bf276d418f9f852650296b9"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1PAMM.html#af367454b8bf276d418f9f852650296b9">TimePoint_t</a> = std::chrono::high_resolution_clock::time_point</td></tr>
-<tr class="separator:af367454b8bf276d418f9f852650296b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4a0bbde70a68568c8ad4202e20829519" id="r_a4a0bbde70a68568c8ad4202e20829519"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1PAMM.html#a4a0bbde70a68568c8ad4202e20829519">Duration_t</a> = std::chrono::milliseconds</td></tr>
-<tr class="separator:a4a0bbde70a68568c8ad4202e20829519"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aab750f4d8905309fe6d71ade4ae3c3f1" id="r_aab750f4d8905309fe6d71ade4ae3c3f1"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1PAMM.html#aab750f4d8905309fe6d71ade4ae3c3f1">TimePoint_t</a> = std::chrono::steady_clock::time_point</td></tr>
+<tr class="separator:aab750f4d8905309fe6d71ade4ae3c3f1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae86c860d9d96cae8e05bee550bbe79b6" id="r_ae86c860d9d96cae8e05bee550bbe79b6"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1PAMM.html#ae86c860d9d96cae8e05bee550bbe79b6">Duration_t</a> = std::chrono::nanoseconds</td></tr>
+<tr class="separator:ae86c860d9d96cae8e05bee550bbe79b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -117,52 +117,6 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a422bb48be2c54b2da78a6722d4ca2fe5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad884685b017a4243b0484a3f266a4a49" id="r_ad884685b017a4243b0484a3f266a4a49"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classpsr_1_1PAMM.html">PAMM</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1PAMM.html#ad884685b017a4243b0484a3f266a4a49">operator=</a> (<a class="el" href="classpsr_1_1PAMM.html">PAMM</a> &amp;&amp;PM)=delete</td></tr>
 <tr class="separator:ad884685b017a4243b0484a3f266a4a49"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6bb43ba6dbcdc04f72dd11e4832f09db" id="r_a6bb43ba6dbcdc04f72dd11e4832f09db"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1PAMM.html#a6bb43ba6dbcdc04f72dd11e4832f09db">reset</a> ()</td></tr>
-<tr class="memdesc:a6bb43ba6dbcdc04f72dd11e4832f09db"><td class="mdescLeft">&#160;</td><td class="mdescRight">Resets <a class="el" href="classpsr_1_1PAMM.html" title="This class offers functionality to assist a performance analysis of the PhASAR framework.">PAMM</a>, i.e. discards all gathered information (timer, counter etc.) - associated macro: RESET_PAMM.  <br /></td></tr>
-<tr class="separator:a6bb43ba6dbcdc04f72dd11e4832f09db"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a57f8fd4909d210e18263296350d4c50f" id="r_a57f8fd4909d210e18263296350d4c50f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1PAMM.html#a57f8fd4909d210e18263296350d4c50f">startTimer</a> (llvm::StringRef TimerId)</td></tr>
-<tr class="memdesc:a57f8fd4909d210e18263296350d4c50f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Starts a timer under the given timer id - associated macro: <a class="el" href="PAMMMacros_8h.html#abe819560799f0050f845c7f342d02d44">START_TIMER(TIMER_ID, SEV_LVL)</a>.  <br /></td></tr>
-<tr class="separator:a57f8fd4909d210e18263296350d4c50f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abf80090e2e927b8d923a4c47e6271e41" id="r_abf80090e2e927b8d923a4c47e6271e41"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1PAMM.html#abf80090e2e927b8d923a4c47e6271e41">resetTimer</a> (llvm::StringRef TimerId)</td></tr>
-<tr class="memdesc:abf80090e2e927b8d923a4c47e6271e41"><td class="mdescLeft">&#160;</td><td class="mdescRight">Resets timer under the given timer id - associated macro: <a class="el" href="PAMMMacros_8h.html#a9a7fab8a320649db567e39dfabf940e4">RESET_TIMER(TIMER_ID, SEV_LVL)</a>.  <br /></td></tr>
-<tr class="separator:abf80090e2e927b8d923a4c47e6271e41"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9681e02d62a0e4ca9db4ffb851148d1f" id="r_a9681e02d62a0e4ca9db4ffb851148d1f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1PAMM.html#a9681e02d62a0e4ca9db4ffb851148d1f">stopTimer</a> (llvm::StringRef TimerId, <a class="el" href="classbool.html">bool</a> PauseTimer=false)</td></tr>
-<tr class="memdesc:a9681e02d62a0e4ca9db4ffb851148d1f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stops or pauses a timer under the given timer id.  <br /></td></tr>
-<tr class="separator:a9681e02d62a0e4ca9db4ffb851148d1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a72445e49a5c70323a71c8377b68911c6" id="r_a72445e49a5c70323a71c8377b68911c6"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1PAMM.html#a72445e49a5c70323a71c8377b68911c6">elapsedTime</a> (llvm::StringRef TimerId)</td></tr>
-<tr class="memdesc:a72445e49a5c70323a71c8377b68911c6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Computes the elapsed time of the given timer up until now or up to the moment the timer was stopped - associated macro: GET_TIMER(TIMERID)  <br /></td></tr>
-<tr class="separator:a72445e49a5c70323a71c8377b68911c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a637b1fe4d0fe87fcc811c69fa4d87656" id="r_a637b1fe4d0fe87fcc811c69fa4d87656"><td class="memItemLeft" align="right" valign="top">llvm::StringMap&lt; std::vector&lt; uint64_t &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1PAMM.html#a637b1fe4d0fe87fcc811c69fa4d87656">elapsedTimeOfRepeatingTimer</a> ()</td></tr>
-<tr class="memdesc:a637b1fe4d0fe87fcc811c69fa4d87656"><td class="mdescLeft">&#160;</td><td class="mdescRight">Computes the elapsed time for all accumulated timer being used.  <br /></td></tr>
-<tr class="separator:a637b1fe4d0fe87fcc811c69fa4d87656"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0b1e85ce0fbd627727885869eb388975" id="r_a0b1e85ce0fbd627727885869eb388975"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1PAMM.html#a0b1e85ce0fbd627727885869eb388975">regCounter</a> (llvm::StringRef CounterId, unsigned IntialValue=0)</td></tr>
-<tr class="memdesc:a0b1e85ce0fbd627727885869eb388975"><td class="mdescLeft">&#160;</td><td class="mdescRight">Registers a new counter under the given counter id - associated macro: <a class="el" href="PAMMMacros_8h.html#a952cebeef376eb205a615df93de102f7">REG_COUNTER(COUNTER_ID, INIT_VALUE, SEV_LVL)</a>.  <br /></td></tr>
-<tr class="separator:a0b1e85ce0fbd627727885869eb388975"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a35c60f210cca129e8e8eca062aabcddb" id="r_a35c60f210cca129e8e8eca062aabcddb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1PAMM.html#a35c60f210cca129e8e8eca062aabcddb">incCounter</a> (llvm::StringRef CounterId, unsigned CValue=1)</td></tr>
-<tr class="memdesc:a35c60f210cca129e8e8eca062aabcddb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Increases the count for the given counter - associated macro: <a class="el" href="PAMMMacros_8h.html#a0e827ab2178114f18c178054167d7ad1">INC_COUNTER(COUNTER_ID, VALUE, SEV_LVL)</a>.  <br /></td></tr>
-<tr class="separator:a35c60f210cca129e8e8eca062aabcddb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7ac88b237694a6b8a48902528ff5e811" id="r_a7ac88b237694a6b8a48902528ff5e811"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1PAMM.html#a7ac88b237694a6b8a48902528ff5e811">decCounter</a> (llvm::StringRef CounterId, unsigned CValue=1)</td></tr>
-<tr class="memdesc:a7ac88b237694a6b8a48902528ff5e811"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decreases the count for the given counter - associated macro: <a class="el" href="PAMMMacros_8h.html#a4060447ec1fdcda5d5373c75fa50b8d8">DEC_COUNTER(COUNTER_ID, VALUE, SEV_LVL)</a>.  <br /></td></tr>
-<tr class="separator:a7ac88b237694a6b8a48902528ff5e811"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a80cdc79b47b548ff54c6eef3d85c6449" id="r_a80cdc79b47b548ff54c6eef3d85c6449"><td class="memItemLeft" align="right" valign="top">std::optional&lt; unsigned &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1PAMM.html#a80cdc79b47b548ff54c6eef3d85c6449">getCounter</a> (llvm::StringRef CounterId)</td></tr>
-<tr class="memdesc:a80cdc79b47b548ff54c6eef3d85c6449"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the current count for the given counter - associated macro: <a class="el" href="PAMMMacros_8h.html#a2f628141be8d9bb93608662b4d9d707f">GET_COUNTER(COUNTER_ID)</a>.  <br /></td></tr>
-<tr class="separator:a80cdc79b47b548ff54c6eef3d85c6449"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a093f59b2606f391023400f70421a8ba8" id="r_a093f59b2606f391023400f70421a8ba8"><td class="memItemLeft" align="right" valign="top">std::optional&lt; uint64_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1PAMM.html#a093f59b2606f391023400f70421a8ba8">getSumCount</a> (const std::set&lt; std::string &gt; &amp;CounterIds)</td></tr>
-<tr class="memdesc:a093f59b2606f391023400f70421a8ba8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sums the counts for the given counter ids - associated macro: <a class="el" href="PAMMMacros_8h.html#a42f083e49cbc8bbb14770f152c975d4d">GET_SUM_COUNT(...)</a>.  <br /></td></tr>
-<tr class="separator:a093f59b2606f391023400f70421a8ba8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a71d5f4d5ec8f2e3e433aca1651de2fa4" id="r_a71d5f4d5ec8f2e3e433aca1651de2fa4"><td class="memItemLeft" align="right" valign="top">std::optional&lt; uint64_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1PAMM.html#a71d5f4d5ec8f2e3e433aca1651de2fa4">getSumCount</a> (llvm::ArrayRef&lt; llvm::StringRef &gt; CounterIds)</td></tr>
-<tr class="separator:a71d5f4d5ec8f2e3e433aca1651de2fa4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac0fa98ac048293f34809e06722ed5e8e" id="r_ac0fa98ac048293f34809e06722ed5e8e"><td class="memItemLeft" align="right" valign="top">std::optional&lt; uint64_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1PAMM.html#ac0fa98ac048293f34809e06722ed5e8e">getSumCount</a> (std::initializer_list&lt; llvm::StringRef &gt; CounterIds)</td></tr>
-<tr class="separator:ac0fa98ac048293f34809e06722ed5e8e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a22ee5e4ee4f0be32ff54fe6885528fe1" id="r_a22ee5e4ee4f0be32ff54fe6885528fe1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1PAMM.html#a22ee5e4ee4f0be32ff54fe6885528fe1">regHistogram</a> (llvm::StringRef HistogramId)</td></tr>
-<tr class="memdesc:a22ee5e4ee4f0be32ff54fe6885528fe1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Registers a new histogram - associated macro: <a class="el" href="PAMMMacros_8h.html#a78587cca36b8f2f1aa56e3dcb6d65f62">REG_HISTOGRAM(HISTOGRAM_ID, SEV_LVL)</a>.  <br /></td></tr>
-<tr class="separator:a22ee5e4ee4f0be32ff54fe6885528fe1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a36a5e173678e45e24f0ff3bc137b8bb5" id="r_a36a5e173678e45e24f0ff3bc137b8bb5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1PAMM.html#a36a5e173678e45e24f0ff3bc137b8bb5">addToHistogram</a> (llvm::StringRef HistogramId, llvm::StringRef DataPointId, uint64_t DataPointValue=1)</td></tr>
-<tr class="memdesc:a36a5e173678e45e24f0ff3bc137b8bb5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds a new observed data point to the corresponding histogram - associated macro: <a class="el" href="PAMMMacros_8h.html#ab73711aca8089c705444b5745a9f2386">ADD_TO_HISTOGRAM(HISTOGRAM_ID, DATAPOINT_ID,
-DATAPOINT_VALUE, SEV_LVL)</a>.  <br /></td></tr>
-<tr class="separator:a36a5e173678e45e24f0ff3bc137b8bb5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0393d5989a93f87728f0e5683b64ebbe" id="r_a0393d5989a93f87728f0e5683b64ebbe"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1PAMM.html#a0393d5989a93f87728f0e5683b64ebbe">stopAllTimers</a> ()</td></tr>
-<tr class="separator:a0393d5989a93f87728f0e5683b64ebbe"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8aa2ef4031adfdc7352604cddbed54b6" id="r_a8aa2ef4031adfdc7352604cddbed54b6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1PAMM.html#a8aa2ef4031adfdc7352604cddbed54b6">printTimers</a> (llvm::raw_ostream &amp;OS)</td></tr>
 <tr class="separator:a8aa2ef4031adfdc7352604cddbed54b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a012fb301ec18d2e322d235ef43840115" id="r_a012fb301ec18d2e322d235ef43840115"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1PAMM.html#a012fb301ec18d2e322d235ef43840115">printCounters</a> (llvm::raw_ostream &amp;OS)</td></tr>
@@ -170,22 +124,18 @@ DATAPOINT_VALUE, SEV_LVL)</a>.  <br /></td></tr>
 <tr class="memitem:a76c07b40b93962648293d6c9536970bb" id="r_a76c07b40b93962648293d6c9536970bb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1PAMM.html#a76c07b40b93962648293d6c9536970bb">printHistograms</a> (llvm::raw_ostream &amp;OS)</td></tr>
 <tr class="separator:a76c07b40b93962648293d6c9536970bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab931fe4a0bc220b8b2f8f3ffc45eedd7" id="r_ab931fe4a0bc220b8b2f8f3ffc45eedd7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1PAMM.html#ab931fe4a0bc220b8b2f8f3ffc45eedd7">printMeasuredData</a> (llvm::raw_ostream &amp;OS)</td></tr>
-<tr class="memdesc:ab931fe4a0bc220b8b2f8f3ffc45eedd7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Prints the measured data to the commandline - associated macro: PRINT_MEASURED_DATA.  <br /></td></tr>
+<tr class="memdesc:ab931fe4a0bc220b8b2f8f3ffc45eedd7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Prints the measured data to the commandline.  <br /></td></tr>
 <tr class="separator:ab931fe4a0bc220b8b2f8f3ffc45eedd7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a77012ec23d19042e1e9609f2c7a1823f" id="r_a77012ec23d19042e1e9609f2c7a1823f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1PAMM.html#a77012ec23d19042e1e9609f2c7a1823f">exportMeasuredData</a> (const llvm::Twine &amp;OutputPath, llvm::StringRef ProjectId=&quot;default-phasar-project&quot;, const std::vector&lt; std::string &gt; *Modules=nullptr, const std::vector&lt; std::string &gt; *DataFlowAnalyses=nullptr)</td></tr>
-<tr class="memdesc:a77012ec23d19042e1e9609f2c7a1823f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Exports the measured data to JSON - associated macro: <a class="el" href="PAMMMacros_8h.html#a10f00f5d430ae388fe20cbf37c5bb8bb">EXPORT_MEASURED_DATA(PATH)</a>.  <br /></td></tr>
-<tr class="separator:a77012ec23d19042e1e9609f2c7a1823f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:accfeac8162b05ccfddfda451e1aff525" id="r_accfeac8162b05ccfddfda451e1aff525"><td class="memItemLeft" align="right" valign="top">const auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1PAMM.html#accfeac8162b05ccfddfda451e1aff525">getHistogram</a> () const noexcept</td></tr>
-<tr class="separator:accfeac8162b05ccfddfda451e1aff525"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acd7a27ec03a3311a4a4d11a6250ead43" id="r_acd7a27ec03a3311a4a4d11a6250ead43"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1PAMM.html#acd7a27ec03a3311a4a4d11a6250ead43">printMeasuredData</a> (llvm::raw_ostream &amp;OS, const <a class="el" href="classpsr_1_1pamm_1_1Category.html">pamm::Category</a>&lt; true &gt; &amp;Cat)</td></tr>
+<tr class="separator:acd7a27ec03a3311a4a4d11a6250ead43"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
 <tr class="memitem:aef3089faec5f8396bcc1278d6a93910c" id="r_aef3089faec5f8396bcc1278d6a93910c"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="classpsr_1_1PAMM.html">PAMM</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1PAMM.html#aef3089faec5f8396bcc1278d6a93910c">getInstance</a> ()</td></tr>
 <tr class="memdesc:aef3089faec5f8396bcc1278d6a93910c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a reference to the <a class="el" href="classpsr_1_1PAMM.html" title="This class offers functionality to assist a performance analysis of the PhASAR framework.">PAMM</a> object (singleton) - associated macro: PAMM_GET_INSTANCE.  <br /></td></tr>
 <tr class="separator:aef3089faec5f8396bcc1278d6a93910c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a91d4bd08d234f1b231799e7ac4c514ac" id="r_a91d4bd08d234f1b231799e7ac4c514ac"><td class="memItemLeft" align="right" valign="top">static std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1PAMM.html#a91d4bd08d234f1b231799e7ac4c514ac">getPrintableDuration</a> (uint64_t Duration)</td></tr>
-<tr class="memdesc:a91d4bd08d234f1b231799e7ac4c514ac"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the elapsed time for a given timer id.  <br /></td></tr>
-<tr class="separator:a91d4bd08d234f1b231799e7ac4c514ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa9d310ad8e77a4311a8bcfebbd9daefb" id="r_aa9d310ad8e77a4311a8bcfebbd9daefb"><td class="memItemLeft" align="right" valign="top">static ptrdiff_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1PAMM.html#aa9d310ad8e77a4311a8bcfebbd9daefb">getSumCount</a> (pamm::detail::IsCounter auto const &amp;...Counters)</td></tr>
+<tr class="separator:aa9d310ad8e77a4311a8bcfebbd9daefb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>This class offers functionality to assist a performance analysis of the PhASAR framework. </p>
@@ -194,37 +144,37 @@ Static Public Member Functions</h2></td></tr>
 <p>For better compile times it is advised to include </p><dl class="section see"><dt>See also</dt><dd><a class="el" href="PAMMMacros_8h.html">PAMMMacros.h</a> instead of <a class="el" href="PAMM_8h.html">PAMM.h</a>.</dd></dl>
 <dl class="section note"><dt>Note</dt><dd>This class implements the Singleton Pattern - use the PAMM_GET_INSTANCE macro to retrieve an instance of <a class="el" href="classpsr_1_1PAMM.html" title="This class offers functionality to assist a performance analysis of the PhASAR framework.">PAMM</a> before you use any other macro from this class. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="PAMM_8h_source.html#l00057">57</a> of file <a class="el" href="PAMM_8h_source.html">PAMM.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="PAMM_8h_source.html#l00822">822</a> of file <a class="el" href="PAMM_8h_source.html">PAMM.h</a>.</p>
 </div><h2 class="groupheader">Member Typedef Documentation</h2>
-<a id="a4a0bbde70a68568c8ad4202e20829519" name="a4a0bbde70a68568c8ad4202e20829519"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4a0bbde70a68568c8ad4202e20829519">&#9670;&#160;</a></span>Duration_t</h2>
+<a id="ae86c860d9d96cae8e05bee550bbe79b6" name="ae86c860d9d96cae8e05bee550bbe79b6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae86c860d9d96cae8e05bee550bbe79b6">&#9670;&#160;</a></span>Duration_t</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="classpsr_1_1PAMM.html#a4a0bbde70a68568c8ad4202e20829519">psr::PAMM::Duration_t</a> =  std::chrono::milliseconds</td>
+          <td class="memname">using <a class="el" href="classpsr_1_1PAMM.html#ae86c860d9d96cae8e05bee550bbe79b6">psr::PAMM::Duration_t</a> =  std::chrono::nanoseconds</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="PAMM_8h_source.html#l00060">60</a> of file <a class="el" href="PAMM_8h_source.html">PAMM.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="PAMM_8h_source.html#l00826">826</a> of file <a class="el" href="PAMM_8h_source.html">PAMM.h</a>.</p>
 
 </div>
 </div>
-<a id="af367454b8bf276d418f9f852650296b9" name="af367454b8bf276d418f9f852650296b9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af367454b8bf276d418f9f852650296b9">&#9670;&#160;</a></span>TimePoint_t</h2>
+<a id="aab750f4d8905309fe6d71ade4ae3c3f1" name="aab750f4d8905309fe6d71ade4ae3c3f1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aab750f4d8905309fe6d71ade4ae3c3f1">&#9670;&#160;</a></span>TimePoint_t</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="classpsr_1_1PAMM.html#af367454b8bf276d418f9f852650296b9">psr::PAMM::TimePoint_t</a> =  std::chrono::high_resolution_clock::time_point</td>
+          <td class="memname">using <a class="el" href="classpsr_1_1PAMM.html#aab750f4d8905309fe6d71ade4ae3c3f1">psr::PAMM::TimePoint_t</a> =  std::chrono::steady_clock::time_point</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="PAMM_8h_source.html#l00059">59</a> of file <a class="el" href="PAMM_8h_source.html">PAMM.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="PAMM_8h_source.html#l00825">825</a> of file <a class="el" href="PAMM_8h_source.html">PAMM.h</a>.</p>
 
 </div>
 </div>
@@ -332,236 +282,6 @@ Static Public Member Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a36a5e173678e45e24f0ff3bc137b8bb5" name="a36a5e173678e45e24f0ff3bc137b8bb5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a36a5e173678e45e24f0ff3bc137b8bb5">&#9670;&#160;</a></span>addToHistogram()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void psr::PAMM::addToHistogram </td>
-          <td>(</td>
-          <td class="paramtype">llvm::StringRef&#160;</td>
-          <td class="paramname"><em>HistogramId</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">llvm::StringRef&#160;</td>
-          <td class="paramname"><em>DataPointId</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">uint64_t&#160;</td>
-          <td class="paramname"><em>DataPointValue</em> = <code>1</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Adds a new observed data point to the corresponding histogram - associated macro: <a class="el" href="PAMMMacros_8h.html#ab73711aca8089c705444b5745a9f2386">ADD_TO_HISTOGRAM(HISTOGRAM_ID, DATAPOINT_ID,
-DATAPOINT_VALUE, SEV_LVL)</a>. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">HistogramId</td><td>ID of the histogram that tracks given data points. </td></tr>
-    <tr><td class="paramname">DataPointId</td><td>ID of the given data point. </td></tr>
-    <tr><td class="paramname">DataPointValue</td><td>Value of the given data point. </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="a7ac88b237694a6b8a48902528ff5e811" name="a7ac88b237694a6b8a48902528ff5e811"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7ac88b237694a6b8a48902528ff5e811">&#9670;&#160;</a></span>decCounter()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void psr::PAMM::decCounter </td>
-          <td>(</td>
-          <td class="paramtype">llvm::StringRef&#160;</td>
-          <td class="paramname"><em>CounterId</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">unsigned&#160;</td>
-          <td class="paramname"><em>CValue</em> = <code>1</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Decreases the count for the given counter - associated macro: <a class="el" href="PAMMMacros_8h.html#a4060447ec1fdcda5d5373c75fa50b8d8">DEC_COUNTER(COUNTER_ID, VALUE, SEV_LVL)</a>. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">CounterId</td><td>Unique counter id. </td></tr>
-    <tr><td class="paramname">CValue</td><td>to be subtracted from the current counter. </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="a72445e49a5c70323a71c8377b68911c6" name="a72445e49a5c70323a71c8377b68911c6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a72445e49a5c70323a71c8377b68911c6">&#9670;&#160;</a></span>elapsedTime()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">uint64_t psr::PAMM::elapsedTime </td>
-          <td>(</td>
-          <td class="paramtype">llvm::StringRef&#160;</td>
-          <td class="paramname"><em>TimerId</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Computes the elapsed time of the given timer up until now or up to the moment the timer was stopped - associated macro: GET_TIMER(TIMERID) </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">TimerId</td><td>Unique timer id. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd><a class="el" href="classpsr_1_1Timer.html">Timer</a> duration. </dd></dl>
-
-</div>
-</div>
-<a id="a637b1fe4d0fe87fcc811c69fa4d87656" name="a637b1fe4d0fe87fcc811c69fa4d87656"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a637b1fe4d0fe87fcc811c69fa4d87656">&#9670;&#160;</a></span>elapsedTimeOfRepeatingTimer()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">llvm::StringMap&lt; std::vector&lt; uint64_t &gt; &gt; psr::PAMM::elapsedTimeOfRepeatingTimer </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Computes the elapsed time for all accumulated timer being used. </p>
-<p>For each accumulated timer a vector holds all recorded durations. </p><dl class="section return"><dt>Returns</dt><dd>Map containing measured durations of all accumulated timer. </dd></dl>
-
-</div>
-</div>
-<a id="a77012ec23d19042e1e9609f2c7a1823f" name="a77012ec23d19042e1e9609f2c7a1823f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a77012ec23d19042e1e9609f2c7a1823f">&#9670;&#160;</a></span>exportMeasuredData()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void psr::PAMM::exportMeasuredData </td>
-          <td>(</td>
-          <td class="paramtype">const llvm::Twine &amp;&#160;</td>
-          <td class="paramname"><em>OutputPath</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">llvm::StringRef&#160;</td>
-          <td class="paramname"><em>ProjectId</em> = <code>&quot;default-phasar-project&quot;</code>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const std::vector&lt; std::string &gt; *&#160;</td>
-          <td class="paramname"><em>Modules</em> = <code>nullptr</code>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const std::vector&lt; std::string &gt; *&#160;</td>
-          <td class="paramname"><em>DataFlowAnalyses</em> = <code>nullptr</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Exports the measured data to JSON - associated macro: <a class="el" href="PAMMMacros_8h.html#a10f00f5d430ae388fe20cbf37c5bb8bb">EXPORT_MEASURED_DATA(PATH)</a>. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">OutputPath</td><td>to exported JSON file. </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="a80cdc79b47b548ff54c6eef3d85c6449" name="a80cdc79b47b548ff54c6eef3d85c6449"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a80cdc79b47b548ff54c6eef3d85c6449">&#9670;&#160;</a></span>getCounter()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::optional&lt; unsigned &gt; psr::PAMM::getCounter </td>
-          <td>(</td>
-          <td class="paramtype">llvm::StringRef&#160;</td>
-          <td class="paramname"><em>CounterId</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Returns the current count for the given counter - associated macro: <a class="el" href="PAMMMacros_8h.html#a2f628141be8d9bb93608662b4d9d707f">GET_COUNTER(COUNTER_ID)</a>. </p>
-<p>The associated macro does not check <a class="el" href="classpsr_1_1PAMM.html" title="This class offers functionality to assist a performance analysis of the PhASAR framework.">PAMM</a>'s severity level explicitly. </p><dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">CounterId</td><td>Unique counter id. </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="accfeac8162b05ccfddfda451e1aff525" name="accfeac8162b05ccfddfda451e1aff525"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#accfeac8162b05ccfddfda451e1aff525">&#9670;&#160;</a></span>getHistogram()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">const auto &amp; psr::PAMM::getHistogram </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="PAMM_8h_source.html#l00196">196</a> of file <a class="el" href="PAMM_8h_source.html">PAMM.h</a>.</p>
-
-</div>
-</div>
 <a id="aef3089faec5f8396bcc1278d6a93910c" name="aef3089faec5f8396bcc1278d6a93910c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aef3089faec5f8396bcc1278d6a93910c">&#9670;&#160;</a></span>getInstance()</h2>
 
@@ -589,8 +309,8 @@ DATAPOINT_VALUE, SEV_LVL)</a>. </p>
 
 </div>
 </div>
-<a id="a91d4bd08d234f1b231799e7ac4c514ac" name="a91d4bd08d234f1b231799e7ac4c514ac"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a91d4bd08d234f1b231799e7ac4c514ac">&#9670;&#160;</a></span>getPrintableDuration()</h2>
+<a id="aa9d310ad8e77a4311a8bcfebbd9daefb" name="aa9d310ad8e77a4311a8bcfebbd9daefb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa9d310ad8e77a4311a8bcfebbd9daefb">&#9670;&#160;</a></span>getSumCount()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -599,128 +319,21 @@ DATAPOINT_VALUE, SEV_LVL)</a>. </p>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">static std::string psr::PAMM::getPrintableDuration </td>
+          <td class="memname">static ptrdiff_t psr::PAMM::getSumCount </td>
           <td>(</td>
-          <td class="paramtype">uint64_t&#160;</td>
-          <td class="paramname"><em>Duration</em></td><td>)</td>
+          <td class="paramtype">pamm::detail::IsCounter auto const &amp;...&#160;</td>
+          <td class="paramname"><em>Counters</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 
-<p>Returns the elapsed time for a given timer id. </p>
-<p>A running timer will not be stopped. The precision for time computation is set to milliseconds and the output is similar to a timestamp, e.g. '4h 8m 15sec 16ms'.</p>
-<p>Associated macro <a class="el" href="PAMMMacros_8h.html#ae784aa042542b6dd904283cbdffdf21d">PRINT_TIMER(TIMERID)</a> does not check <a class="el" href="classpsr_1_1PAMM.html" title="This class offers functionality to assist a performance analysis of the PhASAR framework.">PAMM</a>'s severity level explicitly. </p><dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">timerId</td><td>Unique timer id. </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="a093f59b2606f391023400f70421a8ba8" name="a093f59b2606f391023400f70421a8ba8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a093f59b2606f391023400f70421a8ba8">&#9670;&#160;</a></span>getSumCount() <span class="overload">[1/3]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::optional&lt; uint64_t &gt; psr::PAMM::getSumCount </td>
-          <td>(</td>
-          <td class="paramtype">const std::set&lt; std::string &gt; &amp;&#160;</td>
-          <td class="paramname"><em>CounterIds</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Sums the counts for the given counter ids - associated macro: <a class="el" href="PAMMMacros_8h.html#a42f083e49cbc8bbb14770f152c975d4d">GET_SUM_COUNT(...)</a>. </p>
-<p>The associated macro does not check <a class="el" href="classpsr_1_1PAMM.html" title="This class offers functionality to assist a performance analysis of the PhASAR framework.">PAMM</a>'s severity level explicitly. </p><dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">CounterIds</td><td>Unique counter ids. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section note"><dt>Note</dt><dd>Macro uses variadic parameters, e.g. GET_SUM_COUNT({"foo", "bar"}). </dd></dl>
-
-</div>
-</div>
-<a id="a71d5f4d5ec8f2e3e433aca1651de2fa4" name="a71d5f4d5ec8f2e3e433aca1651de2fa4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a71d5f4d5ec8f2e3e433aca1651de2fa4">&#9670;&#160;</a></span>getSumCount() <span class="overload">[2/3]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::optional&lt; uint64_t &gt; psr::PAMM::getSumCount </td>
-          <td>(</td>
-          <td class="paramtype">llvm::ArrayRef&lt; llvm::StringRef &gt;&#160;</td>
-          <td class="paramname"><em>CounterIds</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ac0fa98ac048293f34809e06722ed5e8e" name="ac0fa98ac048293f34809e06722ed5e8e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac0fa98ac048293f34809e06722ed5e8e">&#9670;&#160;</a></span>getSumCount() <span class="overload">[3/3]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::optional&lt; uint64_t &gt; psr::PAMM::getSumCount </td>
-          <td>(</td>
-          <td class="paramtype">std::initializer_list&lt; llvm::StringRef &gt;&#160;</td>
-          <td class="paramname"><em>CounterIds</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a35c60f210cca129e8e8eca062aabcddb" name="a35c60f210cca129e8e8eca062aabcddb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a35c60f210cca129e8e8eca062aabcddb">&#9670;&#160;</a></span>incCounter()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void psr::PAMM::incCounter </td>
-          <td>(</td>
-          <td class="paramtype">llvm::StringRef&#160;</td>
-          <td class="paramname"><em>CounterId</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">unsigned&#160;</td>
-          <td class="paramname"><em>CValue</em> = <code>1</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Increases the count for the given counter - associated macro: <a class="el" href="PAMMMacros_8h.html#a0e827ab2178114f18c178054167d7ad1">INC_COUNTER(COUNTER_ID, VALUE, SEV_LVL)</a>. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">CounterId</td><td>Unique counter id. </td></tr>
-    <tr><td class="paramname">CValue</td><td>to be added to the current counter. </td></tr>
-  </table>
-  </dd>
-</dl>
+<p class="definition">Definition at line <a class="el" href="PAMM_8h_source.html#l00841">841</a> of file <a class="el" href="PAMM_8h_source.html">PAMM.h</a>.</p>
 
 </div>
 </div>
@@ -813,10 +426,13 @@ DATAPOINT_VALUE, SEV_LVL)</a>. </p>
 </div>
 </div>
 <a id="ab931fe4a0bc220b8b2f8f3ffc45eedd7" name="ab931fe4a0bc220b8b2f8f3ffc45eedd7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab931fe4a0bc220b8b2f8f3ffc45eedd7">&#9670;&#160;</a></span>printMeasuredData()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ab931fe4a0bc220b8b2f8f3ffc45eedd7">&#9670;&#160;</a></span>printMeasuredData() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">void psr::PAMM::printMeasuredData </td>
@@ -826,9 +442,54 @@ DATAPOINT_VALUE, SEV_LVL)</a>. </p>
           <td></td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
-<p>Prints the measured data to the commandline - associated macro: PRINT_MEASURED_DATA. </p>
+<p>Prints the measured data to the commandline. </p>
+
+<p class="definition">Definition at line <a class="el" href="PAMM_8h_source.html#l00852">852</a> of file <a class="el" href="PAMM_8h_source.html">PAMM.h</a>.</p>
+
+</div>
+</div>
+<a id="acd7a27ec03a3311a4a4d11a6250ead43" name="acd7a27ec03a3311a4a4d11a6250ead43"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acd7a27ec03a3311a4a4d11a6250ead43">&#9670;&#160;</a></span>printMeasuredData() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void psr::PAMM::printMeasuredData </td>
+          <td>(</td>
+          <td class="paramtype">llvm::raw_ostream &amp;&#160;</td>
+          <td class="paramname"><em>OS</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="classpsr_1_1pamm_1_1Category.html">pamm::Category</a>&lt; true &gt; &amp;&#160;</td>
+          <td class="paramname"><em>Cat</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="PAMM_8h_source.html#l00853">853</a> of file <a class="el" href="PAMM_8h_source.html">PAMM.h</a>.</p>
 
 </div>
 </div>
@@ -850,202 +511,13 @@ DATAPOINT_VALUE, SEV_LVL)</a>. </p>
 
 </div>
 </div>
-<a id="a0b1e85ce0fbd627727885869eb388975" name="a0b1e85ce0fbd627727885869eb388975"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0b1e85ce0fbd627727885869eb388975">&#9670;&#160;</a></span>regCounter()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void psr::PAMM::regCounter </td>
-          <td>(</td>
-          <td class="paramtype">llvm::StringRef&#160;</td>
-          <td class="paramname"><em>CounterId</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">unsigned&#160;</td>
-          <td class="paramname"><em>IntialValue</em> = <code>0</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Registers a new counter under the given counter id - associated macro: <a class="el" href="PAMMMacros_8h.html#a952cebeef376eb205a615df93de102f7">REG_COUNTER(COUNTER_ID, INIT_VALUE, SEV_LVL)</a>. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">CounterId</td><td>Unique counter id. </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="a22ee5e4ee4f0be32ff54fe6885528fe1" name="a22ee5e4ee4f0be32ff54fe6885528fe1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a22ee5e4ee4f0be32ff54fe6885528fe1">&#9670;&#160;</a></span>regHistogram()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void psr::PAMM::regHistogram </td>
-          <td>(</td>
-          <td class="paramtype">llvm::StringRef&#160;</td>
-          <td class="paramname"><em>HistogramId</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Registers a new histogram - associated macro: <a class="el" href="PAMMMacros_8h.html#a78587cca36b8f2f1aa56e3dcb6d65f62">REG_HISTOGRAM(HISTOGRAM_ID, SEV_LVL)</a>. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">HistogramId</td><td>Unique hitogram id. </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="a6bb43ba6dbcdc04f72dd11e4832f09db" name="a6bb43ba6dbcdc04f72dd11e4832f09db"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6bb43ba6dbcdc04f72dd11e4832f09db">&#9670;&#160;</a></span>reset()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void psr::PAMM::reset </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Resets <a class="el" href="classpsr_1_1PAMM.html" title="This class offers functionality to assist a performance analysis of the PhASAR framework.">PAMM</a>, i.e. discards all gathered information (timer, counter etc.) - associated macro: RESET_PAMM. </p>
-<dl class="section note"><dt>Note</dt><dd>Only used for unit testing to reset <a class="el" href="classpsr_1_1PAMM.html" title="This class offers functionality to assist a performance analysis of the PhASAR framework.">PAMM</a> in between test runs. </dd></dl>
-
-</div>
-</div>
-<a id="abf80090e2e927b8d923a4c47e6271e41" name="abf80090e2e927b8d923a4c47e6271e41"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abf80090e2e927b8d923a4c47e6271e41">&#9670;&#160;</a></span>resetTimer()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void psr::PAMM::resetTimer </td>
-          <td>(</td>
-          <td class="paramtype">llvm::StringRef&#160;</td>
-          <td class="paramname"><em>TimerId</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Resets timer under the given timer id - associated macro: <a class="el" href="PAMMMacros_8h.html#a9a7fab8a320649db567e39dfabf940e4">RESET_TIMER(TIMER_ID, SEV_LVL)</a>. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">TimerId</td><td>Unique timer id. </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="a57f8fd4909d210e18263296350d4c50f" name="a57f8fd4909d210e18263296350d4c50f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a57f8fd4909d210e18263296350d4c50f">&#9670;&#160;</a></span>startTimer()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void psr::PAMM::startTimer </td>
-          <td>(</td>
-          <td class="paramtype">llvm::StringRef&#160;</td>
-          <td class="paramname"><em>TimerId</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Starts a timer under the given timer id - associated macro: <a class="el" href="PAMMMacros_8h.html#abe819560799f0050f845c7f342d02d44">START_TIMER(TIMER_ID, SEV_LVL)</a>. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">TimerId</td><td>Unique timer id. </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="a0393d5989a93f87728f0e5683b64ebbe" name="a0393d5989a93f87728f0e5683b64ebbe"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0393d5989a93f87728f0e5683b64ebbe">&#9670;&#160;</a></span>stopAllTimers()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void psr::PAMM::stopAllTimers </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a9681e02d62a0e4ca9db4ffb851148d1f" name="a9681e02d62a0e4ca9db4ffb851148d1f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9681e02d62a0e4ca9db4ffb851148d1f">&#9670;&#160;</a></span>stopTimer()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void psr::PAMM::stopTimer </td>
-          <td>(</td>
-          <td class="paramtype">llvm::StringRef&#160;</td>
-          <td class="paramname"><em>TimerId</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="classbool.html">bool</a>&#160;</td>
-          <td class="paramname"><em>PauseTimer</em> = <code>false</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Stops or pauses a timer under the given timer id. </p>
-<p>If pauseTimer is true, a running timer gets paused, its start time point will paired with a current time point, and stored as an accumulated timer. This enables us to repeatedly compute execution time for a certain portion of code which is executed multiple times, e.g. a loop or a function call, without using a different timer id for every time computation. Times of all executions of one timer are saved as distinct time point pairs. Associated macro: <a class="el" href="PAMMMacros_8h.html#adf2438f4acb3cb88601b59d95c971fd6">PAUSE_TIMER(TIMER_ID, SEV_LVL)</a></p>
-<p>Otherwise, the timer will be simply stopped. Associated macro: <a class="el" href="PAMMMacros_8h.html#a624f036bd2a8836408830fbf741a5198">STOP_TIMER(TIMER_ID, SEV_LVL)</a> </p><dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">TimerId</td><td>Unique timer id. </td></tr>
-    <tr><td class="paramname">PauseTimer</td><td>If true, timer will be paused instead of stopped. </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
 <hr/>The documentation for this class was generated from the following file:<ul>
 <li>include/phasar/Utils/<a class="el" href="PAMM_8h_source.html">PAMM.h</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jul 31 2026 17:18:45 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Mon Aug 10 2026 16:07:50 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

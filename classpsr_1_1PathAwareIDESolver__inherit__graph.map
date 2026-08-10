@@ -1,7 +1,9 @@
 <map id="psr::PathAwareIDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;" name="psr::PathAwareIDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,181,237,236"/>
-<area shape="rect" id="Node000002" href="$classpsr_1_1IDESolver.html" title=" " alt="" coords="8,93,235,133"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="124,147,124,181,119,181,119,147"/>
-<area shape="rect" id="Node000003" href="$classpsr_1_1IDESolverAPIMixin.html" title=" " alt="" coords="36,5,207,45"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="124,59,124,93,119,93,119,59"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="81,181,313,236"/>
+<area shape="rect" id="Node000002" href="$classpsr_1_1IDESolver.html" title=" " alt="" coords="84,93,311,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="200,147,200,181,195,181,195,147"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,13,189,38"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="123,45,177,91,174,95,119,49"/>
+<area shape="rect" id="Node000004" href="$classpsr_1_1IDESolverAPIMixin.html" title=" " alt="" coords="213,5,384,45"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="267,56,221,95,218,91,264,52"/>
 </map>

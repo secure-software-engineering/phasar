@@ -97,6 +97,7 @@ $(function() {
 <code>#include &lt;functional&gt;</code><br />
 <code>#include &lt;optional&gt;</code><br />
 <code>#include &lt;set&gt;</code><br />
+<code>#include &lt;source_location&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
 <code>#include &lt;type_traits&gt;</code><br />
 <code>#include &lt;utility&gt;</code><br />
@@ -186,6 +187,8 @@ requires (!std::is_pointer_v&lt;T&gt;)</td></tr>
 <tr class="memitem:ac0063fdc8ef7f84d987423561581b7a6" id="r_ac0063fdc8ef7f84d987423561581b7a6"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
 <tr class="memitem:ac0063fdc8ef7f84d987423561581b7a6"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#ac0063fdc8ef7f84d987423561581b7a6">psr::assertAllNotNull</a> (const T &amp;Range)</td></tr>
 <tr class="separator:ac0063fdc8ef7f84d987423561581b7a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a87090f38d6e9ab3e8e6775a828d10469" id="r_a87090f38d6e9ab3e8e6775a828d10469"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a87090f38d6e9ab3e8e6775a828d10469">psr::locToString</a> (std::source_location Loc)</td></tr>
+<tr class="separator:a87090f38d6e9ab3e8e6775a828d10469"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acc870d042db675df0fb1a67b2823dbb1" id="r_acc870d042db675df0fb1a67b2823dbb1"><td class="memTemplParams" colspan="2">template&lt;typename CompareFn  = std::less&lt;&gt;&gt; </td></tr>
 <tr class="memitem:acc870d042db675df0fb1a67b2823dbb1"><td class="memTemplItemLeft" align="right" valign="top">constexpr void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#acc870d042db675df0fb1a67b2823dbb1">psr::sortUnique</a> (auto &amp;Range, CompareFn Cmp={})</td></tr>
 <tr class="separator:acc870d042db675df0fb1a67b2823dbb1"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -197,7 +200,7 @@ requires (!std::is_pointer_v&lt;T&gt;)</td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jul 31 2026 17:18:44 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Mon Aug 10 2026 16:07:49 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

@@ -84,24 +84,70 @@ $(function() {
 <div class="header">
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
-<a href="#namespaces">Namespaces</a>  </div>
+<a href="#namespaces">Namespaces</a> &#124;
+<a href="#concepts">Concepts</a> &#124;
+<a href="#enum-members">Enumerations</a> &#124;
+<a href="#func-members">Functions</a> &#124;
+<a href="#var-members">Variables</a>  </div>
   <div class="headertitle"><div class="title">PAMM.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;llvm/ADT/ArrayRef.h&quot;</code><br />
+<div class="textblock"><code>#include &quot;phasar/Config/phasar-config.h&quot;</code><br />
+<code>#include &quot;<a class="el" href="ChronoUtils_8h_source.html">phasar/Utils/ChronoUtils.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="NonNullPtr_8h_source.html">phasar/Utils/NonNullPtr.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="TemplateString_8h_source.html">phasar/Utils/TemplateString.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="TypeTraits_8h_source.html">phasar/Utils/TypeTraits.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="Utilities_8h_source.html">phasar/Utils/Utilities.h</a>&quot;</code><br />
+<code>#include &quot;llvm/ADT/DenseMap.h&quot;</code><br />
 <code>#include &quot;llvm/ADT/StringMap.h&quot;</code><br />
 <code>#include &quot;llvm/ADT/StringRef.h&quot;</code><br />
+<code>#include &quot;llvm/ADT/Twine.h&quot;</code><br />
+<code>#include &quot;llvm/Support/Compiler.h&quot;</code><br />
+<code>#include &quot;llvm/Support/ErrorHandling.h&quot;</code><br />
+<code>#include &quot;llvm/Support/Format.h&quot;</code><br />
+<code>#include &quot;llvm/Support/WithColor.h&quot;</code><br />
 <code>#include &lt;chrono&gt;</code><br />
-<code>#include &lt;initializer_list&gt;</code><br />
+<code>#include &lt;concepts&gt;</code><br />
+<code>#include &lt;cstddef&gt;</code><br />
+<code>#include &lt;cstdint&gt;</code><br />
 <code>#include &lt;optional&gt;</code><br />
-<code>#include &lt;set&gt;</code><br />
+<code>#include &lt;source_location&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
-<code>#include &lt;vector&gt;</code><br />
+<code>#include &lt;type_traits&gt;</code><br />
+<code>#include &lt;utility&gt;</code><br />
+<code>#include &lt;atomic&gt;</code><br />
+<code>#include &lt;mutex&gt;</code><br />
 </div>
 <p><a href="PAMM_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1pamm_1_1Category.html">psr::pamm::Category&lt; Enabled &gt;</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1pamm_1_1Category_3_01false_01_4.html">psr::pamm::Category&lt; false &gt;</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1pamm_1_1Counter.html">psr::pamm::Counter&lt; Enabled, Name, Cat &gt;</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1pamm_1_1Counter_3_01false_00_01Name_00_01Cat_01_4.html">psr::pamm::Counter&lt; false, Name, Cat &gt;</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1pamm_1_1MinMaxCounter.html">psr::pamm::MinMaxCounter&lt; Enabled, Name, Cat &gt;</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1pamm_1_1MinMaxCounter_3_01false_00_01Name_00_01Cat_01_4.html">psr::pamm::MinMaxCounter&lt; false, Name, Cat &gt;</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1pamm_1_1Histogram.html">psr::pamm::Histogram&lt; Enabled, Name, Cat &gt;</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1pamm_1_1Histogram_3_01false_00_01Name_00_01Cat_01_4.html">psr::pamm::Histogram&lt; false, Name, Cat &gt;</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1pamm_1_1Timer.html">psr::pamm::Timer&lt; Enabled, Name, Cat &gt;</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1pamm_1_1Timer_3_01false_00_01Name_00_01Cat_01_4.html">psr::pamm::Timer&lt; false, Name, Cat &gt;</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1pamm_1_1ScopedTimer.html">psr::pamm::ScopedTimer&lt; Enabled &gt;</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1pamm_1_1ScopedTimer_3_01false_01_4.html">psr::pamm::ScopedTimer&lt; false &gt;</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1pamm_1_1Registry.html">psr::pamm::Registry</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1PAMM.html">psr::PAMM</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This class offers functionality to assist a performance analysis of the PhASAR framework.  <a href="classpsr_1_1PAMM.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -112,11 +158,83 @@ Namespaces</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:namespacepsr" id="r_namespacepsr"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html">psr</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:namespacepsr_1_1pamm" id="r_namespacepsr_1_1pamm"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr_1_1pamm.html">psr::pamm</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:namespacepsr_1_1pamm_1_1detail" id="r_namespacepsr_1_1pamm_1_1detail"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr_1_1pamm_1_1detail.html">psr::pamm::detail</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="concepts" name="concepts"></a>
+Concepts</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptpsr_1_1pamm_1_1IsCategory.html">psr::pamm::IsCategory</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptpsr_1_1pamm_1_1IsCategoryVar.html">psr::pamm::IsCategoryVar</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="enum-members" name="enum-members"></a>
+Enumerations</h2></td></tr>
+<tr class="memitem:a40c472b9f8de123f74784de0fb41adc5" id="r_a40c472b9f8de123f74784de0fb41adc5"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a40c472b9f8de123f74784de0fb41adc5">psr::PAMM_SEVERITY_LEVEL</a> { <a class="el" href="namespacepsr.html#a40c472b9f8de123f74784de0fb41adc5ad15305d7a4e34e02489c74a5ef542f36">psr::Off</a> = 0
+, <a class="el" href="namespacepsr.html#a40c472b9f8de123f74784de0fb41adc5a83168e6cb289d732cc78427b51f93153">psr::Core</a>
+, <a class="el" href="namespacepsr.html#a40c472b9f8de123f74784de0fb41adc5abbd47109890259c0127154db1af26c75">psr::Full</a>
+ }</td></tr>
+<tr class="memdesc:a40c472b9f8de123f74784de0fb41adc5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Defines the different level of severity of PAMM's performance evaluation.  <a href="namespacepsr.html#a40c472b9f8de123f74784de0fb41adc5">More...</a><br /></td></tr>
+<tr class="separator:a40c472b9f8de123f74784de0fb41adc5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:a66818d43a37b86cfd79c5f7c6430fda7" id="r_a66818d43a37b86cfd79c5f7c6430fda7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr_1_1pamm.html#a66818d43a37b86cfd79c5f7c6430fda7">psr::pamm::printMeasuredData</a> (llvm::raw_ostream &amp;OS)</td></tr>
+<tr class="memdesc:a66818d43a37b86cfd79c5f7c6430fda7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Prints the measured data from all registered categories into the given output stream.  <br /></td></tr>
+<tr class="separator:a66818d43a37b86cfd79c5f7c6430fda7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa7a9f414d7208d52187b9fd42e3a3853" id="r_aa7a9f414d7208d52187b9fd42e3a3853"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr_1_1pamm.html#aa7a9f414d7208d52187b9fd42e3a3853">psr::pamm::printMeasuredData</a> (llvm::raw_ostream &amp;OS, const <a class="el" href="classpsr_1_1pamm_1_1Category.html">pamm::Category</a>&lt; true &gt; &amp;Cat)</td></tr>
+<tr class="memdesc:aa7a9f414d7208d52187b9fd42e3a3853"><td class="mdescLeft">&#160;</td><td class="mdescRight">Prints the measured data from the given category into the given output stream.  <br /></td></tr>
+<tr class="separator:aa7a9f414d7208d52187b9fd42e3a3853"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac28e92794550af134a57fc9f224c9083" id="r_ac28e92794550af134a57fc9f224c9083"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr_1_1pamm.html#ac28e92794550af134a57fc9f224c9083">psr::pamm::printMeasuredData</a> (llvm::raw_ostream &amp;OS, const <a class="el" href="classpsr_1_1pamm_1_1Category.html">pamm::Category</a>&lt; false &gt; &amp;Cat)</td></tr>
+<tr class="separator:ac28e92794550af134a57fc9f224c9083"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a11ff110fc791e25123df91e20cf3d394" id="r_a11ff110fc791e25123df91e20cf3d394"><td class="memItemLeft" align="right" valign="top">ptrdiff_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr_1_1pamm.html#a11ff110fc791e25123df91e20cf3d394">psr::pamm::getSumCount</a> (pamm::detail::IsCounter auto const &amp;...Counters) noexcept</td></tr>
+<tr class="separator:a11ff110fc791e25123df91e20cf3d394"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
+Variables</h2></td></tr>
+<tr class="memitem:a38cd5afca83a2367be7d6524b6e06606" id="r_a38cd5afca83a2367be7d6524b6e06606"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="namespacepsr.html#a40c472b9f8de123f74784de0fb41adc5">PAMM_SEVERITY_LEVEL</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a38cd5afca83a2367be7d6524b6e06606">psr::PAMM_CURR_SEV_LEVEL</a></td></tr>
+<tr class="separator:a38cd5afca83a2367be7d6524b6e06606"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad21fc38eeedb564c80dd5e6fa002c0c9" id="r_ad21fc38eeedb564c80dd5e6fa002c0c9"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="classpsr_1_1pamm_1_1Category.html">psr::pamm::Category</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="PAMM_8h.html#ad21fc38eeedb564c80dd5e6fa002c0c9">PAMMCategory</a> {&quot;&lt;global&gt;&quot;}</td></tr>
+<tr class="separator:ad21fc38eeedb564c80dd5e6fa002c0c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>PhASAR's performance measurement mechanism (PAMM). Provides counters, histograms, and timers for fine-grained performance tracking. Use the macros from <a class="el" href="PAMMMacros_8h.html">PAMMMacros.h</a> to declare static instances of these metrics. On construction, they are automatically registered in the static pamm::Registry, so that report-generation can be automated. The macros expect a valid C++ identifier as name, and a severity-level (Core/Full) under which the metric should be active.</p>
+<p>Metrics are categorizable via a pamm::Category. The performance report groups by category; categories can be enabled/disabled at runtime. By convention, the macros register the metrics under the category with the identifier 'PAMMCategory'; create a new static PAMMCategory with the macro <a class="el" href="PAMMMacros_8h.html#aeab94c4bed003f18cd93e2291e572edb">PAMM_CATEGORY(name)</a>.</p>
+<p>Currently, PAMM can be run with all metrics (severity level 2 = Full) or only core metrics (severity level 1 = Core) enabled. The severity level can be changed when building PhASAR. The CMake option is -DPHASAR_ENABLE_PAMM=[Off/Core/Full].</p>
+<p>Thread-safety: If PhASAR is configured with the cmake-option -DPHASAR_THREAD_SAFE_PAMM=ON, PAMM provides some thread-safety guarentees: Generally, construction and destruction of metrics is NOT thread-safe. The pamm::Registry is therefore also NOT thread-safe. Adding data, i.e, incrementing counters, adding to histograms, starting/stopping timers is protected by suitable synchronization primitives and can therefore be safely performed concurrently. </p>
+
+<p class="definition">Definition in file <a class="el" href="PAMM_8h_source.html">PAMM.h</a>.</p>
+</div><h2 class="groupheader">Variable Documentation</h2>
+<a id="ad21fc38eeedb564c80dd5e6fa002c0c9" name="ad21fc38eeedb564c80dd5e6fa002c0c9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad21fc38eeedb564c80dd5e6fa002c0c9">&#9670;&#160;</a></span>PAMMCategory</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr <a class="el" href="classpsr_1_1pamm_1_1Category.html">psr::pamm::Category</a> PAMMCategory {&quot;&lt;global&gt;&quot;}</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="PAMM_8h_source.html#l00861">861</a> of file <a class="el" href="PAMM_8h_source.html">PAMM.h</a>.</p>
+
+</div>
+</div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jul 31 2026 17:18:44 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Mon Aug 10 2026 16:07:49 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
