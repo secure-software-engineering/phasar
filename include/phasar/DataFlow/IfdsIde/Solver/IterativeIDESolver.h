@@ -714,12 +714,12 @@ private:
                           EdgeFunctionPtrType SourceEF, uint32_t FunId) {
     const auto &Callees = ICFG.getCalleesOfCallAt(AtInstruction);
 
-    bool HasNoCalleeInformation = handleOrDeferCallFlow(
-        AtInstruction, AtInstructionId, SourceFactId, PropagatedFactId,
-        std::move(SourceEF), Callees, FunId);
+    bool HasNoCalleeInformation =
+        handleOrDeferCallFlow(AtInstruction, AtInstructionId, SourceFactId,
+                              PropagatedFactId, SourceEF, Callees, FunId);
 
     applyCallToReturnFlow(AtInstruction, AtInstructionId, SourceFactId,
-                          PropagatedFactId, SourceEF, Callees, FunId,
+                          PropagatedFactId, std::move(SourceEF), Callees, FunId,
                           HasNoCalleeInformation);
   }
 
