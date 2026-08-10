@@ -20,6 +20,7 @@
 #include <functional>
 #include <optional>
 #include <set>
+#include <source_location>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -340,6 +341,8 @@ template <typename T> void assertAllNotNull([[maybe_unused]] const T &Range) {
     assertNotNull(Elem);
   }
 }
+
+[[nodiscard]] std::string locToString(std::source_location Loc);
 
 template <typename CompareFn = std::less<>>
 constexpr void sortUnique(auto &Range, CompareFn Cmp = {}) {

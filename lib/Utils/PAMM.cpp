@@ -17,393 +17,232 @@
 #include "phasar/Utils/PAMM.h"
 
 #include "phasar/Utils/ChronoUtils.h"
-#include "phasar/Utils/NlohmannLogging.h"
+#include "phasar/Utils/Fn.h"
+#include "phasar/Utils/MapUtils.h"
 
-#include "llvm/ADT/SmallString.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/Twine.h"
-#include "llvm/Support/Compiler.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include "nlohmann/json.hpp"
-
 #include <cassert>
 #include <chrono>
-#include <filesystem>
-#include <fstream>
-#include <iomanip>
-#include <optional>
-#include <sstream>
-#include <system_error>
+#include <cstdint>
 
 using namespace psr;
-using json = nlohmann::json;
-
-namespace psr {
 
 PAMM &PAMM::getInstance() {
   static PAMM Instance{};
   return Instance;
 }
 
-void PAMM::startTimer(llvm::StringRef TimerId) {
-  if (LLVM_UNLIKELY(StoppedTimer.count(TimerId))) {
-    llvm::report_fatal_error("Do not start an already stopped timer");
-  }
-
-  auto [It, Inserted] = RunningTimer.try_emplace(TimerId);
-  if (LLVM_UNLIKELY(!Inserted)) {
-    llvm::report_fatal_error("Do not start an already running timer");
-  }
-
-  PAMM::TimePoint_t Start = std::chrono::high_resolution_clock::now();
-  It->second = Start;
-}
-
-void PAMM::resetTimer(llvm::StringRef TimerId) {
-  [[maybe_unused]] bool InRunningTimers = RunningTimer.erase(TimerId);
-  [[maybe_unused]] bool InStoppedTimers = StoppedTimer.erase(TimerId);
-
-  assert((InRunningTimers && !InStoppedTimers) ||
-         (!InRunningTimers && InStoppedTimers) &&
-             "resetTimer failed due to an invalid timer id");
-}
-
-void PAMM::stopTimer(llvm::StringRef TimerId, bool PauseTimer) {
-  auto RunningIt = RunningTimer.find(TimerId);
-  auto StoppedIt = StoppedTimer.find(TimerId);
-  bool TimerRunning = RunningIt != RunningTimer.end();
-  bool TimerStopped = StoppedIt != StoppedTimer.end();
-  bool ValidTimerId = TimerRunning || TimerStopped;
-  assert(ValidTimerId && "stopTimer failed due to an invalid timer id or timer "
-                         "was already stopped");
-  assert(TimerRunning && "stopTimer failed because timer was already stopped");
-
-  if (LLVM_LIKELY(ValidTimerId)) {
-    PAMM::TimePoint_t End = std::chrono::high_resolution_clock::now();
-    PAMM::TimePoint_t Start = RunningIt->second;
-    RunningTimer.erase(RunningIt);
-    auto P = make_pair(Start, End);
-    if (PauseTimer) {
-      RepeatingTimer[TimerId].push_back(P);
-    } else {
-      StoppedTimer[TimerId] = P;
+template <typename MapTy, typename ImplFn>
+static void printAllHelper(llvm::raw_ostream &OS, const MapTy &Map,
+                           llvm::StringRef Header, llvm::StringRef Separator,
+                           llvm::StringRef EmptyMsg, ImplFn Impl) {
+  OS << '\n' << Header << '\n' << Separator << '\n';
+  for (const auto &[Cat, Items] : Map) {
+    if (Cat->isEnabled()) {
+      Impl(OS, *Cat, Items);
     }
   }
-}
-
-uint64_t PAMM::elapsedTime(llvm::StringRef TimerId) {
-  auto RunningIt = RunningTimer.find(TimerId);
-
-  if (RunningIt != RunningTimer.end()) {
-    PAMM::TimePoint_t End = std::chrono::high_resolution_clock::now();
-    PAMM::TimePoint_t Start = RunningIt->second;
-    auto Duration = std::chrono::duration_cast<Duration_t>(End - Start);
-    return Duration.count();
-  }
-  if (auto StoppedIt = StoppedTimer.find(TimerId);
-      StoppedIt != StoppedTimer.end()) {
-    auto [Start, End] = StoppedIt->second;
-    auto Duration = std::chrono::duration_cast<Duration_t>(End - Start);
-    return Duration.count();
-  }
-
-  assert(false && "elapsedTime failed due to an invalid timer id");
-  return 0;
-}
-
-template <typename HandlerFn>
-static void foreachElapsedTimeOfRepeatingTimer(
-    llvm::StringMap<
-        std::vector<std::pair<PAMM::TimePoint_t, PAMM::TimePoint_t>>>
-        &RepeatingTimer,
-    HandlerFn Handler) {
-  for (const auto &Timer : RepeatingTimer) {
-    std::invoke(
-        Handler, Timer.first(), [&Timer](std::vector<uint64_t> &AccTimeVec) {
-          AccTimeVec.reserve(Timer.second.size());
-
-          for (auto [Start, End] : Timer.second) {
-            auto Duration =
-                std::chrono::duration_cast<PAMM::Duration_t>(End - Start);
-            AccTimeVec.push_back(Duration.count());
-          }
-        });
+  if (Map.empty()) {
+    OS << EmptyMsg << '\n';
   }
 }
 
-llvm::StringMap<std::vector<uint64_t>> PAMM::elapsedTimeOfRepeatingTimer() {
-  llvm::StringMap<std::vector<uint64_t>> AccTimes;
-
-  foreachElapsedTimeOfRepeatingTimer(
-      RepeatingTimer, [&AccTimes](llvm::StringRef Id, auto Handler) {
-        std::invoke(std::move(Handler), AccTimes[Id]);
-      });
-
-  return AccTimes;
-}
-
-std::string PAMM::getPrintableDuration(uint64_t Duration) {
-  return hms(std::chrono::milliseconds{Duration}).str();
-}
-
-void PAMM::regCounter(llvm::StringRef CounterId, unsigned IntialValue) {
-  [[maybe_unused]] auto [It, Inserted] =
-      Counter.try_emplace(CounterId, IntialValue);
-  assert(Inserted && "regCounter failed due to an invalid counter id");
-}
-
-void PAMM::incCounter(llvm::StringRef CounterId, unsigned CValue) {
-  auto It = Counter.find(CounterId);
-  bool ValidCounterId = It != Counter.end();
-  assert(ValidCounterId && "incCounter failed due to an invalid counter id");
-  if (ValidCounterId) {
-    It->second += CValue;
-  }
-}
-
-void PAMM::decCounter(llvm::StringRef CounterId, unsigned CValue) {
-  auto It = Counter.find(CounterId);
-  bool ValidCounterId = It != Counter.end();
-  assert(ValidCounterId && "decCounter failed due to an invalid counter id");
-  if (ValidCounterId) {
-    It->second -= CValue;
-  }
-}
-
-std::optional<unsigned> PAMM::getCounter(llvm::StringRef CounterId) {
-  auto It = Counter.find(CounterId);
-  bool ValidCounterId = It != Counter.end();
-  assert(ValidCounterId && "getCounter failed due to an invalid counter id");
-  if (ValidCounterId) {
-    return It->second;
-  }
-  return std::nullopt;
-}
-
-template <typename ForwardIterator, typename ForwardIteratorSentinel>
-static std::optional<uint64_t>
-getSumCountInternal(PAMM &P, ForwardIterator It,
-                    ForwardIteratorSentinel End) noexcept {
-  uint64_t Ctr = 0;
-  for (; It != End; ++It) {
-    auto Count = P.getCounter(*It);
-    if (!Count) {
-      return std::nullopt;
-    }
-
-    Ctr += *Count;
-  }
-
-  return Ctr;
-}
-
-std::optional<uint64_t>
-PAMM::getSumCount(const std::set<std::string> &CounterIds) {
-  return getSumCountInternal(*this, CounterIds.begin(), CounterIds.end());
-}
-
-std::optional<uint64_t>
-PAMM::getSumCount(llvm::ArrayRef<llvm::StringRef> CounterIds) {
-  return getSumCountInternal(*this, CounterIds.begin(), CounterIds.end());
-}
-
-std::optional<uint64_t>
-PAMM::getSumCount(std::initializer_list<llvm::StringRef> CounterIds) {
-  return getSumCountInternal(*this, CounterIds.begin(), CounterIds.end());
-}
-
-void PAMM::regHistogram(llvm::StringRef HistogramId) {
-  [[maybe_unused]] auto [It, Inserted] = Histogram.try_emplace(HistogramId);
-  assert(Inserted && "failed to register new histogram due to an invalid id");
-}
-
-void PAMM::addToHistogram(llvm::StringRef HistogramId,
-                          llvm::StringRef DataPointId,
-                          uint64_t DataPointValue) {
-  auto HistIt = Histogram.find(HistogramId);
-  if (HistIt == Histogram.end()) {
-    assert(false && "adding data point to histogram failed due to invalid id");
+template <typename MapTy, typename ImplFn>
+static void printCategoryHelper(llvm::raw_ostream &OS,
+                                const pamm::Category<true> &Cat,
+                                const MapTy &Map, llvm::StringRef TypeName,
+                                llvm::StringRef Separator, ImplFn Impl) {
+  if (!Cat.isEnabled()) {
+    OS << "Category '" << Cat.name() << "' is disabled\n";
     return;
   }
-
-  auto [DataIt, Inserted] =
-      HistIt->second.try_emplace(DataPointId, DataPointValue);
-  if (!Inserted) {
-    DataIt->second += DataPointValue;
+  const auto *Items = getOrNull(Map, &Cat);
+  if (!Items || Items->empty()) {
+    OS << "No " << TypeName << " for category '" << Cat.name()
+       << "' registered!\n";
+    return;
   }
+  OS << '\n' << TypeName << '\n' << Separator << '\n';
+  Impl(OS, Cat, *Items);
 }
 
-void PAMM::stopAllTimers() {
-  while (!RunningTimer.empty()) {
-    // safe copy
-    auto Id = RunningTimer.begin()->first().str();
-    stopTimer(Id);
+static void printCountersImpl(
+    llvm::raw_ostream &OS, const pamm::Category<true> &Cat,
+    const llvm::DenseMap<llvm::StringRef, pamm::detail::CounterBase *>
+        &CatCtrs) {
+  OS << Cat.name() << ":\n";
+  for (const auto &[Name, C] : CatCtrs) {
+    OS << "  " << Name << ": " << C->Ctr << '\n';
   }
+  OS << '\n';
 }
 
-void PAMM::printTimers(llvm::raw_ostream &OS) {
-  // stop all running timer
-  stopAllTimers();
+void pamm::Registry::printCounters(llvm::raw_ostream &OS) const {
+  printAllHelper(OS, Counters, "Counters", "--------", "No Counter registered!",
+                 printCountersImpl);
+}
 
-  OS << "Single Timer\n";
-  OS << "------------\n";
-  for (const auto &Timer : StoppedTimer) {
-    uint64_t Time = elapsedTime(Timer.first());
-    OS << Timer.first() << " : " << getPrintableDuration(Time) << '\n';
+void pamm::Registry::printCounters(llvm::raw_ostream &OS,
+                                   const Category<true> &Cat) const {
+  printCategoryHelper(OS, Cat, Counters, "Counters", "--------",
+                      printCountersImpl);
+}
+
+static void printMMCountersImpl(
+    llvm::raw_ostream &OS, const pamm::Category<true> &Cat,
+    const llvm::DenseMap<llvm::StringRef, pamm::detail::MinMaxCounterBase *>
+        &CatCtrs) {
+  OS << Cat.name() << ":\n";
+  for (const auto &[Name, C] : CatCtrs) {
+    OS << "  " << Name << ": min(" << C->Min << "), max(" << C->Max
+       << "), avg: " << llvm::format("%g", C->getAverage()) << ", #samples("
+       << C->getNumSamples() << ")\n";
   }
-  if (StoppedTimer.empty()) {
-    OS << "No single Timer started!\n\n";
-  } else {
-    OS << "\n";
-  }
-  OS << "Repeating Timer\n";
-  OS << "---------------\n";
+  OS << '\n';
+}
 
-  foreachElapsedTimeOfRepeatingTimer(RepeatingTimer,
-                                     [&OS](llvm::StringRef Id, auto Handler) {
-                                       OS << Id << " Timer:\n";
-                                       std::vector<uint64_t> Times;
-                                       std::invoke(std::move(Handler), Times);
+void pamm::Registry::printMinMaxCounters(llvm::raw_ostream &OS) const {
+  printAllHelper(OS, MMCounters, "Min-Max-Counters", "--------",
+                 "No MinMax-Counter registered!", printMMCountersImpl);
+}
 
-                                       uint64_t Sum = 0;
-                                       for (auto Duration : Times) {
-                                         Sum += Duration;
-                                         OS << Duration << '\n';
-                                       }
-                                       OS << "===\n" << Sum << "\n\n";
-                                     });
-
-  if (RepeatingTimer.empty()) {
-    OS << "No repeating Timer found!\n";
-  } else {
-    OS << '\n';
-  }
+void pamm::Registry::printMinMaxCounters(llvm::raw_ostream &OS,
+                                         const Category<true> &Cat) const {
+  printCategoryHelper(OS, Cat, MMCounters, "Min-Max-Counters", "--------",
+                      printMMCountersImpl);
 }
 
 void PAMM::printCounters(llvm::raw_ostream &OS) {
-  OS << "\nCounter\n";
-  OS << "-------\n";
-  for (const auto &Counter : Counter) {
-    OS << Counter.first() << " : " << Counter.second << '\n';
-  }
-  if (Counter.empty()) {
-    OS << "No Counter registered!\n";
-  } else {
-    OS << "\n";
-  }
+  pamm::Registry::instance().printCounters(OS);
 }
 
 void PAMM::printHistograms(llvm::raw_ostream &OS) {
-  OS << "\nHistograms\n";
-  OS << "--------------\n";
-  for (const auto &H : Histogram) {
-    OS << H.first() << " Histogram\n";
-    OS << "Value : #Occurrences\n";
-    for (const auto &Entry : H.second) {
-      OS << Entry.first() << " : " << Entry.second << '\n';
+  pamm::Registry::instance().printHistograms(OS);
+}
+
+static void printHistogramsImpl(
+    llvm::raw_ostream &OS, const pamm::Category<true> &Cat,
+    const llvm::DenseMap<llvm::StringRef, pamm::detail::HistogramBase *>
+        &Hists) {
+  for (const auto &[Name, H] : Hists) {
+    OS << Cat.name() << "::" << Name << " Histogram:\n";
+    OS << "  Value\t| #Occurrences\n";
+    OS << "  -----\t| ------------\n";
+    for (const auto &[Dat, Val] : H->HistData) {
+      OS << "  " << Dat << "\t| " << Val << '\n';
     }
     OS << '\n';
   }
-  if (Histogram.empty()) {
-    OS << "No histograms tracked!\n";
+}
+
+void pamm::Registry::printHistograms(llvm::raw_ostream &OS) const {
+  printAllHelper(OS, Histograms, "Histograms", "--------------",
+                 "No histograms tracked!", fn<printHistogramsImpl>);
+}
+
+void pamm::Registry::printHistograms(llvm::raw_ostream &OS,
+                                     const Category<true> &Cat) const {
+  printCategoryHelper(OS, Cat, Histograms, "Histograms", "--------------",
+                      fn<printHistogramsImpl>);
+}
+
+static void printTimersImpl(
+    llvm::raw_ostream &OS, const pamm::Category<true> &Cat,
+    const llvm::DenseMap<llvm::StringRef, pamm::detail::TimerBase *> &CatTms) {
+  OS << Cat.name() << ":\n";
+  for (const auto &[Name, Tm] : CatTms) {
+    auto Time = Tm->elapsedNanos();
+    bool StillRunning = Tm->isStarted();
+    OS << "  " << Name << ":\t";
+    if (StillRunning) {
+      Time += Tm->pendingNanos();
+      OS << hms{Time} << " (still running)\n";
+    } else {
+      OS << hms{Time} << '\n';
+    }
+  }
+  OS << '\n';
+}
+
+void pamm::Registry::printTimers(llvm::raw_ostream &OS) const {
+  printAllHelper(OS, Timers, "Timers", "--------------", "No timers tracked!",
+                 fn<printTimersImpl>);
+}
+
+void PAMM::printTimers(llvm::raw_ostream &OS) {
+  pamm::Registry::instance().printTimers(OS);
+}
+
+void pamm::Registry::printTimers(llvm::raw_ostream &OS,
+                                 const Category<true> &Cat) const {
+  printCategoryHelper(OS, Cat, Timers, "Timers", "--------------",
+                      fn<printTimersImpl>);
+}
+
+void pamm::printMeasuredData(llvm::raw_ostream &OS) {
+  OS << "\n----- START OF EVALUATION DATA -----\n\n";
+  auto &Reg = pamm::Registry::instance();
+  Reg.printTimers(OS);
+  Reg.printCounters(OS);
+  Reg.printMinMaxCounters(OS);
+  Reg.printHistograms(OS);
+  OS << "\n----- END OF EVALUATION DATA -----\n\n";
+}
+
+void pamm::printMeasuredData(llvm::raw_ostream &OS,
+                             const pamm::Category<true> &Cat) {
+  OS << "\n----- START OF EVALUATION DATA -----\n\n";
+  scope_exit Pop = [&] { OS << "\n----- END OF EVALUATION DATA -----\n\n"; };
+  if (!Cat.isEnabled()) {
+    OS << "Category '" << Cat.name() << "' is disabled\n";
+    return;
+  }
+  auto &Reg = pamm::Registry::instance();
+  Reg.printTimers(OS, Cat);
+  Reg.printCounters(OS, Cat);
+  Reg.printMinMaxCounters(OS, Cat);
+  Reg.printHistograms(OS, Cat);
+}
+
+void pamm::Registry::reset() noexcept {
+  for (const auto &[Cat, Ctrs] : Counters) {
+    for (const auto &[_, Ctr] : Ctrs) {
+      Ctr->Ctr = 0;
+    }
+  }
+
+  for (const auto &[Cat, Ctrs] : MMCounters) {
+    for (const auto &[_, Ctr] : Ctrs) {
+      Ctr->clear();
+    }
+  }
+
+  for (const auto &[Cat, Hists] : Histograms) {
+    for (const auto &[_, Hist] : Hists) {
+      Hist->HistData.clear();
+    }
+  }
+
+  for (const auto &[Cat, Tms] : Timers) {
+    for (const auto &[_, Tm] : Tms) {
+      Tm->reset();
+    }
   }
 }
 
-void PAMM::printMeasuredData(llvm::raw_ostream &Os) {
-  Os << "\n----- START OF EVALUATION DATA -----\n\n";
-  printTimers(Os);
-  printCounters(Os);
-  printHistograms(Os);
-  Os << "\n----- END OF EVALUATION DATA -----\n\n";
+void pamm::Registry::clear() noexcept {
+  Counters.clear();
+  MMCounters.clear();
+  Histograms.clear();
+  Timers.clear();
+  RegisteredCategories.clear();
 }
 
-void PAMM::exportMeasuredData(
-    const llvm::Twine &OutputPath, llvm::StringRef ProjectId,
-    const std::vector<std::string> *Modules,
-    const std::vector<std::string> *DataFlowAnalyses) {
-  // json file for holding all data
-  json JsonData;
-
-  stopAllTimers();
-  {
-    // add timer data
-    json JTimer;
-    for (const auto &Timer : StoppedTimer) {
-      uint64_t Time = elapsedTime(Timer.first());
-      JTimer[Timer.first().str()] = Time;
-    }
-
-    foreachElapsedTimeOfRepeatingTimer(
-        RepeatingTimer, [&JTimer](llvm::StringRef Id, auto Handler) {
-          std::vector<uint64_t> Times;
-          std::invoke(std::move(Handler), Times);
-          JTimer[Id.str()] = std::move(Times);
-        });
-
-    JsonData["Timer"] = std::move(JTimer);
-  }
-
-  {
-    // add histogram data if available
-    json JHistogram;
-    for (const auto &H : Histogram) {
-      json JSetH;
-      for (const auto &Entry : H.second) {
-        JSetH[Entry.first()] = Entry.second;
-      }
-      JHistogram[H.first()] = std::move(JSetH);
-    }
-    if (!JHistogram.is_null()) {
-      JsonData["Histogram"] = std::move(JHistogram);
-    }
-  }
-  {
-    // add counter data
-    json JCounter;
-    for (const auto &Counter : Counter) {
-      JCounter[Counter.first()] = Counter.second;
-    }
-    JsonData["Counter"] = std::move(JCounter);
-  }
-  {
-    // add analysis/project/source file information if available
-    json JInfo;
-    JInfo["Project-ID"] = ProjectId;
-
-    if (Modules) {
-      JInfo["Module(s)"] = *Modules;
-    }
-    if (DataFlowAnalyses) {
-      JInfo["Data-flow analysis"] = *DataFlowAnalyses;
-    }
-    if (!JInfo.is_null()) {
-      JsonData["Info"] = std::move(JInfo);
-    }
-  }
-
-  llvm::SmallString<128> Buf;
-  OutputPath.toStringRef(Buf);
-  if (!llvm::StringRef(Buf).ends_with(".json")) {
-    Buf.append(".json");
-  }
-
-  std::error_code EC;
-  llvm::raw_fd_ostream OS(Buf, EC);
-
-  if (EC) {
-    throw std::system_error(EC);
-  }
-
-  OS << JsonData << '\n';
+auto pamm::Registry::findCategory(llvm::StringRef Name) const
+    -> const Category<true> * {
+  return RegisteredCategories.lookup(Name);
 }
-
-void PAMM::reset() {
-  RunningTimer.clear();
-  StoppedTimer.clear();
-  RepeatingTimer.clear();
-  Counter.clear();
-  Histogram.clear();
-}
-} // namespace psr
