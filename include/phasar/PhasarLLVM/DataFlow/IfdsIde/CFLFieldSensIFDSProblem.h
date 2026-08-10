@@ -517,7 +517,6 @@ public:
              UserProblem->getZeroValue()),
         UserProblem(UserProblem), Config(std::move(Config)) {
     Mgr.reserve(UserProblem->getProjectIRDB()->getNumInstructions());
-    regCounters();
   }
 
   /// Constructs an IDETabulationProblem with the usual arguments, forwarded
@@ -619,8 +618,6 @@ private:
   makeEF(cfl_fieldsens::CFLFieldSensEdgeFunctionImpl &&EF);
   [[nodiscard]] EFResultPtr
   makeEFPtr(cfl_fieldsens::CFLFieldSensEdgeFunctionImpl &&EF);
-
-  static void regCounters() noexcept;
 
   IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault> *UserProblem{};
   cfl_fieldsens::FieldStringManager Mgr{};
