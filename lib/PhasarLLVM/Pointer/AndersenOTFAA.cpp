@@ -324,7 +324,6 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
 
   llvm::SmallVector<FuncCtx, 8> FunctionWorklist;
   llvm::DenseSet<FuncCtx> Queued; // ever pushed to worklist
-  llvm::DenseSet<FuncCtx> Processed;
 
   UnionFind<ValueId> SCCUf;
   TypedVector<ValueId, NodeInfo> Nodes;
@@ -355,6 +354,9 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
   // Per (call-site, caller-context): the (callee node, callee context) pairs
   // already wired up.  One call site reached from several contexts must bind
   // its actuals once per context, hence the context in both key and value.
+  // The value packs the callee's ValueId rather than its Function *, halving
+  // the element to 8 bytes -- that is why connectCallee interns a node for
+  // every direct callee.
   llvm::DenseMap<std::pair<const llvm::CallBase *, CallingContextId>,
                  llvm::SmallDenseSet<uint64_t, 4>>
       ConnectedCallees;
@@ -1627,6 +1629,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
                      llvm::ArrayRef<llvm::SmallVector<ValueId, 2>> Args,
                      std::optional<ValueId> CSRetVal,
                      CallingContextId CallerCtx) {
+    // Interned only to key ConnectedCallees compactly; see its declaration.
     const ValueId CalleeId =
         getOrInsertVar(PAGVariable(Callee), CallingContextId::None);
     const CallingContextId CalleeCtx = calleeContext(Callee, CallerCtx, CS);
@@ -2260,9 +2263,10 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     do {
       while (!FunctionWorklist.empty()) {
         const auto [F, Ctx] = FunctionWorklist.pop_back_val();
-        if (!Processed.insert({F, Ctx}).second) {
-          continue;
-        }
+        // Queued is insert-only, so its guard on every push site is what
+        // keeps a FuncCtx from popping twice.
+        assert(Queued.contains({F, Ctx}) &&
+               "Unguarded push to FunctionWorklist");
         processFunction(F, Ctx);
         // Drain pending pts for functions that make no pointer-relevant
         // calls (connectCallee would otherwise be the only propagate site).
