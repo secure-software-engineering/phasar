@@ -10,6 +10,9 @@
 #ifndef PHASAR_UTILS_MACROS_H
 #define PHASAR_UTILS_MACROS_H
 
+#define PSR_CONCAT_IMPL(X, Y) X##Y
+#define PSR_CONCAT(X, Y) PSR_CONCAT_IMPL(X, Y)
+
 #define PSR_FWD(...) ::std::forward<decltype(__VA_ARGS__)>(__VA_ARGS__)
 
 #define PSR_CONCEPT concept

@@ -30,6 +30,25 @@
 using namespace psr;
 using namespace psr::cfl_fieldsens;
 
+namespace psr::cfl_fieldsens {
+PAMM_CATEGORY(CFLFieldSens);
+
+PAMM_COUNTER(ExtendCacheRefs, Full);
+PAMM_COUNTER(ExtendCacheMisses, Full);
+PAMM_COUNTER(CombineCacheRefs, Full);
+PAMM_COUNTER(CombineCacheMisses, Full);
+PAMM_COUNTER(CombineCallsTotal, Full);
+PAMM_COUNTER(CombineLIdentity, Full);
+PAMM_COUNTER(CombineLIdentitySlow, Full);
+PAMM_COUNTER(CombineRIdentity, Full);
+PAMM_COUNTER(CombineRIdentitySlow, Full);
+
+PAMM_COUNTER(GetResultEFTop, Full);
+PAMM_COUNTER(GetResultEFBot, Full);
+PAMM_COUNTER(GetResultEFPtr, Full);
+
+} // namespace psr::cfl_fieldsens
+
 FieldStringManager::FieldStringManager() {
   // Sentinel
   NodeCompressor.insertDummy(
@@ -749,10 +768,9 @@ allTopPtr() noexcept {
 [[nodiscard]] static EdgeFunction<l_t>
 getResultEF(llvm::PointerIntPair<const CFLFieldSensEdgeFunctionImpl *, 2>
                 Ptr) noexcept {
-  PAMM_GET_INSTANCE;
   switch (Ptr.getInt()) {
   [[likely]] case AllEFPtrId:
-    INC_COUNTER("getResultEF Ptr", 1, Full);
+    GetResultEFPtr++;
     assert(Ptr.getPointer() != nullptr);
     assert(Ptr.getPointer() == Ptr.getOpaqueValue() &&
            "Zero-tag does not pollute the alignment bits");
@@ -760,33 +778,14 @@ getResultEF(llvm::PointerIntPair<const CFLFieldSensEdgeFunctionImpl *, 2>
         static_cast<const CFLFieldSensEdgeFunctionImpl *>(
             Ptr.getOpaqueValue())};
   case AllBottomId:
-    INC_COUNTER("getResultEF Bot", 1, Full);
+    GetResultEFBot++;
     return AllBottom<l_t>{};
   case AllTopId:
-    INC_COUNTER("getResultEF Top", 1, Full);
+    GetResultEFTop++;
     return AllTop<l_t>{};
   default:
     llvm_unreachable("All valid tags should be handled explicitly");
   }
-}
-
-void CFLFieldSensIFDSProblem::regCounters() noexcept {
-  PAMM_GET_INSTANCE;
-
-  REG_COUNTER("ExtendCache Refs", 0, Full);
-  REG_COUNTER("ExtendCache Misses", 0, Full);
-
-  REG_COUNTER("CombineCache Refs", 0, Full);
-  REG_COUNTER("CombineCache Misses", 0, Full);
-  REG_COUNTER("Combine CallsTotal", 0, Full);
-  REG_COUNTER("Combine LIdentity", 0, Full);
-  REG_COUNTER("Combine LIdentitySlow", 0, Full);
-  REG_COUNTER("Combine RIdentity", 0, Full);
-  REG_COUNTER("Combine RIdentitySlow", 0, Full);
-
-  REG_COUNTER("getResultEF Top", 0, Full);
-  REG_COUNTER("getResultEF Bot", 0, Full);
-  REG_COUNTER("getResultEF Ptr", 0, Full);
 }
 
 auto CFLFieldSensIFDSProblem::extend(const EdgeFunction<l_t> &L,
@@ -811,13 +810,11 @@ auto CFLFieldSensIFDSProblem::extend(const EdgeFunction<l_t> &L,
       return L;
     }
 
-    PAMM_GET_INSTANCE;
-
-    INC_COUNTER("ExtendCache Refs", 1, Full);
+    ExtendCacheRefs++;
 
     auto [It, Inserted] = ExtendCache.try_emplace(
         std::pair{FldSensL->Impl, FldSensR->Impl}, lazy{[&]() -> EFResultPtr {
-          INC_COUNTER("ExtendCache Misses", 1, Full);
+          ExtendCacheMisses++;
 
           auto Txn = FldSensL->Impl->Transform;
           Txn.applyTransforms(FldSensR->Impl->Transform, DepthKLimit);
@@ -855,21 +852,18 @@ auto CFLFieldSensIFDSProblem::combine(const EdgeFunction<l_t> &L,
     return Dflt;
   }
   auto Ret = [&]() -> EdgeFunction<l_t> {
-    PAMM_GET_INSTANCE;
-    INC_COUNTER("Combine CallsTotal", 1, Full);
+    CombineCallsTotal++;
 
     const auto *FldSensL = L.dyn_cast<CFLFieldSensEdgeFunction>();
     const auto *FldSensR = R.dyn_cast<CFLFieldSensEdgeFunction>();
     if (FldSensL) {
       if (FldSensR) {
-
-        INC_COUNTER("CombineCache Refs", 1, Full);
+        CombineCacheRefs++;
         auto [CacheIt, CacheInserted] = CombineCache.try_emplace(
             psr::minmaxVal(FldSensL->Impl, FldSensR->Impl),
             lazy{[this, FldSensL{*FldSensL},
                   FldSensR{*FldSensR}]() -> EFResultPtr {
-              PAMM_GET_INSTANCE;
-              INC_COUNTER("CombineCache Misses", 1, Full);
+              CombineCacheMisses++;
 
               // A complicated way of expressing set-union of LPaths and RPaths.
               // Reason being that we don't want to unnecessarily copy the sets.
@@ -915,24 +909,24 @@ auto CFLFieldSensIFDSProblem::combine(const EdgeFunction<l_t> &L,
       }
 
       if (R.isa<EdgeIdentity<l_t>>()) {
-        INC_COUNTER("Combine RIdentity", 1, Full);
+        CombineRIdentity++;
         if (FldSensL->Impl->Transform.Paths.contains(AccessPath{})) {
           return L;
         }
 
-        INC_COUNTER("Combine RIdentitySlow", 1, Full);
+        CombineRIdentitySlow++;
         auto Txn = FldSensL->Impl->Transform;
         Txn.Paths.insert(AccessPath{});
         return makeEF(
             CFLFieldSensEdgeFunctionImpl::from(std::move(Txn), DepthKLimit));
       }
     } else if (FldSensR && L.isa<EdgeIdentity<l_t>>()) {
-      INC_COUNTER("Combine LIdentity", 1, Full);
+      CombineLIdentity++;
       if (FldSensR->Impl->Transform.Paths.contains(AccessPath{})) {
         return R;
       }
 
-      INC_COUNTER("Combine LIdentitySlow", 1, Full);
+      CombineLIdentitySlow++;
       auto Txn = FldSensR->Impl->Transform;
       Txn.Paths.insert(AccessPath{});
       return makeEF(

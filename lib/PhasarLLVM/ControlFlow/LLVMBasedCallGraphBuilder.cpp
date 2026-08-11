@@ -23,6 +23,12 @@
 
 namespace {
 using namespace psr;
+
+PAMM_CATEGORY(CallGraphBuilder);
+
+PAMM_COUNTER(CGFunctions, Full);
+PAMM_COUNTER(CGCallSites, Full);
+
 struct Builder {
   const LLVMProjectIRDB *IRDB = nullptr;
   Resolver *Res = nullptr;
@@ -94,11 +100,6 @@ auto Builder::buildCallGraph(Soundness S) -> LLVMBasedCallGraph {
     }
   }
 
-  PAMM_GET_INSTANCE;
-  REG_COUNTER("CG Functions", CGBuilder.viewCallGraph().getNumVertexFunctions(),
-              Full);
-  REG_COUNTER("CG CallSites", CGBuilder.viewCallGraph().getNumVertexCallSites(),
-              Full);
   PHASAR_LOG_LEVEL_CAT(INFO, "LLVMBasedICFG",
                        "Call graph has been constructed");
   return CGBuilder.consumeCallGraph();
@@ -143,6 +144,8 @@ bool Builder::processFunction(const llvm::Function *F) {
     return true;
   }
 
+  ++CGFunctions;
+
   assert(Res != nullptr);
 
   // add a node for function F to the call graph (if not present already)
@@ -157,6 +160,8 @@ bool Builder::processFunction(const llvm::Function *F) {
     if (!CS) {
       continue;
     }
+
+    ++CGCallSites;
 
     FixpointReached &=
         fillPossibleTargets(PossibleTargets, *Res, CS, IndirectCalls);
