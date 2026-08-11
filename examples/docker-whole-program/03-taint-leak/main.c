@@ -3,7 +3,7 @@
 extern char *source(void);
 extern void sink(const char *data);
 int main() {
-    char *tainted = source();
-    sink(tainted);           /* LEAK: tainted value reaches the sink */
-    return 0;
+  char *tainted = source();
+  sink(tainted); /* LEAK: tainted value reaches the sink */
+  return 0;
 }

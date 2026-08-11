@@ -3,9 +3,9 @@
 int add(int a, int b) { return a + b; }
 
 int unsafe(int flag) {
-    int v;
-    if (flag) {
-        v = 1;
-    }
-    return v;   /* uninitialized when flag == 0 */
+  int v;
+  if (flag) {
+    v = 1;
+  }
+  return v; /* uninitialized when flag == 0 */
 }
