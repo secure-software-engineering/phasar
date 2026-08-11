@@ -51,7 +51,7 @@ This builds PhASAR against LLVM 22 by default. To use a different LLVM major ver
 docker build -t phasar --build-arg llvm_version=16 --build-arg phasar_llvm_version=16 .
 ```
 
-> [!NOTE]- llvm_version vs phasar_llvm_version
+> [!NOTE]
 > `phasar_llvm_version` is PhASAR's CMake version string — `22.1` for LLVM 22 (new release scheme), but `16` for LLVM 16.
 
 
