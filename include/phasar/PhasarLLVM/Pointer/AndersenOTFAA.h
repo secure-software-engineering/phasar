@@ -14,6 +14,7 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMUnionFindAA.h"
 #include "phasar/Pointer/RawAliasSet.h"
 #include "phasar/Pointer/UnionFindAA.h"
+#include "phasar/Utils/Macros.h"
 #include "phasar/Utils/MaybeUniquePtr.h"
 #include "phasar/Utils/NonNullPtr.h"
 #include "phasar/Utils/Soundness.h"
@@ -119,9 +120,10 @@ static_assert(UnionFindAAResult<AndersenOTFResult>);
 /// default.
 class AndersenOTFSolver {
 public:
-  explicit AndersenOTFSolver(const LLVMProjectIRDB &IRDB,
-                             llvm::ArrayRef<const llvm::Function *> Entries,
-                             ValueCompressor<PAGVariable> &VC,
+  explicit AndersenOTFSolver(const LLVMProjectIRDB &IRDB PSR_LIFETIMEBOUND,
+                             llvm::ArrayRef<const llvm::Function *> Entries
+                                 PSR_LIFETIMEBOUND,
+                             ValueCompressor<PAGVariable> &VC PSR_LIFETIMEBOUND,
                              Soundness S = Soundness::Soundy,
                              ContextSensitivityOptions CSOpts = {}) noexcept;
 

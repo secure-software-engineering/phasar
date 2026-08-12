@@ -25,6 +25,7 @@
 #include <map>
 #include <memory>
 #include <source_location>
+#include <string>
 #include <vector>
 
 namespace {
@@ -384,6 +385,29 @@ TEST(AndersenOTFAATest, ContextDenyListOverridesAllowList) {
                           {Call2, {Arg, Call1, Call2}}};
   doAnalysisAndCheckExact("context_01_c_dbg.ll", Expected,
                           csOpts(CSMode::Manual, {"id"}, {"id"}));
+}
+
+TEST(AndersenOTFAATest, ContextInvalidGlobIsReported) {
+  // A malformed pattern is skipped with a diagnostic; 'id' still selects.
+  const TSL Arg = TSL(ArgInFun{.Idx = 0, .InFunction = "id"});
+  const TSL Call1 = TSL(LineColFunOp{.Line = 8,
+                                     .Col = 0,
+                                     .InFunction = "main",
+                                     .OpCode = llvm::Instruction::Call});
+  const TSL Call2 = TSL(LineColFunOp{.Line = 9,
+                                     .Col = 0,
+                                     .InFunction = "main",
+                                     .OpCode = llvm::Instruction::Call});
+  const GTMap Expected = {{Call1, {Arg, Call1}}, {Call2, {Arg, Call2}}};
+
+  testing::internal::CaptureStderr();
+  doAnalysisAndCheckExact("context_01_c_dbg.ll", Expected,
+                          csOpts(CSMode::Manual, {"[", "id"}));
+  const std::string Err = testing::internal::GetCapturedStderr();
+
+  EXPECT_NE(Err.find("Ignoring invalid allow-list pattern '['"),
+            std::string::npos)
+      << Err;
 }
 
 // context_15: end(&O1, &x) and end(&O2, &y); end dispatches through a

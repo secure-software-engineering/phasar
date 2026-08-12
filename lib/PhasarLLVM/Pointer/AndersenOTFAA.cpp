@@ -36,6 +36,7 @@
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/ADT/SmallVector.h"
+#include "llvm/ADT/StringRef.h"
 #include "llvm/Analysis/MemorySSA.h"
 #include "llvm/Analysis/TargetLibraryInfo.h"
 #include "llvm/IR/Constants.h"
@@ -47,8 +48,10 @@
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/IntrinsicInst.h"
 #include "llvm/Support/Casting.h"
+#include "llvm/Support/Error.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/GlobPattern.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include <cassert>
 #include <memory>
@@ -397,8 +400,8 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
 
     // Id 0 == CallingContextId::None is the root (context-insensitive) context.
     std::ignore = Contexts.getOrInsert(CallCtx{});
-    AllowPatterns = compileGlobs(this->CSOpts.AllowList);
-    DenyPatterns = compileGlobs(this->CSOpts.DenyList);
+    AllowPatterns = compileGlobs(this->CSOpts.AllowList, "allow-list");
+    DenyPatterns = compileGlobs(this->CSOpts.DenyList, "deny-list");
 
     CGBuilder.reserve(IRDB.getNumFunctions());
     for (const auto *F : Entries) {
@@ -423,15 +426,20 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     }
   }
 
+  /// Compiles the glob patterns of the context-selection list \p ListName.
+  /// Invalid patterns are skipped, but reported: dropping them silently would
+  /// disable selection for exactly the functions the user asked for.
   static llvm::SmallVector<llvm::GlobPattern, 0>
-  compileGlobs(llvm::ArrayRef<std::string> Patterns) {
+  compileGlobs(llvm::ArrayRef<std::string> Patterns, llvm::StringRef ListName) {
     llvm::SmallVector<llvm::GlobPattern, 0> Ret;
     Ret.reserve(Patterns.size());
     for (const auto &Pat : Patterns) {
       if (auto Glob = llvm::GlobPattern::create(Pat)) {
         Ret.push_back(std::move(*Glob));
       } else {
-        llvm::consumeError(Glob.takeError());
+        llvm::errs() << "[WARNING]: Ignoring invalid " << ListName
+                     << " pattern '" << Pat
+                     << "': " << llvm::toString(Glob.takeError()) << '\n';
       }
     }
     return Ret;
