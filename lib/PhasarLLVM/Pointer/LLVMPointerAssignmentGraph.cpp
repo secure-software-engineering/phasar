@@ -104,6 +104,25 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
     return Id;
   }
 
+  // Registers \p V as another name for node \p Id, i.e. makes the two the
+  // same node.
+  //
+  // If \p V already owns a node the alias can no longer be recorded. Fall back
+  // to a pair of Assign edges
+  void addAliasOrEquate(LLVMPBStrategyRef Strategy, PAGVariable V, ValueId Id,
+                        const llvm::Instruction *AtInstruction) {
+    if (VC.addAlias(V, Id)) {
+      return;
+    }
+    const auto Existing = VC.getOrNull(V);
+    assert(Existing && "addAlias only fails when V already owns an id");
+    if (*Existing == Id) {
+      return;
+    }
+    addEdge(Strategy, Id, *Existing, Assign{}, AtInstruction);
+    addEdge(Strategy, *Existing, Id, Assign{}, AtInstruction);
+  }
+
   void addAllIncomingStores(LLVMPBStrategyRef Strategy, ValueId To,
                             llvm::SmallDenseMap<ValueId, Edge, 2> &Froms) {
     for (auto [From, E] : Froms) {
@@ -385,7 +404,7 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
           const auto *ValueOp = (*Defs.begin())->getValueOperand();
           if (!llvm::isa<llvm::ConstantExpr>(ValueOp) &&
               !definitelyContainsNoPointer(ValueOp)) {
-            VC.addAlias(Ld, getVariable(ValueOp, Strategy));
+            addAliasOrEquate(Strategy, Ld, getVariable(ValueOp, Strategy), Ld);
             return;
           }
         }
@@ -414,7 +433,7 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
       const auto ReuseOrCreate = [&](auto &Map, auto Key) {
         auto [It, Inserted] = Map.try_emplace(Key, ValueId{});
         if (!Inserted) {
-          VC.addAlias(Ld, It->second);
+          addAliasOrEquate(Strategy, Ld, It->second, Ld);
           return;
         }
         auto LoadObj = getVariable(Ld, Strategy);
@@ -450,7 +469,7 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
       }
     }
 
-    VC.addAlias(Cast, OperandObj);
+    addAliasOrEquate(Strategy, Cast, OperandObj, nullptr);
   }
 
   void handleCast(LLVMPBStrategyRef Strategy, const llvm::User *Cast) {
@@ -475,7 +494,7 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
           auto [It, Inserted] =
               LocalGeps[PointerOp].try_emplace(Offset.getSExtValue());
           if (!Inserted) {
-            VC.addAlias(Gep, It->second);
+            addAliasOrEquate(Strategy, Gep, It->second, nullptr);
             return;
           }
 

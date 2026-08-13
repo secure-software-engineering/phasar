@@ -7442,6 +7442,30 @@ TEST(MemSSAUnionFindAATest, KillStore) {
                               LLVMPAGBuilder::withBuiltinMemSSA());
 }
 
+// The loop-carried load is interned by the PHI before handleLoad translates
+// it, so addAlias() no-ops. On the single-reaching-def MemSSA path that used
+// to leave the load with no incoming edge at all, losing the alias to A.
+TEST(MemSSAUnionFindAATest, LoopCarriedLoad) {
+  // The loop pointer P, i.e. the PHI the load feeds.
+  const TestingSrcLocation Phi =
+      OperandOf{.OperandIndex = 0,
+                .Inst = LineColFunOp{.Line = 15,
+                                     .Col = 0,
+                                     .InFunction = "main",
+                                     .OpCode = llvm::Instruction::Load}};
+  // Slot joins A through addDelayedEdges' store-safety fallback.
+  GTMap GT = {{LineColFunOp{.Line = 13,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Load},
+               {GlobalVar{"A"}, GlobalVar{"B"}, GlobalVar{"Slot"}, Phi}},
+              {Phi, {GlobalVar{"A"}, GlobalVar{"B"}, GlobalVar{"Slot"}, Phi}}};
+
+  doAnalysisAndCompareResults("loop_carried_load_c_m2r_dbg.ll", GT,
+                              ContextAABuilder,
+                              LLVMPAGBuilder::withBuiltinMemSSA());
+}
+
 // if (c) p = &a; else p = &b; q = load p  — MemoryPhi: q aliases both a and b
 TEST(MemSSAUnionFindAATest, BranchBothReach) {
   GTMap GT = {{LineColFunOp{.Line = 9,

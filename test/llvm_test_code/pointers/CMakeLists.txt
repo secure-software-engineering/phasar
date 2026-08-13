@@ -66,6 +66,7 @@ set(lca_files
   indirection_10.cpp
   memssa_kill_01.c
   memssa_branch_01.c
+  loop_carried_load.c
 )
 
 set(lca_files_mem2reg
@@ -76,6 +77,7 @@ set(lca_files_mem2reg
   andersen_otf_bug_a1_poison_scc.c
   andersen_otf_bug_a2_loop_gep.c
   andersen_otf_bug_a3_stranded_pending.c
+  loop_carried_load.c
   basic_01.c
   basic_02.c
   basic_03.c
