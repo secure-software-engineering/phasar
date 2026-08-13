@@ -30,6 +30,7 @@
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallVector.h"
 
+#include <cassert>
 #include <cstdint>
 #include <optional>
 #include <unordered_map>
@@ -140,6 +141,7 @@ public:
   }
 
   void onAddValue(ByConstRef<v_t> Var, ValueId VId) {
+    assert(size_t(VId) == SCCOfVal.size() && "Expect ascending VIds");
     auto &SccPlace = SCCOfVal.emplace_back(InvalidSCC);
     if (auto &&Fun = getFunction(Var)) {
       if (auto FunVtx = RevCG.FC.getOrNull(Fun)) {

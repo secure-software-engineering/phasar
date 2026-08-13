@@ -764,6 +764,14 @@ void psr::LLVMPAGBuilder::buildPAG(const LLVMProjectIRDB &IRDB,
 
   BData.OnlyIncomingStoresAndOutgoingLoads.reserve(NumPossibleValues);
 
+  // Strategies index their per-value tables by ValueId, so they must see every
+  // id, including those a pre-populated VC already holds.
+  for (const auto &[Id, Vars] : VC.id2vars().enumerate()) {
+    if (!Vars.empty()) {
+      Strategy.onAddValue(Vars.front(), Id);
+    }
+  }
+
   BData.initializeGlobals(IRDB, Strategy);
   BData.initializeFunctions(IRDB, Strategy);
 }

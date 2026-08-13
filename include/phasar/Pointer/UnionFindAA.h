@@ -33,6 +33,7 @@
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/Support/ErrorHandling.h"
 
+#include <cassert>
 #include <concepts>
 #include <functional>
 #include <type_traits>
@@ -386,6 +387,7 @@ public:
   }
 
   void onAddValue(ByConstRef<v_t> Var, ValueId VId) {
+    assert(size_t(VId) == Var2Obj.size() && "Expect ascending VIds");
     Var2Obj.emplace_back();
     if (const auto &Fun = getFunction(Var)) {
       CC.visitAllCallingContexts(
@@ -548,6 +550,7 @@ public:
   }
 
   void onAddValue(ByConstRef<v_t> /*Var*/, ValueId VId) {
+    assert(size_t(VId) == Var2Obj.size() && "Expect ascending VIds");
     auto Obj = Obj2Var.size();
     Base.AliasSets.grow(Obj + K);
     Var2Obj.emplace_back(generate_tag, [Obj](IndDepth Depth) {

@@ -25,7 +25,10 @@
 #include "gtest/gtest.h"
 
 #include <map>
+#include <set>
 #include <source_location>
+#include <string>
+#include <tuple>
 #include <vector>
 
 namespace {
@@ -7483,6 +7486,80 @@ TEST(MemSSAUnionFindAATest, BranchBothReach) {
 
   doAnalysisAndCompareResults("memssa_branch_01_c_dbg.ll", GT, ContextAABuilder,
                               LLVMPAGBuilder::withBuiltinMemSSA());
+}
+
+/// Maps every value name to the names in its alias set, so that two runs can
+/// be compared without depending on the ValueIds they happen to assign.
+[[nodiscard]] std::map<std::string, std::set<std::string>>
+collectAliasSetsByName(const ValueCompressor<PAGVariable> &VC,
+                       const UnionFindAAResult auto &Results) {
+  std::map<std::string, std::set<std::string>> Ret;
+
+  for (const auto &[VId, Vars] : VC.id2vars().enumerate()) {
+    std::set<std::string> Aliases;
+    Results.getRawAliasSet(VId).foreach ([&](ValueId AId) {
+      for (const auto Alias : VC.id2vars(AId)) {
+        Aliases.insert(to_string(Alias));
+      }
+    });
+
+    for (const auto Var : Vars) {
+      Ret[to_string(Var)] = Aliases;
+    }
+  }
+
+  return Ret;
+}
+
+/// A pre-populated ValueCompressor shifts every ValueId. As the strategies
+/// index their per-value tables by id, seeding it must not change the result.
+void checkPrePopulatedVCMatches(
+    const llvm::Twine &IRFile, auto AABuilder,
+    std::source_location Loc = std::source_location::current()) {
+
+  auto IRDB = LLVMProjectIRDB::loadOrExit(PathToLLFiles + IRFile);
+  auto TH = DIBasedTypeHierarchy(IRDB);
+  auto VTP = LLVMVFTableProvider(IRDB);
+  auto BaseCG = buildLLVMBasedCallGraph(IRDB, CallGraphAnalysisType::RTA,
+                                        {"main"}, TH, VTP);
+
+  ValueCompressor<PAGVariable> PlainVC;
+  const auto Plain = collectAliasSetsByName(
+      PlainVC, computeUnionFindAARaw(IRDB, AABuilder(IRDB, BaseCG), &PlainVC));
+
+  // Seed the globals, so they no longer receive the ids buildPAG would assign.
+  ValueCompressor<PAGVariable> SeededVC;
+  for (const auto &Glob : IRDB.getModule()->globals()) {
+    std::ignore = SeededVC.insert(&Glob);
+  }
+  ASSERT_NE(0U, SeededVC.size()) << "Test needs a module with globals";
+
+  const auto Seeded = collectAliasSetsByName(
+      SeededVC,
+      computeUnionFindAARaw(IRDB, AABuilder(IRDB, BaseCG), &SeededVC));
+
+  for (const auto &[Var, Aliases] : Plain) {
+    const auto It = Seeded.find(Var);
+    if (It == Seeded.end()) {
+      ADD_FAILURE_AT(Loc.file_name(), Loc.line())
+          << "Value missing from the seeded run: " << Var;
+      continue;
+    }
+    EXPECT_EQ(Aliases, It->second) << "Alias set of " << Var << " differs at "
+                                   << Loc.file_name() << ':' << Loc.line();
+  }
+}
+
+TEST(CtxSensUnionFindAATest, PrePopulatedVC) {
+  checkPrePopulatedVCMatches("loop_carried_load_c_dbg.ll", ContextAABuilder);
+}
+
+TEST(IndirectionSensUnionFindAATest, PrePopulatedVC) {
+  checkPrePopulatedVCMatches("loop_carried_load_c_dbg.ll", IndAABuilder);
+}
+
+TEST(BotUnionFindAATest, PrePopulatedVC) {
+  checkPrePopulatedVCMatches("loop_carried_load_c_dbg.ll", BotAABuilder);
 }
 
 } // namespace
