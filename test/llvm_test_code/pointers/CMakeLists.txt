@@ -23,6 +23,7 @@ set(lca_files
   andersen_otf_fnptr_table_memcpy.c
   andersen_otf_bug_a4_aggregate_ret.c
   andersen_otf_bug_a4_atomics.c
+  pointer_punning_01.c
   global_01.cpp
   inter_dynamic_01.cpp
   inter_dynamic_02.cpp

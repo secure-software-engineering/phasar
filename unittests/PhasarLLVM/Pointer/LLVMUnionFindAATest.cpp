@@ -7318,6 +7318,44 @@ TEST(IndirectionSensUnionFindAATest, Indirection10) {
 }
 
 // ---------------------------------------------------------------------------
+// Pointer-punning tests
+//
+// P is overwritten and re-read through an intptr_t view of its slot, so both
+// accesses are typed i64.  The plain integer-type gate used to drop them,
+// leaving the loaded pointer unaliased.
+// ---------------------------------------------------------------------------
+
+static const GTMap PunningGT = {
+    // The punned load: reads what either store put into P.
+    {LineColFunOp{.Line = 12,
+                  .Col = 0,
+                  .InFunction = "main",
+                  .OpCode = llvm::Instruction::Load},
+     {GlobalVar{"A"}, GlobalVar{"B"}}},
+    // ... and so does Q, which it is stored into.
+    {LineColFunOp{.Line = 13,
+                  .Col = 0,
+                  .InFunction = "main",
+                  .OpCode = llvm::Instruction::Load},
+     {GlobalVar{"A"}, GlobalVar{"B"}}},
+};
+
+TEST(CtxSensUnionFindAATest, PointerPunning01) {
+  doAnalysisAndCompareResults("pointer_punning_01_c_dbg.ll", PunningGT,
+                              ContextAABuilder);
+}
+
+TEST(IndirectionSensUnionFindAATest, PointerPunning01) {
+  doAnalysisAndCompareResults("pointer_punning_01_c_dbg.ll", PunningGT,
+                              IndAABuilder);
+}
+
+TEST(BotUnionFindAATest, PointerPunning01) {
+  doAnalysisAndCompareResults("pointer_punning_01_c_dbg.ll", PunningGT,
+                              BotAABuilder);
+}
+
+// ---------------------------------------------------------------------------
 // MemorySSA flow-sensitivity tests
 //
 // These tests verify that LLVMPAGBuilder::withBuiltinMemSSA() connects each

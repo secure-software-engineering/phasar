@@ -306,15 +306,34 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
     psr::forEachPointerOperand(RawOp, copyOrRef(Handler));
   }
 
-  void handleStore(LLVMPBStrategyRef Strategy, const llvm::StoreInst *Store) {
+  // Clang lowers pointer atomics by punning through a pointer-sized integer.
+  // Such a value carries a pointer iff the memory it is read from or written
+  // to does, so the plain integer-type gate would drop the whole chain.
+  [[nodiscard]] bool isPunnedPointerAccess(const llvm::Value *Ptr,
+                                           const llvm::Type *Ty) const {
+    if (!Ty->isIntegerTy(DL.getPointerSizeInBits())) {
+      return false;
+    }
+    const llvm::Value *Base = Ptr->stripPointerCastsAndAliases();
+    if (const auto *A = llvm::dyn_cast<llvm::AllocaInst>(Base)) {
+      return !definitelyContainsNoPointer(A->getAllocatedType());
+    }
+    if (const auto *G = llvm::dyn_cast<llvm::GlobalVariable>(Base)) {
+      return !definitelyContainsNoPointer(G->getValueType());
+    }
+    return false;
+  }
 
-    if (definitelyContainsNoPointer(Store->getValueOperand())) {
+  void handleStore(LLVMPBStrategyRef Strategy, const llvm::StoreInst *Store) {
+    const auto *Val = Store->getValueOperand();
+    if (definitelyContainsNoPointer(Val) &&
+        !isPunnedPointerAccess(Store->getPointerOperand(), Val->getType())) {
       return;
     }
 
     handleOperand(Store->getPointerOperand(), [&](const auto *PointerOp) {
       auto PointerObj = getVariable(PointerOp, Strategy);
-      handleOperand(Store->getValueOperand(), [&](const auto *ValueOp) {
+      handleOperand(Val, [&](const auto *ValueOp) {
         auto ValueObj = getVariable(ValueOp, Strategy);
         addEdge(Strategy, ValueObj, PointerObj, StorePOI{}, Store);
       });
@@ -322,7 +341,8 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
   }
 
   void handleLoad(LLVMPBStrategyRef Strategy, const llvm::LoadInst *Ld) {
-    if (definitelyContainsNoPointer(Ld)) {
+    if (definitelyContainsNoPointer(Ld) &&
+        !isPunnedPointerAccess(Ld->getPointerOperand(), Ld->getType())) {
       return;
     }
 
