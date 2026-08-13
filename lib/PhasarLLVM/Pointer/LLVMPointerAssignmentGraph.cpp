@@ -2,6 +2,7 @@
 
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMGlobalInitCache.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointerSemantics.h"
 #include "phasar/PhasarLLVM/Pointer/MemSSAUtils.h"
 #include "phasar/PhasarLLVM/Utils/LLVMFunctionDataFlowFacts.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
@@ -274,22 +275,17 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
       return (void)getVariable(Alloca, Strategy);
     }
 
-    if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(&I)) {
-      return handleStore(Strategy, Store);
-    }
-
-    if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(&I)) {
-      return handleLoad(Strategy, Load);
-    }
-
-    if (const auto *RMW = llvm::dyn_cast<llvm::AtomicRMWInst>(&I)) {
-      return handleAtomicAccess(Strategy, RMW, RMW->getPointerOperand(),
-                                RMW->getValOperand());
-    }
-
-    if (const auto *CX = llvm::dyn_cast<llvm::AtomicCmpXchgInst>(&I)) {
-      return handleAtomicAccess(Strategy, CX, CX->getPointerOperand(),
-                                CX->getNewValOperand());
+    if (const auto Access = asMemoryAccess(I, DL)) {
+      if (!Access->mayTransferPointer()) {
+        return;
+      }
+      if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(&I)) {
+        return handleLoad(Strategy, Load, *Access);
+      }
+      if (llvm::isa<llvm::StoreInst>(&I)) {
+        return handleStore(Strategy, *Access);
+      }
+      return handleAtomicAccess(Strategy, *Access);
     }
 
     if (const auto *Cast = llvm::dyn_cast<llvm::CastInst>(&I)) {
@@ -335,67 +331,31 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
     psr::forEachPointerOperand(RawOp, copyOrRef(Handler));
   }
 
-  // Clang lowers pointer atomics by punning through a pointer-sized integer.
-  // Such a value carries a pointer iff the memory it is read from or written
-  // to does, so the plain integer-type gate would drop the whole chain.
-  [[nodiscard]] bool isPunnedPointerAccess(const llvm::Value *Ptr,
-                                           const llvm::Type *Ty) const {
-    if (!Ty->isIntegerTy(DL.getPointerSizeInBits())) {
-      return false;
-    }
-    const llvm::Value *Base = Ptr->stripPointerCastsAndAliases();
-    if (const auto *A = llvm::dyn_cast<llvm::AllocaInst>(Base)) {
-      return !definitelyContainsNoPointer(A->getAllocatedType());
-    }
-    if (const auto *G = llvm::dyn_cast<llvm::GlobalVariable>(Base)) {
-      return !definitelyContainsNoPointer(G->getValueType());
-    }
-    return false;
-  }
-
-  void handleStore(LLVMPBStrategyRef Strategy, const llvm::StoreInst *Store) {
-    const auto *Val = Store->getValueOperand();
-    if (definitelyContainsNoPointer(Val) &&
-        !isPunnedPointerAccess(Store->getPointerOperand(), Val->getType())) {
-      return;
-    }
-
-    handleOperand(Store->getPointerOperand(), [&](const auto *PointerOp) {
+  void handleStore(LLVMPBStrategyRef Strategy, const LLVMMemoryAccess &Access) {
+    handleOperand(Access.Pointer, [&](const auto *PointerOp) {
       auto PointerObj = getVariable(PointerOp, Strategy);
-      handleOperand(Val, [&](const auto *ValueOp) {
+      handleOperand(Access.StoredValue, [&](const auto *ValueOp) {
         auto ValueObj = getVariable(ValueOp, Strategy);
-        addEdge(Strategy, ValueObj, PointerObj, StorePOI{}, Store);
+        addEdge(Strategy, ValueObj, PointerObj, StorePOI{}, Access.Instr);
       });
     });
   }
 
-  // Field-insensitively an atomicrmw is a store of the new value plus a load
-  // of the old one; cmpxchg likewise, into its { ty, i1 } result.
   void handleAtomicAccess(LLVMPBStrategyRef Strategy,
-                          const llvm::Instruction *I, const llvm::Value *Ptr,
-                          const llvm::Value *NewVal) {
-    if (definitelyContainsNoPointer(NewVal) &&
-        !isPunnedPointerAccess(Ptr, NewVal->getType())) {
-      return;
-    }
-
-    auto DstObj = getVariable(I, Strategy);
-    handleOperand(Ptr, [&](const auto *PointerOp) {
+                          const LLVMMemoryAccess &Access) {
+    auto DstObj = getVariable(Access.LoadedInto, Strategy);
+    handleOperand(Access.Pointer, [&](const auto *PointerOp) {
       auto PointerObj = getVariable(PointerOp, Strategy);
-      handleOperand(NewVal, [&](const auto *ValueOp) {
+      handleOperand(Access.StoredValue, [&](const auto *ValueOp) {
         auto ValueObj = getVariable(ValueOp, Strategy);
-        addEdge(Strategy, ValueObj, PointerObj, StorePOI{}, I);
+        addEdge(Strategy, ValueObj, PointerObj, StorePOI{}, Access.Instr);
       });
-      addEdge(Strategy, PointerObj, DstObj, Load{}, I);
+      addEdge(Strategy, PointerObj, DstObj, Load{}, Access.Instr);
     });
   }
 
-  void handleLoad(LLVMPBStrategyRef Strategy, const llvm::LoadInst *Ld) {
-    if (definitelyContainsNoPointer(Ld) &&
-        !isPunnedPointerAccess(Ld->getPointerOperand(), Ld->getType())) {
-      return;
-    }
-
+  void handleLoad(LLVMPBStrategyRef Strategy, const llvm::LoadInst *Ld,
+                  const LLVMMemoryAccess &Access) {
     if (CurrentMemSSA) {
       llvm::SmallPtrSet<const llvm::StoreInst *, 4> Defs;
       const bool HasLiveOnEntry = collectReachingDefs(Ld, *CurrentMemSSA, Defs);
@@ -427,7 +387,7 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
       }
     }
 
-    handleOperand(Ld->getPointerOperand(), [&](const auto *PointerOp) {
+    handleOperand(Access.Pointer, [&](const auto *PointerOp) {
       auto PointerObj = getVariable(PointerOp, Strategy);
 
       const auto ReuseOrCreate = [&](auto &Map, auto Key) {

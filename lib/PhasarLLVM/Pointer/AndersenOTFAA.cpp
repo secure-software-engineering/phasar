@@ -12,6 +12,7 @@
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMGlobalInitCache.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointerAssignmentGraph.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointerSemantics.h"
 #include "phasar/PhasarLLVM/Pointer/MemSSAUtils.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h"
@@ -878,20 +879,18 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
       addPointee(VarId, ObjId);
       return;
     }
-    if (const auto *S = llvm::dyn_cast<llvm::StoreInst>(&I)) {
-      handleStore(S);
-      return;
-    }
-    if (const auto *L = llvm::dyn_cast<llvm::LoadInst>(&I)) {
-      handleLoad(L);
-      return;
-    }
-    if (const auto *RMW = llvm::dyn_cast<llvm::AtomicRMWInst>(&I)) {
-      handleAtomicAccess(RMW, RMW->getPointerOperand(), RMW->getValOperand());
-      return;
-    }
-    if (const auto *CX = llvm::dyn_cast<llvm::AtomicCmpXchgInst>(&I)) {
-      handleAtomicAccess(CX, CX->getPointerOperand(), CX->getNewValOperand());
+    if (const auto Access =
+            asMemoryAccess(I, IRDB.getModule()->getDataLayout())) {
+      if (!Access->mayTransferPointer()) {
+        return;
+      }
+      if (const auto *L = llvm::dyn_cast<llvm::LoadInst>(&I)) {
+        handleLoad(L, *Access);
+      } else if (llvm::isa<llvm::StoreInst>(&I)) {
+        handleStore(*Access);
+      } else {
+        handleAtomicAccess(*Access);
+      }
       return;
     }
     if (const auto *M = llvm::dyn_cast<llvm::MemTransferInst>(&I)) {
@@ -937,50 +936,21 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     }
   }
 
-  // Clang lowers pointer atomics by punning through a pointer-sized integer.
-  // Such a value carries a pointer iff the memory it is read from or written
-  // to does, so the plain integer-type gate would drop the whole chain.
-  [[nodiscard]] bool isPunnedPointerAccess(const llvm::Value *Ptr,
-                                           const llvm::Type *Ty) const {
-    if (!Ty->isIntegerTy(
-            IRDB.getModule()->getDataLayout().getPointerSizeInBits())) {
-      return false;
-    }
-    const llvm::Value *Base = Ptr->stripPointerCastsAndAliases();
-    if (const auto *A = llvm::dyn_cast<llvm::AllocaInst>(Base)) {
-      return !definitelyContainsNoPointer(A->getAllocatedType());
-    }
-    if (const auto *G = llvm::dyn_cast<llvm::GlobalVariable>(Base)) {
-      return !definitelyContainsNoPointer(G->getValueType());
-    }
-    return false;
-  }
-
-  void handleStore(const llvm::StoreInst *S) {
-    const auto *Val = S->getValueOperand();
-    const bool Punned =
-        isPunnedPointerAccess(S->getPointerOperand(), Val->getType());
-    if (!Punned && definitelyContainsNoPointer(Val)) {
-      return;
-    }
-    recordFieldWrite(S);
-    forEachOpId(S->getPointerOperand(), [&](ValueId PtrId) {
-      forEachOpId(Val, [&](ValueId ValId) { addStore(PtrId, ValId); }, Punned);
+  void handleStore(const LLVMMemoryAccess &Access) {
+    recordFieldWrite(llvm::cast<llvm::StoreInst>(Access.Instr));
+    forEachOpId(Access.Pointer, [&](ValueId PtrId) {
+      forEachOpId(
+          Access.StoredValue, [&](ValueId ValId) { addStore(PtrId, ValId); },
+          Access.Punned);
     });
   }
 
-  // Field-insensitively an atomicrmw is a store of the new value plus a load
-  // of the old one; cmpxchg likewise, into its { ty, i1 } result.
-  void handleAtomicAccess(const llvm::Instruction *I, const llvm::Value *Ptr,
-                          const llvm::Value *NewVal) {
-    const bool Punned = isPunnedPointerAccess(Ptr, NewVal->getType());
-    if (!Punned && definitelyContainsNoPointer(NewVal)) {
-      return;
-    }
-    const ValueId DstId = getOrInsertVar(PAGVariable(I));
-    forEachOpId(Ptr, [&](ValueId PtrId) {
+  void handleAtomicAccess(const LLVMMemoryAccess &Access) {
+    const ValueId DstId = getOrInsertVar(PAGVariable(Access.LoadedInto));
+    forEachOpId(Access.Pointer, [&](ValueId PtrId) {
       forEachOpId(
-          NewVal, [&](ValueId ValId) { addStore(PtrId, ValId); }, Punned);
+          Access.StoredValue, [&](ValueId ValId) { addStore(PtrId, ValId); },
+          Access.Punned);
       addLoad(PtrId, DstId);
     });
   }
@@ -1012,11 +982,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     });
   }
 
-  void handleLoad(const llvm::LoadInst *L) {
-    if (definitelyContainsNoPointer(L) &&
-        !isPunnedPointerAccess(L->getPointerOperand(), L->getType())) {
-      return;
-    }
+  void handleLoad(const llvm::LoadInst *L, const LLVMMemoryAccess &Access) {
     if (CurrentMemSSA) {
       llvm::SmallPtrSet<const llvm::StoreInst *, 4> Defs;
       const bool HasLiveOnEntry = collectReachingDefs(L, *CurrentMemSSA, Defs);
@@ -1028,27 +994,27 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
             addPtrAlias(L, ValueOp);
             return;
           }
-          // Non-pointer or ConstantExpr store value: fall through to addLoad.
-        } else {
-          const ValueId DstId = getOrInsertVar(PAGVariable(L));
-          bool AnyEdge = false;
-          for (const auto *Def : Defs) {
-            forEachOpId(Def->getValueOperand(), [&](ValueId SrcId) {
-              addAssignEdge(SrcId, DstId);
-              AnyEdge = true;
-            });
-          }
-          if (AnyEdge) {
-            return;
-          }
-          // All reaching stores have non-pointer value operands:
-          // fall through to addLoad.
+          // A ConstantExpr cannot be aliased with, but its leaves can still be
+          // assigned from below.
         }
+
+        const ValueId DstId = getOrInsertVar(PAGVariable(L));
+        bool AnyEdge = false;
+        for (const auto *Def : Defs) {
+          forEachOpId(Def->getValueOperand(), [&](ValueId SrcId) {
+            addAssignEdge(SrcId, DstId);
+            AnyEdge = true;
+          });
+        }
+        if (AnyEdge) {
+          return;
+        }
+        // All reaching stores have non-pointer value operands:
+        // fall through to addLoad.
       }
     }
     const ValueId DstId = getOrInsertVar(PAGVariable(L));
-    forEachOpId(L->getPointerOperand(),
-                [&](ValueId PtrId) { addLoad(PtrId, DstId); });
+    forEachOpId(Access.Pointer, [&](ValueId PtrId) { addLoad(PtrId, DstId); });
   }
 
   void handleMemTransfer(const llvm::MemTransferInst *M) {

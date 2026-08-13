@@ -66,6 +66,7 @@ set(lca_files
   indirection_10.cpp
   memssa_kill_01.c
   memssa_branch_01.c
+  memssa_constexpr_def.c
   loop_carried_load.c
 )
 

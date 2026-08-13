@@ -1766,6 +1766,24 @@ TEST(AndersenOTFAATest, A4_AtomicExchangeIsAStoreAndALoad) {
   doAnalysisAndCheckExact("andersen_otf_bug_a4_atomics_c_dbg.ll", Expected);
 }
 
+TEST(AndersenOTFAATest, MemSSAConstExprDefAssignsLeaves) {
+  // The load's single reaching def stores a ConstantExpr GEP of A. That value
+  // cannot be aliased with, but its leaves still are, so the load must not
+  // pick up the B that the earlier indirect store also put into P.
+  const TSL Load = TSL(LineColFunOp{.Line = 13,
+                                    .Col = 0,
+                                    .InFunction = "main",
+                                    .OpCode = llvm::Instruction::Load});
+  const TSL A = TSL(GlobalVar{.Name = "A"});
+  const TSL B = TSL(GlobalVar{.Name = "B"});
+  const GTMap Expected = {
+      {Load, {Load, A}},
+      {A, {A, Load}},
+      {B, {B}},
+  };
+  doAnalysisAndCheckExact("memssa_constexpr_def_c_dbg.ll", Expected);
+}
+
 TEST(AndersenOTFAATest, B1_ContextsDoNotComposeAtK1) {
   // context_04_1: id3 -> id2 -> id1, called four times from main.  k = 1 makes
   // withPrefix drop the caller string, so all four id3 clones feed the single
