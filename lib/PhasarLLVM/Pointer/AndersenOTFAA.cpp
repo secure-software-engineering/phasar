@@ -374,6 +374,8 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
   Compressor<CallCtx, CallingContextId> Contexts;
   ContextualNodeTable CtxNodes;
   llvm::DenseMap<const llvm::Function *, bool> SelectedCache;
+  // Subset of SelectedCache selected by AllowList; exempt from the budget.
+  llvm::DenseSet<const llvm::Function *> AllowListed;
   llvm::DenseMap<const llvm::Function *, unsigned> CallSiteCounts;
   // Contexts already instantiated per selected function; see calleeContext().
   llvm::DenseMap<const llvm::Function *,
@@ -1430,6 +1432,10 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
       return false;
     }
     if (matchesAny(AllowPatterns, Name)) {
+      // An explicit user request outranks the budget, in calleeContext too --
+      // a function that is selected but capped at one context is selected in
+      // name only.
+      AllowListed.insert(Fun);
       return true;
     }
     switch (CSOpts.SelectionMode) {
@@ -1611,10 +1617,9 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     return Contexts.getOrInsert(Contexts[CallerCtx].withPrefix(CS));
   }
 
-  // The context the body of Callee runs in for this call.  Once Callee has
-  // been cloned MaxContextsPerFunction times, further call sites fall back to
-  // the shared root context -- sound, just as imprecise as before, and it
-  // keeps one heavily-called function from consuming the whole node budget.
+  // The context the body of Callee runs in for this call. Once Callee has
+  // been cloned MaxContextsPerFunction times, or the global node budget is
+  // spent, further call sites fall back to the shared root context.
   CallingContextId calleeContext(const llvm::Function *Callee,
                                  CallingContextId CallerCtx,
                                  const llvm::CallBase *CS) {
@@ -1626,7 +1631,8 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     if (Seen.contains(Ctx)) {
       return Ctx;
     }
-    if (Seen.size() >= CSOpts.MaxContextsPerFunction) {
+    if (Seen.size() >= CSOpts.MaxContextsPerFunction ||
+        (budgetExhausted() && !AllowListed.contains(Callee))) {
       return CallingContextId::None;
     }
     Seen.insert(Ctx);

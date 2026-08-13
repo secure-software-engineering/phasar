@@ -54,20 +54,25 @@ struct ContextSensitivityOptions {
   std::vector<std::string> AllowList{};
   std::vector<std::string> DenyList{};
   /// Hard cap on context-qualified PAG nodes.  Once reached, no function is
-  /// newly selected for the rest of the run: sound, just less precise.
-  size_t MaxContextualNodes = 200'000;
+  /// newly selected and no already-selected function gets a further context:
+  /// sound, just less precise.  This is the knob that bounds run time; solve
+  /// time grows super-linearly in the node count, so raising it is not a
+  /// proportional trade.
+  size_t MaxContextualNodes = 20'000;
   /// Cap on distinct calling contexts per function; further call sites fall
   /// back to the shared root context.  A selected function costs one clone of
   /// its whole body per context, so without this a single hot function can
   /// consume \c MaxContextualNodes on its own.
-  unsigned MaxContextsPerFunction = 8;
+  unsigned MaxContextsPerFunction = 32;
   /// \c Mode::Dynamic only: functions with more LLVM instructions than this
   /// are never selected.  Cloning a large body per context is expensive, and
   /// large functions are rarely the point where callers merge.
   unsigned MaxContextualFunctionSize = 256;
   /// \c Mode::Dynamic only: tighter size limit for the weaker signal where
-  /// the merged parameters never leave the function body.
-  unsigned MaxLocalMergeFunctionSize = 32;
+  /// the merged parameters never leave the function body.  Off by default:
+  /// that signal's only payoff is formal-vs-formal aliasing inside the body,
+  /// which \c buildResult unions back together across contexts anyway.
+  unsigned MaxLocalMergeFunctionSize = 0;
 
   [[nodiscard]] constexpr bool isOff() const noexcept {
     return SelectionMode == Mode::Off;

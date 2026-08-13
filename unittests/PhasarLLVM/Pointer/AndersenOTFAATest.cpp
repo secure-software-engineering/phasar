@@ -354,6 +354,23 @@ TEST(AndersenOTFAATest, ContextBudgetZeroMatchesInsensitive) {
                           csOpts(CSMode::All, {}, {}, /*Budget=*/0));
 }
 
+TEST(AndersenOTFAATest, ContextBudgetDoesNotOverrideAllowList) {
+  // The budget also gates calleeContext, but an allow-listed function must
+  // still get its clones -- selected-but-uncloned is selected in name only.
+  const TSL Arg = TSL(ArgInFun{.Idx = 0, .InFunction = "id"});
+  const TSL Call1 = TSL(LineColFunOp{.Line = 8,
+                                     .Col = 0,
+                                     .InFunction = "main",
+                                     .OpCode = llvm::Instruction::Call});
+  const TSL Call2 = TSL(LineColFunOp{.Line = 9,
+                                     .Col = 0,
+                                     .InFunction = "main",
+                                     .OpCode = llvm::Instruction::Call});
+  const GTMap Expected = {{Call1, {Arg, Call1}}, {Call2, {Arg, Call2}}};
+  doAnalysisAndCheckExact("context_01_c_dbg.ll", Expected,
+                          csOpts(CSMode::Manual, {"id"}, {}, /*Budget=*/0));
+}
+
 TEST(AndersenOTFAATest, ContextManualAllowListSelectsOneFunction) {
   // Only 'id' is allow-listed, so it gets per-call-site clones.
   const TSL Arg = TSL(ArgInFun{.Idx = 0, .InFunction = "id"});
