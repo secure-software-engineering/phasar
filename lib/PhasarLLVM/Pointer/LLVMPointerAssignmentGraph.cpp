@@ -263,6 +263,16 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
       return handleLoad(Strategy, Load);
     }
 
+    if (const auto *RMW = llvm::dyn_cast<llvm::AtomicRMWInst>(&I)) {
+      return handleAtomicAccess(Strategy, RMW, RMW->getPointerOperand(),
+                                RMW->getValOperand());
+    }
+
+    if (const auto *CX = llvm::dyn_cast<llvm::AtomicCmpXchgInst>(&I)) {
+      return handleAtomicAccess(Strategy, CX, CX->getPointerOperand(),
+                                CX->getNewValOperand());
+    }
+
     if (const auto *Cast = llvm::dyn_cast<llvm::CastInst>(&I)) {
       return handleCast(Strategy, Cast);
     }
@@ -337,6 +347,27 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
         auto ValueObj = getVariable(ValueOp, Strategy);
         addEdge(Strategy, ValueObj, PointerObj, StorePOI{}, Store);
       });
+    });
+  }
+
+  // Field-insensitively an atomicrmw is a store of the new value plus a load
+  // of the old one; cmpxchg likewise, into its { ty, i1 } result.
+  void handleAtomicAccess(LLVMPBStrategyRef Strategy,
+                          const llvm::Instruction *I, const llvm::Value *Ptr,
+                          const llvm::Value *NewVal) {
+    if (definitelyContainsNoPointer(NewVal) &&
+        !isPunnedPointerAccess(Ptr, NewVal->getType())) {
+      return;
+    }
+
+    auto DstObj = getVariable(I, Strategy);
+    handleOperand(Ptr, [&](const auto *PointerOp) {
+      auto PointerObj = getVariable(PointerOp, Strategy);
+      handleOperand(NewVal, [&](const auto *ValueOp) {
+        auto ValueObj = getVariable(ValueOp, Strategy);
+        addEdge(Strategy, ValueObj, PointerObj, StorePOI{}, I);
+      });
+      addEdge(Strategy, PointerObj, DstObj, Load{}, I);
     });
   }
 

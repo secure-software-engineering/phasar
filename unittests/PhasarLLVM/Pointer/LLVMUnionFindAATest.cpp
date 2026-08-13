@@ -7356,6 +7356,71 @@ TEST(BotUnionFindAATest, PointerPunning01) {
 }
 
 // ---------------------------------------------------------------------------
+// Atomic read-modify-write tests
+//
+// Clang lowers the pointer exchange to `atomicrmw xchg ptr %P, i64 ...`.
+// Flow-insensitively P holds both A and B, so the exchanged-out value and the
+// reloaded one each alias both.  Without the atomicrmw case in dispatch, none
+// of these are related at all.
+//
+// AndersenOTFAATest keeps A and B apart here; a union-find cannot, since both
+// reach the same loads and a single equivalence class is all it can express.
+// ---------------------------------------------------------------------------
+
+static const TestingSrcLocation AtomicsA =
+    OperandOf{.OperandIndex = 0,
+              .Inst = LineColFunOp{.Line = 6,
+                                   .Col = 0,
+                                   .InFunction = "main",
+                                   .OpCode = llvm::Instruction::Store}};
+static const TestingSrcLocation AtomicsB =
+    OperandOf{.OperandIndex = 0,
+              .Inst = LineColFunOp{.Line = 7,
+                                   .Col = 0,
+                                   .InFunction = "main",
+                                   .OpCode = llvm::Instruction::Store}};
+static const TestingSrcLocation AtomicsExchanged =
+    LineColFunOp{.Line = 8,
+                 .Col = 0,
+                 .InFunction = "main",
+                 .OpCode = llvm::Instruction::AtomicRMW};
+static const TestingSrcLocation AtomicsOldVal =
+    LineColFunOp{.Line = 10,
+                 .Col = 0,
+                 .InFunction = "main",
+                 .OpCode = llvm::Instruction::Load};
+static const TestingSrcLocation AtomicsCurVal =
+    LineColFunOp{.Line = 11,
+                 .Col = 0,
+                 .InFunction = "main",
+                 .OpCode = llvm::Instruction::Load};
+
+static const std::vector<TestingSrcLocation> AtomicsAll = {
+    AtomicsA, AtomicsB, AtomicsExchanged, AtomicsOldVal, AtomicsCurVal};
+
+static const GTMap AtomicsGT = {
+    {AtomicsA, AtomicsAll},
+    {AtomicsB, AtomicsAll},
+    {AtomicsOldVal, AtomicsAll},
+    {AtomicsCurVal, AtomicsAll},
+};
+
+TEST(CtxSensUnionFindAATest, AtomicExchange) {
+  doAnalysisAndCompareResults("andersen_otf_bug_a4_atomics_c_dbg.ll", AtomicsGT,
+                              ContextAABuilder);
+}
+
+TEST(IndirectionSensUnionFindAATest, AtomicExchange) {
+  doAnalysisAndCompareResults("andersen_otf_bug_a4_atomics_c_dbg.ll", AtomicsGT,
+                              IndAABuilder);
+}
+
+TEST(BotUnionFindAATest, AtomicExchange) {
+  doAnalysisAndCompareResults("andersen_otf_bug_a4_atomics_c_dbg.ll", AtomicsGT,
+                              BotAABuilder);
+}
+
+// ---------------------------------------------------------------------------
 // MemorySSA flow-sensitivity tests
 //
 // These tests verify that LLVMPAGBuilder::withBuiltinMemSSA() connects each
