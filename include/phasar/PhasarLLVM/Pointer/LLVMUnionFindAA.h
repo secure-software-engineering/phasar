@@ -55,7 +55,8 @@ namespace pag {
 /// LLVMCGProvider> implement PBStrategy.
 class LLVMCGProvider : public LLVMPAGDomain {
 public:
-  constexpr LLVMCGProvider(NonNullPtr<const LLVMBasedCallGraph> CG) noexcept
+  constexpr LLVMCGProvider(
+      NonNullPtr<const LLVMBasedCallGraph> CG PSR_LIFETIMEBOUND) noexcept
       : CG(CG) {}
 
   void withCalleesOfCallAt(n_t Inst,
@@ -170,7 +171,8 @@ struct LLVMUnionFindAliasIterator
   MaybeUniquePtr<const ValueCompressor<PAGVariable>> VC;
 
   constexpr LLVMUnionFindAliasIterator(
-      AAResT &&AARes, MaybeUniquePtr<const ValueCompressor<PAGVariable>> VC)
+      AAResT &&AARes,
+      MaybeUniquePtr<const ValueCompressor<PAGVariable>> VC PSR_LIFETIMEBOUND)
       : psr::LLVMUnionFindAliasIteratorMixin<LLVMUnionFindAliasIterator<AAResT>,
                                              AAResT>{PSR_FWD(AARes)},
         VC(std::move(VC)) {}
@@ -327,7 +329,8 @@ class LLVMLocalUnionFindAliasIterator
 
 public:
   LLVMLocalUnionFindAliasIterator(
-      AAResT &&AARes, NonNullPtr<const ValueCompressor<PAGVariable>> VC)
+      AAResT &&AARes,
+      NonNullPtr<const ValueCompressor<PAGVariable>> VC PSR_LIFETIMEBOUND)
       : LLVMLocalUnionFindAliasIteratorMixin<
             LLVMLocalUnionFindAliasIterator<AAResT>, AAResT>(PSR_FWD(AARes),
                                                              *VC),
@@ -414,10 +417,10 @@ computeBotCtxIndSensUnionFindAARaw(
 template <pag::PBStrategy AnalysisT,
           std::derived_from<PAGBuilder<LLVMPAGDomain>> PAGBuilderImpl =
               LLVMPAGBuilder>
-[[nodiscard]] inline IsLLVMAliasIterator auto
-computeUnionFindAA(const LLVMProjectIRDB &IRDB, AnalysisT &&Ana,
-                   MaybeUniquePtr<ValueCompressor<PAGVariable>> VC = nullptr,
-                   PAGBuilderImpl Impl = LLVMPAGBuilder::withBuiltinMemSSA()) {
+[[nodiscard]] inline IsLLVMAliasIterator auto computeUnionFindAA(
+    const LLVMProjectIRDB &IRDB, AnalysisT &&Ana,
+    MaybeUniquePtr<ValueCompressor<PAGVariable>> VC PSR_LIFETIMEBOUND = nullptr,
+    PAGBuilderImpl Impl = LLVMPAGBuilder::withBuiltinMemSSA()) {
   if (!VC) {
     VC = std::make_unique<ValueCompressor<PAGVariable>>();
   }
@@ -433,11 +436,10 @@ computeUnionFindAA(const LLVMProjectIRDB &IRDB, AnalysisT &&Ana,
 template <pag::CanOnAddEdge AnalysisT,
           std::derived_from<PAGBuilder<LLVMPAGDomain>> PAGBuilderImpl =
               LLVMPAGBuilder>
-[[nodiscard]] inline IsLLVMAliasIterator auto
-computeUnionFindAA(const LLVMProjectIRDB &IRDB, AnalysisT &&Ana,
-                   const LLVMBasedCallGraph &CG,
-                   MaybeUniquePtr<ValueCompressor<PAGVariable>> VC = nullptr,
-                   PAGBuilderImpl Impl = LLVMPAGBuilder::withBuiltinMemSSA()) {
+[[nodiscard]] inline IsLLVMAliasIterator auto computeUnionFindAA(
+    const LLVMProjectIRDB &IRDB, AnalysisT &&Ana, const LLVMBasedCallGraph &CG,
+    MaybeUniquePtr<ValueCompressor<PAGVariable>> VC PSR_LIFETIMEBOUND = nullptr,
+    PAGBuilderImpl Impl = LLVMPAGBuilder::withBuiltinMemSSA()) {
   auto Strategy = pag::PBMixin{
       PSR_FWD(Ana),
       pag::LLVMCGProvider{&CG},
@@ -446,26 +448,31 @@ computeUnionFindAA(const LLVMProjectIRDB &IRDB, AnalysisT &&Ana,
 }
 
 [[nodiscard]] LLVMUnionFindAliasIterator<CallingContextSensUnionFindAAResult>
-computeCtxSensUnionFindAA(
-    const LLVMProjectIRDB &IRDB, const LLVMBasedCallGraph &CG,
-    MaybeUniquePtr<ValueCompressor<PAGVariable>> VC = nullptr);
+computeCtxSensUnionFindAA(const LLVMProjectIRDB &IRDB,
+                          const LLVMBasedCallGraph &CG,
+                          MaybeUniquePtr<ValueCompressor<PAGVariable>> VC
+                              PSR_LIFETIMEBOUND = nullptr);
 [[nodiscard]] LLVMUnionFindAliasIterator<BasicUnionFindAAResult>
-computeBotCtxSensUnionFindAA(
-    const LLVMProjectIRDB &IRDB, const LLVMBasedCallGraph &CG,
-    MaybeUniquePtr<ValueCompressor<PAGVariable>> VC = nullptr);
+computeBotCtxSensUnionFindAA(const LLVMProjectIRDB &IRDB,
+                             const LLVMBasedCallGraph &CG,
+                             MaybeUniquePtr<ValueCompressor<PAGVariable>> VC
+                                 PSR_LIFETIMEBOUND = nullptr);
 [[nodiscard]] LLVMUnionFindAliasIterator<BasicUnionFindAAResult>
-computeIndSensUnionFindAA(
-    const LLVMProjectIRDB &IRDB, const LLVMBasedCallGraph &CG,
-    MaybeUniquePtr<ValueCompressor<PAGVariable>> VC = nullptr);
+computeIndSensUnionFindAA(const LLVMProjectIRDB &IRDB,
+                          const LLVMBasedCallGraph &CG,
+                          MaybeUniquePtr<ValueCompressor<PAGVariable>> VC
+                              PSR_LIFETIMEBOUND = nullptr);
 [[nodiscard]] LLVMUnionFindAliasIterator<UnionFindAAResultIntersection<
     CallingContextSensUnionFindAAResult, BasicUnionFindAAResult>>
-computeCtxIndSensUnionFindAA(
-    const LLVMProjectIRDB &IRDB, const LLVMBasedCallGraph &CG,
-    MaybeUniquePtr<ValueCompressor<PAGVariable>> VC = nullptr);
+computeCtxIndSensUnionFindAA(const LLVMProjectIRDB &IRDB,
+                             const LLVMBasedCallGraph &CG,
+                             MaybeUniquePtr<ValueCompressor<PAGVariable>> VC
+                                 PSR_LIFETIMEBOUND = nullptr);
 [[nodiscard]] LLVMUnionFindAliasIterator<UnionFindAAResultIntersection<
     BasicUnionFindAAResult, BasicUnionFindAAResult>>
-computeBotCtxIndSensUnionFindAA(
-    const LLVMProjectIRDB &IRDB, const LLVMBasedCallGraph &CG,
-    MaybeUniquePtr<ValueCompressor<PAGVariable>> VC = nullptr);
+computeBotCtxIndSensUnionFindAA(const LLVMProjectIRDB &IRDB,
+                                const LLVMBasedCallGraph &CG,
+                                MaybeUniquePtr<ValueCompressor<PAGVariable>> VC
+                                    PSR_LIFETIMEBOUND = nullptr);
 
 } // namespace psr

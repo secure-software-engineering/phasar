@@ -344,8 +344,8 @@ public:
   using db_t = typename AnalysisDomainT::db_t;
 
   constexpr CallingContextSensUnionFindAA(
-      NonNullPtr<const CallGraph<n_t, f_t>> CG,
-      NonNullPtr<const db_t> IRDB) noexcept
+      NonNullPtr<const CallGraph<n_t, f_t>> CG PSR_LIFETIMEBOUND,
+      NonNullPtr<const db_t> IRDB PSR_LIFETIMEBOUND) noexcept
       : CG(CG), IRDB(IRDB) {}
 
   void onAddEdge(ValueId From, ValueId To, pag::Edge E,
