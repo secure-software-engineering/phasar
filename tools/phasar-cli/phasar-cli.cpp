@@ -464,8 +464,10 @@ int main(int Argc, const char **Argv) {
 
   auto EntryPoints = setupIRAndEntrypoints(*IRDB);
 
-  llvm::SmallString<128> ProjectId(llvm::sys::path::filename(ProjectIdOpt));
+  // create project id
+  llvm::SmallString<128> ProjectId(ProjectIdOpt);
   if (ProjectId.empty()) {
+    ProjectId.assign(llvm::sys::path::filename(ModuleOpt));
     llvm::sys::path::replace_extension(ProjectId, {});
     if (ProjectId.empty()) {
       ProjectId = "default-phasar-project";
