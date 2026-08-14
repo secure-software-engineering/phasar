@@ -7409,17 +7409,17 @@ static const GTMap AtomicsGT = {
 };
 
 TEST(CtxSensUnionFindAATest, AtomicExchange) {
-  doAnalysisAndCompareResults("andersen_otf_bug_a4_atomics_c_dbg.ll", AtomicsGT,
+  doAnalysisAndCompareResults("andersen_otf_atomics_c_dbg.ll", AtomicsGT,
                               ContextAABuilder);
 }
 
 TEST(IndirectionSensUnionFindAATest, AtomicExchange) {
-  doAnalysisAndCompareResults("andersen_otf_bug_a4_atomics_c_dbg.ll", AtomicsGT,
+  doAnalysisAndCompareResults("andersen_otf_atomics_c_dbg.ll", AtomicsGT,
                               IndAABuilder);
 }
 
 TEST(BotUnionFindAATest, AtomicExchange) {
-  doAnalysisAndCompareResults("andersen_otf_bug_a4_atomics_c_dbg.ll", AtomicsGT,
+  doAnalysisAndCompareResults("andersen_otf_atomics_c_dbg.ll", AtomicsGT,
                               BotAABuilder);
 }
 

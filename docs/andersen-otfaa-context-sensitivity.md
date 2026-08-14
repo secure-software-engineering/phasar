@@ -1,5 +1,11 @@
 # Opt-in context-sensitivity for AndersenOTFAA
 
+> This document describes the *design*; where the implementation diverges
+> from it, the divergence is noted inline. Two divergences are load-bearing
+> for anyone tuning the feature: precision does not compose down the call
+> chain at k = 1 (Section 5.3), and functions first reached as callbacks
+> fall back to the root context (Section 5.5).
+
 ## 1. Problem
 
 AndersenOTFAA (`AndersenOTFSolver::SolverData` in
@@ -221,6 +227,21 @@ but this function wasn't selected") genuinely zero marginal cost, not just
 an equivalent-result cost — `LocalVC` and its scans never see a
 `ContextualVar`.
 
+That "zero marginal cost" claim is about the **off** path only, and the
+implementation bears it out: with `Mode::Off` the side table is never
+resized. It does *not* extend to the on path, where the side table's
+`Id2Vars` is not small. Contextual ids come from `LocalVC.addDummy()` and
+are therefore interleaved with `LocalVC`'s own inserts, so
+`recordVar`'s `Id2Vars.resize(size_t(Id) + 1)` grows the vector toward the
+*total* node count — one mostly-empty
+`SmallVector<ContextualVar, 1>` per node, contextual or not.
+
+This is a deliberate trade, not an oversight: `forEachVar` is the hottest
+accessor in the solver (per pts-element, per object, per fixpoint round),
+and a contiguous `inbounds`-checked index is worth more there than the
+memory a `DenseMap<ValueId, ...>` would save. Do not convert it without
+measuring.
+
 ### 5.2a Function bodies are translated once per context
 
 Cloning only formals, return slot and allocation sites is *not* enough: a
@@ -242,14 +263,11 @@ body must be re-translated once per context. Concretely:
 
 This is the source of the per-round record-count growth in Section 8.
 
-This matters beyond interning cost: `id2vars(ObjId)` is rescanned every
-outer fixpoint round inside `resolveStructVCall`/`resolveVtableCall`/
-`resolveFieldWrite`, not just once during PAG construction. A single wider
-key type for *all* nodes would double that recurring cost even with the
-feature off. Splitting the tables makes "context-sensitivity off" (or "on
-but this function wasn't selected") genuinely zero marginal cost, not just
-an equivalent-result cost — `LocalVC` and its scans never see a
-`ContextualVar`.
+Note that `Queued` alone already makes each `(F, Ctx)` pair reachable once:
+every `FunctionWorklist` push is guarded by `Queued.insert(...).second`, so
+`Processed` is a second source of truth that the implementation never
+actually consults for a distinct answer. It costs a
+`DenseSet<FuncCtx>` whose size scales with contexts, not just functions.
 
 ### 5.3 Context-sensitive call/return
 
@@ -288,6 +306,28 @@ Allocation sites inside a selected function are cloned the same way:
 `getOrInsertObj(PAGVariable(AllocSite), CalleeCtx)`. This directly
 generalizes `isAllocWrapper` (Section 6).
 
+**Precision does not compose down the call chain at k = 1.** `pushContext`
+takes the caller's context, but `CallingContext<N, 1>::withPrefix` discards
+the existing frame, so the resulting context depends on the call site
+alone. Contexts are in bijection with call sites, and selecting a caller
+buys its callees nothing:
+
+- `F` is selected and cloned into `F@C1` and `F@C2`.
+- Both clones call `G` at the same call site `CS`.
+- `calleeContext(G, C1, CS)` and `calleeContext(G, C2, CS)` both yield
+  `{CS}`, so both clones bind their actuals into the *same* `G@{CS}`
+  formals.
+- `G`'s return slot then flows the re-merged set back to the call-site
+  nodes in both `C1` and `C2`.
+
+So the precision gain is exactly one call-site frame deep, at the selected
+function itself. Selecting a whole call chain via `AllowList` does not
+deepen it — only raising k would, and Section 11's first open question
+explains why that is not a free knob (`MaxContextsPerFunction` would bind
+almost immediately, paying k = 2 costs for k = 1 precision on hot
+functions). Tune `AllowList` on the assumption that the function you name
+is the *only* one that gains.
+
 ### 5.4 Selection ("opt-in")
 
 A single `SelectionMode` enum, coarsest to finest:
@@ -319,8 +359,10 @@ of:
   then only make the formals alias *within* the body -- the `end(p, q)`
   case of Section 1, which returns void and dispatches nothing. Common
   enough on C++ (`this` plus one pointer argument matches most methods),
-  so it is gated on the much tighter `MaxLocalMergeFunctionSize` (32
-  instructions), where a clone is nearly free.
+  so it is gated on the much tighter `MaxLocalMergeFunctionSize`, where a
+  clone is nearly free. **Off by default** (`0`) since Section 7.1: the
+  tier is measurably inert, because the aliasing it recovers is exactly
+  what `buildResult` unions back together across contexts.
 
 "Param-derived" is a backward def-use walk (casts / GEPs / loads / phis /
 selects, continuing through values stored into a local alloca to cover
@@ -336,15 +378,17 @@ a selected function costs one clone of its *entire body* per context
 Two budgets bound the cost, both sound (strictly less precise, never
 incorrect):
 
-- **`MaxContextsPerFunction`** (default 8, applies in every on-mode) caps
-  how many contexts one function may be cloned into. Past it, further call
-  sites fall back to the shared root context. This is the important one for
-  large inputs: without it a single function called from 400 sites costs
-  400 body clones, and the shared node budget below would be spent on it
-  alone. It also answers what was open question 2.
-- **`MaxContextualNodes`** (default 200k) caps context-qualified nodes
-  globally. Once reached, no *further* function is selected for the rest of
-  the run.
+- **`MaxContextsPerFunction`** (default 32) caps how many contexts one
+  function may be cloned into. Past it, further call sites fall back to the
+  shared root context. Without it a single function called from 400 sites
+  costs 400 body clones. It also answers what was open question 2.
+- **`MaxContextualNodes`** (default 20k) caps context-qualified nodes
+  globally. Once reached, no *further* function is selected **and no
+  already-selected function gets a further context**. The second half is
+  what makes it a cost governor at all: selection is decided and memoized
+  on first encounter, before any clone of that function exists, so gating
+  selection alone lets the functions selected in the first few rounds keep
+  minting contexts arbitrarily far past the budget (Section 7.1).
 
 Because selection is decided and cached on first query, and the solver's
 traversal order is deterministic, which functions fit inside the budgets is
@@ -388,6 +432,31 @@ enough to matter.
 Consequently there is no promotion event, no mid-solve restart, and no
 extra convergence round. `run()`'s `do { ... } while (...)` loop is
 unchanged except for the worklist element type (Section 5.3).
+
+**Exception: callback-reachable functions.** `addFnPtrArgsAsEntries` queues
+every function that reaches a declaration's fn-ptr argument as a new entry
+point at `CallingContextId::None`, without consulting `isSelected`. A
+selected function that is *first* reached this way therefore has its root
+clone wired before any contextual clone exists — structurally the same
+situation this section argues against, and with the same consequence: what
+the root clone already propagated stays propagated, so the contextual
+clones created later by direct call sites recover less than they would
+have.
+
+This is inherent, not an oversight. A callback has no known call site by
+construction, so there is no call string to push and the root context is
+the only sound answer available. Minting a synthetic context per
+callback-introducing call site would recover the precision but changes the
+context domain from "call site" to "call site or callback origin" and
+burns `MaxContextsPerFunction` on sites that share no useful structure —
+not worth it.
+
+Practical consequence: a function that is both called directly and passed
+as a callback keeps a merged root clone *alongside* its contextual clones,
+and `buildResult` unions the two (Section 5.3's note on shared external
+ids). Expect selection to under-deliver on exactly the callback-heavy C
+idioms — `qsort`-style comparators, dispatch tables handed to library
+code — that `Mode::Dynamic` is otherwise most likely to pick.
 
 ### 5.6 Soundness and termination
 
@@ -435,6 +504,10 @@ unchanged except for the worklist element type (Section 5.3).
   `FnPtrFieldWrites` (via `FieldWriteKey`), `FieldsByObject` and
   `ImpureObjects`; the context comes straight off the `ContextualVar` that
   `forEachVar` yields for the object node, so no extra plumbing is needed.
+  Both overloads must resolve their recorded pointer through `rep()` before
+  reading `PtsSet`: once that pointer is collapsed into an SCC its
+  `NodeInfo` is cleared, so a non-representative reads empty and nothing
+  gets poisoned.
 - **`resolveStructVCall`/`resolveFPCall`/`resolveVtableCall`**: unaffected
   in structure; they already snapshot `PtsSet` by value/reference and loop
   per-object — context only changes what a "formal parameter" or "object"
@@ -449,10 +522,78 @@ unchanged except for the worklist element type (Section 5.3).
 | k-limit | 1 (compile-time) | Call-string depth; bounds context count per function |
 | `SelectionMode::Dynamic` | -- | Scopes cloning to syntactically precision-critical functions |
 | `AllowList` / `DenyList` | empty | User override; deny always wins |
-| `MaxContextsPerFunction` | 8 | Per-function clone cap; extra call sites fall back to root |
+| `MaxContextsPerFunction` | 32 | Per-function clone cap; extra call sites fall back to root |
 | `MaxContextualFunctionSize` | 256 insts | `Dynamic` only: skips functions too big to clone |
-| `MaxLocalMergeFunctionSize` | 32 insts | `Dynamic` only: tighter cap for the weak signal |
-| `MaxContextualNodes` | 200k | Global hard cap; selects no further function past it |
+| `MaxLocalMergeFunctionSize` | 0 (off) | `Dynamic` only: tighter cap for the weak signal |
+| `MaxContextualNodes` | 20k | Global cost governor: past it, no further function is selected and no selected function gets a further context. `AllowList` matches are exempt from the selection half (see below) |
+
+`MaxContextualNodes` is not an absolute ceiling. `computeIsSelected` tests
+`DenyList`, then `AllowList`, and only then consults `budgetExhausted()`,
+so an allow-listed function is selected however much budget is already
+spent. That is deliberate: silently ignoring an explicit user request
+because an unrelated function got there first would be worse than
+overshooting the budget, and the outcome would depend on function
+processing order. The cap governs what `Mode::Dynamic`/`Mode::All` infer on
+their own. Size an `AllowList` accordingly — it is a commitment, not a
+request.
+
+### 7.1 How the defaults were chosen (measured)
+
+The original constants were tuned on coreutils alone and did not transfer:
+`Dynamic` recovered ~100% of `Mode::All`'s precision there but only 31% on
+`readelf` and 34% on `lrzip`, while costing 6.9x on `bison` for a 1.0%
+gain. Re-tuned against six programs from the `ir-15` corpus, release build,
+entry point `main`; precision is total alias entries (sum of alias-set
+sizes over all external values), lower is better.
+
+| program | insts | `Off` | old defaults | **new defaults** | `All` |
+|---|---|---|---|---|---|
+| bison | 119k | 83.594M / 1.17s | 82.764M / 7.99s | 82.764M / **3.46s** | 82.764M / 10.7s |
+| readelf | 103k | 38.443M / 0.54s | 37.242M / 0.59s | **24.627M** / 0.56s | 34.537M / 1.41s |
+| lrzip | 77k | 12.887M / 0.45s | 12.840M / 1.20s | **12.708M** / 2.10s | 12.748M / 1.37s |
+| mjs | 38k | 1.2364M / 0.05s | 1.2306M / 0.09s | **1.2225M** / 0.13s | 1.2306M / 0.09s |
+| cxxfilt | 336k | 9.010M / 0.16s | 8.104M / 0.32s | 8.104M / 0.38s | 8.104M / 0.56s |
+| lepton | 233k | 232.30M / 2.11s | 227.88M / 4.88s | 231.58M / **3.44s** | 227.76M / 15.4s |
+
+What each change is buying:
+
+- **`MaxContextsPerFunction` 8 -> 32** is the precision change. The cap was
+  binding constantly on exactly the functions worth cloning. `readelf` has
+  a cliff between 24 and 28 contexts: 35.23M at 24, 24.84M at 28. Below the
+  cliff the analysis pays for 8 clones of a hot function *and still* merges
+  its remaining callers into the root clone -- the worst of both. `lrzip`,
+  `mjs` and `cxxfilt` improve as well; `bison` is indifferent.
+- **`MaxContextualNodes` 200k -> 20k** is the cost change, and only works
+  together with the `calleeContext` half of the check. Peak usage was 89k
+  nodes (`bison`, at 32 contexts) and 10-21k everywhere else, so the old
+  value could never bind. Raising the context cap alone puts `bison` at
+  42s; with the budget it is 3.46s -- *faster than the old defaults* -- at
+  identical precision, because every `bison` context past ~20k nodes bought
+  0.0008%. Time is super-linear in the node count: `bison` goes 2.6s / 3.5s
+  / 10.7s / 24.4s at budgets of 16k / 20k / 24k / 32k.
+- **`MaxLocalMergeFunctionSize` 32 -> 0** is free. Across every
+  (contexts, size, budget) combination tried, values of 0, 32 and 256
+  produced byte-identical alias counts on all six programs. The tier cannot
+  pay while `buildResult` unions a formal's clones back into one external
+  id, which is precisely the aliasing it is meant to separate. Turning it
+  off drops a body scan; it becomes worth re-enabling only if that
+  projection is fixed.
+- **`MaxContextualFunctionSize` stays 256.** 1024 buys `readelf` and
+  `lrzip` a little more and costs `bison` ~20%; 64 loses `readelf`'s cliff
+  entirely.
+
+Known trade, not papered over: **`lepton` is worse than before** (231.58M
+vs 227.88M, though 1.4x faster). It is the one program that wants a *large*
+budget -- at 32k it reaches 225.92M, beating `Mode::All`, but 32k costs
+`bison` 24.4s. No single global constant satisfies both, because the budget
+is absolute while the useful amount scales with program size. A
+size-proportional budget does not fix it either (`bison` tolerates 0.19
+nodes/instruction, `lrzip` wants 0.27). Callers that care about a specific
+large program should raise `MaxContextualNodes` explicitly.
+
+Caveat on all of the above: alias-entry count is a proxy for precision, not
+a ground-truth comparison, and six programs is still a small corpus. The
+`ptaben` ground-truth queries remain the check that matters.
 
 ## 8. Expected regressions when the feature is used
 

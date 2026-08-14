@@ -7,10 +7,6 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include "phasar/PhasarLLVM/Pointer/AndersenOTFAA.h"
-#include "phasar/Utils/Soundness.h"
-#include "phasar/Utils/Timer.h"
-
 #include "phasar.h"
 
 #include <filesystem>
@@ -36,16 +32,27 @@ int main(int Argc, const char **Argv) {
     return 1;
   }
 
-  if (const auto *MainF = HA.getProjectIRDB().getFunctionDefinition("main")) {
-    SimpleTimer Tm;
+  if (HA.getProjectIRDB().getFunctionDefinition("main")) {
+    // print type hierarchy
+    HA.getTypeHierarchy().print();
+    // print points-to information
+    HA.getAliasInfo().print();
+    // print inter-procedural control-flow graph
+    HA.getICFG().print();
 
-    std::ignore = computeAndersenOTFRaw(
-        HA.getProjectIRDB(), {MainF}, nullptr, psr::Soundness::Soundy,
-        ContextSensitivityOptions{
-            .SelectionMode = psr::ContextSensitivityOptions::Mode::Dynamic,
-        });
+    // IFDS template parametrization test
+    llvm::outs() << "Testing IFDS:\n";
+    auto L = createAnalysisProblem<IFDSSolverTest>(HA, EntryPoints);
+    IFDSSolver S(L, &HA.getICFG());
+    auto IFDSResults = S.solve();
+    IFDSResults.dumpResults(HA.getICFG());
 
-    llvm::errs() << "AndersenOTFAA elapsed: " << Tm.elapsed() << '\n';
+    // IDE template parametrization test
+    llvm::outs() << "Testing IDE:\n";
+    auto M = createAnalysisProblem<IDELinearConstantAnalysis>(HA, EntryPoints);
+    // Alternative way of solving an IFDS/IDEProblem:
+    auto IDEResults = solveIDEProblem(M, HA.getICFG());
+    IDEResults.dumpResults(HA.getICFG());
 
   } else {
     llvm::errs() << "error: file does not contain a 'main' function!\n";

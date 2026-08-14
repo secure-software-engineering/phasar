@@ -1614,20 +1614,14 @@ TEST(AndersenOTFAATest, FnPtrTableMemcpyPropagatesKnownFields) {
   EXPECT_FALSE(llvm::is_contained(BarCallees, FooImpl));
 }
 
-// ---- Known defects from docs/andersen-otfaa-review.md ---------------------
-//
-// The tests below encode the *intended* behaviour for findings that are still
-// open; each one fails against the current implementation.  The item id in
-// each comment refers to the review document.
+// ---- Regression tests for previously fixed defects ------------------------
 
-TEST(AndersenOTFAATest, A1_PoisonSurvivesSCCCollapse) {
-  // resolveFieldWrite(ValueId) never resolves its recorded pointer through
-  // rep().  pong's disqualifying store (`o->Fn = f`, f not a literal) lands
-  // on the node that LCD later folds into the ping/pong SCC, so the re-check
-  // reads the cleared non-representative and O is never poisoned -- leaving
-  // call_fn wrongly precise at {real_fn}.
+TEST(AndersenOTFAATest, PoisonSurvivesSCCCollapse) {
+  // pong's disqualifying store (`o->Fn = f`, f not a literal) lands on a node
+  // that LCD later folds into the ping/pong SCC. The re-check must resolve it
+  // through rep(), or O stays unpoisoned and call_fn is wrongly precise.
   auto IRDB = LLVMProjectIRDB::loadOrExit(
-      PathToLLFiles + "andersen_otf_bug_a1_poison_scc_c_m2r_dbg.ll");
+      PathToLLFiles + "andersen_otf_poison_scc_c_m2r_dbg.ll");
   const auto *CallFn = IRDB.getFunctionDefinition("call_fn");
   const auto *RealFn = IRDB.getFunctionDefinition("real_fn");
   const auto *OtherFn = IRDB.getFunctionDefinition("other_fn");
@@ -1649,10 +1643,10 @@ TEST(AndersenOTFAATest, A1_PoisonSurvivesSCCCollapse) {
          "pointer node collapses into the ping/pong SCC";
 }
 
-TEST(AndersenOTFAATest, A2_LoopCarriedGEPKeepsBaseAliases) {
-  // handlePhi interns the loop-carried GEP via forEachOpId before the GEP
-  // itself is translated, so addPtrAlias's addAlias() no-ops and the GEP node
-  // keeps an empty pts-set instead of aliasing Buf.
+TEST(AndersenOTFAATest, LoopCarriedGEPKeepsBaseAliases) {
+  // handlePhi interns the loop-carried GEP before the GEP itself is
+  // translated, so addPtrAlias's addAlias() no-ops. The GEP must still end up
+  // aliasing Buf rather than keeping an empty pts-set.
   const TSL Buf =
       TSL(OperandOf{.OperandIndex = 0,
                     .Inst = LineColFunOp{.Line = 15,
@@ -1666,17 +1660,15 @@ TEST(AndersenOTFAATest, A2_LoopCarriedGEPKeepsBaseAliases) {
   const TSL Arg = TSL(ArgInFun{.Idx = 0, .InFunction = "findEnd"});
   const std::vector<TSL> All = {Buf, Gep, Arg};
   const GTMap Expected = {{Gep, All}, {Arg, All}, {Buf, All}};
-  doAnalysisAndCheckExact("andersen_otf_bug_a2_loop_gep_c_m2r_dbg.ll",
-                          Expected);
+  doAnalysisAndCheckExact("andersen_otf_loop_gep_c_m2r_dbg.ll", Expected);
 }
 
-TEST(AndersenOTFAATest, A3_MergeDoesNotStrandPendingPts) {
+TEST(AndersenOTFAATest, MergeDoesNotStrandPendingPts) {
   // handlePhi interns the loop-carried GEP first, so its still-empty node wins
-  // the join when the GEP is translated and merged with the load it is based
-  // on.  addAssignEdge re-marks Rep's pts only when that pts is non-empty, so
-  // the absorbed diff strands in PendingPts and never crosses GEP -> %P.0.
+  // the join when the GEP is merged with the load it is based on. The absorbed
+  // diff must still cross GEP -> %P.0 instead of stranding in PendingPts.
   auto IRDB = LLVMProjectIRDB::loadOrExit(
-      PathToLLFiles + "andersen_otf_bug_a3_stranded_pending_c_m2r_dbg.ll");
+      PathToLLFiles + "andersen_otf_stranded_pending_c_m2r_dbg.ll");
   const auto *MainFn = IRDB.getFunctionDefinition("main");
   const auto *WalkFn = IRDB.getFunctionDefinition("walk");
   ASSERT_NE(MainFn, nullptr);
@@ -1713,10 +1705,9 @@ TEST(AndersenOTFAATest, A3_MergeDoesNotStrandPendingPts) {
          "*Slot points to";
 }
 
-TEST(AndersenOTFAATest, A4_AggregateReturnReachesCaller) {
-  // make() returns { ptr, i64 }: handleReturn fills its return slot, but
-  // handleCall only binds the call result for pointer-typed calls and there
-  // is no ExtractValueInst case, so Q.P never learns about A.
+TEST(AndersenOTFAATest, AggregateReturnReachesCaller) {
+  // make() returns { ptr, i64 }, so the call result is not pointer-typed and
+  // reaches the caller only through an ExtractValueInst.
   const TSL A =
       TSL(OperandOf{.OperandIndex = 0,
                     .Inst = LineColFunOp{.Line = 18,
@@ -1729,11 +1720,10 @@ TEST(AndersenOTFAATest, A4_AggregateReturnReachesCaller) {
                                     .OpCode = llvm::Instruction::Load});
   const std::vector<TSL> All = {A, BVal};
   const GTMap Expected = {{A, All}, {BVal, All}};
-  doAnalysisAndCheckExact("andersen_otf_bug_a4_aggregate_ret_c_dbg.ll",
-                          Expected);
+  doAnalysisAndCheckExact("andersen_otf_aggregate_ret_c_dbg.ll", Expected);
 }
 
-TEST(AndersenOTFAATest, A4_AtomicExchangeIsAStoreAndALoad) {
+TEST(AndersenOTFAATest, AtomicExchangeIsAStoreAndALoad) {
   // Clang lowers the pointer exchange to `atomicrmw xchg ptr %P, i64 ...`.
   // Flow-insensitively P holds both A and B, so the exchanged-out value and
   // the reloaded one each alias both.
@@ -1763,7 +1753,7 @@ TEST(AndersenOTFAATest, A4_AtomicExchangeIsAStoreAndALoad) {
       {OldVal, {A, B, OldVal, CurVal}},
       {CurVal, {A, B, OldVal, CurVal}},
   };
-  doAnalysisAndCheckExact("andersen_otf_bug_a4_atomics_c_dbg.ll", Expected);
+  doAnalysisAndCheckExact("andersen_otf_atomics_c_dbg.ll", Expected);
 }
 
 TEST(AndersenOTFAATest, MemSSAConstExprDefAssignsLeaves) {
@@ -1784,7 +1774,7 @@ TEST(AndersenOTFAATest, MemSSAConstExprDefAssignsLeaves) {
   doAnalysisAndCheckExact("memssa_constexpr_def_c_dbg.ll", Expected);
 }
 
-TEST(AndersenOTFAATest, B1_ContextsDoNotComposeAtK1) {
+TEST(AndersenOTFAATest, ContextsDoNotComposeAtK1) {
   // context_04_1: id3 -> id2 -> id1, called four times from main.  k = 1 makes
   // withPrefix drop the caller string, so all four id3 clones feed the single
   // id2@{CS} clone and the results re-merge one level down.  Pins that; a
@@ -1832,11 +1822,10 @@ TEST(AndersenOTFAATest, B1_ContextsDoNotComposeAtK1) {
                           csOpts(CSMode::All));
 }
 
-TEST(AndersenOTFAATest, B4_PrePopulatedCompressorKeepsAllAliases) {
-  // buildResult discards the result of ExternalVC.addAlias.  A caller-supplied
-  // compressor that already maps both a GEP and its base pointer to distinct
-  // external ids therefore leaves one of the two with an empty alias set,
-  // even though they are the same PAG node.
+TEST(AndersenOTFAATest, PrePopulatedCompressorKeepsAllAliases) {
+  // A caller-supplied compressor that already maps both a GEP and its base
+  // pointer to distinct external ids must not leave either with an empty
+  // alias set, since they are the same PAG node.
   auto IRDB = LLVMProjectIRDB::loadOrExit(
       PathToLLFiles + "andersen_otf_fnptr_table_basic_c_dbg.ll");
   const auto *MainFn = IRDB.getFunctionDefinition("main");
