@@ -105,6 +105,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:af3129bbb82e655104052dc06bfd3dcdd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9c90d5282cedddca565d762022310105" id="r_a9c90d5282cedddca565d762022310105"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1HelperAnalyses.html#a9c90d5282cedddca565d762022310105">HelperAnalyses</a> (std::unique_ptr&lt; llvm::Module &gt; IRModule, std::vector&lt; std::string &gt; EntryPoints, <a class="el" href="structpsr_1_1HelperAnalysisConfig.html">HelperAnalysisConfig</a> Config={})</td></tr>
 <tr class="separator:a9c90d5282cedddca565d762022310105"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a60abb5734dff7315cccd7984ec870d75" id="r_a60abb5734dff7315cccd7984ec870d75"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1HelperAnalyses.html#a60abb5734dff7315cccd7984ec870d75">HelperAnalyses</a> (std::unique_ptr&lt; <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &gt; IRDB, std::vector&lt; std::string &gt; EntryPoints, <a class="el" href="structpsr_1_1HelperAnalysisConfig.html">HelperAnalysisConfig</a> Config={})</td></tr>
+<tr class="separator:a60abb5734dff7315cccd7984ec870d75"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0640bb6c53ec68fb5f8fc67e770b5b80" id="r_a0640bb6c53ec68fb5f8fc67e770b5b80"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1HelperAnalyses.html#a0640bb6c53ec68fb5f8fc67e770b5b80">~HelperAnalyses</a> () noexcept</td></tr>
 <tr class="separator:a0640bb6c53ec68fb5f8fc67e770b5b80"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9c9d1ad7ac063d9d7c07a6cda484a99d" id="r_a9c9d1ad7ac063d9d7c07a6cda484a99d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1HelperAnalyses.html#a9c9d1ad7ac063d9d7c07a6cda484a99d">getProjectIRDB</a> ()</td></tr>
@@ -125,13 +127,15 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ae368046127e82445544242aab497bc3a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3d1fa530b50f61700f780e1d25a12441" id="r_a3d1fa530b50f61700f780e1d25a12441"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="structpsr_1_1UsedGlobalsHolder.html">UsedGlobalsHolder</a>&lt; const llvm::GlobalVariable * &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1HelperAnalyses.html#a3d1fa530b50f61700f780e1d25a12441">getUsedGlobals</a> ()</td></tr>
 <tr class="separator:a3d1fa530b50f61700f780e1d25a12441"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a777eeb98356b962e4aa0361ee2f83727" id="r_a777eeb98356b962e4aa0361ee2f83727"><td class="memItemLeft" align="right" valign="top">const std::vector&lt; std::string &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1HelperAnalyses.html#a777eeb98356b962e4aa0361ee2f83727">getEntryPoints</a> () const noexcept</td></tr>
+<tr class="separator:a777eeb98356b962e4aa0361ee2f83727"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock">
 <p class="definition">Definition at line <a class="el" href="PhasarLLVM_2HelperAnalyses_8h_source.html#l00041">41</a> of file <a class="el" href="PhasarLLVM_2HelperAnalyses_8h_source.html">HelperAnalyses.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a35a9de4fec2e978612793ed638fe3b24" name="a35a9de4fec2e978612793ed638fe3b24"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a35a9de4fec2e978612793ed638fe3b24">&#9670;&#160;</a></span>HelperAnalyses() <span class="overload">[1/6]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a35a9de4fec2e978612793ed638fe3b24">&#9670;&#160;</a></span>HelperAnalyses() <span class="overload">[1/7]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -209,7 +213,7 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <a id="a2a9231d6c85408ee5ef107e1e86efe02" name="a2a9231d6c85408ee5ef107e1e86efe02"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2a9231d6c85408ee5ef107e1e86efe02">&#9670;&#160;</a></span>HelperAnalyses() <span class="overload">[2/6]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a2a9231d6c85408ee5ef107e1e86efe02">&#9670;&#160;</a></span>HelperAnalyses() <span class="overload">[2/7]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -251,7 +255,7 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <a id="a9efd1bc07a36da21b23514b61ceaff24" name="a9efd1bc07a36da21b23514b61ceaff24"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9efd1bc07a36da21b23514b61ceaff24">&#9670;&#160;</a></span>HelperAnalyses() <span class="overload">[3/6]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a9efd1bc07a36da21b23514b61ceaff24">&#9670;&#160;</a></span>HelperAnalyses() <span class="overload">[3/7]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -293,7 +297,7 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <a id="a266eb9b578b739f22c0d1b5c1a9665e5" name="a266eb9b578b739f22c0d1b5c1a9665e5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a266eb9b578b739f22c0d1b5c1a9665e5">&#9670;&#160;</a></span>HelperAnalyses() <span class="overload">[4/6]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a266eb9b578b739f22c0d1b5c1a9665e5">&#9670;&#160;</a></span>HelperAnalyses() <span class="overload">[4/7]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -335,7 +339,7 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <a id="af3129bbb82e655104052dc06bfd3dcdd" name="af3129bbb82e655104052dc06bfd3dcdd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af3129bbb82e655104052dc06bfd3dcdd">&#9670;&#160;</a></span>HelperAnalyses() <span class="overload">[5/6]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#af3129bbb82e655104052dc06bfd3dcdd">&#9670;&#160;</a></span>HelperAnalyses() <span class="overload">[5/7]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -377,7 +381,7 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <a id="a9c90d5282cedddca565d762022310105" name="a9c90d5282cedddca565d762022310105"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9c90d5282cedddca565d762022310105">&#9670;&#160;</a></span>HelperAnalyses() <span class="overload">[6/6]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a9c90d5282cedddca565d762022310105">&#9670;&#160;</a></span>HelperAnalyses() <span class="overload">[6/7]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -390,6 +394,48 @@ Public Member Functions</h2></td></tr>
           <td>(</td>
           <td class="paramtype">std::unique_ptr&lt; llvm::Module &gt;&#160;</td>
           <td class="paramname"><em>IRModule</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::vector&lt; std::string &gt;&#160;</td>
+          <td class="paramname"><em>EntryPoints</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structpsr_1_1HelperAnalysisConfig.html">HelperAnalysisConfig</a>&#160;</td>
+          <td class="paramname"><em>Config</em> = <code>{}</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">explicit</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a60abb5734dff7315cccd7984ec870d75" name="a60abb5734dff7315cccd7984ec870d75"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a60abb5734dff7315cccd7984ec870d75">&#9670;&#160;</a></span>HelperAnalyses() <span class="overload">[7/7]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">psr::HelperAnalyses::HelperAnalyses </td>
+          <td>(</td>
+          <td class="paramtype">std::unique_ptr&lt; <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &gt;&#160;</td>
+          <td class="paramname"><em>IRDB</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -533,6 +579,35 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a777eeb98356b962e4aa0361ee2f83727" name="a777eeb98356b962e4aa0361ee2f83727"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a777eeb98356b962e4aa0361ee2f83727">&#9670;&#160;</a></span>getEntryPoints()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const std::vector&lt; std::string &gt; &amp; psr::HelperAnalyses::getEntryPoints </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="PhasarLLVM_2HelperAnalyses_8h_source.html#l00083">83</a> of file <a class="el" href="PhasarLLVM_2HelperAnalyses_8h_source.html">HelperAnalyses.h</a>.</p>
+
+<p class="reference">References <a class="el" href="namespacepsr.html#abee833e16ef749173730713d144c91b1">psr::EntryPoints</a>.</p>
+
+</div>
+</div>
 <a id="ad8a2534dd195dbf735b88d4c68061e0b" name="ad8a2534dd195dbf735b88d4c68061e0b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad8a2534dd195dbf735b88d4c68061e0b">&#9670;&#160;</a></span>getICFG()</h2>
 
@@ -613,7 +688,7 @@ Public Member Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Aug 10 2026 16:07:50 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Aug 15 2026 07:14:01 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
