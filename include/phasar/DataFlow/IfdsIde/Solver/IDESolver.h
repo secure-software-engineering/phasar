@@ -27,7 +27,6 @@
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
 #include "phasar/DataFlow/IfdsIde/IDEProblem.h"
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
-#include "phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h"
 #include "phasar/DataFlow/IfdsIde/InitialSeeds.h"
 #include "phasar/DataFlow/IfdsIde/LegacyIDEProblemWrapper.h"
 #include "phasar/DataFlow/IfdsIde/Solver/ESGEdgeKind.h"
@@ -57,6 +56,7 @@
 #include "nlohmann/json.hpp"
 
 #include <concepts>
+#include <cstddef>
 #include <map>
 #include <memory>
 #include <set>
@@ -68,6 +68,33 @@
 namespace psr {
 
 namespace detail {
+struct IDESolverPerf {
+  PAMM_CATEGORY(IDESolver);
+
+  // NOLINTBEGIN
+  PAMM_COUNTER(Genfacts, Core);
+  PAMM_COUNTER(Killfacts, Core);
+  PAMM_COUNTER(Summaryreuse, Core);
+  PAMM_COUNTER(IntraPathEdges, Core);
+  PAMM_COUNTER(InterPathEdges, Core);
+  PAMM_COUNTER(FFQueries, Full);
+  PAMM_COUNTER(EFQueries, Full);
+  PAMM_COUNTER(ValuePropagation, Full);
+  PAMM_COUNTER(ValueComputation, Full);
+  PAMM_COUNTER(SpecialSummaryFF_Application, Full);
+  PAMM_COUNTER(SpecialSummaryEF_Queries, Full);
+  PAMM_COUNTER(JumpFnConstruction, Full);
+  PAMM_COUNTER(ProcessCall, Full);
+  PAMM_COUNTER(ProcessNormal, Full);
+  PAMM_COUNTER(ProcessExit, Full);
+
+  PAMM_HISTOGRAM(DataFlowFacts, Full);
+  PAMM_HISTOGRAM(PointsTo, Full);
+
+  PAMM_TIMER(DFAPhase1, Full);
+  PAMM_TIMER(DFAPhase2, Full);
+  // NOLINTEND
+};
 
 template <typename AnalysisDomainTy, typename Container>
 class IDESolverProblemWrapperStorage {
@@ -93,6 +120,7 @@ template <typename AnalysisDomainTy,
 class IDESolver
     : private detail::IDESolverProblemWrapperStorage<AnalysisDomainTy,
                                                      Container>,
+      private detail::IDESolverPerf,
       public IDESolverAPIMixin<IDESolver<AnalysisDomainTy, Container, ICFGTy>> {
   friend IDESolverAPIMixin<IDESolver<AnalysisDomainTy, Container, ICFGTy>>;
 
@@ -422,8 +450,7 @@ protected:
   /// @param edge an edge whose target node resembles a method call
   ///
   virtual void processCall(const PathEdge<n_t, d_t> Edge) {
-    PAMM_GET_INSTANCE;
-    INC_COUNTER("Process Call", 1, Full);
+    ProcessCall++;
     PHASAR_LOG_LEVEL(DEBUG,
                      "Process call at target: " << NToString(Edge.getTarget()));
     d_t d1 = Edge.factAtSource();
@@ -440,20 +467,20 @@ protected:
         PHASAR_LOG_LEVEL(DEBUG, "  " << Callee->getName());
       }
       PHASAR_LOG_LEVEL(DEBUG, "Possible return sites:");
-      for (auto ret : ReturnSiteNs) {
-        PHASAR_LOG_LEVEL(DEBUG, "  " << NToString(ret));
+      for (auto Ret : ReturnSiteNs) {
+        PHASAR_LOG_LEVEL(DEBUG, "  " << NToString(Ret));
       }
     });
 
     bool HasNoCalleeInformation = true;
 
     auto &&Fun = ICF->getFunctionOf(n);
-    auto GetNextUse = [this, &Fun, &n](n_t nPrime, ByConstRef<d_t> d3) {
+    auto GetNextUse = [this, &Fun, &n](n_t NPrime, ByConstRef<d_t> d3) {
       if (auto &&NextUser = getNextUserOrNull(Fun, d3, n)) {
         return psr::unwrapNullable(PSR_FWD(NextUser));
       }
 
-      return nPrime;
+      return NPrime;
     };
 
     // for each possible callee
@@ -470,13 +497,13 @@ protected:
         PHASAR_LOG_LEVEL(DEBUG, "Found and process special summary");
         for (n_t ReturnSiteN : ReturnSiteNs) {
           container_type Res = computeSummaryFlowFunction(SpecialSum, d1, d2);
-          INC_COUNTER("SpecialSummary-FF Application", 1, Full);
-          ADD_TO_HISTOGRAM("Data-flow facts", Res.size(), 1, Full);
+          SpecialSummaryFF_Application++;
+          DataFlowFacts.add(Res.size(), 1);
           saveEdges(n, ReturnSiteN, d2, Res, ESGEdgeKind::Summary);
           for (d_t d3 : Res) {
             auto SumEdgFnE = CachedFlowEdgeFunctions.getSummaryEdgeFunction(
                 n, d2, ReturnSiteN, d3);
-            INC_COUNTER("SpecialSummary-EF Queries", 1, Full);
+            SpecialSummaryEF_Queries++;
 
             PHASAR_LOG_LEVEL(DEBUG,
                              "Queried Summary Edge Function: " << SumEdgFnE);
@@ -492,9 +519,9 @@ protected:
         // compute the call-flow function
         auto Function =
             CachedFlowEdgeFunctions.getCallFlowFunction(n, SCalledProcN);
-        INC_COUNTER("FF Queries", 1, Full);
+        FFQueries++;
         container_type Res = computeCallFlowFunction(Function, d1, d2);
-        ADD_TO_HISTOGRAM("Data-flow facts", Res.size(), 1, Full);
+        DataFlowFacts.add(Res.size(), 1);
         // for each callee's start point(s)
         auto StartPointsOf = ICF->getStartPointsOf(SCalledProcN);
         if (StartPointsOf.empty()) {
@@ -540,11 +567,10 @@ protected:
                 // compute return-flow function
                 auto RetFunction = CachedFlowEdgeFunctions.getRetFlowFunction(
                     n, SCalledProcN, eP, RetSiteN);
-                INC_COUNTER("FF Queries", 1, Full);
+                FFQueries++;
                 const container_type ReturnedFacts = computeReturnFlowFunction(
                     RetFunction, d3, d4, n, Container{d2});
-                ADD_TO_HISTOGRAM("Data-flow facts", ReturnedFacts.size(), 1,
-                                 Full);
+                DataFlowFacts.add(ReturnedFacts.size(), 1);
                 saveEdges(eP, RetSiteN, d4, ReturnedFacts, ESGEdgeKind::Ret);
                 // for each target value of the function
                 for (d_t d5 : ReturnedFacts) {
@@ -567,7 +593,7 @@ protected:
                                                               d5)]
                         .push_back(f5);
                   }
-                  INC_COUNTER("EF Queries", 2, Full);
+                  EFQueries++;
                   // compose call * calleeSummary * return edge functions
                   PHASAR_LOG_LEVEL(DEBUG, "Compose: " << f5 << " * "
                                                       << fCalleeSummary << " * "
@@ -597,10 +623,10 @@ protected:
     for (n_t ReturnSiteN : ReturnSiteNs) {
       auto CallToReturnFF = CachedFlowEdgeFunctions.getCallToRetFlowFunction(
           n, ReturnSiteN, Callees);
-      INC_COUNTER("FF Queries", 1, Full);
+      FFQueries++;
       container_type ReturnFacts =
           computeCallToReturnFlowFunction(CallToReturnFF, d1, d2);
-      ADD_TO_HISTOGRAM("Data-flow facts", ReturnFacts.size(), 1, Full);
+      DataFlowFacts.add(ReturnFacts.size(), 1);
       saveEdges(n, ReturnSiteN, d2, ReturnFacts,
                 HasNoCalleeInformation ? ESGEdgeKind::SkipUnknownFn
                                        : ESGEdgeKind::CallToRet);
@@ -613,7 +639,7 @@ protected:
           IntermediateEdgeFunctions[std::make_tuple(n, d2, ReturnSiteN, d3)]
               .push_back(EdgeFnE);
         }
-        INC_COUNTER("EF Queries", 1, Full);
+        EFQueries++;
         auto fPrime = IDEProblem.extend(f, EdgeFnE);
         PHASAR_LOG_LEVEL(DEBUG, "Compose: " << EdgeFnE << " * " << f << " = "
                                             << fPrime);
@@ -629,8 +655,7 @@ protected:
   /// @param edge
   ///
   virtual void processNormalFlow(PathEdge<n_t, d_t> Edge) {
-    PAMM_GET_INSTANCE;
-    INC_COUNTER("Process Normal", 1, Full);
+    ProcessNormal++;
     PHASAR_LOG_LEVEL(
         DEBUG, "Process normal at target: " << NToString(Edge.getTarget()));
     auto f = jumpFunction(Edge);
@@ -640,13 +665,14 @@ protected:
 
     for (const auto nPrime : ICF->getSuccsOf(n)) {
       auto FlowFunc = CachedFlowEdgeFunctions.getNormalFlowFunction(n, nPrime);
-      INC_COUNTER("FF Queries", 1, Full);
+      FFQueries++;
       const container_type Res = computeNormalFlowFunction(FlowFunc, d1, d2);
-      ADD_TO_HISTOGRAM("Data-flow facts", Res.size(), 1, Full);
+      DataFlowFacts.add(Res.size(), 1);
       saveEdges(n, nPrime, d2, Res, ESGEdgeKind::Normal);
       for (const d_t &d3 : Res) {
         auto g =
             CachedFlowEdgeFunctions.getNormalEdgeFunction(n, d2, nPrime, d3);
+        EFQueries++;
         PHASAR_LOG_LEVEL(DEBUG, "Queried Normal Edge Function: " << g);
         auto fPrime = IDEProblem.extend(f, g);
 
@@ -664,7 +690,7 @@ protected:
         }
         PHASAR_LOG_LEVEL(DEBUG,
                          "Compose: " << g << " * " << f << " = " << fPrime);
-        INC_COUNTER("EF Queries", 1, Full);
+
         WorkList.emplace_back(PathEdge(d1, DestN, std::move(d3)),
                               std::move(fPrime));
       }
@@ -672,7 +698,6 @@ protected:
   }
 
   void propagateValueAtStart(const std::pair<n_t, d_t> NAndD, n_t Stmt) {
-    PAMM_GET_INSTANCE;
     d_t Fact = NAndD.second;
     f_t Func = ICF->getFunctionOf(Stmt);
     for (const n_t CallSite : ICF->getCallsFromWithin(Func)) {
@@ -686,19 +711,18 @@ protected:
         auto fPrime = Entry.second;
         n_t SP = Stmt;
         l_t Val = val(SP, Fact);
-        INC_COUNTER("Value Propagation", 1, Full);
+        ValuePropagation++;
         propagateValue(CallSite, dPrime, fPrime.computeTarget(Val));
       }
     }
   }
 
   void propagateValueAtCall(const std::pair<n_t, d_t> NAndD, n_t Stmt) {
-    PAMM_GET_INSTANCE;
     d_t Fact = NAndD.second;
     for (const f_t Callee : ICF->getCalleesOfCallAt(Stmt)) {
       auto CallFlowFunction =
           CachedFlowEdgeFunctions.getCallFlowFunction(Stmt, Callee);
-      INC_COUNTER("FF Queries", 1, Full);
+      FFQueries++;
       for (const d_t &dPrime : CallFlowFunction->computeTargets(Fact)) {
         auto EdgeFn = CachedFlowEdgeFunctions.getCallEdgeFunction(
             Stmt, Fact, Callee, dPrime);
@@ -709,9 +733,9 @@ protected:
                 .push_back(EdgeFn);
           }
         }
-        INC_COUNTER("EF Queries", 1, Full);
+        EFQueries++;
         for (const n_t StartPoint : ICF->getStartPointsOf(Callee)) {
-          INC_COUNTER("Value Propagation", 1, Full);
+          ValuePropagation++;
           propagateValue(StartPoint, dPrime,
                          EdgeFn.computeTarget(val(Stmt, Fact)));
         }
@@ -791,8 +815,7 @@ protected:
 
   // should be made a callable at some point
   void pathEdgeProcessingTask(PathEdge<n_t, d_t> Edge) {
-    PAMM_GET_INSTANCE;
-    INC_COUNTER("JumpFn Construction", 1, Full);
+    JumpFnConstruction++;
     IF_LOG_LEVEL_ENABLED(DEBUG, {
       PHASAR_LOG_LEVEL(
           DEBUG,
@@ -842,7 +865,6 @@ protected:
 
   // should be made a callable at some point
   void valueComputationTask(const std::vector<n_t> &Values) {
-    PAMM_GET_INSTANCE;
     for (n_t n : Values) {
       for (n_t SP : ICF->getStartPointsOf(ICF->getFunctionOf(n))) {
         using TableCell = typename Table<d_t, d_t, EdgeFunction<l_t>>::Cell;
@@ -857,7 +879,7 @@ protected:
           setVal(n, d,
                  IDEProblem.join(val(n, d),
                                  fPrime.computeTarget(std::move(TargetVal))));
-          INC_COUNTER("Value Computation", 1, Full);
+          ValueComputation++;
         }
       }
     }
@@ -922,7 +944,6 @@ protected:
   /// Clients should only call this methods if performing synchronization on
   /// their own. Normally, solve() should be called instead.
   void submitInitialSeeds() {
-    PAMM_GET_INSTANCE;
     // Check if the initial seeds contain the zero value at every starting
     // point. If not, the zero value needs to be added to allow for correct
     // solving of the problem.
@@ -954,7 +975,7 @@ protected:
         PHASAR_LOG_LEVEL(DEBUG, "\tFact: " << DToString(Fact));
         PHASAR_LOG_LEVEL(DEBUG, "\tValue: " << LToString(Value));
         if (!IDEProblem.isZeroValue(Fact)) {
-          INC_COUNTER("Gen facts", 1, Core);
+          Genfacts++;
         }
         WorkList.emplace_back(PathEdge(Fact, StartPoint, Fact),
                               EdgeIdentity<l_t>{});
@@ -971,8 +992,7 @@ protected:
   /// @param edge an edge whose target node resembles a method exit
   ///
   virtual void processExit(const PathEdge<n_t, d_t> Edge) {
-    PAMM_GET_INSTANCE;
-    INC_COUNTER("Process Exit", 1, Full);
+    ProcessExit++;
     PHASAR_LOG_LEVEL(DEBUG,
                      "Process exit at target: " << NToString(Edge.getTarget()));
     n_t n = Edge.getTarget(); // an exit node; line 21...
@@ -1004,12 +1024,12 @@ protected:
         // compute return-flow function
         auto RetFunction = CachedFlowEdgeFunctions.getRetFlowFunction(
             c, FunctionThatNeedsSummary, n, RetSiteC);
-        INC_COUNTER("FF Queries", 1, Full);
+        FFQueries++;
         // for each incoming-call value
         for (d_t d4 : Entry.second) {
           const container_type Targets =
               computeReturnFlowFunction(RetFunction, d1, d2, c, Entry.second);
-          ADD_TO_HISTOGRAM("Data-flow facts", Targets.size(), 1, Full);
+          DataFlowFacts.add(Targets.size(), 1);
           saveEdges(n, RetSiteC, d2, Targets, ESGEdgeKind::Ret);
           // for each target value at the return site
           // line 23
@@ -1031,7 +1051,7 @@ protected:
               IntermediateEdgeFunctions[std::make_tuple(n, d2, RetSiteC, d5)]
                   .push_back(f5);
             }
-            INC_COUNTER("EF Queries", 2, Full);
+            EFQueries += 2;
             // compose call function * function * return function
             PHASAR_LOG_LEVEL(DEBUG,
                              "Compose: " << f5 << " * " << f << " * " << f4);
@@ -1083,10 +1103,10 @@ protected:
         for (n_t RetSiteC : ICF->getReturnSitesOfCallAt(Caller)) {
           auto RetFunction = CachedFlowEdgeFunctions.getRetFlowFunction(
               Caller, FunctionThatNeedsSummary, n, RetSiteC);
-          INC_COUNTER("FF Queries", 1, Full);
+          FFQueries++;
           const container_type Targets = computeReturnFlowFunction(
               RetFunction, d1, d2, Caller, Container{ZeroValue});
-          ADD_TO_HISTOGRAM("Data-flow facts", Targets.size(), 1, Full);
+          DataFlowFacts.add(Targets.size(), 1);
           saveEdges(n, RetSiteC, d2, Targets, ESGEdgeKind::Ret);
           for (d_t d5 : Targets) {
             auto f5 = CachedFlowEdgeFunctions.getReturnEdgeFunction(
@@ -1096,7 +1116,7 @@ protected:
               IntermediateEdgeFunctions[std::make_tuple(n, d2, RetSiteC, d5)]
                   .push_back(f5);
             }
-            INC_COUNTER("EF Queries", 1, Full);
+            EFQueries++;
             PHASAR_LOG_LEVEL(DEBUG, "Compose: " << f5 << " * " << f);
             propagteUnbalancedReturnFlow(RetSiteC, d5, IDEProblem.extend(f, f5),
                                          Caller);
@@ -1419,13 +1439,12 @@ protected:
   /// generated/killed facts, number of summary-reuses etc.
   ///
   void computeAndPrintStatistics() {
-    PAMM_GET_INSTANCE;
     // Stores all valid facts at return site in caller context; return-site is
     // key
     std::unordered_map<n_t, std::set<d_t>> ValidInCallerContext;
-    size_t NumGenFacts = 0;
-    size_t NumIntraPathEdges = 0;
-    size_t NumInterPathEdges = 0;
+    ptrdiff_t NumGenFacts = 0;
+    ptrdiff_t NumIntraPathEdges = 0;
+    ptrdiff_t NumInterPathEdges = 0;
     // --- Intra-procedural Path Edges ---
     // d1 --> d2-Set
     // Case 1: d1 in d2-Set
@@ -1494,8 +1513,9 @@ protected:
 
               std::set<d_t> SummaryDSet;
               EndsummaryTab.get(Edge.second, D2)
-                  .foreachCell([&SummaryDSet](const auto &Row, const auto &Col,
-                                              const auto &Val) {
+                  .foreachCell([&SummaryDSet](const auto & /*Row*/,
+                                              const auto &Col,
+                                              const auto & /*Val*/) {
                     SummaryDSet.insert(Col);
                   });
 
@@ -1538,46 +1558,40 @@ protected:
       PHASAR_LOG_LEVEL(DEBUG, " ");
     }
     PHASAR_LOG_LEVEL(DEBUG, "SUMMARY REUSE");
-    std::size_t TotalSummaryReuse = 0;
+    ptrdiff_t TotalSummaryReuse = 0;
     for (const auto &Entry : FSummaryReuse) {
       PHASAR_LOG_LEVEL(DEBUG, "N1: " << NToString(Entry.first.first));
       PHASAR_LOG_LEVEL(DEBUG, "D1: " << DToString(Entry.first.second));
       PHASAR_LOG_LEVEL(DEBUG, "#Reuse: " << Entry.second);
       TotalSummaryReuse += Entry.second;
     }
-    INC_COUNTER("Gen facts", NumGenFacts, Core);
-    INC_COUNTER("Summary-reuse", TotalSummaryReuse, Core);
-    INC_COUNTER("Intra Path Edges", NumIntraPathEdges, Core);
-    INC_COUNTER("Inter Path Edges", NumInterPathEdges, Core);
+    Genfacts += NumGenFacts;
+    Summaryreuse += TotalSummaryReuse;
+    IntraPathEdges += NumIntraPathEdges;
+    InterPathEdges += NumInterPathEdges;
 
     PHASAR_LOG_LEVEL(INFO, "----------------------------------------------");
     PHASAR_LOG_LEVEL(INFO, "=== Solver Statistics ===");
-    PHASAR_LOG_LEVEL(INFO, "#Facts generated : " << GET_COUNTER("Gen facts"));
-    PHASAR_LOG_LEVEL(INFO, "#Facts killed    : " << GET_COUNTER("Kill facts"));
-    PHASAR_LOG_LEVEL(INFO,
-                     "#Summary-reuse   : " << GET_COUNTER("Summary-reuse"));
-    PHASAR_LOG_LEVEL(INFO,
-                     "#Intra Path Edges: " << GET_COUNTER("Intra Path Edges"));
-    PHASAR_LOG_LEVEL(INFO,
-                     "#Inter Path Edges: " << GET_COUNTER("Inter Path Edges"));
+    PHASAR_LOG_LEVEL(INFO, "#Facts generated : " << Genfacts.value());
+    PHASAR_LOG_LEVEL(INFO, "#Facts killed    : " << Killfacts.value());
+    PHASAR_LOG_LEVEL(INFO, "#Summary-reuse   : " << Summaryreuse.value());
+    PHASAR_LOG_LEVEL(INFO, "#Intra Path Edges: " << IntraPathEdges.value());
+    PHASAR_LOG_LEVEL(INFO, "#Inter Path Edges: " << InterPathEdges.value());
     if constexpr (PAMM_CURR_SEV_LEVEL >= PAMM_SEVERITY_LEVEL::Full) {
-      PHASAR_LOG_LEVEL(
-          INFO, "Flow function query count: " << GET_COUNTER("FF Queries"));
-      PHASAR_LOG_LEVEL(
-          INFO, "Edge function query count: " << GET_COUNTER("EF Queries"));
+      PHASAR_LOG_LEVEL(INFO,
+                       "Flow function query count: " << FFQueries.value());
+      PHASAR_LOG_LEVEL(INFO,
+                       "Edge function query count: " << EFQueries.value());
       PHASAR_LOG_LEVEL(INFO, "Data-flow value propagation count: "
-                                 << GET_COUNTER("Value Propagation"));
+                                 << ValuePropagation.value());
       PHASAR_LOG_LEVEL(INFO, "Data-flow value computation count: "
-                                 << GET_COUNTER("Value Computation"));
-      PHASAR_LOG_LEVEL(INFO,
-                       "Special flow function usage count: "
-                           << GET_COUNTER("SpecialSummary-FF Application"));
+                                 << ValueComputation.value());
+      PHASAR_LOG_LEVEL(INFO, "Special flow function usage count: "
+                                 << SpecialSummaryFF_Application.value());
       PHASAR_LOG_LEVEL(INFO, "Jump function construciton count: "
-                                 << GET_COUNTER("JumpFn Construction"));
-      PHASAR_LOG_LEVEL(INFO,
-                       "Phase I duration: " << PRINT_TIMER("DFA Phase I"));
-      PHASAR_LOG_LEVEL(INFO,
-                       "Phase II duration: " << PRINT_TIMER("DFA Phase II"));
+                                 << JumpFnConstruction.value());
+      PHASAR_LOG_LEVEL(INFO, "Phase I duration: " << DFAPhase1.elapsed());
+      PHASAR_LOG_LEVEL(INFO, "Phase II duration: " << DFAPhase2.elapsed());
       PHASAR_LOG_LEVEL(INFO, "----------------------------------------------");
       CachedFlowEdgeFunctions.print();
     }
@@ -1815,31 +1829,11 @@ private:
   /// -- InteractiveIDESolverMixin implementation
 
   void doInitialize() {
-    PAMM_GET_INSTANCE;
-    REG_COUNTER("Gen facts", 0, Core);
-    REG_COUNTER("Kill facts", 0, Core);
-    REG_COUNTER("Summary-reuse", 0, Core);
-    REG_COUNTER("Intra Path Edges", 0, Core);
-    REG_COUNTER("Inter Path Edges", 0, Core);
-    REG_COUNTER("FF Queries", 0, Full);
-    REG_COUNTER("EF Queries", 0, Full);
-    REG_COUNTER("Value Propagation", 0, Full);
-    REG_COUNTER("Value Computation", 0, Full);
-    REG_COUNTER("SpecialSummary-FF Application", 0, Full);
-    REG_COUNTER("SpecialSummary-EF Queries", 0, Full);
-    REG_COUNTER("JumpFn Construction", 0, Full);
-    REG_COUNTER("Process Call", 0, Full);
-    REG_COUNTER("Process Normal", 0, Full);
-    REG_COUNTER("Process Exit", 0, Full);
-    REG_COUNTER("[Calls] getAliasSet", 0, Full);
-    REG_HISTOGRAM("Data-flow facts", Full);
-    REG_HISTOGRAM("Points-to", Full);
-
     PHASAR_LOG_LEVEL(INFO, "IDE solver is solving the specified problem");
     PHASAR_LOG_LEVEL(INFO,
                      "Submit initial seeds, construct exploded super graph");
     // computations starting here
-    START_TIMER("DFA Phase I", Full);
+    DFAPhase1.start();
 
     // We start our analysis and construct exploded supergraph
     submitInitialSeeds();
@@ -1861,17 +1855,15 @@ private:
   }
 
   void finalizeInternal() {
-    PAMM_GET_INSTANCE;
-    STOP_TIMER("DFA Phase I", Full);
+    DFAPhase1.stop();
     PHASAR_LOG_LEVEL(INFO, "[info]: IDE Phase I completed");
 
     if (SolverConfig.computeValues()) {
-      START_TIMER("DFA Phase II", Full);
+      PAMM_SCOPED_TIMER(DFAPhase2);
       // Computing the final values for the edge functions
       PHASAR_LOG_LEVEL(
           INFO, "Compute the final values according to the edge functions");
       computeValues();
-      STOP_TIMER("DFA Phase II", Full);
     }
 
     PHASAR_LOG_LEVEL(INFO, "Problem solved");

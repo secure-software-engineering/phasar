@@ -4,6 +4,7 @@
 #include "phasar/ControlFlow/SparseCFGProvider.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
 #include "phasar/DataFlow/IfdsIde/Solver/Compressor.h"
+#include "phasar/DataFlow/IfdsIde/Solver/ESGEdgeKind.h"
 #include "phasar/DataFlow/IfdsIde/Solver/EdgeFunctionCache.h"
 #include "phasar/DataFlow/IfdsIde/Solver/FlowEdgeFunctionCacheNG.h"
 #include "phasar/DataFlow/IfdsIde/Solver/FlowFunctionCache.h"
@@ -18,11 +19,13 @@
 #include "phasar/Domain/BinaryDomain.h"
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/EmptyBaseOptimizationUtils.h"
+#include "phasar/Utils/Lazy.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Printer.h"
 #include "phasar/Utils/StableVector.h"
 #include "phasar/Utils/TableWrappers.h"
 #include "phasar/Utils/TypeTraits.h"
+#include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/DenseMapInfo.h"
@@ -40,6 +43,7 @@
 #include <atomic>
 #include <chrono>
 #include <cstdint>
+#include <iterator>
 #include <memory>
 #include <string>
 #include <type_traits>
@@ -129,7 +133,8 @@ private:
 public:
   IterativeIDESolver(ProblemTy *Problem, const ICFGTy *ICFG,
                      StaticSolverConfigTy /*Config*/ = {}) noexcept
-      : Problem(assertNotNull(Problem)), ICFG(assertNotNull(ICFG)) {}
+      : Problem(assertNotNull(Problem)), ICFG(assertNotNull(ICFG)),
+        PathData(StaticSolverConfigTy::initPathData(assertNotNull(Problem))) {}
 
   auto solve() & {
     solveImpl();
@@ -152,6 +157,16 @@ public:
 
   void dumpResults(llvm::raw_ostream &OS = llvm::outs()) const {
     getSolverResults().dumpResults(ICFG, OS);
+  }
+
+  [[nodiscard]] const auto &getPathAwareData() const & noexcept {
+    return PathData;
+  }
+  [[nodiscard]] auto getPathAwareData() && noexcept {
+    return std::move(PathData);
+  }
+  [[nodiscard]] auto consumePathAwareData() noexcept {
+    return std::move(PathData);
   }
 
   [[nodiscard]] IterativeIDESolverStats getStats() const noexcept
@@ -647,6 +662,8 @@ private:
                                      combineIds(AtInstructionId, SuccId))
               .computeTargets(CSFact);
 
+      saveEdges(AtInstruction, Succ, CSFact, Facts, ESGEdgeKind::Normal);
+
       for (ByConstRef<d_t> Fact : Facts) {
         auto FactId = FactCompressor.getOrInsert(Fact);
         auto EF = [&] {
@@ -693,20 +710,21 @@ private:
                           EdgeFunctionPtrType SourceEF, uint32_t FunId) {
     const auto &Callees = ICFG.getCalleesOfCallAt(AtInstruction);
 
-    applyCallToReturnFlow(AtInstruction, AtInstructionId, SourceFactId,
-                          PropagatedFactId, SourceEF, Callees, FunId);
+    bool HasNoCalleeInformation =
+        handleOrDeferCallFlow(AtInstruction, AtInstructionId, SourceFactId,
+                              PropagatedFactId, SourceEF, Callees, FunId);
 
-    handleOrDeferCallFlow(AtInstruction, AtInstructionId, SourceFactId,
-                          PropagatedFactId, std::move(SourceEF), Callees,
-                          FunId);
+    applyCallToReturnFlow(AtInstruction, AtInstructionId, SourceFactId,
+                          PropagatedFactId, std::move(SourceEF), Callees, FunId,
+                          HasNoCalleeInformation);
   }
 
   template <typename CalleesTy>
-  void applyCallToReturnFlow(ByConstRef<n_t> AtInstruction,
-                             uint32_t AtInstructionId, uint32_t SourceFactId,
-                             uint32_t PropagatedFactId,
-                             EdgeFunctionPtrType SourceEF,
-                             const CalleesTy &Callees, uint32_t FunId) {
+  void
+  applyCallToReturnFlow(ByConstRef<n_t> AtInstruction, uint32_t AtInstructionId,
+                        uint32_t SourceFactId, uint32_t PropagatedFactId,
+                        EdgeFunctionPtrType SourceEF, const CalleesTy &Callees,
+                        uint32_t FunId, bool HasNoCalleeInformation) {
     auto CSFact = FactCompressor[PropagatedFactId];
 
     for (ByConstRef<n_t> RetSite : ICFG.getReturnSitesOfCallAt(AtInstruction)) {
@@ -716,6 +734,10 @@ private:
                            Problem, AtInstruction, RetSite, Callees /*Vec*/,
                            combineIds(AtInstructionId, RetSiteId))
                        .computeTargets(CSFact);
+
+      saveEdges(AtInstruction, RetSite, CSFact, Facts,
+                HasNoCalleeInformation ? ESGEdgeKind::SkipUnknownFn
+                                       : ESGEdgeKind::CallToRet);
 
       for (ByConstRef<d_t> Fact : Facts) {
         auto FactId = FactCompressor.getOrInsert(Fact);
@@ -741,12 +763,13 @@ private:
   }
 
   template <typename CalleesTy>
-  void handleOrDeferCallFlow(ByConstRef<n_t> AtInstruction,
+  bool handleOrDeferCallFlow(ByConstRef<n_t> AtInstruction,
                              uint32_t AtInstructionId, uint32_t SourceFactId,
                              uint32_t PropagatedFactId,
                              EdgeFunctionPtrType SourceEF,
                              const CalleesTy &Callees, uint32_t FunId) {
     auto CSFact = FactCompressor[PropagatedFactId];
+    bool HasNoCalleeInformation = true;
     for (ByConstRef<f_t> Callee : Callees) {
       auto CalleeId = FunCompressor.getOrInsert(Callee);
       auto SummaryFF =
@@ -756,9 +779,11 @@ private:
       if (SummaryFF == nullptr) {
         /// No summary. Start inTRA propagation for the callee and defer
         /// return-propagation
-        deferCallFlow(AtInstruction, AtInstructionId, SourceFactId, CSFact,
-                      PropagatedFactId, SourceEF, Callee, CalleeId, FunId);
+        HasNoCalleeInformation =
+            deferCallFlow(AtInstruction, AtInstructionId, SourceFactId, CSFact,
+                          PropagatedFactId, SourceEF, Callee, CalleeId, FunId);
       } else {
+        HasNoCalleeInformation = false;
         /// Apply SummaryFF and ignore this CSCallee pair in the
         /// inter-propagation
         applySummaryFlow(SummaryFF.computeTargets(CSFact), AtInstruction,
@@ -766,6 +791,7 @@ private:
                          PropagatedFactId, SourceEF, FunId);
       }
     }
+    return HasNoCalleeInformation;
   }
 
   void countSummaryLinearSearch(size_t SearchLen, size_t NumSummaries) {
@@ -833,7 +859,7 @@ private:
     }
   }
 
-  void deferCallFlow(ByConstRef<n_t> AtInstruction, uint32_t AtInstructionId,
+  bool deferCallFlow(ByConstRef<n_t> AtInstruction, uint32_t AtInstructionId,
                      uint32_t SourceFactId, ByConstRef<d_t> CSFact,
                      uint32_t CSFactId, EdgeFunctionPtrType SourceEF,
                      ByConstRef<f_t> Callee, uint32_t CalleeId,
@@ -851,8 +877,14 @@ private:
         return EdgeFunctionPtrType{};
       }
     }();
-    for (ByConstRef<n_t> SP : ICFG.getStartPointsOf(Callee)) {
+
+    auto &&StartPoints = ICFG.getStartPointsOf(Callee);
+    bool HasNoCalleeInformation = std::empty(StartPoints);
+
+    for (ByConstRef<n_t> SP : StartPoints) {
       auto SPId = NodeCompressor.getOrInsert(SP);
+
+      saveEdges(AtInstruction, SP, CSFact, CalleeFacts, ESGEdgeKind::Call);
 
       for (ByConstRef<d_t> Fact : CalleeFacts) {
         auto FactId = FactCompressor.getOrInsert(Fact);
@@ -902,6 +934,7 @@ private:
         }
       }
     }
+    return HasNoCalleeInformation;
   }
 
   template <typename SummaryFactsTy>
@@ -912,6 +945,9 @@ private:
                         uint32_t FunId) {
     for (ByConstRef<n_t> RetSite : ICFG.getReturnSitesOfCallAt(AtInstruction)) {
       auto RetSiteId = NodeCompressor.getOrInsert(RetSite);
+
+      saveEdges(AtInstruction, RetSite, CSFact, SummaryFacts,
+                ESGEdgeKind::Summary);
 
       for (ByConstRef<d_t> Fact : SummaryFacts) {
         auto FactId = FactCompressor.getOrInsert(Fact);
@@ -950,6 +986,9 @@ private:
         uint32_t SummaryFactId{Summary.first};
         auto SummaryFact = FactCompressor[SummaryFactId];
         auto RetFacts = RetFF.computeTargets(SummaryFact);
+
+        saveEdges(ExitInst, RetSite, SummaryFact, RetFacts, ESGEdgeKind::Ret);
+
         for (ByConstRef<d_t> RetFact : RetFacts) {
           auto RetFactId = FactCompressor.getOrInsert(RetFact);
 
@@ -1284,6 +1323,13 @@ private:
     }
   }
 
+  void saveEdges(ByConstRef<n_t> SourceNode, ByConstRef<n_t> SinkStmt,
+                 ByConstRef<d_t> SourceVal, const auto &DestVals,
+                 ESGEdgeKind Kind) {
+    StaticSolverConfigTy::template saveEdges<domain_t>(
+        PathData, SourceNode, SinkStmt, SourceVal, DestVals, Kind);
+  }
+
   static constexpr uint64_t combineIds(uint32_t LHS, uint32_t RHS) noexcept {
     return (uint64_t(LHS) << 32) | RHS;
   }
@@ -1335,6 +1381,9 @@ private:
   llvm::BitVector CandidateFunctionsForGC{};
 
   flow_edge_function_cache_t FECache{Problem};
+
+  [[no_unique_address]]
+  typename config_t::template PathTrackingData<domain_t> PathData;
 };
 
 } // namespace psr

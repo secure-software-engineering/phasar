@@ -183,7 +183,7 @@ protected:
 
     if (MatchingIndices.size() != AnalyzedPaths.size()) {
       for (size_t I = 0; I < AnalyzedPaths.size(); ++I) {
-        if (MatchingIndices.count(I)) {
+        if (MatchingIndices.contains(I)) {
           continue;
         }
 

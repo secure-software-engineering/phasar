@@ -494,7 +494,6 @@ protected:
                                              Problem.getZeroValue()),
         Config(std::move(Config)), DepthKLimit(DepthKLimit) {
     Mgr.reserve(Problem.getProjectIRDB()->getNumInstructions());
-    regCounters();
   }
 
   /// Transforms user-defined seeds from usual IFDS seeds to field-sensitive
@@ -507,8 +506,6 @@ protected:
 private:
   using EFConstPtr = const cfl_fieldsens::CFLFieldSensEdgeFunctionImpl *;
   using EFResultPtr = llvm::PointerIntPair<EFConstPtr, 2>;
-
-  static void regCounters() noexcept;
 
   [[nodiscard]] EdgeFunction<l_t>
   makeEF(cfl_fieldsens::CFLFieldSensEdgeFunctionImpl &&EF);

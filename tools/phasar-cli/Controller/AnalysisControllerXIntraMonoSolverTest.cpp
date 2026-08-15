@@ -14,5 +14,5 @@
 using namespace psr;
 
 void controller::executeIntraMonoSolverTest(AnalysisController &Data) {
-  executeIntraMonoAnalysis<IntraMonoSolverTest>(Data, Data.EntryPoints);
+  executeIntraMonoAnalysis<IntraMonoSolverTest>(Data, Data.getEntryPoints());
 }
