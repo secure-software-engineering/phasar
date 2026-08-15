@@ -1,7 +1,14 @@
 <map id="psr::SolverStatsSelector&lt; StaticSolverConfigTy, typename &gt;" name="psr::SolverStatsSelector&lt; StaticSolverConfigTy, typename &gt;">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,45,183,100"/>
-<area shape="rect" id="Node000002" href="$classpsr_1_1IterativeIDESolver.html" title=" " alt="" coords="403,5,635,60"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="196,50,206,49,307,39,403,33,403,39,307,44,207,54,196,55"/>
-<area shape="rect" id="Node000003" href="$structpsr_1_1SolverStatsSelector.html" title=" " alt="" coords="424,84,613,139"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="197,79,424,100,424,105,196,85"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,124,183,179"/>
+<area shape="rect" id="Node000002" href="$classpsr_1_1IterativeIDESolver.html" title=" " alt="" coords="964,5,1245,89"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="182,117,206,110,314,85,424,69,567,54,711,45,963,42,963,47,712,51,567,59,424,74,315,90,207,115,183,122"/>
+<area shape="rect" id="Node000003" href="$classpsr_1_1IterativeIDESolver.html" title=" " alt="" coords="424,84,656,139"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="196,140,424,119,424,124,197,145"/>
+<area shape="rect" id="Node000005" href="$structpsr_1_1SolverStatsSelector.html" title=" " alt="" coords="445,163,635,217"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="197,170,207,171,331,182,445,187,445,192,331,188,206,177,196,175"/>
+<area shape="rect" id="Node000006" href="$structpsr_1_1SolverStatsSelector.html" title=" " alt="" coords="435,242,645,311"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="134,186,168,213,208,234,264,253,323,265,435,275,434,281,322,270,263,258,206,239,165,217,131,190"/>
+<area shape="poly" id="edge4_Node000003_Node000002" title=" " alt="" coords="670,120,801,121,871,117,939,107,1010,87,1012,92,941,113,871,122,801,127,670,125"/>
+<area shape="rect" id="Node000004" href="$classpsr_1_1PathAwareIterIDESolver.html" title=" " alt="" coords="989,128,1221,183"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="670,133,680,134,841,147,989,152,988,157,841,152,680,139,669,138"/>
 </map>

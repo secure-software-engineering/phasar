@@ -1,3 +1,38 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$classpsr_1_1IDESolverAPIMixin.html" title=" " alt="" coords="5,5,284,75"/>
+<area shape="rect" id="Node000000" href="$classpsr_1_1IDESolverAPIMixin.html" title=" " alt="" coords="107,257,278,297"/>
+<area shape="rect" id="Node000001" href="$classpsr_1_1IDESolver.html" title=" " alt="" coords="428,149,743,218"/>
+<area shape="poly" id="edge294_Node000000_Node000001" title=" " alt="" coords="290,251,438,215,440,221,291,256"/>
+<area shape="rect" id="Node000003" href="$classpsr_1_1IDESolver.html" title=" " alt="" coords="458,242,713,311"/>
+<area shape="poly" id="edge295_Node000000_Node000003" title=" " alt="" coords="292,274,458,274,458,279,292,279"/>
+<area shape="rect" id="Node000004" href="$classpsr_1_1IDESolver.html" title=" " alt="" coords="446,336,725,391"/>
+<area shape="poly" id="edge296_Node000000_Node000004" title=" " alt="" coords="292,296,461,333,460,339,291,301"/>
+<area shape="rect" id="Node000005" href="$classpsr_1_1IDESolver.html" title=" " alt="" coords="481,5,689,60"/>
+<area shape="poly" id="edge297_Node000000_Node000005" title=" " alt="" coords="290,255,337,235,359,222,378,206,391,189,397,173,400,139,404,105,412,87,426,71,452,53,480,41,482,46,454,58,430,75,417,90,410,106,406,139,402,174,395,192,382,209,362,226,340,240,292,260"/>
+<area shape="rect" id="Node000009" href="$classpsr_1_1IterativeIDESolver.html" title=" " alt="" coords="445,493,726,577"/>
+<area shape="poly" id="edge298_Node000000_Node000009" title=" " alt="" coords="292,296,340,318,382,349,395,366,402,383,406,416,411,448,417,463,430,479,446,492,443,496,426,483,413,466,405,449,401,417,397,385,390,369,378,353,337,322,290,301"/>
+<area shape="rect" id="Node000006" href="$classpsr_1_1IDESolver.html" title=" " alt="" coords="472,85,699,125"/>
+<area shape="poly" id="edge299_Node000000_Node000006" title=" " alt="" coords="290,251,336,231,378,205,393,188,401,170,409,152,426,134,471,114,473,119,430,139,414,155,406,172,398,191,382,209,339,236,292,255"/>
+<area shape="rect" id="Node000011" href="$classpsr_1_1IterativeIDESolver.html" title=" " alt="" coords="469,415,701,469"/>
+<area shape="poly" id="edge302_Node000000_Node000011" title=" " alt="" coords="277,299,330,320,382,349,397,363,406,376,415,388,429,400,470,418,468,423,427,404,411,392,401,379,393,366,378,354,328,325,275,304"/>
+<area shape="rect" id="Node000007" href="$classpsr_1_1IFDSSolver.html" title="Solves the given IFDSTabulationProblem as described in the 1995 paper by Reps, Horwitz and Sagiv...." alt="" coords="793,121,1020,161"/>
+<area shape="poly" id="edge300_Node000006_Node000007" title=" " alt="" coords="713,116,793,125,793,131,712,122"/>
+<area shape="rect" id="Node000008" href="$classpsr_1_1PathAwareIDESolver.html" title=" " alt="" coords="791,41,1023,96"/>
+<area shape="poly" id="edge301_Node000006_Node000008" title=" " alt="" coords="712,88,790,79,791,84,713,93"/>
+<area shape="rect" id="Node000012" href="$classpsr_1_1PathAwareIterIDESolver.html" title=" " alt="" coords="791,415,1023,469"/>
+<area shape="poly" id="edge303_Node000011_Node000012" title=" " alt="" coords="715,439,790,439,790,445,715,445"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="101,171,285,196"/>
+<area shape="poly" id="edge304_Node000002_Node000001" title=" " alt="" coords="299,181,428,181,428,186,299,186"/>
+<area shape="poly" id="edge305_Node000002_Node000003" title=" " alt="" coords="261,197,459,244,457,249,260,202"/>
+<area shape="poly" id="edge306_Node000002_Node000004" title=" " alt="" coords="286,197,335,215,382,243,399,263,406,283,413,303,430,321,450,334,447,338,426,325,409,306,401,285,394,266,378,247,333,220,284,202"/>
+<area shape="poly" id="edge307_Node000002_Node000005" title=" " alt="" coords="228,162,317,117,427,70,480,54,482,59,429,75,320,122,231,166"/>
+<area shape="poly" id="edge308_Node000002_Node000006" title=" " alt="" coords="270,165,484,122,485,127,271,171"/>
+<area shape="rect" id="Node000010" href="$classpsr_1_1IterativeIDESolverBase.html" title=" " alt="" coords="93,364,293,419"/>
+<area shape="poly" id="edge309_Node000010_Node000009" title=" " alt="" coords="307,402,345,413,381,429,397,441,407,454,415,466,430,478,451,491,449,495,426,483,411,470,402,457,393,445,379,434,343,418,305,407"/>
+<area shape="poly" id="edge310_Node000010_Node000011" title=" " alt="" coords="307,403,470,424,469,430,306,409"/>
+<area shape="rect" id="Node000013" title=" " alt="" coords="5,443,380,542"/>
+<area shape="poly" id="edge311_Node000013_Node000009" title=" " alt="" coords="394,512,445,517,444,523,394,517"/>
+<area shape="poly" id="edge312_Node000013_Node000011" title=" " alt="" coords="394,464,468,454,469,460,394,469"/>
+<area shape="rect" id="Node000014" href="$structpsr_1_1SolverStatsSelector.html" title=" " alt="" coords="104,567,281,621"/>
+<area shape="poly" id="edge313_Node000014_Node000009" title=" " alt="" coords="294,576,444,554,445,559,295,581"/>
+<area shape="poly" id="edge314_Node000014_Node000011" title=" " alt="" coords="294,584,338,572,378,552,394,535,402,517,409,497,426,479,468,457,470,462,430,483,414,500,407,519,399,538,382,556,340,577,296,589"/>
 </map>

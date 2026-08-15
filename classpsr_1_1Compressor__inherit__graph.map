@@ -1,15 +1,15 @@
 <map id="psr::Compressor&lt; T, IdT &gt;" name="psr::Compressor&lt; T, IdT &gt;">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,368,160,408"/>
-<area shape="rect" id="Node000002" href="$classpsr_1_1Compressor.html" title=" " alt="" coords="430,25,610,79"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="81,354,86,295,101,221,114,183,131,146,154,113,182,85,210,66,240,52,305,36,370,31,430,34,430,39,370,36,305,41,242,57,213,71,186,89,158,116,136,149,119,185,106,222,92,295,87,355"/>
-<area shape="rect" id="Node000003" href="$classpsr_1_1Compressor.html" title=" " alt="" coords="429,103,611,158"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="87,354,98,312,116,263,144,215,162,193,182,175,211,158,241,144,305,126,370,119,429,119,429,124,370,124,306,131,243,149,213,162,186,179,165,197,148,218,121,265,103,313,92,355"/>
-<area shape="rect" id="Node000004" href="$classpsr_1_1Compressor.html" title=" " alt="" coords="441,183,599,223"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="95,354,129,297,153,269,183,246,214,230,246,217,315,201,382,194,441,194,441,199,382,200,316,206,248,222,216,235,185,250,157,273,133,300,100,357"/>
-<area shape="rect" id="Node000005" href="$classpsr_1_1Compressor.html" title=" " alt="" coords="431,247,609,287"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="111,356,144,329,183,307,245,286,310,273,374,266,430,263,431,268,374,271,311,278,247,291,185,312,147,334,115,360"/>
-<area shape="rect" id="Node000006" href="$classpsr_1_1Compressor.html" title=" " alt="" coords="433,311,607,337"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="146,361,183,351,314,331,432,323,433,328,314,337,185,356,148,366"/>
+<area shape="rect" id="Node000002" href="$classpsr_1_1Compressor.html" title=" " alt="" coords="433,25,607,50"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="81,354,85,292,99,214,112,174,130,135,153,100,182,70,213,50,247,35,282,25,319,19,390,16,453,22,453,27,390,22,319,24,283,30,248,40,216,54,186,74,157,103,134,138,117,176,104,215,90,292,86,354"/>
+<area shape="rect" id="Node000003" href="$classpsr_1_1Compressor.html" title=" " alt="" coords="430,74,610,129"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="85,354,94,306,111,248,139,191,159,165,182,143,201,133,225,125,288,112,360,105,430,100,430,106,361,110,289,117,227,130,203,138,186,147,163,169,144,194,116,250,99,307,90,355"/>
+<area shape="rect" id="Node000004" href="$classpsr_1_1Compressor.html" title=" " alt="" coords="429,153,611,207"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="94,354,128,293,152,262,183,236,242,207,307,188,371,178,429,174,429,180,371,183,308,193,244,212,185,241,156,266,132,296,99,357"/>
+<area shape="rect" id="Node000005" href="$classpsr_1_1Compressor.html" title=" " alt="" coords="441,232,599,272"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="110,356,143,327,183,303,248,279,317,264,383,255,441,250,441,256,383,260,318,269,250,284,185,308,146,332,113,360"/>
+<area shape="rect" id="Node000006" href="$classpsr_1_1Compressor.html" title=" " alt="" coords="431,296,609,336"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="147,361,183,351,312,329,430,318,431,323,313,334,185,356,148,366"/>
 <area shape="rect" id="Node000007" href="$classpsr_1_1Compressor.html" title=" " alt="" coords="439,361,601,415"/>
 <area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="174,385,438,385,438,391,174,391"/>
 <area shape="rect" id="Node000008" href="$classpsr_1_1Compressor.html" title=" " alt="" coords="423,439,617,494"/>

@@ -100,6 +100,8 @@ requires (!std::is_same_v&lt;std::remove_cvref_t&lt;FF&gt;, <a class="el" href="
 <tr class="separator:a84d33e8a7f3100e1593973d8498b25bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a91c6f981593c9a6bf8f977658336a226" id="r_a91c6f981593c9a6bf8f977658336a226"><td class="memItemLeft" align="right" valign="top">constexpr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1lazy.html#a91c6f981593c9a6bf8f977658336a226">operator std::invoke_result_t&lt; Fn &gt;</a> () &amp;&amp;noexcept(std::is_nothrow_invocable_v&lt; Fn &gt;)</td></tr>
 <tr class="separator:a91c6f981593c9a6bf8f977658336a226"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a27ae476ec109607ef395ff71d75dcdb2" id="r_a27ae476ec109607ef395ff71d75dcdb2"><td class="memItemLeft" align="right" valign="top">constexpr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1lazy.html#a27ae476ec109607ef395ff71d75dcdb2">operator std::invoke_result_t&lt; Fn &gt;</a> () &amp;noexcept(std::is_nothrow_invocable_v&lt; Fn &gt;)</td></tr>
+<tr class="separator:a27ae476ec109607ef395ff71d75dcdb2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -146,7 +148,7 @@ requires (!std::is_same_v&lt;std::remove_cvref_t&lt;FF&gt;, <a class="el" href="
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
 <a id="a91c6f981593c9a6bf8f977658336a226" name="a91c6f981593c9a6bf8f977658336a226"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a91c6f981593c9a6bf8f977658336a226">&#9670;&#160;</a></span>operator std::invoke_result_t&lt; Fn &gt;()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a91c6f981593c9a6bf8f977658336a226">&#9670;&#160;</a></span>operator std::invoke_result_t&lt; Fn &gt;() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -176,6 +178,37 @@ template&lt;typename Fn &gt; </div>
 
 </div>
 </div>
+<a id="a27ae476ec109607ef395ff71d75dcdb2" name="a27ae476ec109607ef395ff71d75dcdb2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a27ae476ec109607ef395ff71d75dcdb2">&#9670;&#160;</a></span>operator std::invoke_result_t&lt; Fn &gt;() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Fn &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr <a class="el" href="structpsr_1_1lazy.html">psr::lazy</a>&lt; Fn &gt;::operator std::invoke_result_t&lt; Fn &gt; </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> &amp;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="Lazy_8h_source.html#l00031">31</a> of file <a class="el" href="Lazy_8h_source.html">Lazy.h</a>.</p>
+
+<p class="reference">References <a class="el" href="Lazy_8h_source.html#l00019">psr::lazy&lt; Fn &gt;::F</a>.</p>
+
+</div>
+</div>
 <h2 class="groupheader">Member Data Documentation</h2>
 <a id="a0bb44cbbbad0446c87ba81a6fcb79baa" name="a0bb44cbbbad0446c87ba81a6fcb79baa"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a0bb44cbbbad0446c87ba81a6fcb79baa">&#9670;&#160;</a></span>F</h2>
@@ -193,7 +226,7 @@ template&lt;typename Fn &gt; </div>
 
 <p class="definition">Definition at line <a class="el" href="Lazy_8h_source.html#l00019">19</a> of file <a class="el" href="Lazy_8h_source.html">Lazy.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="Lazy_8h_source.html#l00026">psr::lazy&lt; Fn &gt;::operator std::invoke_result_t&lt; Fn &gt;()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="Lazy_8h_source.html#l00026">psr::lazy&lt; Fn &gt;::operator std::invoke_result_t&lt; Fn &gt;()</a>, and <a class="el" href="Lazy_8h_source.html#l00031">psr::lazy&lt; Fn &gt;::operator std::invoke_result_t&lt; Fn &gt;()</a>.</p>
 
 </div>
 </div>
@@ -203,7 +236,7 @@ template&lt;typename Fn &gt; </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Aug 15 2026 07:14:02 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Aug 15 2026 07:14:37 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

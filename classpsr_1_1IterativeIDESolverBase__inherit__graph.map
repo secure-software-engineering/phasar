@@ -1,7 +1,14 @@
 <map id="psr::IterativeIDESolverBase&lt; StaticSolverConfigTy, EdgeFunPtrTy &gt;" name="psr::IterativeIDESolverBase&lt; StaticSolverConfigTy, EdgeFunPtrTy &gt;">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,52,205,107"/>
-<area shape="rect" id="Node000002" href="$classpsr_1_1IterativeIDESolver.html" title=" " alt="" coords="606,5,838,60"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="219,60,229,59,428,44,606,34,606,40,429,49,230,65,219,66"/>
-<area shape="rect" id="Node000003" href="$classpsr_1_1IterativeIDESolverBase.html" title=" " alt="" coords="559,84,885,168"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="179,109,230,123,313,135,398,140,558,138,558,143,398,145,313,140,229,129,178,114"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,131,205,185"/>
+<area shape="rect" id="Node000002" href="$classpsr_1_1IterativeIDESolver.html" title=" " alt="" coords="1193,5,1475,89"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,123,229,107,359,80,492,59,627,45,758,36,1001,31,1193,36,1193,41,1001,37,759,42,627,51,493,65,360,85,230,113,181,128"/>
+<area shape="rect" id="Node000003" href="$classpsr_1_1IterativeIDESolver.html" title=" " alt="" coords="606,84,838,139"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="219,139,229,138,428,122,606,113,606,118,429,128,230,143,219,144"/>
+<area shape="rect" id="Node000005" href="$classpsr_1_1IterativeIDESolverBase.html" title=" " alt="" coords="559,163,885,247"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="179,188,230,202,313,213,398,219,558,217,558,222,398,224,313,219,229,207,178,193"/>
+<area shape="rect" id="Node000006" href="$classpsr_1_1IterativeIDESolverBase.html" title=" " alt="" coords="567,271,877,370"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="130,196,171,252,199,278,231,298,271,315,312,328,399,342,486,346,566,342,566,348,486,352,399,348,311,333,269,320,228,303,196,282,167,255,126,199"/>
+<area shape="poly" id="edge4_Node000003_Node000002" title=" " alt="" coords="852,120,1004,123,1087,118,1169,107,1239,87,1241,92,1170,113,1088,124,1005,129,852,126"/>
+<area shape="rect" id="Node000004" href="$classpsr_1_1PathAwareIterIDESolver.html" title=" " alt="" coords="1218,128,1450,183"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="852,128,910,134,1071,145,1218,150,1218,156,1071,150,909,139,851,133"/>
 </map>

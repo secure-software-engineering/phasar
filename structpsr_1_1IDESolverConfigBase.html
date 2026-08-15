@@ -84,6 +84,7 @@ $(function() {
 <div class="header">
   <div class="summary">
 <a href="#pub-types">Public Types</a> &#124;
+<a href="#pub-static-methods">Static Public Member Functions</a> &#124;
 <a href="#pub-static-attribs">Static Public Attributes</a> &#124;
 <a href="structpsr_1_1IDESolverConfigBase-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">psr::IDESolverConfigBase Struct Reference</div></div>
@@ -109,6 +110,18 @@ Public Types</h2></td></tr>
 <tr class="memitem:a22f4ff02a7c2c0fb9044be2ec2fbf006" id="r_a22f4ff02a7c2c0fb9044be2ec2fbf006"><td class="memTemplParams" colspan="2">template&lt;typename L &gt; </td></tr>
 <tr class="memitem:a22f4ff02a7c2c0fb9044be2ec2fbf006"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structpsr_1_1IDESolverConfigBase.html#a22f4ff02a7c2c0fb9044be2ec2fbf006">EdgeFunctionPtrType</a> = <a class="el" href="classpsr_1_1EdgeFunction.html">EdgeFunction</a>&lt; L &gt;</td></tr>
 <tr class="separator:a22f4ff02a7c2c0fb9044be2ec2fbf006"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a979d757d9844ba00b0778355a7da7013" id="r_a979d757d9844ba00b0778355a7da7013"><td class="memTemplParams" colspan="2">template&lt;typename <a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a> &gt; </td></tr>
+<tr class="memitem:a979d757d9844ba00b0778355a7da7013"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structpsr_1_1IDESolverConfigBase.html#a979d757d9844ba00b0778355a7da7013">PathTrackingData</a> = <a class="el" href="structpsr_1_1EmptyType.html">EmptyType</a></td></tr>
+<tr class="separator:a979d757d9844ba00b0778355a7da7013"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
+Static Public Member Functions</h2></td></tr>
+<tr class="memitem:ab3d64029c9fe50ea0a9230732004ce91" id="r_ab3d64029c9fe50ea0a9230732004ce91"><td class="memTemplParams" colspan="2">template&lt;typename ProblemTy &gt; </td></tr>
+<tr class="memitem:ab3d64029c9fe50ea0a9230732004ce91"><td class="memTemplItemLeft" align="right" valign="top">static <a class="el" href="structpsr_1_1IDESolverConfigBase.html#a979d757d9844ba00b0778355a7da7013">PathTrackingData</a>&lt; typename ProblemTy::ProblemAnalysisDomain &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structpsr_1_1IDESolverConfigBase.html#ab3d64029c9fe50ea0a9230732004ce91">initPathData</a> (ProblemTy &amp;)</td></tr>
+<tr class="separator:ab3d64029c9fe50ea0a9230732004ce91"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a029440a0aeb1a39fdc665e1d4a5ee95c" id="r_a029440a0aeb1a39fdc665e1d4a5ee95c"><td class="memTemplParams" colspan="2">template&lt;typename <a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a> &gt; </td></tr>
+<tr class="memitem:a029440a0aeb1a39fdc665e1d4a5ee95c"><td class="memTemplItemLeft" align="right" valign="top">static void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structpsr_1_1IDESolverConfigBase.html#a029440a0aeb1a39fdc665e1d4a5ee95c">saveEdges</a> (<a class="el" href="structpsr_1_1IDESolverConfigBase.html#a979d757d9844ba00b0778355a7da7013">PathTrackingData</a>&lt; <a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a> &gt; &amp;Data, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef</a>&lt; typename AnalysisDomainTy::n_t &gt; Curr, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef</a>&lt; typename AnalysisDomainTy::n_t &gt; Succ, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef</a>&lt; typename AnalysisDomainTy::d_t &gt; CurrNode, const auto &amp;SuccNodes, std::convertible_to&lt; <a class="el" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710b">ESGEdgeKind</a> &gt; auto Kind)</td></tr>
+<tr class="separator:a029440a0aeb1a39fdc665e1d4a5ee95c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
@@ -129,7 +142,7 @@ Static Public Attributes</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock">
-<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00026">26</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00029">29</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
 </div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="a22f4ff02a7c2c0fb9044be2ec2fbf006" name="a22f4ff02a7c2c0fb9044be2ec2fbf006"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a22f4ff02a7c2c0fb9044be2ec2fbf006">&#9670;&#160;</a></span>EdgeFunctionPtrType</h2>
@@ -145,7 +158,7 @@ template&lt;typename L &gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00052">52</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00055">55</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
 
 </div>
 </div>
@@ -163,7 +176,7 @@ template&lt;typename ProblemTy , <a class="el" href="classbool.html">bool</a> Au
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00049">49</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00052">52</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
 
 </div>
 </div>
@@ -181,7 +194,25 @@ template&lt;typename K , typename V &gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00039">39</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00042">42</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
+
+</div>
+</div>
+<a id="a979d757d9844ba00b0778355a7da7013" name="a979d757d9844ba00b0778355a7da7013"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a979d757d9844ba00b0778355a7da7013">&#9670;&#160;</a></span>PathTrackingData</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename <a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a> &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="structpsr_1_1IDESolverConfigBase.html#a979d757d9844ba00b0778355a7da7013">psr::IDESolverConfigBase::PathTrackingData</a> =  <a class="el" href="structpsr_1_1EmptyType.html">EmptyType</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00057">57</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
 
 </div>
 </div>
@@ -199,7 +230,7 @@ template&lt;typename T &gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00043">43</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00046">46</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
 
 </div>
 </div>
@@ -217,7 +248,102 @@ template&lt;typename T &gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00046">46</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00049">49</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
+
+</div>
+</div>
+<h2 class="groupheader">Member Function Documentation</h2>
+<a id="ab3d64029c9fe50ea0a9230732004ce91" name="ab3d64029c9fe50ea0a9230732004ce91"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab3d64029c9fe50ea0a9230732004ce91">&#9670;&#160;</a></span>initPathData()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename ProblemTy &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static <a class="el" href="structpsr_1_1IDESolverConfigBase.html#a979d757d9844ba00b0778355a7da7013">PathTrackingData</a>&lt; typename ProblemTy::ProblemAnalysisDomain &gt; psr::IDESolverConfigBase::initPathData </td>
+          <td>(</td>
+          <td class="paramtype">ProblemTy &amp;&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00061">61</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
+
+</div>
+</div>
+<a id="a029440a0aeb1a39fdc665e1d4a5ee95c" name="a029440a0aeb1a39fdc665e1d4a5ee95c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a029440a0aeb1a39fdc665e1d4a5ee95c">&#9670;&#160;</a></span>saveEdges()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename <a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static void psr::IDESolverConfigBase::saveEdges </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structpsr_1_1IDESolverConfigBase.html#a979d757d9844ba00b0778355a7da7013">PathTrackingData</a>&lt; <a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>Data</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef</a>&lt; typename AnalysisDomainTy::n_t &gt;&#160;</td>
+          <td class="paramname"><em>Curr</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef</a>&lt; typename AnalysisDomainTy::n_t &gt;&#160;</td>
+          <td class="paramname"><em>Succ</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef</a>&lt; typename AnalysisDomainTy::d_t &gt;&#160;</td>
+          <td class="paramname"><em>CurrNode</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const auto &amp;&#160;</td>
+          <td class="paramname"><em>SuccNodes</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::convertible_to&lt; <a class="el" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710b">ESGEdgeKind</a> &gt; auto&#160;</td>
+          <td class="paramname"><em>Kind</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00066">66</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
 
 </div>
 </div>
@@ -242,7 +368,7 @@ template&lt;typename T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00054">54</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00073">73</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
 
 </div>
 </div>
@@ -269,7 +395,7 @@ template&lt;typename T &gt; </div>
 <div class="line">      <a class="code hl_enumvalue" href="namespacepsr.html#adc7a7b43e72f639a33adcda32f50b50fab9f5c797ebbf55adccdd8539a65a0241">JumpFunctionGCMode::Disabled</a></div>
 <div class="ttc" id="anamespacepsr_html_adc7a7b43e72f639a33adcda32f50b50fab9f5c797ebbf55adccdd8539a65a0241"><div class="ttname"><a href="namespacepsr.html#adc7a7b43e72f639a33adcda32f50b50fab9f5c797ebbf55adccdd8539a65a0241">psr::JumpFunctionGCMode::Disabled</a></div><div class="ttdeci">@ Disabled</div><div class="ttdoc">Perform no semantic garbage collection on jump functions.</div></div>
 </div><!-- fragment -->
-<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00056">56</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00075">75</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
 
 </div>
 </div>
@@ -293,7 +419,7 @@ template&lt;typename T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00055">55</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00074">74</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
 
 </div>
 </div>
@@ -323,7 +449,7 @@ template&lt;typename K , typename V &gt; </div>
 <div class="line">      std::is_nothrow_move_constructible_v&lt;K&gt; &amp;&amp;</div>
 <div class="line">      std::is_nothrow_move_constructible_v&lt;V&gt; &amp;&amp; has_llvm_dense_map_info&lt;K&gt;</div>
 </div><!-- fragment -->
-<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00028">28</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00031">31</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
 
 </div>
 </div>
@@ -352,7 +478,7 @@ template&lt;typename T &gt; </div>
 <div class="line">      <span class="keyword">sizeof</span>(T) &lt;= 32 &amp;&amp; std::is_nothrow_move_constructible_v&lt;T&gt; &amp;&amp;</div>
 <div class="line">      has_llvm_dense_map_info&lt;T&gt;</div>
 </div><!-- fragment -->
-<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00034">34</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00037">37</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
 
 </div>
 </div>
@@ -376,7 +502,7 @@ template&lt;typename T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00058">58</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00077">77</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
 
 </div>
 </div>
@@ -386,7 +512,7 @@ template&lt;typename T &gt; </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Aug 15 2026 07:14:02 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Aug 15 2026 07:14:37 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

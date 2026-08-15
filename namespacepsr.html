@@ -801,6 +801,10 @@ C/C++" by Schubert et al.  <a href="classpsr_1_1GlobalCtorsDtorsModel.html#detai
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1PathAwareIDESolver.html">PathAwareIDESolver</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1PathAwareIDESolverConfig.html">PathAwareIDESolverConfig</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1PathAwareIterIDESolver.html">PathAwareIterIDESolver</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1PathEdge.html">PathEdge</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1PathSensitivityConfig.html">PathSensitivityConfig</a></td></tr>
@@ -1611,6 +1615,9 @@ requires (std::is_same_v&lt;<a class="el" href="namespacepsr.html#a951662fd4f90e
 <tr class="memitem:aa89d85b28c79851aab66b789cee39f1f" id="r_aa89d85b28c79851aab66b789cee39f1f"><td class="memTemplParams" colspan="2">template&lt;typename ProblemTy , ICFG ICFGTy&gt; </td></tr>
 <tr class="memitem:aa89d85b28c79851aab66b789cee39f1f"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#aa89d85b28c79851aab66b789cee39f1f">PathAwareIDESolver</a> (ProblemTy *, const ICFGTy *) -&gt; <a class="el" href="classpsr_1_1PathAwareIDESolver.html">PathAwareIDESolver</a>&lt; typename ProblemTy::ProblemAnalysisDomain, typename ProblemTy::container_type, ICFGTy &gt;</td></tr>
 <tr class="separator:aa89d85b28c79851aab66b789cee39f1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af7bdfbc46e86a53455518042bb7e875b" id="r_af7bdfbc46e86a53455518042bb7e875b"><td class="memTemplParams" colspan="2">template&lt;typename ProblemTy , typename ICFGTy &gt; </td></tr>
+<tr class="memitem:af7bdfbc46e86a53455518042bb7e875b"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#af7bdfbc46e86a53455518042bb7e875b">PathAwareIterIDESolver</a> (ProblemTy *, ICFGTy *) -&gt; <a class="el" href="classpsr_1_1PathAwareIterIDESolver.html">PathAwareIterIDESolver</a>&lt; ProblemTy, <a class="el" href="structpsr_1_1DefaultIDESolverConfig.html">DefaultIDESolverConfig</a>&lt; ProblemTy &gt;, ICFGTy &gt;</td></tr>
+<tr class="separator:af7bdfbc46e86a53455518042bb7e875b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4b43488beeaf35f0c985874427d92cec" id="r_a4b43488beeaf35f0c985874427d92cec"><td class="memTemplParams" colspan="2">template&lt;typename Problem &gt; </td></tr>
 <tr class="memitem:a4b43488beeaf35f0c985874427d92cec"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a4b43488beeaf35f0c985874427d92cec">IntraMonoSolver</a> (Problem &amp;) -&gt; <a class="el" href="classpsr_1_1IntraMonoSolver.html">IntraMonoSolver</a>&lt; typename Problem::ProblemAnalysisDomain &gt;</td></tr>
 <tr class="separator:a4b43488beeaf35f0c985874427d92cec"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -2623,7 +2630,7 @@ template&lt;typename Problem &gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00062">62</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00081">81</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
 
 </div>
 </div>
@@ -2639,7 +2646,7 @@ template&lt;typename Problem &gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00073">73</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00092">92</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
 
 </div>
 </div>
@@ -2673,7 +2680,7 @@ template&lt;typename Problem &gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00063">63</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00082">82</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
 
 </div>
 </div>
@@ -2689,7 +2696,7 @@ template&lt;typename Problem &gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00074">74</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00093">93</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
 
 </div>
 </div>
@@ -2705,7 +2712,7 @@ template&lt;typename Problem &gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00093">93</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00112">112</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
 
 </div>
 </div>
@@ -3381,7 +3388,7 @@ template&lt;typename <a class="el" href="classAnalysisDomainTy.html">AnalysisDom
 </td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00014">14</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00017">17</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
 
 </div>
 </div>
@@ -12381,6 +12388,36 @@ template&lt;typename ProblemTy , ICFG ICFGTy&gt; </div>
 
 </div>
 </div>
+<a id="af7bdfbc46e86a53455518042bb7e875b" name="af7bdfbc46e86a53455518042bb7e875b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af7bdfbc46e86a53455518042bb7e875b">&#9670;&#160;</a></span>PathAwareIterIDESolver()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename ProblemTy , typename ICFGTy &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classpsr_1_1PathAwareIterIDESolver.html">psr::PathAwareIterIDESolver</a> </td>
+          <td>(</td>
+          <td class="paramtype">ProblemTy *&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">ICFGTy *&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> -&gt;  <a class="el" href="classpsr_1_1PathAwareIterIDESolver.html">PathAwareIterIDESolver</a>&lt; ProblemTy, <a class="el" href="structpsr_1_1DefaultIDESolverConfig.html">DefaultIDESolverConfig</a>&lt; ProblemTy &gt;, ICFGTy &gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="aa73a5b122d82c47528b16f9ea92aeeba" name="aa73a5b122d82c47528b16f9ea92aeeba"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa73a5b122d82c47528b16f9ea92aeeba">&#9670;&#160;</a></span>PrettyPrinter()</h2>
 
@@ -14682,7 +14719,7 @@ template&lt;typename Var , typename T &gt; </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Aug 15 2026 07:14:01 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Aug 15 2026 07:14:36 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
