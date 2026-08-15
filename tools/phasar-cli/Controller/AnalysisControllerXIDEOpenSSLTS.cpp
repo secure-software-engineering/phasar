@@ -17,5 +17,5 @@ using namespace psr;
 void controller::executeIDEOpenSSLTS(AnalysisController &Data) {
   OpenSSLEVPKDFDescription TSDesc;
   executeIDEAnalysis<IDETypeStateAnalysis<OpenSSLEVPKDFDescription>>(
-      Data, &TSDesc, Data.EntryPoints);
+      Data, &TSDesc, Data.getEntryPoints());
 }

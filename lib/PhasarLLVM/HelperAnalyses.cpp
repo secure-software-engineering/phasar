@@ -75,6 +75,12 @@ HelperAnalyses::HelperAnalyses(std::unique_ptr<llvm::Module> IRModule,
   this->IRDB = std::make_unique<LLVMProjectIRDB>(
       std::move(IRModule), Config.PreprocessExistingModule);
 }
+HelperAnalyses::HelperAnalyses(std::unique_ptr<LLVMProjectIRDB> IRDB,
+                               std::vector<std::string> EntryPoints,
+                               HelperAnalysisConfig Config)
+    : HelperAnalyses(std::string(), std::move(EntryPoints), std::move(Config)) {
+  this->IRDB = std::move(IRDB);
+}
 
 HelperAnalyses::~HelperAnalyses() noexcept = default;
 
