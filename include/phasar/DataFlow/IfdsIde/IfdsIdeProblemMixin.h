@@ -22,6 +22,17 @@
 #include <type_traits>
 
 namespace psr {
+
+/// \brief A template that lets you inherit recurring APIs into IFDS/IDE
+/// problems (solvable by the IterativeIDESolver or the legacy
+/// IFDSSolver/IDESolver). Create a subclass from this and implement all
+/// missing functions to create your own IFDS/IDE analysis.
+///
+/// For more information on how to write an IFDS/IDE analysis see
+/// - [Writing an IFDS
+/// Analysis](https://github.com/secure-software-engineering/phasar/wiki/Writing-an-IFDS-analysis).
+/// - [Writing an IDE
+/// Analysis](https://github.com/secure-software-engineering/phasar/wiki/Writing-an-IDE-analysis)
 template <IfdsAnalysisDomain AnalysisDomainTy,
           typename Container = std::set<typename AnalysisDomainTy::d_t>>
 class IfdsIdeProblemMixin
