@@ -14,6 +14,6 @@
 using namespace psr;
 
 void controller::executeIntraMonoFullConstant(AnalysisController &Data) {
-  executeIntraMonoAnalysis<IntraMonoFullConstantPropagation>(Data,
-                                                             Data.EntryPoints);
+  executeIntraMonoAnalysis<IntraMonoFullConstantPropagation>(
+      Data, Data.getEntryPoints());
 }

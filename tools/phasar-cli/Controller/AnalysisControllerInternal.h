@@ -10,12 +10,9 @@
 #ifndef PHASAR_CONTROLLER_ANALYSISCONTROLLERINTERNAL_H
 #define PHASAR_CONTROLLER_ANALYSISCONTROLLERINTERNAL_H
 
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
+#include "phasar/ControlFlow/ICFG.h"
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
 #include "phasar/PhasarLLVM/TaintConfig/LLVMTaintConfig.h"
-#include "phasar/Utils/ChronoUtils.h"
 #include "phasar/Utils/IO.h"
 #include "phasar/Utils/Timer.h"
 
@@ -79,8 +76,7 @@ static void emitRequestedDataFlowResults(AnalysisController &Data, T &Solver) {
   const auto PrintResult = [&ResultDirectory](llvm::StringRef Suffix,
                                               auto WithStream) {
     if (!ResultDirectory.empty()) {
-      if (auto OFS =
-              openFileStream(llvm::Twine(ResultDirectory.string()) + Suffix)) {
+      if (auto OFS = openFileStream(ResultDirectory + Suffix)) {
         WithStream(*OFS);
       }
     } else {
