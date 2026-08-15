@@ -2,11 +2,14 @@
 #define PHASAR_DATAFLOW_IFDSIDE_SOLVER_STATICIDESOLVERCONFIG_H
 
 #include "phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h"
+#include "phasar/DataFlow/IfdsIde/Solver/ESGEdgeKind.h"
 #include "phasar/DataFlow/IfdsIde/Solver/FlowEdgeFunctionCacheNG.h"
 #include "phasar/DataFlow/IfdsIde/Solver/WorkListTraits.h"
+#include "phasar/Utils/EmptyBaseOptimizationUtils.h"
 #include "phasar/Utils/TableWrappers.h"
 #include "phasar/Utils/TypeTraits.h"
 
+#include <concepts>
 #include <type_traits>
 #include <utility>
 
@@ -50,6 +53,22 @@ struct IDESolverConfigBase {
       FlowEdgeFunctionCacheNG<ProblemTy, AutoAddZero>;
 
   template <typename L> using EdgeFunctionPtrType = EdgeFunction<L>;
+
+  template <typename AnalysisDomainTy> using PathTrackingData = EmptyType;
+
+  template <typename ProblemTy>
+  static PathTrackingData<typename ProblemTy::ProblemAnalysisDomain>
+  initPathData(ProblemTy & /*Problem*/) {
+    return {};
+  }
+
+  template <typename AnalysisDomainTy>
+  static void saveEdges(PathTrackingData<AnalysisDomainTy> &Data,
+                        ByConstRef<typename AnalysisDomainTy::n_t> Curr,
+                        ByConstRef<typename AnalysisDomainTy::n_t> Succ,
+                        ByConstRef<typename AnalysisDomainTy::d_t> CurrNode,
+                        const auto &SuccNodes,
+                        std::convertible_to<ESGEdgeKind> auto Kind) {}
 
   static constexpr bool AutoAddZero = true;
   static constexpr bool EnableStatistics = false;
