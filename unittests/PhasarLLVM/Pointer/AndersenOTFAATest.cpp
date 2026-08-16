@@ -189,6 +189,8 @@ void doAnalysisAndCheckExact(
   }
 
   if (DumpResults || ::testing::Test::HasFailure()) {
+    IRDB.emitPreprocessedIR(llvm::errs() << "LLVM IR:\n");
+    llvm::errs() << " ================== \n";
     dumpAnalysisState(Compressor, Results);
   }
 }
