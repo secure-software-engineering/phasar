@@ -80,6 +80,7 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
   const llvm::DataLayout &DL;           // NOLINT
   ValueCompressor<v_t> &VC;             // NOLINT
   const PAGMappedLibrarySummary &MLSum; // NOLINT
+  PunnedABICache PunnedABI{&DL};
 
   LLVMPAGBuilder::MemSSAProviderFn *MemSSAProvider = nullptr;
   llvm::MemorySSA *CurrentMemSSA = nullptr;
@@ -569,7 +570,8 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
     llvm::SmallVector<llvm::SmallDenseSet<ValueId>> Args;
     for (const auto &Arg : Call->args()) {
       auto &ArgVal = Args.emplace_back();
-      if (definitelyContainsNoPointer(Arg)) {
+      if (definitelyContainsNoPointer(Arg) &&
+          !PunnedABI.isCoercedPointer(Arg.get(), Call->getFunction())) {
         continue;
       }
 
@@ -579,7 +581,8 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
     }
 
     std::optional<ValueId> CSVal;
-    if (!definitelyContainsNoPointer(Call)) {
+    if (!definitelyContainsNoPointer(Call) ||
+        PunnedABI.isCoercedPointer(Call, Call->getFunction())) {
       CSVal = getVariable(Call, Strategy);
     }
 
@@ -594,7 +597,8 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
 
   void handleReturn(LLVMPBStrategyRef Strategy, const llvm::ReturnInst *Ret) {
     const auto *RetVal = Ret->getReturnValue();
-    if (!RetVal || definitelyContainsNoPointer(RetVal)) {
+    if (!RetVal || (definitelyContainsNoPointer(RetVal) &&
+                    !PunnedABI.isCoercedPointer(RetVal, Ret->getFunction()))) {
       return;
     }
 

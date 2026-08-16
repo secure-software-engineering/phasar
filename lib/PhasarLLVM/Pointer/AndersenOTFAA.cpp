@@ -308,8 +308,9 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
 
   // ---- Data fields ----------------------------------------------------
 
-  const LLVMProjectIRDB &IRDB;              // NOLINT
-  const llvm::DataLayout &DL;               // NOLINT
+  const LLVMProjectIRDB &IRDB; // NOLINT
+  const llvm::DataLayout &DL;  // NOLINT
+  PunnedABICache PunnedABI{&DL};
   ValueCompressor<PAGVariable> &ExternalVC; // NOLINT – caller-visible output
   ValueCompressor<AndersenVar> LocalVC{};   // internal variable+object nodes
   Soundness SoundnessFlag;
@@ -317,11 +318,11 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
 
   llvm::TargetLibraryInfoWrapperPass TLA{};
   // Per-function MemSSA cache: shared between processFunction() (which needs
-  // the MemorySSA of whichever function is currently being translated) and
-  // the allocation-wrapper classifier (which needs the MemorySSA of an
-  // arbitrary callee at classification time). Building at most once per
-  // function avoids redundant dominator-tree/AA construction for functions
-  // that are both classified and later processed.
+  // the MemorySSA of currently translated function) and the allocation-wrapper
+  // classifier (which needs the MemorySSA of an arbitrary callee at
+  // classification time). Building at most once per function avoids redundant
+  // dominator-tree/AA construction for functions that are both classified and
+  // later processed.
   llvm::DenseMap<const llvm::Function *, std::unique_ptr<MemSSABundle>>
       MemSSACache;
   llvm::MemorySSA *CurrentMemSSA = nullptr;
@@ -835,7 +836,8 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     CurFunc = F;
     CurCtx = Ctx;
     for (const auto &Arg : F->args()) {
-      if (!definitelyContainsNoPointer(&Arg)) {
+      if (!definitelyContainsNoPointer(&Arg) ||
+          PunnedABI.isCoercedPointer(&Arg, F)) {
         (void)getOrInsertVar(PAGVariable(&Arg));
       }
     }
@@ -1091,13 +1093,18 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
 
   void handleReturn(const llvm::ReturnInst *R) {
     const auto *RetVal = R->getReturnValue();
-    if (!RetVal || definitelyContainsNoPointer(RetVal)) {
+    if (!RetVal) {
+      return;
+    }
+    const bool Punned = PunnedABI.isCoercedPointer(RetVal, R->getFunction());
+    if (!Punned && definitelyContainsNoPointer(RetVal)) {
       return;
     }
     const ValueId RetSlotId =
         getOrInsertVar(PAGVariable::Return{R->getFunction()});
-    forEachOpId(RetVal,
-                [&](ValueId ValId) { addAssignEdge(ValId, RetSlotId); });
+    forEachOpId(
+        RetVal, [&](ValueId ValId) { addAssignEdge(ValId, RetSlotId); },
+        Punned);
   }
 
   // ---- Allocation-wrapper classification -------------------------------
@@ -1653,7 +1660,10 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     }
 
     for (const auto &[Param, ArgIds] : llvm::zip(Callee->args(), Args)) {
-      if (ArgIds.empty() || definitelyContainsNoPointer(&Param)) {
+      // A coerced actual has ids despite its pointer-free type; passing it on
+      // is what makes the formal a coerced parameter in the first place.
+      if (ArgIds.empty() || (definitelyContainsNoPointer(&Param) &&
+                             !mayHidePointer(DL, Param.getType()))) {
         continue;
       }
       const ValueId ParamId = getOrInsertVar(PAGVariable(&Param), CalleeCtx);
@@ -2012,14 +2022,17 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     ArgList Args;
     for (const auto &Arg : C->args()) {
       auto &ArgIds = Args.emplace_back();
-      if (!definitelyContainsNoPointer(Arg.get())) {
-        forEachOpId(Arg.get(), [&](ValueId Id) { ArgIds.push_back(Id); });
+      const bool Punned = PunnedABI.isCoercedPointer(Arg.get(), CurFunc);
+      if (Punned || !definitelyContainsNoPointer(Arg.get())) {
+        forEachOpId(
+            Arg.get(), [&](ValueId Id) { ArgIds.push_back(Id); }, Punned);
       }
     }
 
     std::optional<ValueId> CSRetVal;
     // Mirrors handleReturn's gate: an aggregate return also fills a slot.
-    if (!definitelyContainsNoPointer(C->getType())) {
+    if (!definitelyContainsNoPointer(C->getType()) ||
+        PunnedABI.isCoercedPointer(C, CurFunc)) {
       const ValueId VarId = getOrInsertVar(PAGVariable(C));
       CSRetVal = VarId;
       const auto *DirectCallee = llvm::dyn_cast<llvm::Function>(

@@ -10,9 +10,15 @@
  *****************************************************************************/
 
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Utilities.h"
 
+#include "llvm/ADT/DenseMap.h"
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/DataLayout.h"
 #include "llvm/IR/DerivedTypes.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/GlobalVariable.h"
+#include "llvm/IR/InstIterator.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Type.h"
@@ -27,13 +33,32 @@
 
 namespace psr {
 
-/// Whether Ptr is a memory-location (alloca or global), cast to an integer.
+/// Whether a value of the pointer-free type \p Ty is laid out such that it
+/// could hold pointer bit patterns.
+[[nodiscard]] inline bool mayHidePointer(const llvm::DataLayout &DL,
+                                         const llvm::Type *Ty) {
+  if (Ty->isIntegerTy(DL.getPointerSizeInBits())) {
+    return true;
+  }
+  if (const auto *Arr = llvm::dyn_cast<llvm::ArrayType>(Ty)) {
+    return mayHidePointer(DL, Arr->getElementType());
+  }
+  const auto *Struct = llvm::dyn_cast<llvm::StructType>(Ty);
+  return Struct && !Struct->isOpaque() && !Struct->elements().empty() &&
+         llvm::all_of(Struct->elements(), [&DL](const llvm::Type *ElemTy) {
+           return mayHidePointer(DL, ElemTy);
+         });
+}
+
+/// Whether Ptr is a memory-location (alloca or global), accessed as an
+/// integer.
 ///
-/// Useful for handling atomicrmw of pointers, which clang punns to i64.
+/// Useful for handling atomicrmw of pointers, which clang punns to i64, and
+/// for ABI-coerced aggregates (see PunnedABICache).
 [[nodiscard]] inline bool isPunnedPointerAccess(const llvm::DataLayout &DL,
                                                 const llvm::Value *Ptr,
                                                 const llvm::Type *AccessedTy) {
-  if (!AccessedTy->isIntegerTy(DL.getPointerSizeInBits())) {
+  if (!mayHidePointer(DL, AccessedTy)) {
     return false;
   }
   const llvm::Value *Base = Ptr->stripPointerCastsAndAliases();
@@ -103,5 +128,43 @@ asMemoryAccess(const llvm::Instruction &I, const llvm::DataLayout &DL) {
   }
   return std::nullopt;
 }
+
+/// Recognizes ABI-coerced boundary values: values that carry a pointer
+/// although their type has none.
+///
+/// A small pointer-carrying struct is passed and returned in registers:
+///
+/// For whatever reason, on AArch64 clang punns such nested pointers as i64
+/// instead of ptr. This here is a best-effort approcach to keep pointer
+/// data-flows in such situations.
+class PunnedABICache {
+public:
+  explicit PunnedABICache(const llvm::DataLayout *DL) noexcept
+      : DL(&assertNotNull(DL)) {}
+
+  /// Whether \p V -- an argument, returned value or call result of \p F --
+  /// carries a pointer that its type does not reveal.
+  [[nodiscard]] bool isCoercedPointer(const llvm::Value *V,
+                                      const llvm::Function *F) {
+    return !llvm::isa<llvm::ConstantData>(V) &&
+           definitelyContainsNoPointer(V->getType()) &&
+           mayHidePointer(*DL, V->getType()) && punsPointers(F);
+  }
+
+private:
+  bool punsPointers(const llvm::Function *F) {
+    auto [It, Inserted] = Cache.try_emplace(F, false);
+    if (Inserted) {
+      It->second = llvm::any_of(llvm::instructions(*F), [this](const auto &I) {
+        const auto Access = asMemoryAccess(I, *DL);
+        return Access && Access->Punned;
+      });
+    }
+    return It->second;
+  }
+
+  const llvm::DataLayout *DL;
+  llvm::DenseMap<const llvm::Function *, bool> Cache;
+};
 
 } // namespace psr
