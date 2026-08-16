@@ -39,6 +39,6 @@ void controller::executeIDEIIA(AnalysisController &Data) {
         Current);
   };
 
-  executeIDEAnalysis<IDEInstInteractionAnalysis>(Data, Data.EntryPoints,
+  executeIDEAnalysis<IDEInstInteractionAnalysis>(Data, Data.getEntryPoints(),
                                                  Generator);
 }

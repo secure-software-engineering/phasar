@@ -11,26 +11,33 @@
 #include "phasar/Config/Configuration.h"
 #include "phasar/ControlFlow/CallGraphAnalysisType.h"
 #include "phasar/ControlFlow/CallGraphData.h"
+#include "phasar/PhasarLLVM/ControlFlow/EntryFunctionUtils.h"
+#include "phasar/PhasarLLVM/ControlFlow/ExternCallbackModel.h"
+#include "phasar/PhasarLLVM/ControlFlow/GlobalCtorsDtorsModel.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
-#include "phasar/PhasarLLVM/HelperAnalysisConfig.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSetData.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 #include "phasar/Pointer/AliasAnalysisType.h"
 #include "phasar/Pointer/UnionFindAliasAnalysisType.h"
 #include "phasar/Utils/InitPhasar.h"
+#include "phasar/Utils/Lazy.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Soundness.h"
 #include "phasar/Utils/Utilities.h"
 
+#include "llvm/ADT/STLExtras.h"
+#include "llvm/ADT/SmallString.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/CommandLine.h"
+#include "llvm/Support/FileSystem.h"
+#include "llvm/Support/Path.h"
+#include "llvm/Support/WithColor.h"
 
 #include "Controller/AnalysisController.h"
 #include "Controller/AnalysisControllerEmitterOptions.h"
 
 #include <cstdlib>
-#include <filesystem>
 #include <initializer_list>
 #include <string>
 #include <vector>
@@ -70,7 +77,7 @@ cl::alias QuietAlias("quiet", cl::aliasopt(SilentOpt),
                      cl::desc("Alias for --silent"), cl::cat(PsrCat));
 
 PSR_SHORTLONG_OPTION(ModuleOpt, std::string, "m", "module",
-                     "Path to the LLVM IR module under analysis");
+                     "Path to the LLVM IR module under analysis", cl::Required);
 
 PSR_SHORTLONG_OPTION_TYPE(
     EntryOpt, cl::list<std::string>, "E", "entry-points",
@@ -154,6 +161,12 @@ cl::opt<Soundness> SoundnessOpt("soundness",
                                 cl::Hidden);
 PSR_OPTION_FLAG(AutoGlobalsOpt, "auto-globals",
                 "Enable automated support for global initializers",
+                cl::init(true));
+
+PSR_OPTION_FLAG(ExternalCallsRewriteOpt, "rewrite-external-calls",
+                "Whether to rewrite calls-to known external functions, such as "
+                "pthread_create, s.t., their callback calls are not lost in "
+                "the call-graph",
                 cl::init(true));
 
 PSR_SHORTLONG_OPTION(
@@ -262,140 +275,74 @@ PSR_SHORTLONG_OPTION(PammOutOpt, std::string, "A", "pamm-out",
                      "Filename for PAMM's gathered data",
                      cl::init("PAMM_data.json"), cl::cat(PsrCat), cl::Hidden);
 
-// void validateParamConfigFile(const std::string &Config) {
-//   if (!(std::filesystem::exists(Config) &&
-//         !std::filesystem::is_directory(Config))) {
-//     llvm::errs() << "PhASAR configuration '" << Config << "' does not
-//     exist!\n"; exit(1);
-//   }
-// }
-
 void validateParamModule() {
-  if (ModuleOpt.empty()) {
-    llvm::errs() << "At least one LLVM target module is required!\n";
-    exit(1);
-  }
-
-  std::filesystem::path ModulePath(ModuleOpt.getValue());
-  if (!(std::filesystem::exists(ModulePath) &&
-        !std::filesystem::is_directory(ModulePath) &&
-        (ModulePath.extension() == ".ll" || ModulePath.extension() == ".bc"))) {
-    llvm::errs() << "LLVM module '" << std::filesystem::canonical(ModulePath)
-                 << "' does not exist!\n";
+  if (!(llvm::sys::fs::exists(ModuleOpt) &&
+        !llvm::sys::fs::is_directory(ModuleOpt) &&
+        (llvm::is_contained(llvm::ArrayRef{".bc", ".ll"},
+                            llvm::sys::path::extension(ModuleOpt))))) {
+    llvm::SmallString<256> RealModPath;
+    auto EC = llvm::sys::fs::real_path(ModuleOpt, RealModPath);
+    llvm::WithColor::error()
+        << "LLVM module '" << (EC ? ModuleOpt.getValue() : RealModPath.str())
+        << "' does not exist!\n";
     exit(1);
   }
 }
 
 void validateParamOutput() {
   if (!OutDirOpt.empty() &&
-      !std::filesystem::is_directory(OutDirOpt.getValue())) {
-    llvm::errs() << '\'' << OutDirOpt
-                 << "' does not exist, a valid output directory is required!\n";
-    exit(1);
-  }
-}
-
-void validateParamPointerAnalysis() {
-  if (AliasTypeOpt == AliasAnalysisType::Invalid) {
-    llvm::errs() << "'Invalid' is not a valid pointer analysis!\n";
-    exit(1);
-  }
-}
-
-void validateParamCallGraphAnalysis() {
-  if (CGTypeOpt == CallGraphAnalysisType::Invalid) {
-    llvm::errs() << "'Invalid' is not a valid call-graph analysis!\n";
-    exit(1);
-  }
-}
-
-void validateSoundnessFlag() {
-  if (SoundnessOpt == Soundness::Invalid) {
-    llvm::errs() << "'Invalid' is not a valid soundness level!\n";
+      !llvm::sys::fs::is_directory(OutDirOpt.getValue())) {
+    llvm::WithColor::error()
+        << '\'' << OutDirOpt
+        << "' does not exist, a valid output directory is required!\n";
     exit(1);
   }
 }
 
 void validateParamAnalysisConfig() {
   if (!AnalysisConfigOpt.empty() &&
-      !(std::filesystem::exists(AnalysisConfigOpt.getValue()) &&
-        !std::filesystem::is_directory(AnalysisConfigOpt.getValue()))) {
-    llvm::errs() << "Analysis configuration '" << AnalysisConfigOpt
-                 << "' does not exist!\n";
+      !(llvm::sys::fs::exists(AnalysisConfigOpt.getValue()) &&
+        !llvm::sys::fs::is_directory(AnalysisConfigOpt.getValue()))) {
+    llvm::WithColor::error() << "Analysis configuration '" << AnalysisConfigOpt
+                             << "' does not exist!\n";
     exit(1);
   }
 }
 
 void validatePTAJsonFile() {
   if (!LoadPTAFromJsonOpt.empty() &&
-      !(std::filesystem::exists(LoadPTAFromJsonOpt.getValue()) &&
-        !std::filesystem::is_directory(LoadPTAFromJsonOpt.getValue()))) {
-    llvm::errs() << "Points-to info file '" << LoadPTAFromJsonOpt
-                 << "' does not exist!\n";
+      !(llvm::sys::fs::exists(LoadPTAFromJsonOpt.getValue()) &&
+        !llvm::sys::fs::is_directory(LoadPTAFromJsonOpt.getValue()))) {
+    llvm::WithColor::error() << "Points-to info file '" << LoadPTAFromJsonOpt
+                             << "' does not exist!\n";
     exit(1);
   }
 }
 
-} // anonymous namespace
-
-int main(int Argc, const char **Argv) {
-  PSR_INITIALIZER(Argc, Argv);
-
-  cl::SetVersionPrinter([](llvm::raw_ostream &OS) {
-    OS << "PhASAR " << PhasarConfig::PhasarVersion() << '\n';
-  });
-  cl::HideUnrelatedOptions(PsrCat);
-  cl::ParseCommandLineOptions(Argc, Argv);
-
-#ifdef DYNAMIC_LOG
-  if (LogSeverityOpt == SeverityLevel::INVALID) {
-    llvm::errs() << "Invalid log-severity\n";
-    return 1;
+std::vector<std::string> setupIRAndEntrypoints(LLVMProjectIRDB &IRDB) {
+  std::vector<std::string> EntryPoints = std::move(EntryOpt);
+  if (EntryPoints.empty()) {
+    EntryPoints = getDefaultEntryPoints(IRDB);
   }
-  if (LogOpt) {
-    Logger::initializeStderrLogger(LogSeverityOpt);
-  } else if (!SilentOpt) {
-    Logger::initializeStderrLogger(SeverityLevel::ERROR);
-  }
-  for (const auto &LogCat : LogCategoriesOpt) {
-    Logger::initializeStderrLogger(LogSeverityOpt, LogCat);
-  }
-#endif
-
-  // Vanity header
-  if (!SilentOpt) {
-    llvm::outs() << "PhASAR " << PhasarConfig::PhasarVersion()
-                 << "\nA LLVM-based static analysis framework\n\n";
-  }
-
-  if (StrategyOpt == AnalysisStrategy::None) {
-    llvm::errs() << "Invalid analysis strategy!\n";
-    return 1;
-  }
-
-  if (ProjectIdOpt.empty()) {
-    ProjectIdOpt = std::filesystem::path(ModuleOpt.getValue())
-                       .filename()
-                       .replace_extension();
-    if (ProjectIdOpt.empty()) {
-      ProjectIdOpt = "default-phasar-project";
+  if (AutoGlobalsOpt) {
+    if (EntryPoints.size() == 1 && EntryPoints.front() == "main") {
+      GlobalCtorsDtorsModel::buildModel(IRDB, EntryPoints);
+      EntryPoints = {GlobalCtorsDtorsModel::ModelName.str()};
+    } else if (AutoGlobalsOpt.getNumOccurrences() > 0) {
+      llvm::WithColor::warning()
+          << "'--auto-globals' is currently not supported for libraries, only "
+             "for applications with 'main' as entry-point'\n";
     }
   }
+  if (ExternalCallsRewriteOpt) {
+    ExternCallbackModel::rewriteCalls(IRDB);
+  }
+  return EntryPoints;
+}
 
-  validateParamModule();
-  validateParamOutput();
-  validateParamPointerAnalysis();
-  validateParamCallGraphAnalysis();
-  validateSoundnessFlag();
-  validateParamAnalysisConfig();
-  validatePTAJsonFile();
-
-  [[maybe_unused]] auto &PConfig = PhasarConfig::getPhasarConfig();
-
-  // setup the emitter options to display the computed analysis results
+[[nodiscard]] AnalysisControllerEmitterOptions setupEmitterOptions() {
   auto EmitterOptions = AnalysisControllerEmitterOptions::None;
 
-  IFDSIDESolverConfig SolverConfig{};
   if (EmitIROpt) {
     EmitterOptions |= AnalysisControllerEmitterOptions::EmitIR;
   }
@@ -427,10 +374,11 @@ int main(int Argc, const char **Argv) {
     EmitterOptions |= AnalysisControllerEmitterOptions::EmitCGAsJson;
   }
   if (EmitCGAsTextOpt) {
-    llvm::errs()
-        << "ERROR: emit-cg-as-text is currently not supported. Did you mean "
-           "emit-cg-as-dot? For reversible serialization use emit-cg-as-json\n";
-    return 1;
+    llvm::WithColor::error()
+        << "'--emit-cg-as-text' is currently not supported. Did you mean "
+           "'--emit-cg-as-dot'? For reversible serialization use "
+           "'--emit-cg-as-json'\n";
+    exit(1);
   }
   if (EmitPTAAsTextOpt) {
     EmitterOptions |= AnalysisControllerEmitterOptions::EmitPTAAsText;
@@ -447,13 +395,57 @@ int main(int Argc, const char **Argv) {
   if (EmitStatsAsJsonOpt) {
     EmitterOptions |= AnalysisControllerEmitterOptions::EmitStatisticsAsJson;
   }
+  return EmitterOptions;
+}
 
+[[nodiscard]] IFDSIDESolverConfig setupSolverConfig() {
+  IFDSIDESolverConfig SolverConfig{};
   SolverConfig.setFollowReturnsPastSeeds(FollowReturnPastSeedsOpt);
   SolverConfig.setAutoAddZero(AutoAddZeroOpt);
   SolverConfig.setComputeValues(ComputeValuesOpt);
   SolverConfig.setRecordEdges(RecordEdgesOpt || EmitESGAsDotOpt);
   SolverConfig.setComputePersistedSummaries(PersistedSummariesOpt);
   SolverConfig.setEmitESG(EmitESGAsDotOpt);
+  return SolverConfig;
+}
+
+} // anonymous namespace
+
+int main(int Argc, const char **Argv) {
+  PSR_INITIALIZER(Argc, Argv);
+
+  cl::SetVersionPrinter([](llvm::raw_ostream &OS) {
+    OS << "PhASAR " << PhasarConfig::PhasarVersion() << '\n';
+  });
+  cl::HideUnrelatedOptions(PsrCat);
+  cl::ParseCommandLineOptions(Argc, Argv);
+
+#ifdef DYNAMIC_LOG
+  if (LogOpt) {
+    Logger::initializeStderrLogger(LogSeverityOpt);
+  } else if (!SilentOpt) {
+    Logger::initializeStderrLogger(SeverityLevel::ERROR);
+  }
+  for (const auto &LogCat : LogCategoriesOpt) {
+    Logger::initializeStderrLogger(LogSeverityOpt, LogCat);
+  }
+#endif
+
+  // Vanity header
+  if (!SilentOpt) {
+    llvm::outs() << "PhASAR " << PhasarConfig::PhasarVersion()
+                 << "\nA LLVM-based static analysis framework\n\n";
+  }
+
+  validateParamModule();
+  validateParamOutput();
+  validateParamAnalysisConfig();
+  validatePTAJsonFile();
+
+  [[maybe_unused]] auto &PConfig = PhasarConfig::getPhasarConfig();
+
+  // setup the emitter options to display the computed analysis results
+  auto EmitterOptions = setupEmitterOptions();
 
   std::optional<LLVMAliasSetData> PrecomputedAliasSet;
   if (!LoadPTAFromJsonOpt.empty()) {
@@ -467,43 +459,56 @@ int main(int Argc, const char **Argv) {
     PrecomputedCallGraph = CallGraphData::deserializeJson(LoadCGFromJsonOpt);
   }
 
-  if (EntryOpt.empty()) {
-    EntryOpt.push_back("main");
+  auto IRDB = std::make_unique<LLVMProjectIRDB>(
+      PSR_LAZY(LLVMProjectIRDB::loadOrExit(ModuleOpt)));
+
+  auto EntryPoints = setupIRAndEntrypoints(*IRDB);
+
+  // create project id
+  llvm::SmallString<128> ProjectId(ProjectIdOpt);
+  if (ProjectId.empty()) {
+    ProjectId.assign(llvm::sys::path::filename(ModuleOpt));
+    llvm::sys::path::replace_extension(ProjectId, {});
+    if (ProjectId.empty()) {
+      ProjectId = "default-phasar-project";
+    }
   }
 
-  HelperAnalysisConfig HAConfig{
-      .PrecomputedCG = std::move(PrecomputedCallGraph),
-      .PTATy = AliasTypeOpt,
-      .UFAATy = UFAliasTypeOpt,
-      .CGTy = CGTypeOpt,
-      .SoundnessLevel = SoundnessOpt,
-      .AutoGlobalSupport = AutoGlobalsOpt,
-      .AllowLazyPTS = !AnalysisController::needsToEmitPTA(EmitterOptions),
-  };
-  HelperAnalyses HA(std::move(ModuleOpt.getValue()), EntryOpt,
-                    std::move(HAConfig));
-  if (!HA.getProjectIRDB().isValid()) {
-    // Note: Error message has already been printed
-    return 1;
+  // create directory for results
+  llvm::SmallString<128> OutDir(OutDirOpt);
+  if (!OutDir.empty()) {
+    llvm::sys::path::append(OutDir,
+                            ProjectId + llvm::Twine("-") + createTimeStamp());
+    auto EC = llvm::sys::fs::create_directory(OutDir);
+    if (EC) {
+      llvm::WithColor::error() << EC.message() << '\n';
+      return 1;
+    }
   }
 
   AnalysisController Controller{
-      .HA = &HA,
+      .HA = HelperAnalyses(
+          std::move(IRDB), std::move(EntryPoints),
+          {
+              .PrecomputedPTS = std::move(PrecomputedAliasSet),
+              .PrecomputedCG = std::move(PrecomputedCallGraph),
+              .PTATy = AliasTypeOpt,
+              .UFAATy = UFAliasTypeOpt,
+              .CGTy = CGTypeOpt,
+              .SoundnessLevel = SoundnessOpt,
+              .AutoGlobalSupport =
+                  false, // already handled in setupIRAndEntrypoints()
+              .AllowLazyPTS =
+                  !AnalysisController::needsToEmitPTA(EmitterOptions),
+          }),
       .DataFlowAnalyses = DataFlowAnalysisOpt,
       .AnalysisConfigs = {AnalysisConfigOpt.getValue()},
-      .EntryPoints = EntryOpt,
       .Strategy = StrategyOpt,
       .EmitterOptions = EmitterOptions,
-      .SolverConfig = SolverConfig,
-      .ProjectID = ProjectIdOpt.getValue(),
-      .ResultDirectory = OutDirOpt.getValue(),
+      .SolverConfig = setupSolverConfig(),
+      .ProjectID = std::move(ProjectId),
+      .ResultDirectory = std::move(OutDir),
   };
-  if (!OutDirOpt.empty()) {
-    // create directory for results
-    Controller.ResultDirectory /=
-        Controller.ProjectID + "-" + createTimeStamp();
-    std::filesystem::create_directory(Controller.ResultDirectory);
-  }
 
   Controller.emitRequestedHelperAnalysisResults();
   Controller.run();

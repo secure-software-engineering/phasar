@@ -8,6 +8,7 @@
  *****************************************************************************/
 
 #include "phasar/DataFlow/MonoIfds/MonoIFDSSolver.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlow/MonoIfds/Problems/MonoIFDSTaintAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/FilteredLLVMAliasIterator.h"
 
@@ -18,17 +19,17 @@ using namespace psr;
 
 void controller::executeMonoIFDSTaint(AnalysisController &Data) {
 
-  FilteredLLVMAliasIterator FAI(Data.HA->getAliasInfo());
+  FilteredLLVMAliasIterator FAI(Data.HA.getAliasInfo());
 
   auto Config = makeTaintConfig(Data);
-  monoifds::TaintAnalysis TA(&Config, &Data.HA->getUsedGlobals(), &FAI);
+  monoifds::TaintAnalysis TA(&Config, &Data.HA.getUsedGlobals(), &FAI);
 
   // monoifds::MonoIFDSSolver Solver(&TA, &Data.HA->getICFG());
   // Solver //
   //     .setCGSCCs(&Data.HA->getCGSCCs())
   //     .setFunctionCompressor(&Data.HA->getCompressedFunctions());
 
-  monoifds::MonoIFDSSolver Solver(&TA, *Data.HA);
+  monoifds::MonoIFDSSolver Solver(&TA, Data.HA);
 
   {
     std::optional<Timer> MeasureTime;

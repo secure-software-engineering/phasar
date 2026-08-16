@@ -25,12 +25,12 @@ void controller::executeIFDSCFLEnvTaint(AnalysisController &Data) {
   auto Config = makeTaintConfig(Data);
 
   auto UserProblem = createAnalysisProblem<IFDSTaintAnalysis>(
-      *Data.HA, &Config, Data.EntryPoints, /*TaintMainArgs*/ false,
+      Data.HA, &Config, Data.getEntryPoints(), /*TaintMainArgs*/ false,
       /*EnableStrongUpdateStore*/ false);
   auto Printer = UserProblem.consumePrinter();
   auto FieldSensProblem = CFLFieldSensIFDSProblem(&UserProblem);
 
-  IterativeIDESolver Solver(&FieldSensProblem, &Data.HA->getICFG());
+  IterativeIDESolver Solver(&FieldSensProblem, &Data.HA.getICFG());
 
   SimpleTimer MeasureTime;
 
@@ -52,7 +52,7 @@ void controller::executeIFDSCFLEnvTaint(AnalysisController &Data) {
                               HasResultsDir = !Data.ResultDirectory.empty()](
                                  const llvm::Twine &FileName, auto Handler) {
     if (HasResultsDir) {
-      if (auto OFS = openFileStream(Data.ResultDirectory.string() + FileName)) {
+      if (auto OFS = openFileStream(Data.ResultDirectory + FileName)) {
         Handler(*OFS);
       }
     } else {
