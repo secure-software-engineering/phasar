@@ -32,7 +32,7 @@ namespace {
 using namespace psr;
 using namespace psr::unittest;
 
-static_assert(UnionFindAAResult<AndersenOTFResult>);
+static_assert(RawAAResult<AndersenOTFResult>);
 
 constexpr auto PathToLLFiles = PHASAR_BUILD_SUBFOLDER("pointers/");
 

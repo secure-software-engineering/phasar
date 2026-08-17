@@ -2303,7 +2303,7 @@ psr::computeAndersenOTFRaw(const LLVMProjectIRDB &IRDB,
   return Solver.solve();
 }
 
-LLVMUnionFindAliasIterator<AndersenOTFResult>
+LLVMRawAliasIterator<AndersenOTFResult>
 psr::computeAndersenOTF(const LLVMProjectIRDB &IRDB,
                         llvm::ArrayRef<const llvm::Function *> EntryPoints,
                         MaybeUniquePtr<ValueCompressor<PAGVariable>> VC,
@@ -2313,5 +2313,5 @@ psr::computeAndersenOTF(const LLVMProjectIRDB &IRDB,
   }
   AndersenOTFSolver Solver(IRDB, EntryPoints, *VC, S, std::move(CSOpts));
   auto Res = Solver.solve();
-  return LLVMUnionFindAliasIterator{std::move(Res), std::move(VC)};
+  return LLVMRawAliasIterator{std::move(Res), std::move(VC)};
 }

@@ -32,6 +32,7 @@
 #include "llvm/IR/Value.h"
 #include "llvm/IR/Verifier.h"
 #include "llvm/Passes/PassBuilder.h"
+#include "llvm/Support/ErrorHandling.h"
 
 #include "external/llvm/CFLAndersAliasAnalysis.h"
 #include "external/llvm/CFLSteensAliasAnalysis.h"
@@ -77,9 +78,11 @@ LLVMBasedAliasAnalysis::LLVMBasedAliasAnalysis(LLVMProjectIRDB &IRDB,
       AA.registerFunctionAnalysis<llvm::CFLSteensAA>();
       break;
     case AliasAnalysisType::Basic:
-      [[fallthrough]];
-    default:
       break;
+    default:
+      llvm::report_fatal_error(
+          "Alias analysis type not handled by LLVMBasedAliasAnalysis: " +
+          llvm::Twine(toString(PATy)));
     }
 
     // Note: The order of the alias analyses is important. See LLVM's source

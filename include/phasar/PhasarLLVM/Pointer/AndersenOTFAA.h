@@ -82,7 +82,7 @@ struct ContextSensitivityOptions {
 /// Alias-analysis result for the Andersen-style OTF points-to analysis.
 ///
 /// Two values may-alias iff their points-to sets share at least one abstract
-/// object.  Satisfies \c UnionFindAAResult so it can be wrapped by
+/// object.  Satisfies \c RawAAResult so it can be wrapped by
 /// \c LLVMUnionFindAliasIterator.
 struct AndersenOTFResult {
   TypedVector<ValueId, RawAliasSet<ValueId>> AliasSets;
@@ -112,7 +112,7 @@ struct AndersenOTFResult {
   }
 };
 
-static_assert(UnionFindAAResult<AndersenOTFResult>);
+static_assert(RawAAResult<AndersenOTFResult>);
 
 /// Andersen-style inclusion-based points-to analysis that co-refines the call
 /// graph and points-to sets in a single fixpoint.
@@ -158,7 +158,7 @@ computeAndersenOTFRaw(const LLVMProjectIRDB &IRDB,
 
 /// Runs the Andersen OTF fixpoint and returns an \c LLVMUnionFindAliasIterator
 /// that implements \c IsLLVMAliasIterator.
-[[nodiscard]] LLVMUnionFindAliasIterator<AndersenOTFResult>
+[[nodiscard]] LLVMRawAliasIterator<AndersenOTFResult>
 computeAndersenOTF(const LLVMProjectIRDB &IRDB,
                    llvm::ArrayRef<const llvm::Function *> EntryPoints,
                    MaybeUniquePtr<ValueCompressor<PAGVariable>> VC = nullptr,

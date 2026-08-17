@@ -94,7 +94,7 @@ void doAnalysisAndCompareResults(
                                         {"main"}, TH, VTP);
 
   ValueCompressor<PAGVariable> VC;
-  UnionFindAAResult auto Results = computeUnionFindAARaw(
+  RawAAResult auto Results = computeUnionFindAARaw(
       IRDB, AABuilder(IRDB, BaseCG), &VC, std::move(Impl));
 
   for (const auto &[PtrVar, ExpectedAliasVars] : ExpectedResults) {
@@ -7492,7 +7492,7 @@ TEST(MemSSAUnionFindAATest, BranchBothReach) {
 /// be compared without depending on the ValueIds they happen to assign.
 [[nodiscard]] std::map<std::string, std::set<std::string>>
 collectAliasSetsByName(const ValueCompressor<PAGVariable> &VC,
-                       const UnionFindAAResult auto &Results) {
+                       const RawAAResult auto &Results) {
   std::map<std::string, std::set<std::string>> Ret;
 
   for (const auto &[VId, Vars] : VC.id2vars().enumerate()) {

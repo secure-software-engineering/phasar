@@ -103,7 +103,7 @@ checkLLVMQueryLoc(psr::LLVMAliasInfoRef ComputedAliasResult,
 
 template <typename AAResT>
 static psr::AliasResult
-checkLLVMQueryLoc(psr::LLVMUnionFindAliasIterator<AAResT> &ComputedAliasResult,
+checkLLVMQueryLoc(psr::LLVMRawAliasIterator<AAResT> &ComputedAliasResult,
                   const llvm::Instruction *QueryInst) {
   const auto *Ptr1 = QueryInst->getOperand(0);
   const auto *Ptr2 = QueryInst->getOperand(1);
