@@ -167,9 +167,10 @@ LLVMBasedICFG &HelperAnalyses::getICFG() {
       LLVMAliasInfoRef AI = needsAliasInfo(CGTy) ? getAliasInfo() : nullptr;
       // getAliasInfo() may compute the call-graph already (e.g., AndersenOTFAA)
       if (!ICF) {
-        ICF = std::make_unique<LLVMBasedICFG>(&getProjectIRDB(), CGTy,
-                                              EntryPoints, &getTypeHierarchy(),
-                                              AI, SoundnessLevel);
+        // Note: AutoGlobals already handled in getProjectIRDB()
+        ICF = std::make_unique<LLVMBasedICFG>(
+            &getProjectIRDB(), CGTy, EntryPoints, &getTypeHierarchy(), AI,
+            SoundnessLevel, /*IncludeGlobals*/ false);
       }
     }
   }

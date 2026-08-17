@@ -328,16 +328,15 @@ void LLVMProjectIRDB::insertFunction(llvm::Function *F, bool DoPreprocessing) {
 
   auto &Context = F->getContext();
   for (auto &Inst : llvm::instructions(F)) {
-    if (DoPreprocessing) {
-      llvm::MDNode *Node = llvm::MDNode::get(
-          Context, llvm::MDString::get(Context, std::to_string(Id)));
-      Inst.setMetadata(PhasarConfig::MetaDataKind(), Node);
+    if (InstToId.try_emplace(&Inst, Id).second) {
+      if (DoPreprocessing) {
+        llvm::MDNode *Node = llvm::MDNode::get(
+            Context, llvm::MDString::get(Context, std::to_string(Id)));
+        Inst.setMetadata(PhasarConfig::MetaDataKind(), Node);
+      }
+      IdToInst.push_back(&Inst);
+      ++Id;
     }
-
-    IdToInst.push_back(&Inst);
-    InstToId.try_emplace(&Inst, Id);
-
-    ++Id;
   }
   assert(InstToId.size() == IdToInst.size());
 }
