@@ -61,7 +61,11 @@ SparseLLVMBasedICFGView::getSparseCFGImpl(const llvm::Function *Fun,
   return SparseCFGCache->getOrCreate(*this, Fun, Val, AliasAnalysis);
 }
 
-auto SparseLLVMBasedICFGView::advanceToNextUserImpl(n_t Succ, v_t Fact) -> n_t {
-  assert(SparseCFGCache != nullptr);
-  return SparseCFGCache->advanceToNextUser(Succ, Fact, AliasAnalysis);
+auto SparseLLVMBasedICFGView::advanceToNextUserImpl(n_t Succ, v_t Fact) const
+    -> n_t {
+  return SVFGCache::advanceToNextUser(Succ, Fact, AliasAnalysis);
+}
+
+size_t SparseLLVMBasedICFGView::getNumCallSitesImpl() const noexcept {
+  return ICF->getNumCallSites();
 }
