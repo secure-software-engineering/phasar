@@ -312,7 +312,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span> </div>
 <div class="foldopen" id="foldopen00188" data-start="{" data-end="}">
 <div class="line"><a id="l00188" name="l00188"></a><span class="lineno"><a class="line" href="structpsr_1_1pag_1_1PBStrategyCombinator.html#a665a73a6d6bb1ba1f3cbf5a86500cca3">  188</a></span>  <span class="keyword">constexpr</span> <span class="keywordtype">void</span> <a class="code hl_function" href="structpsr_1_1pag_1_1PBStrategyCombinator.html#a665a73a6d6bb1ba1f3cbf5a86500cca3">onAddEdge</a>(ValueId From, ValueId To, <a class="code hl_struct" href="structpsr_1_1pag_1_1Edge.html">Edge</a> E,</div>
-<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>                           <a class="code hl_typedef" href="namespacepsr.html#ad1d0602a9eee1460c855d6b3ce61201a">Nullable&lt;n_t&gt;</a> AtInstruction) {</div>
+<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>                           <a class="code hl_typedef" href="namespacepsr.html#aa5179235abf439e5cc74ed59d6ab2e0f">Nullable&lt;n_t&gt;</a> AtInstruction) {</div>
 <div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>    <a class="code hl_variable" href="structpsr_1_1pag_1_1PBStrategyCombinator.html#aa4f90b9f30f58d68ff0424e3aa2efb9a">First</a>.onAddEdge(From, To, E, AtInstruction);</div>
 <div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>    <a class="code hl_variable" href="structpsr_1_1pag_1_1PBStrategyCombinator.html#ae954cb9fa9e0cc20b103fede12d46a5e">Second</a>.onAddEdge(From, To, E, AtInstruction);</div>
 <div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>  }</div>
@@ -480,7 +480,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00325" name="l00325"></a><span class="lineno">  325</span><span class="comment">  /// edge to be created.</span></div>
 <div class="foldopen" id="foldopen00326" data-start="{" data-end="}">
 <div class="line"><a id="l00326" name="l00326"></a><span class="lineno"><a class="line" href="classpsr_1_1pag_1_1PBStrategyRef.html#af3157f73a8c603c1b48291940849b2c8">  326</a></span><span class="comment"></span>  <span class="keywordtype">void</span> <a class="code hl_function" href="classpsr_1_1pag_1_1PBStrategyRef.html#af3157f73a8c603c1b48291940849b2c8">onAddEdge</a>(ValueId From, ValueId To, <a class="code hl_struct" href="structpsr_1_1pag_1_1Edge.html">pag::Edge</a> E,</div>
-<div class="line"><a id="l00327" name="l00327"></a><span class="lineno">  327</span>                 <a class="code hl_typedef" href="namespacepsr.html#ad1d0602a9eee1460c855d6b3ce61201a">Nullable&lt;n_t&gt;</a> AtInstruction) {</div>
+<div class="line"><a id="l00327" name="l00327"></a><span class="lineno">  327</span>                 <a class="code hl_typedef" href="namespacepsr.html#aa5179235abf439e5cc74ed59d6ab2e0f">Nullable&lt;n_t&gt;</a> AtInstruction) {</div>
 <div class="line"><a id="l00328" name="l00328"></a><span class="lineno">  328</span>    VT-&gt;OnAddEdge(Ctx, From, To, E, AtInstruction);</div>
 <div class="line"><a id="l00329" name="l00329"></a><span class="lineno">  329</span>  }</div>
 </div>
@@ -523,7 +523,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00360" name="l00360"></a><span class="lineno">  360</span><span class="keyword">private</span>:</div>
 <div class="line"><a id="l00361" name="l00361"></a><span class="lineno">  361</span>  <span class="keyword">struct </span>VTable {</div>
 <div class="line"><a id="l00362" name="l00362"></a><span class="lineno">  362</span>    void (*OnAddEdge)(<span class="keywordtype">void</span> *Ctx, ValueId From, ValueId To, <a class="code hl_struct" href="structpsr_1_1pag_1_1Edge.html">pag::Edge</a> E,</div>
-<div class="line"><a id="l00363" name="l00363"></a><span class="lineno">  363</span>                      <a class="code hl_typedef" href="namespacepsr.html#ad1d0602a9eee1460c855d6b3ce61201a">Nullable&lt;n_t&gt;</a> AtInstruction);</div>
+<div class="line"><a id="l00363" name="l00363"></a><span class="lineno">  363</span>                      <a class="code hl_typedef" href="namespacepsr.html#aa5179235abf439e5cc74ed59d6ab2e0f">Nullable&lt;n_t&gt;</a> AtInstruction);</div>
 <div class="line"><a id="l00364" name="l00364"></a><span class="lineno">  364</span>    void (*OnAddValue)(<span class="keywordtype">void</span> *Ctx, <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef&lt;v_t&gt;</a> Variable, ValueId VId);</div>
 <div class="line"><a id="l00365" name="l00365"></a><span class="lineno">  365</span>    <a class="code hl_class" href="classsize__t.html">size_t</a> (*GetNumPossibleValues)(<span class="keyword">const</span> <span class="keywordtype">void</span> *Ctx, <span class="keyword">const</span> <a class="code hl_typedef" href="classpsr_1_1pag_1_1PBStrategyRef.html#a08eb56d73aa6ec1e618d7ccabcb8eef7">db_t</a> &amp;IRDB) <span class="keyword">noexcept</span>;</div>
 <div class="line"><a id="l00366" name="l00366"></a><span class="lineno">  366</span>    void (*WithCalleesOfCallAt)(<span class="keyword">const</span> <span class="keywordtype">void</span> *Ctx, <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef&lt;n_t&gt;</a> CS,</div>
@@ -532,7 +532,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00369" name="l00369"></a><span class="lineno">  369</span> </div>
 <div class="line"><a id="l00370" name="l00370"></a><span class="lineno">  370</span>  <span class="keyword">template</span> &lt;<span class="keyword">typename</span> ConcreteStrategyT&gt;</div>
 <div class="line"><a id="l00371" name="l00371"></a><span class="lineno">  371</span>  <span class="keyword">static</span> <span class="keywordtype">void</span> onAddEdgeThunk(<span class="keywordtype">void</span> *Ctx, ValueId From, ValueId To, <a class="code hl_struct" href="structpsr_1_1pag_1_1Edge.html">pag::Edge</a> E,</div>
-<div class="line"><a id="l00372" name="l00372"></a><span class="lineno">  372</span>                             <a class="code hl_typedef" href="namespacepsr.html#ad1d0602a9eee1460c855d6b3ce61201a">Nullable&lt;n_t&gt;</a> AtInstruction) {</div>
+<div class="line"><a id="l00372" name="l00372"></a><span class="lineno">  372</span>                             <a class="code hl_typedef" href="namespacepsr.html#aa5179235abf439e5cc74ed59d6ab2e0f">Nullable&lt;n_t&gt;</a> AtInstruction) {</div>
 <div class="line"><a id="l00373" name="l00373"></a><span class="lineno">  373</span>    <span class="comment">// Do things like allocating a new slot in the adjacency-list here</span></div>
 <div class="line"><a id="l00374" name="l00374"></a><span class="lineno">  374</span>    <span class="keyword">static_cast&lt;</span>ConcreteStrategyT *<span class="keyword">&gt;</span>(Ctx)-&gt;<a class="code hl_function" href="classpsr_1_1pag_1_1PBStrategyRef.html#af3157f73a8c603c1b48291940849b2c8">onAddEdge</a>(From, To, E,</div>
 <div class="line"><a id="l00375" name="l00375"></a><span class="lineno">  375</span>                                                     AtInstruction);</div>
@@ -654,8 +654,8 @@ $(document).ready(function() { init_codefold(0); });
 <div class="ttc" id="aconceptpsr_1_1same__as__decay_html"><div class="ttname"><a href="conceptpsr_1_1same__as__decay.html">psr::same_as_decay</a></div><div class="ttdef"><b>Definition</b> <a href="TypeTraits_8h_source.html#l00089">TypeTraits.h:89</a></div></div>
 <div class="ttc" id="anamespacepsr_html"><div class="ttname"><a href="namespacepsr.html">psr</a></div><div class="ttdef"><b>Definition</b> <a href="AnalysisSetup_8h_source.html#l00013">AnalysisSetup.h:13</a></div></div>
 <div class="ttc" id="anamespacepsr_html_a44202ae7e19e7ae3bd454149976c364a"><div class="ttname"><a href="namespacepsr.html#a44202ae7e19e7ae3bd454149976c364a">psr::to_string</a></div><div class="ttdeci">std::string to_string(BinaryDomain B)</div></div>
+<div class="ttc" id="anamespacepsr_html_aa5179235abf439e5cc74ed59d6ab2e0f"><div class="ttname"><a href="namespacepsr.html#aa5179235abf439e5cc74ed59d6ab2e0f">psr::Nullable</a></div><div class="ttdeci">std::conditional_t&lt; IsNullable&lt; T &gt;, T, std::optional&lt; T &gt; &gt; Nullable</div><div class="ttdef"><b>Definition</b> <a href="Nullable_8h_source.html#l00026">Nullable.h:26</a></div></div>
 <div class="ttc" id="anamespacepsr_html_ab1fa2b63d3a5ab4934961480f678afea"><div class="ttname"><a href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">psr::ByConstRef</a></div><div class="ttdeci">std::conditional_t&lt; CanEfficientlyPassByValue&lt; T &gt;, T, const T &amp; &gt; ByConstRef</div><div class="ttdef"><b>Definition</b> <a href="ByRef_8h_source.html#l00024">ByRef.h:25</a></div></div>
-<div class="ttc" id="anamespacepsr_html_ad1d0602a9eee1460c855d6b3ce61201a"><div class="ttname"><a href="namespacepsr.html#ad1d0602a9eee1460c855d6b3ce61201a">psr::Nullable</a></div><div class="ttdeci">std::conditional_t&lt; std::is_convertible_v&lt; T, bool &gt;, T, std::optional&lt; T &gt; &gt; Nullable</div><div class="ttdef"><b>Definition</b> <a href="Nullable_8h_source.html#l00021">Nullable.h:22</a></div></div>
 <div class="ttc" id="astructpsr_1_1Overloaded_html"><div class="ttname"><a href="structpsr_1_1Overloaded.html">psr::Overloaded</a></div><div class="ttdef"><b>Definition</b> <a href="Utilities_8h_source.html#l00179">Utilities.h:179</a></div></div>
 <div class="ttc" id="astructpsr_1_1pag_1_1Assign_html"><div class="ttname"><a href="structpsr_1_1pag_1_1Assign.html">psr::pag::Assign</a></div><div class="ttdoc">Direct pointer assignment: To = From.</div><div class="ttdef"><b>Definition</b> <a href="PointerAssignmentGraph_8h_source.html#l00033">PointerAssignmentGraph.h:33</a></div></div>
 <div class="ttc" id="astructpsr_1_1pag_1_1Call_html"><div class="ttname"><a href="structpsr_1_1pag_1_1Call.html">psr::pag::Call</a></div><div class="ttdoc">Passing an argument at a call site. ArgNo is the 0-based parameter index.</div><div class="ttdef"><b>Definition</b> <a href="PointerAssignmentGraph_8h_source.html#l00040">PointerAssignmentGraph.h:40</a></div></div>
@@ -707,7 +707,7 @@ $(document).ready(function() { init_codefold(0); });
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Aug 20 2026 16:00:34 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Aug 20 2026 16:52:21 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

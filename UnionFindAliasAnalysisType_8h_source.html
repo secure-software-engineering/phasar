@@ -102,35 +102,38 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="comment"> *****************************************************************************/</span></div>
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span> </div>
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="preprocessor">#include &quot;llvm/ADT/StringRef.h&quot;</span></div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span> </div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespacepsr.html">psr</a> {</div>
-<div class="foldopen" id="foldopen00015" data-start="{" data-end="};">
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno"><a class="line" href="namespacepsr.html#a6f4a4ccf39bebc080ef8c867b6e3db85">   15</a></span><span class="keyword">enum class</span> <a class="code hl_enumeration" href="namespacepsr.html#a6f4a4ccf39bebc080ef8c867b6e3db85">UnionFindAliasAnalysisType</a> : uint8_t {</div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno"><a class="line" href="UnionFindAliasAnalysisType_8h.html#a30c02a68051bffaa4b12cd0741f1a069">   16</a></span><span class="preprocessor">#define UNIONFIND_ALIAS_ANALYSIS_TYPE(NAME, CMDFLAG, DESC) NAME,</span></div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="preprocessor">#include &quot;<a class="code" href="UnionFindAAType_8def.html">phasar/Pointer/UnionFindAAType.def</a>&quot;</span></div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>};</div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="preprocessor">#include &quot;llvm/Support/ErrorHandling.h&quot;</span></div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span> </div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespacepsr.html">psr</a> {</div>
+<div class="foldopen" id="foldopen00016" data-start="{" data-end="};">
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno"><a class="line" href="namespacepsr.html#a6f4a4ccf39bebc080ef8c867b6e3db85">   16</a></span><span class="keyword">enum class</span> <a class="code hl_enumeration" href="namespacepsr.html#a6f4a4ccf39bebc080ef8c867b6e3db85">UnionFindAliasAnalysisType</a> : uint8_t {</div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno"><a class="line" href="UnionFindAliasAnalysisType_8h.html#a30c02a68051bffaa4b12cd0741f1a069">   17</a></span><span class="preprocessor">#define UNIONFIND_ALIAS_ANALYSIS_TYPE(NAME, CMDFLAG, DESC) NAME,</span></div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="preprocessor">#include &quot;<a class="code" href="UnionFindAAType_8def.html">phasar/Pointer/UnionFindAAType.def</a>&quot;</span></div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>};</div>
 </div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span> </div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>[[nodiscard]] <span class="keyword">constexpr</span> llvm::StringRef</div>
-<div class="foldopen" id="foldopen00021" data-start="{" data-end="}">
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno"><a class="line" href="namespacepsr.html#ac39c82205102948466da7f8e894a9704">   21</a></span><a class="code hl_function" href="namespacepsr.html#a44202ae7e19e7ae3bd454149976c364a">to_string</a>(<a class="code hl_enumeration" href="namespacepsr.html#a6f4a4ccf39bebc080ef8c867b6e3db85">UnionFindAliasAnalysisType</a> AType) <span class="keyword">noexcept</span> {</div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>  <span class="keywordflow">switch</span> (AType) {</div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#define UNIONFIND_ALIAS_ANALYSIS_TYPE(NAME, CMDFLAG, DESC)                     \</span></div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="preprocessor">  case UnionFindAliasAnalysisType::NAME:                                       \</span></div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="preprocessor">    return CMDFLAG;</span></div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="preprocessor">#include &quot;<a class="code" href="UnionFindAAType_8def.html">phasar/Pointer/UnionFindAAType.def</a>&quot;</span></div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>  }</div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>}</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span> </div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>[[nodiscard]] <span class="keyword">constexpr</span> llvm::StringRef</div>
+<div class="foldopen" id="foldopen00022" data-start="{" data-end="}">
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno"><a class="line" href="namespacepsr.html#ac39c82205102948466da7f8e894a9704">   22</a></span><a class="code hl_function" href="namespacepsr.html#a44202ae7e19e7ae3bd454149976c364a">to_string</a>(<a class="code hl_enumeration" href="namespacepsr.html#a6f4a4ccf39bebc080ef8c867b6e3db85">UnionFindAliasAnalysisType</a> AType) <span class="keyword">noexcept</span> {</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>  <span class="keywordflow">switch</span> (AType) {</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="preprocessor">#define UNIONFIND_ALIAS_ANALYSIS_TYPE(NAME, CMDFLAG, DESC)                     \</span></div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="preprocessor">  case UnionFindAliasAnalysisType::NAME:                                       \</span></div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="preprocessor">    return CMDFLAG;</span></div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span><span class="preprocessor">#include &quot;<a class="code" href="UnionFindAAType_8def.html">phasar/Pointer/UnionFindAAType.def</a>&quot;</span></div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>  }</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span> </div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>  llvm_unreachable(<span class="stringliteral">&quot;All union-find AA types handled in the switch above&quot;</span>);</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>}</div>
 </div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>} <span class="comment">// namespace psr</span></div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>} <span class="comment">// namespace psr</span></div>
 <div class="ttc" id="aUnionFindAAType_8def_html"><div class="ttname"><a href="UnionFindAAType_8def.html">UnionFindAAType.def</a></div></div>
 <div class="ttc" id="anamespacepsr_html"><div class="ttname"><a href="namespacepsr.html">psr</a></div><div class="ttdef"><b>Definition</b> <a href="AnalysisSetup_8h_source.html#l00013">AnalysisSetup.h:13</a></div></div>
 <div class="ttc" id="anamespacepsr_html_a44202ae7e19e7ae3bd454149976c364a"><div class="ttname"><a href="namespacepsr.html#a44202ae7e19e7ae3bd454149976c364a">psr::to_string</a></div><div class="ttdeci">std::string to_string(BinaryDomain B)</div></div>
-<div class="ttc" id="anamespacepsr_html_a6f4a4ccf39bebc080ef8c867b6e3db85"><div class="ttname"><a href="namespacepsr.html#a6f4a4ccf39bebc080ef8c867b6e3db85">psr::UnionFindAliasAnalysisType</a></div><div class="ttdeci">UnionFindAliasAnalysisType</div><div class="ttdef"><b>Definition</b> <a href="UnionFindAliasAnalysisType_8h_source.html#l00015">UnionFindAliasAnalysisType.h:15</a></div></div>
+<div class="ttc" id="anamespacepsr_html_a6f4a4ccf39bebc080ef8c867b6e3db85"><div class="ttname"><a href="namespacepsr.html#a6f4a4ccf39bebc080ef8c867b6e3db85">psr::UnionFindAliasAnalysisType</a></div><div class="ttdeci">UnionFindAliasAnalysisType</div><div class="ttdef"><b>Definition</b> <a href="UnionFindAliasAnalysisType_8h_source.html#l00016">UnionFindAliasAnalysisType.h:16</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Aug 20 2026 16:00:34 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Aug 20 2026 16:52:21 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

@@ -1,0 +1,13 @@
+<map id="LegacyBaseTy" name="LegacyBaseTy">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,74,120,99"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="169,67,476,107"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="134,84,169,84,169,89,134,89"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="785,5,1116,75"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="489,72,785,50,785,55,490,77"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="785,99,1116,168"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="420,107,500,120,646,131,785,134,785,139,646,136,500,125,420,112"/>
+<area shape="rect" id="Node000004" href="$classpsr_1_1LegacyIDEProblemWrapper.html" title="A simple wrapper over a pointer to an IFDS/IDE problem, implementing the legacy IDETabulationProblem." alt="" coords="1165,20,1392,60"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="1130,37,1165,37,1165,43,1130,43"/>
+<area shape="rect" id="Node000006" href="$classpsr_1_1LegacyIDEProblemWrapper_3_01ProblemTy_01_4.html" title="A simple wrapper over a pointer to an IFDS/IDE problem, implementing the legacy IDETabulationProblem." alt="" coords="1165,113,1392,153"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="1130,131,1165,131,1165,136,1130,136"/>
+</map>

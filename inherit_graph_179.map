@@ -1,3 +1,11 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$structpsr_1_1DOTNode.html" title=" " alt="" coords="5,5,117,31"/>
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,60,220,85"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="268,5,475,60"/>
+<area shape="poly" id="edge179_Node000000_Node000001" title=" " alt="" coords="209,55,267,46,268,51,209,60"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="278,84,465,139"/>
+<area shape="poly" id="edge181_Node000000_Node000003" title=" " alt="" coords="212,85,278,95,277,100,211,90"/>
+<area shape="rect" id="Node000002" href="$classpsr_1_1OwningSolverResults.html" title=" " alt="" coords="523,13,711,53"/>
+<area shape="poly" id="edge180_Node000001_Node000002" title=" " alt="" coords="488,30,523,30,523,35,488,35"/>
+<area shape="rect" id="Node000004" href="$classpsr_1_1SolverResults.html" title=" " alt="" coords="547,91,686,131"/>
+<area shape="poly" id="edge182_Node000003_Node000004" title=" " alt="" coords="478,109,547,109,547,114,478,114"/>
 </map>

@@ -1,30 +1,11 @@
 <map id="psr::AnalysisPropertiesMixin&lt; Derived &gt;" name="psr::AnalysisPropertiesMixin&lt; Derived &gt;">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,266,212,306"/>
-<area shape="rect" id="Node000002" href="$classpsr_1_1AliasInfoRef.html" title=" " alt="" coords="1165,14,1305,54"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="126,252,169,191,200,160,235,136,295,106,357,81,422,60,488,42,621,18,753,6,878,3,992,6,1165,21,1164,26,991,11,878,8,753,11,622,24,489,48,423,65,359,86,297,111,237,140,203,165,173,195,130,255"/>
-<area shape="rect" id="Node000003" href="$classpsr_1_1AliasInfoRef.html" title=" " alt="" coords="1136,195,1333,249"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="184,260,236,249,361,233,489,222,741,210,965,210,1136,214,1136,220,965,215,741,216,489,227,361,238,236,254,185,265"/>
-<area shape="rect" id="Node000004" href="$classpsr_1_1AnalysisPropertiesMixin.html" title=" " alt="" coords="444,134,651,174"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="147,256,188,230,235,207,287,190,341,177,443,160,444,166,342,182,289,196,237,212,191,235,150,260"/>
-<area shape="rect" id="Node000008" href="$classpsr_1_1AnalysisPropertiesMixin.html" title=" " alt="" coords="443,266,652,306"/>
-<area shape="poly" id="edge10_Node000001_Node000008" title=" " alt="" coords="226,283,443,283,443,289,226,289"/>
-<area shape="rect" id="Node000009" href="$classpsr_1_1AnalysisPropertiesMixin.html" title=" " alt="" coords="444,330,651,370"/>
-<area shape="poly" id="edge11_Node000001_Node000009" title=" " alt="" coords="226,302,236,303,444,333,443,338,236,309,225,307"/>
-<area shape="rect" id="Node000011" href="$classpsr_1_1AnalysisPropertiesMixin.html" title=" " alt="" coords="444,394,651,434"/>
-<area shape="poly" id="edge13_Node000001_Node000011" title=" " alt="" coords="159,310,237,345,343,375,444,396,443,401,342,380,235,350,157,315"/>
-<area shape="rect" id="Node000013" href="$classpsr_1_1AnalysisPropertiesMixin.html" title=" " alt="" coords="412,459,683,513"/>
-<area shape="poly" id="edge15_Node000001_Node000013" title=" " alt="" coords="129,316,173,379,203,410,237,436,279,455,323,469,412,483,411,489,322,474,277,460,235,440,199,414,168,382,125,319"/>
-<area shape="rect" id="Node000005" href="$classpsr_1_1AliasInfoRef.html" title="A type&#45;erased reference to any object implementing the IsAliasInfo interface. Use this,..." alt="" coords="745,115,885,155"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="664,143,744,137,745,143,664,148"/>
-<area shape="poly" id="edge8_Node000005_Node000002" title=" " alt="" coords="865,107,921,85,973,71,1015,65,1112,54,1164,45,1165,50,1112,59,1016,71,974,77,922,90,867,112"/>
-<area shape="poly" id="edge9_Node000005_Node000003" title=" " alt="" coords="866,159,922,181,1015,197,1136,210,1136,216,1014,202,921,186,864,164"/>
-<area shape="rect" id="Node000006" href="$classpsr_1_1AliasInfo.html" title=" " alt="" coords="1572,100,1731,155"/>
-<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="899,125,921,123,1235,112,1548,118,1572,119,1571,124,1548,123,1235,117,921,129,899,130"/>
-<area shape="rect" id="Node000007" href="$classpsr_1_1AliasInfo.html" title="Similar to AliasInfoRef, but exclusively owns the held reference. Use this, if you need to decide dyn..." alt="" coords="1153,140,1317,165"/>
-<area shape="poly" id="edge6_Node000005_Node000007" title=" " alt="" coords="898,136,1153,147,1152,152,898,141"/>
-<area shape="poly" id="edge7_Node000007_Node000006" title=" " alt="" coords="1331,154,1435,154,1548,147,1571,144,1572,149,1548,153,1436,160,1331,160"/>
-<area shape="rect" id="Node000010" href="$classpsr_1_1LLVMAliasSet.html" title=" " alt="" coords="746,337,883,363"/>
-<area shape="poly" id="edge12_Node000009_Node000010" title=" " alt="" coords="665,347,746,347,746,353,665,353"/>
-<area shape="rect" id="Node000012" href="$classpsr_1_1LLVMRawAliasSet.html" title=" " alt="" coords="732,401,897,427"/>
-<area shape="poly" id="edge14_Node000011_Node000012" title=" " alt="" coords="665,411,732,411,732,417,665,417"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,37,212,77"/>
+<area shape="rect" id="Node000002" href="$classpsr_1_1AnalysisPropertiesMixin.html" title=" " alt="" coords="409,5,616,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="225,45,409,31,409,36,226,51"/>
+<area shape="rect" id="Node000004" href="$classpsr_1_1AnalysisPropertiesMixin.html" title=" " alt="" coords="409,69,616,109"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="226,64,236,65,410,79,409,84,236,71,225,70"/>
+<area shape="rect" id="Node000003" href="$classpsr_1_1LLVMAliasSet.html" title=" " alt="" coords="679,13,817,38"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="630,23,679,23,679,28,630,28"/>
+<area shape="rect" id="Node000005" href="$classpsr_1_1LLVMRawAliasSet.html" title=" " alt="" coords="665,77,831,102"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="630,87,665,87,665,92,630,92"/>
 </map>

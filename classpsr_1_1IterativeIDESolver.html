@@ -228,7 +228,7 @@ Additional Inherited Members</h2></td></tr>
 <tr class="separator:ab0c769f22e0892b76d059551668d55aa inherit pro_types_classpsr_1_1IterativeIDESolverBase"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><div class="compoundTemplParams">template&lt;typename ProblemTy, typename StaticSolverConfigTy = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt;<br />
+<div class="textblock"><div class="compoundTemplParams">template&lt;IFDSProblem ProblemTy, typename StaticSolverConfigTy = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt;<br />
 class psr::IterativeIDESolver&lt; ProblemTy, StaticSolverConfigTy, ICFGTy &gt;</div><p>Solves the given <a class="el" href="classpsr_1_1IDETabulationProblem.html" title="The analysis problem interface for IDE problems (solvable by the IDESolver). Create a subclass from t...">IDETabulationProblem</a> as described in the 1996 paper by Sagiv, Horwitz and Reps. To solve the problem, call <a class="el" href="classpsr_1_1IterativeIDESolver.html#ab18cbaca2f07c98cff94090b114026ea">solve()</a>.</p>
 <p>This solver implements the optimizations and the $JF_N$ layout from the paper "Scaling Interprocedural Static Data-Flow Analysis to Large C/C++
 Applications: An Experience Report" (<a href="https://doi.org/10.4230/LIPIcs.ECOOP.2024.36">https://doi.org/10.4230/LIPIcs.ECOOP.2024.36</a>) by Schiebel, Sattler, Schubert, Apel, and Bodden. </p>
@@ -241,7 +241,7 @@ Applications: An Experience Report" (<a href="https://doi.org/10.4230/LIPIcs.ECO
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
+template&lt;IFDSProblem ProblemTy, typename StaticSolverConfigTy  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
       <table class="memname">
         <tr>
           <td class="memname">using <a class="el" href="classpsr_1_1IterativeIDESolver.html">psr::IterativeIDESolver</a>&lt; ProblemTy, StaticSolverConfigTy, ICFGTy &gt;::config_t =  StaticSolverConfigTy</td>
@@ -249,7 +249,7 @@ template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolv
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00093">93</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00091">91</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
 
 </div>
 </div>
@@ -259,7 +259,7 @@ template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolv
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
+template&lt;IFDSProblem ProblemTy, typename StaticSolverConfigTy  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
       <table class="memname">
         <tr>
           <td class="memname">using <a class="el" href="classpsr_1_1IterativeIDESolver.html">psr::IterativeIDESolver</a>&lt; ProblemTy, StaticSolverConfigTy, ICFGTy &gt;::d_t =  typename domain_t::d_t</td>
@@ -267,7 +267,7 @@ template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolv
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00084">84</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00082">82</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
 
 </div>
 </div>
@@ -277,7 +277,7 @@ template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolv
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
+template&lt;IFDSProblem ProblemTy, typename StaticSolverConfigTy  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
       <table class="memname">
         <tr>
           <td class="memname">using <a class="el" href="classpsr_1_1IterativeIDESolver.html">psr::IterativeIDESolver</a>&lt; ProblemTy, StaticSolverConfigTy, ICFGTy &gt;::domain_t =  typename ProblemTy::ProblemAnalysisDomain</td>
@@ -285,7 +285,7 @@ template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolv
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00083">83</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00081">81</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
 
 </div>
 </div>
@@ -295,7 +295,7 @@ template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolv
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
+template&lt;IFDSProblem ProblemTy, typename StaticSolverConfigTy  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
       <table class="memname">
         <tr>
           <td class="memname">using <a class="el" href="classpsr_1_1IterativeIDESolver.html">psr::IterativeIDESolver</a>&lt; ProblemTy, StaticSolverConfigTy, ICFGTy &gt;::f_t =  typename domain_t::f_t</td>
@@ -303,7 +303,7 @@ template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolv
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00086">86</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00084">84</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
 
 </div>
 </div>
@@ -313,7 +313,7 @@ template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolv
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
+template&lt;IFDSProblem ProblemTy, typename StaticSolverConfigTy  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
       <table class="memname">
         <tr>
           <td class="memname">using <a class="el" href="classpsr_1_1IterativeIDESolver.html">psr::IterativeIDESolver</a>&lt; ProblemTy, StaticSolverConfigTy, ICFGTy &gt;::i_t =  ICFGTy</td>
@@ -321,7 +321,7 @@ template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolv
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00091">91</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00089">89</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
 
 </div>
 </div>
@@ -331,7 +331,7 @@ template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolv
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
+template&lt;IFDSProblem ProblemTy, typename StaticSolverConfigTy  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
       <table class="memname">
         <tr>
           <td class="memname">using <a class="el" href="classpsr_1_1IterativeIDESolver.html">psr::IterativeIDESolver</a>&lt; ProblemTy, StaticSolverConfigTy, ICFGTy &gt;::l_t =  std::conditional_t&lt;StaticSolverConfigTy::ComputeValues, typename domain_t::l_t, <a class="el" href="namespacepsr.html#a951662fd4f90e7136dd1d6679ad80a9b">BinaryDomain</a>&gt;</td>
@@ -339,7 +339,7 @@ template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolv
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00089">89</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00087">87</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
 
 </div>
 </div>
@@ -349,7 +349,7 @@ template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolv
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
+template&lt;IFDSProblem ProblemTy, typename StaticSolverConfigTy  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
       <table class="memname">
         <tr>
           <td class="memname">using <a class="el" href="classpsr_1_1IterativeIDESolver.html">psr::IterativeIDESolver</a>&lt; ProblemTy, StaticSolverConfigTy, ICFGTy &gt;::n_t =  typename domain_t::n_t</td>
@@ -357,7 +357,7 @@ template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolv
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00085">85</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00083">83</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
 
 </div>
 </div>
@@ -367,7 +367,7 @@ template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolv
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
+template&lt;IFDSProblem ProblemTy, typename StaticSolverConfigTy  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
       <table class="memname">
         <tr>
           <td class="memname">using <a class="el" href="classpsr_1_1IterativeIDESolver.html">psr::IterativeIDESolver</a>&lt; ProblemTy, StaticSolverConfigTy, ICFGTy &gt;::t_t =  typename domain_t::t_t</td>
@@ -375,7 +375,7 @@ template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolv
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00087">87</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00085">85</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
 
 </div>
 </div>
@@ -385,7 +385,7 @@ template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolv
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
+template&lt;IFDSProblem ProblemTy, typename StaticSolverConfigTy  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
       <table class="memname">
         <tr>
           <td class="memname">using <a class="el" href="classpsr_1_1IterativeIDESolver.html">psr::IterativeIDESolver</a>&lt; ProblemTy, StaticSolverConfigTy, ICFGTy &gt;::v_t =  typename domain_t::v_t</td>
@@ -393,7 +393,7 @@ template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolv
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00088">88</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00086">86</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
 
 </div>
 </div>
@@ -404,7 +404,7 @@ template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolv
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
+template&lt;IFDSProblem ProblemTy, typename StaticSolverConfigTy  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -440,7 +440,7 @@ template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolv
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00138">138</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00134">134</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
 
 </div>
 </div>
@@ -451,7 +451,7 @@ template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolv
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
+template&lt;IFDSProblem ProblemTy, typename StaticSolverConfigTy  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -470,7 +470,7 @@ template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolv
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00172">172</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00168">168</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
 
 </div>
 </div>
@@ -480,7 +480,7 @@ template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolv
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
+template&lt;IFDSProblem ProblemTy, typename StaticSolverConfigTy  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -499,9 +499,9 @@ template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolv
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00156">156</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00152">152</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="IterativeIDESolver_8h_source.html#l00147">psr::IterativeIDESolver&lt; ProblemTy, StaticSolverConfigTy, ICFGTy &gt;::solve()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="IterativeIDESolver_8h_source.html#l00143">psr::IterativeIDESolver&lt; ProblemTy, StaticSolverConfigTy, ICFGTy &gt;::solve()</a>.</p>
 
 </div>
 </div>
@@ -511,7 +511,7 @@ template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolv
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
+template&lt;IFDSProblem ProblemTy, typename StaticSolverConfigTy  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -531,9 +531,9 @@ template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolv
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00162">162</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00158">158</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
 
-<p class="reference">References <a class="el" href="IterativeIDESolver_8h_source.html#l00152">psr::IterativeIDESolver&lt; ProblemTy, StaticSolverConfigTy, ICFGTy &gt;::getSolverResults()</a>.</p>
+<p class="reference">References <a class="el" href="IterativeIDESolver_8h_source.html#l00148">psr::IterativeIDESolver&lt; ProblemTy, StaticSolverConfigTy, ICFGTy &gt;::getSolverResults()</a>.</p>
 
 </div>
 </div>
@@ -543,7 +543,7 @@ template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolv
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
+template&lt;IFDSProblem ProblemTy, typename StaticSolverConfigTy  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -563,9 +563,9 @@ template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolv
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00182">182</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00178">178</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
 
-<p class="reference">References <a class="el" href="IterativeIDESolver_8h_source.html#l00176">psr::IterativeIDESolver&lt; ProblemTy, StaticSolverConfigTy, ICFGTy &gt;::getStats()</a>.</p>
+<p class="reference">References <a class="el" href="IterativeIDESolver_8h_source.html#l00172">psr::IterativeIDESolver&lt; ProblemTy, StaticSolverConfigTy, ICFGTy &gt;::getStats()</a>.</p>
 
 </div>
 </div>
@@ -575,7 +575,7 @@ template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolv
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
+template&lt;IFDSProblem ProblemTy, typename StaticSolverConfigTy  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -594,7 +594,7 @@ template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolv
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00169">169</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00165">165</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
 
 </div>
 </div>
@@ -604,7 +604,7 @@ template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolv
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
+template&lt;IFDSProblem ProblemTy, typename StaticSolverConfigTy  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -623,7 +623,7 @@ template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolv
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00166">166</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00162">162</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="PathAwareIterIDESolver_8h_source.html#l00049">psr::PathAwareIterIDESolver&lt; ProblemTy, StaticSolverConfigTy, ICFGTy &gt;::getExplicitESG()</a>.</p>
 
@@ -635,7 +635,7 @@ template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolv
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
+template&lt;IFDSProblem ProblemTy, typename StaticSolverConfigTy  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -654,9 +654,9 @@ template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolv
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00152">152</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00148">148</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="IterativeIDESolver_8h_source.html#l00162">psr::IterativeIDESolver&lt; ProblemTy, StaticSolverConfigTy, ICFGTy &gt;::dumpResults()</a>, and <a class="el" href="IterativeIDESolver_8h_source.html#l00143">psr::IterativeIDESolver&lt; ProblemTy, StaticSolverConfigTy, ICFGTy &gt;::solve()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="IterativeIDESolver_8h_source.html#l00158">psr::IterativeIDESolver&lt; ProblemTy, StaticSolverConfigTy, ICFGTy &gt;::dumpResults()</a>, and <a class="el" href="IterativeIDESolver_8h_source.html#l00139">psr::IterativeIDESolver&lt; ProblemTy, StaticSolverConfigTy, ICFGTy &gt;::solve()</a>.</p>
 
 </div>
 </div>
@@ -666,7 +666,7 @@ template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolv
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
+template&lt;IFDSProblem ProblemTy, typename StaticSolverConfigTy  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -685,9 +685,9 @@ template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolv
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00176">176</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00172">172</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="IterativeIDESolver_8h_source.html#l00182">psr::IterativeIDESolver&lt; ProblemTy, StaticSolverConfigTy, ICFGTy &gt;::dumpStats()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="IterativeIDESolver_8h_source.html#l00178">psr::IterativeIDESolver&lt; ProblemTy, StaticSolverConfigTy, ICFGTy &gt;::dumpStats()</a>.</p>
 
 </div>
 </div>
@@ -697,7 +697,7 @@ template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolv
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
+template&lt;IFDSProblem ProblemTy, typename StaticSolverConfigTy  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -716,9 +716,9 @@ template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolv
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00143">143</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00139">139</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
 
-<p class="reference">References <a class="el" href="IterativeIDESolver_8h_source.html#l00152">psr::IterativeIDESolver&lt; ProblemTy, StaticSolverConfigTy, ICFGTy &gt;::getSolverResults()</a>.</p>
+<p class="reference">References <a class="el" href="IterativeIDESolver_8h_source.html#l00148">psr::IterativeIDESolver&lt; ProblemTy, StaticSolverConfigTy, ICFGTy &gt;::getSolverResults()</a>.</p>
 
 </div>
 </div>
@@ -728,7 +728,7 @@ template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolv
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
+template&lt;IFDSProblem ProblemTy, typename StaticSolverConfigTy  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -747,9 +747,9 @@ template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolv
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00147">147</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00143">143</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
 
-<p class="reference">References <a class="el" href="IterativeIDESolver_8h_source.html#l00156">psr::IterativeIDESolver&lt; ProblemTy, StaticSolverConfigTy, ICFGTy &gt;::consumeSolverResults()</a>.</p>
+<p class="reference">References <a class="el" href="IterativeIDESolver_8h_source.html#l00152">psr::IterativeIDESolver&lt; ProblemTy, StaticSolverConfigTy, ICFGTy &gt;::consumeSolverResults()</a>.</p>
 
 </div>
 </div>
@@ -759,7 +759,7 @@ template&lt;typename ProblemTy , typename StaticSolverConfigTy  = DefaultIDESolv
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Aug 20 2026 16:00:35 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Aug 20 2026 16:52:22 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

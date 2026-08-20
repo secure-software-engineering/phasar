@@ -1,15 +1,15 @@
-<map id="psr::FlowEdgeFunctionCache&lt; AnalysisDomainTy, Container &gt;" name="psr::FlowEdgeFunctionCache&lt; AnalysisDomainTy, Container &gt;">
-<area shape="rect" id="Node000001" title=" " alt="" coords="268,247,511,287"/>
-<area shape="rect" id="Node000003" href="$classpsr_1_1FlowEdgeFunctionCache.html" title=" " alt="" coords="942,30,1197,114"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="411,234,462,177,496,149,533,127,584,107,636,91,744,70,849,61,942,61,942,66,849,67,745,75,638,96,586,112,536,132,499,154,466,181,415,238"/>
-<area shape="rect" id="Node000004" href="$classpsr_1_1FlowEdgeFunctionCache.html" title=" " alt="" coords="942,139,1197,208"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="452,239,534,215,641,196,749,184,942,172,942,178,749,189,641,202,535,220,453,244"/>
-<area shape="rect" id="Node000005" href="$classpsr_1_1FlowEdgeFunctionCache.html" title=" " alt="" coords="892,232,1247,301"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="525,264,892,264,892,269,525,269"/>
-<area shape="rect" id="Node000006" href="$classpsr_1_1FlowEdgeFunctionCache.html" title=" " alt="" coords="937,325,1202,395"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="439,291,485,311,535,328,639,347,745,358,846,363,936,363,936,369,846,368,745,364,638,353,534,333,483,316,437,295"/>
-<area shape="rect" id="Node000007" href="$classpsr_1_1FlowEdgeFunctionCache.html" title=" " alt="" coords="927,419,1212,474"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="415,296,466,350,499,377,536,398,583,416,633,430,736,449,836,456,926,456,927,461,836,461,735,454,632,436,582,421,534,402,496,381,463,354,411,299"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,247,219,287"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="232,264,268,264,268,269,232,269"/>
+<map id="psr::FlowEdgeFunctionCache&lt; ProblemTy &gt;" name="psr::FlowEdgeFunctionCache&lt; ProblemTy &gt;">
+<area shape="rect" id="Node000001" title=" " alt="" coords="268,301,476,341"/>
+<area shape="rect" id="Node000003" href="$classpsr_1_1FlowEdgeFunctionCache.html" title=" " alt="" coords="810,55,1127,139"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="383,287,401,250,425,208,458,167,499,135,535,117,573,102,653,84,734,76,809,76,809,81,734,81,654,89,575,107,537,122,501,140,462,171,430,211,405,252,388,289"/>
+<area shape="rect" id="Node000004" href="$classpsr_1_1FlowEdgeFunctionCache.html" title=" " alt="" coords="851,163,1086,247"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="407,291,450,263,499,240,589,217,682,204,772,198,851,197,851,202,772,203,683,209,590,222,501,245,452,268,410,295"/>
+<area shape="rect" id="Node000005" href="$classpsr_1_1FlowEdgeFunctionCache.html" title=" " alt="" coords="819,272,1118,371"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="490,319,819,319,819,324,490,324"/>
+<area shape="rect" id="Node000006" href="$classpsr_1_1FlowEdgeFunctionCache.html" title=" " alt="" coords="801,395,1136,479"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="418,346,458,366,501,383,576,402,654,415,801,431,801,436,653,421,575,407,499,388,455,371,416,351"/>
+<area shape="rect" id="Node000007" href="$classpsr_1_1FlowEdgeFunctionCache.html" title=" " alt="" coords="825,503,1113,558"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="394,352,438,410,467,440,501,463,540,481,580,496,664,517,747,529,825,533,824,539,747,534,663,523,578,501,538,486,499,468,464,444,434,414,390,355"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,301,219,341"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="232,319,268,319,268,324,232,324"/>
 </map>

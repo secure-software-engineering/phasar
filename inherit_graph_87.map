@@ -1,3 +1,5 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$classpsr_1_1BitVectorSet.html" title="Implements a set that requires minimal space." alt="" coords="5,5,147,45"/>
+<area shape="rect" id="Node000000" href="$structpsr_1_1BinarySemiRing.html" title=" " alt="" coords="5,13,160,38"/>
+<area shape="rect" id="Node000001" href="$structpsr_1_1DefaultSemiRing_3_01BinaryDomain_01_4.html" title=" " alt="" coords="208,5,368,45"/>
+<area shape="poly" id="edge100_Node000000_Node000001" title=" " alt="" coords="173,23,208,23,208,28,173,28"/>
 </map>

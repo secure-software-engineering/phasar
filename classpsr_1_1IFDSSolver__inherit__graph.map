@@ -1,9 +1,11 @@
 <map id="psr::IFDSSolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;" name="psr::IFDSSolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;">
-<area shape="rect" id="Node000001" title="Solves the given IFDSTabulationProblem as described in the 1995 paper by Reps, Horwitz and Sagiv...." alt="" coords="84,181,311,221"/>
-<area shape="rect" id="Node000002" href="$classpsr_1_1IDESolver.html" title=" " alt="" coords="84,93,311,133"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="200,147,200,181,195,181,195,147"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="5,13,189,38"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="123,45,177,91,174,95,119,49"/>
-<area shape="rect" id="Node000004" href="$classpsr_1_1IDESolverAPIMixin.html" title=" " alt="" coords="213,5,384,45"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="267,56,221,95,218,91,264,52"/>
+<area shape="rect" id="Node000001" title="Solves the given IFDSTabulationProblem as described in the 1995 paper by Reps, Horwitz and Sagiv...." alt="" coords="595,77,821,117"/>
+<area shape="rect" id="Node000002" href="$classpsr_1_1IDESolver.html" title=" " alt="" coords="320,77,547,117"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="561,94,594,94,594,99,561,99"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,5,272,60"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="279,60,341,74,340,79,278,66"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="47,84,231,109"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="244,94,320,94,320,99,244,99"/>
+<area shape="rect" id="Node000005" href="$classpsr_1_1IDESolverAPIMixin.html" title=" " alt="" coords="53,134,224,174"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="237,132,329,114,330,119,238,137"/>
 </map>

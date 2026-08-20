@@ -109,8 +109,8 @@ Protected Types</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-methods" name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
-<tr class="memitem:af4eb110a31a8ef650b92fbf7a5c1777c" id="r_af4eb110a31a8ef650b92fbf7a5c1777c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1XTaint_1_1AnalysisBase.html#af4eb110a31a8ef650b92fbf7a5c1777c">AnalysisBase</a> (const <a class="el" href="classpsr_1_1LLVMTaintConfig.html">LLVMTaintConfig</a> *<a class="el" href="classpsr_1_1XTaint_1_1AnalysisBase.html#a91ad2abbf943b3a104ff77068955b691">TSF</a>) noexcept</td></tr>
-<tr class="separator:af4eb110a31a8ef650b92fbf7a5c1777c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1cd72624397576b8a3fac2697d9c2b3c" id="r_a1cd72624397576b8a3fac2697d9c2b3c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1XTaint_1_1AnalysisBase.html#a1cd72624397576b8a3fac2697d9c2b3c">AnalysisBase</a> (const <a class="el" href="classpsr_1_1LLVMTaintConfig.html">LLVMTaintConfig</a> *<a class="el" href="classpsr_1_1XTaint_1_1AnalysisBase.html#a91ad2abbf943b3a104ff77068955b691">TSF</a>, <a class="el" href="classsize__t.html">size_t</a> NumInstructions)</td></tr>
+<tr class="separator:a1cd72624397576b8a3fac2697d9c2b3c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a095c2224b5683d0dcbb0a2c4762e9a2e" id="r_a095c2224b5683d0dcbb0a2c4762e9a2e"><td class="memItemLeft" align="right" valign="top">std::pair&lt; <a class="el" href="classpsr_1_1XTaint_1_1AnalysisBase.html#af51bd0247e7543112afec1e492c93457">SourceConfigTy</a>, <a class="el" href="classpsr_1_1XTaint_1_1AnalysisBase.html#a0fc16f8700d8818b64db7b27542a9750">SinkConfigTy</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1XTaint_1_1AnalysisBase.html#a095c2224b5683d0dcbb0a2c4762e9a2e">getConfigurationAt</a> (const llvm::Instruction *Inst, const llvm::Function *Callee=nullptr) const</td></tr>
 <tr class="separator:a095c2224b5683d0dcbb0a2c4762e9a2e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a70c0256b7734cda8b5cd7484c27f2111" id="r_a70c0256b7734cda8b5cd7484c27f2111"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classpsr_1_1XTaint_1_1AnalysisBase.html#af51bd0247e7543112afec1e492c93457">SourceConfigTy</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1XTaint_1_1AnalysisBase.html#a70c0256b7734cda8b5cd7484c27f2111">getSourceConfigAt</a> (const llvm::Instruction *Inst, const llvm::Function *Callee=nullptr) const</td></tr>
@@ -121,15 +121,19 @@ Protected Member Functions</h2></td></tr>
 <tr class="separator:aac0e2acdd3df836acf98b55cb66d415f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5483696378cba2997c3fb437d9649de3" id="r_a5483696378cba2997c3fb437d9649de3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classpsr_1_1XTaint_1_1AnalysisBase.html#a839fc4cdceca73a4373e0c603f7ebc01">SanitizerConfigTy</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1XTaint_1_1AnalysisBase.html#a5483696378cba2997c3fb437d9649de3">getSanitizerConfigAt</a> (const llvm::Instruction *Inst, const llvm::Function *Callee=nullptr) const</td></tr>
 <tr class="separator:a5483696378cba2997c3fb437d9649de3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afa90fd04c1451534db7d6a11785c9007" id="r_afa90fd04c1451534db7d6a11785c9007"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classpsr_1_1AbstractMemoryLocation.html">AbstractMemoryLocation</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1XTaint_1_1AnalysisBase.html#afa90fd04c1451534db7d6a11785c9007">createZeroValue</a> () const</td></tr>
+<tr class="separator:afa90fd04c1451534db7d6a11785c9007"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-attribs" name="pro-attribs"></a>
 Protected Attributes</h2></td></tr>
 <tr class="memitem:a91ad2abbf943b3a104ff77068955b691" id="r_a91ad2abbf943b3a104ff77068955b691"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="classpsr_1_1LLVMTaintConfig.html">LLVMTaintConfig</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1XTaint_1_1AnalysisBase.html#a91ad2abbf943b3a104ff77068955b691">TSF</a></td></tr>
 <tr class="separator:a91ad2abbf943b3a104ff77068955b691"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2d4411d5609f4350a46f1f0d51f70b83" id="r_a2d4411d5609f4350a46f1f0d51f70b83"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classpsr_1_1AbstractMemoryLocationFactory.html">AbstractMemoryLocationFactory</a>&lt; <a class="el" href="classpsr_1_1AbstractMemoryLocation.html">AbstractMemoryLocation</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1XTaint_1_1AnalysisBase.html#a2d4411d5609f4350a46f1f0d51f70b83">FactFactory</a></td></tr>
+<tr class="separator:a2d4411d5609f4350a46f1f0d51f70b83"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock">
-<p class="definition">Definition at line <a class="el" href="XTaintAnalysisBase_8h_source.html#l00026">26</a> of file <a class="el" href="XTaintAnalysisBase_8h_source.html">XTaintAnalysisBase.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="XTaintAnalysisBase_8h_source.html#l00029">29</a> of file <a class="el" href="XTaintAnalysisBase_8h_source.html">XTaintAnalysisBase.h</a>.</p>
 </div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="a839fc4cdceca73a4373e0c603f7ebc01" name="a839fc4cdceca73a4373e0c603f7ebc01"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a839fc4cdceca73a4373e0c603f7ebc01">&#9670;&#160;</a></span>SanitizerConfigTy</h2>
@@ -151,7 +155,7 @@ Protected Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="XTaintAnalysisBase_8h_source.html#l00034">34</a> of file <a class="el" href="XTaintAnalysisBase_8h_source.html">XTaintAnalysisBase.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="XTaintAnalysisBase_8h_source.html#l00038">38</a> of file <a class="el" href="XTaintAnalysisBase_8h_source.html">XTaintAnalysisBase.h</a>.</p>
 
 </div>
 </div>
@@ -175,7 +179,7 @@ Protected Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="XTaintAnalysisBase_8h_source.html#l00033">33</a> of file <a class="el" href="XTaintAnalysisBase_8h_source.html">XTaintAnalysisBase.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="XTaintAnalysisBase_8h_source.html#l00037">37</a> of file <a class="el" href="XTaintAnalysisBase_8h_source.html">XTaintAnalysisBase.h</a>.</p>
 
 </div>
 </div>
@@ -199,13 +203,13 @@ Protected Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="XTaintAnalysisBase_8h_source.html#l00032">32</a> of file <a class="el" href="XTaintAnalysisBase_8h_source.html">XTaintAnalysisBase.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="XTaintAnalysisBase_8h_source.html#l00036">36</a> of file <a class="el" href="XTaintAnalysisBase_8h_source.html">XTaintAnalysisBase.h</a>.</p>
 
 </div>
 </div>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="af4eb110a31a8ef650b92fbf7a5c1777c" name="af4eb110a31a8ef650b92fbf7a5c1777c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af4eb110a31a8ef650b92fbf7a5c1777c">&#9670;&#160;</a></span>AnalysisBase()</h2>
+<a id="a1cd72624397576b8a3fac2697d9c2b3c" name="a1cd72624397576b8a3fac2697d9c2b3c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1cd72624397576b8a3fac2697d9c2b3c">&#9670;&#160;</a></span>AnalysisBase()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -217,13 +221,23 @@ Protected Attributes</h2></td></tr>
           <td class="memname">psr::XTaint::AnalysisBase::AnalysisBase </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="classpsr_1_1LLVMTaintConfig.html">LLVMTaintConfig</a> *&#160;</td>
-          <td class="paramname"><em>TSF</em></td><td>)</td>
+          <td class="paramname"><em>TSF</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype"><a class="el" href="classsize__t.html">size_t</a>&#160;</td>
+          <td class="paramname"><em>NumInstructions</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">explicit</span><span class="mlabel">protected</span><span class="mlabel">noexcept</span></span>  </td>
+<span class="mlabels"><span class="mlabel">explicit</span><span class="mlabel">protected</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
@@ -231,6 +245,35 @@ Protected Attributes</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="afa90fd04c1451534db7d6a11785c9007" name="afa90fd04c1451534db7d6a11785c9007"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afa90fd04c1451534db7d6a11785c9007">&#9670;&#160;</a></span>createZeroValue()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classpsr_1_1AbstractMemoryLocation.html">AbstractMemoryLocation</a> psr::XTaint::AnalysisBase::createZeroValue </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="XTaintAnalysisBase_8h_source.html#l00059">59</a> of file <a class="el" href="XTaintAnalysisBase_8h_source.html">XTaintAnalysisBase.h</a>.</p>
+
+<p class="reference">References <a class="el" href="XTaintAnalysisBase_8h_source.html#l00032">FactFactory</a>, and <a class="el" href="AbstractMemoryLocationFactory_8h_source.html#l00143">psr::AbstractMemoryLocationFactory&lt; AbstractMemoryLocation &gt;::getOrCreateZero()</a>.</p>
+
+</div>
+</div>
 <a id="a095c2224b5683d0dcbb0a2c4762e9a2e" name="a095c2224b5683d0dcbb0a2c4762e9a2e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a095c2224b5683d0dcbb0a2c4762e9a2e">&#9670;&#160;</a></span>getConfigurationAt()</h2>
 
@@ -412,6 +455,32 @@ Protected Attributes</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Data Documentation</h2>
+<a id="a2d4411d5609f4350a46f1f0d51f70b83" name="a2d4411d5609f4350a46f1f0d51f70b83"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2d4411d5609f4350a46f1f0d51f70b83">&#9670;&#160;</a></span>FactFactory</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classpsr_1_1AbstractMemoryLocationFactory.html">AbstractMemoryLocationFactory</a>&lt;<a class="el" href="classpsr_1_1AbstractMemoryLocation.html">AbstractMemoryLocation</a>&gt; psr::XTaint::AnalysisBase::FactFactory</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="XTaintAnalysisBase_8h_source.html#l00032">32</a> of file <a class="el" href="XTaintAnalysisBase_8h_source.html">XTaintAnalysisBase.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="XTaintAnalysisBase_8h_source.html#l00059">createZeroValue()</a>, and <a class="el" href="IDEExtendedTaintAnalysis_8h_source.html#l00270">psr::XTaint::IDEExtendedTaintAnalysis::getNumDataflowFacts()</a>.</p>
+
+</div>
+</div>
 <a id="a91ad2abbf943b3a104ff77068955b691" name="a91ad2abbf943b3a104ff77068955b691"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a91ad2abbf943b3a104ff77068955b691">&#9670;&#160;</a></span>TSF</h2>
 
@@ -432,7 +501,7 @@ Protected Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="XTaintAnalysisBase_8h_source.html#l00028">28</a> of file <a class="el" href="XTaintAnalysisBase_8h_source.html">XTaintAnalysisBase.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="XTaintAnalysisBase_8h_source.html#l00031">31</a> of file <a class="el" href="XTaintAnalysisBase_8h_source.html">XTaintAnalysisBase.h</a>.</p>
 
 </div>
 </div>
@@ -442,7 +511,7 @@ Protected Attributes</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Aug 20 2026 16:00:35 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Aug 20 2026 16:52:22 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

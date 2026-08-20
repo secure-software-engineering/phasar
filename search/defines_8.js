@@ -23,8 +23,17 @@ var searchData=
   ['psr_5fconcept_20',['PSR_CONCEPT',['../Macros_8h.html#a2a61702ca9be186404c0447bbd84a05f',1,'Macros.h']]],
   ['psr_5fconstinit_21',['PSR_CONSTINIT',['../Macros_8h.html#ae8830b04d087aada14410389c3c95cfc',1,'Macros.h']]],
   ['psr_5fdeprecated_22',['PSR_DEPRECATED',['../Macros_8h.html#a844bf3de25eb667d9146fceaa8db9846',1,'Macros.h']]],
-  ['psr_5ffwd_23',['PSR_FWD',['../Macros_8h.html#a886bb5afef08c49ad3edb43f16df19b0',1,'Macros.h']]],
-  ['psr_5finitializer_24',['PSR_INITIALIZER',['../InitPhasar_8h.html#a229517fa88a6b7cbea209bcd0fe9f9c3',1,'InitPhasar.h']]],
-  ['psr_5flazy_25',['PSR_LAZY',['../Lazy_8h.html#ab60527776a80ad929ab09a66eee5b0ae',1,'Lazy.h']]],
-  ['psr_5flifetimebound_26',['PSR_LIFETIMEBOUND',['../Macros_8h.html#a40a2c0af46b8c6ff86d04f8401348f46',1,'Macros.h']]]
+  ['psr_5fenum_5fextensibility_23',['PSR_ENUM_EXTENSIBILITY',['../Macros_8h.html#a418a28bbb06ce8dc37e68b8390f6d122',1,'Macros.h']]],
+  ['psr_5fflag_5fenum_24',['PSR_FLAG_ENUM',['../Macros_8h.html#a5ab75eabd2f2f267f6a00823e88d71d2',1,'Macros.h']]],
+  ['psr_5ffwd_25',['PSR_FWD',['../Macros_8h.html#a886bb5afef08c49ad3edb43f16df19b0',1,'Macros.h']]],
+  ['psr_5finitializer_26',['PSR_INITIALIZER',['../InitPhasar_8h.html#a229517fa88a6b7cbea209bcd0fe9f9c3',1,'InitPhasar.h']]],
+  ['psr_5finternal_5flinkage_27',['PSR_INTERNAL_LINKAGE',['../Macros_8h.html#a15919b36809e072981aba4fb461db870',1,'Macros.h']]],
+  ['psr_5flazy_28',['PSR_LAZY',['../Lazy_8h.html#ab60527776a80ad929ab09a66eee5b0ae',1,'Lazy.h']]],
+  ['psr_5flifetime_5fcapture_5fby_29',['PSR_LIFETIME_CAPTURE_BY',['../Macros_8h.html#afef446b53464aa24677dde06c888a35d',1,'Macros.h']]],
+  ['psr_5flifetimebound_30',['PSR_LIFETIMEBOUND',['../Macros_8h.html#a40a2c0af46b8c6ff86d04f8401348f46',1,'Macros.h']]],
+  ['psr_5fowner_31',['PSR_OWNER',['../Macros_8h.html#a539acb1ee10b5f808da574ab6803a9a4',1,'Macros.h']]],
+  ['psr_5fpointer_32',['PSR_POINTER',['../Macros_8h.html#a8713968f8228b799113fa1c6094ffd0b',1,'Macros.h']]],
+  ['psr_5fpreferred_5fname_33',['PSR_PREFERRED_NAME',['../Macros_8h.html#ab11247d230f042c2194bd83c96d21158',1,'Macros.h']]],
+  ['psr_5frequire_5fexplicit_5finitialization_34',['PSR_REQUIRE_EXPLICIT_INITIALIZATION',['../Macros_8h.html#aa3021c98506433a003fe75b524777d17',1,'Macros.h']]],
+  ['psr_5ftrivial_5fabi_35',['PSR_TRIVIAL_ABI',['../Macros_8h.html#a8e048181a2a7c88116709014aa2b4c1e',1,'Macros.h']]]
 ];

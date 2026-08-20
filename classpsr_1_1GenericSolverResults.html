@@ -133,7 +133,7 @@ requires (!std::is_same_v&lt;<a class="el" href="classpsr_1_1GenericSolverResult
 class psr::GenericSolverResults&lt; N, D, L &gt;</div><p>A type-erased version of the main functionality of <a class="el" href="classpsr_1_1SolverResults.html">SolverResults</a>. Can be accepted by consumers that don't need deep access to the internals (so, the usual ones). As we have now two kinds of solver-results (<a class="el" href="classpsr_1_1SolverResults.html">SolverResults</a> and <a class="el" href="classpsr_1_1IdBasedSolverResults.html">IdBasedSolverResults</a>), we need a common way of accessing them. </p>
 <p>XXX (#734): When upgrading to C++20, create a concept checking valid <a class="el" href="classpsr_1_1SolverResults.html">SolverResults</a> types </p>
 
-<p class="definition">Definition at line <a class="el" href="GenericSolverResults_8h_source.html#l00029">29</a> of file <a class="el" href="GenericSolverResults_8h_source.html">GenericSolverResults.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="GenericSolverResults_8h_source.html#l00030">30</a> of file <a class="el" href="GenericSolverResults_8h_source.html">GenericSolverResults.h</a>.</p>
 </div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="acc070adeb6ffc5b46b15919b061842bb" name="acc070adeb6ffc5b46b15919b061842bb"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#acc070adeb6ffc5b46b15919b061842bb">&#9670;&#160;</a></span>d_t</h2>
@@ -149,7 +149,7 @@ template&lt;typename N , typename D , typename L &gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="GenericSolverResults_8h_source.html#l00032">32</a> of file <a class="el" href="GenericSolverResults_8h_source.html">GenericSolverResults.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="GenericSolverResults_8h_source.html#l00033">33</a> of file <a class="el" href="GenericSolverResults_8h_source.html">GenericSolverResults.h</a>.</p>
 
 </div>
 </div>
@@ -167,7 +167,7 @@ template&lt;typename N , typename D , typename L &gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="GenericSolverResults_8h_source.html#l00033">33</a> of file <a class="el" href="GenericSolverResults_8h_source.html">GenericSolverResults.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="GenericSolverResults_8h_source.html#l00034">34</a> of file <a class="el" href="GenericSolverResults_8h_source.html">GenericSolverResults.h</a>.</p>
 
 </div>
 </div>
@@ -185,7 +185,7 @@ template&lt;typename N , typename D , typename L &gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="GenericSolverResults_8h_source.html#l00031">31</a> of file <a class="el" href="GenericSolverResults_8h_source.html">GenericSolverResults.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="GenericSolverResults_8h_source.html#l00032">32</a> of file <a class="el" href="GenericSolverResults_8h_source.html">GenericSolverResults.h</a>.</p>
 
 </div>
 </div>
@@ -221,7 +221,7 @@ requires (!std::is_same_v&lt;<a class="el" href="classpsr_1_1GenericSolverResult
 <p>NOTE: Don't provide an operator= that constructs a <a class="el" href="classpsr_1_1GenericSolverResults.html" title="A type-erased version of the main functionality of SolverResults. Can be accepted by consumers that d...">GenericSolverResults</a> from a concrete <a class="el" href="classpsr_1_1SolverResults.html">SolverResults</a> object to prevent issues with object lifetime. Probably that can be mitigated with use of std::launder, but for now, we don't need this complexity </p>
 <p>NOTE: We reinterpret the bytes of the <code>Buffer</code> as <code>type</code>, so it better be properly aligned</p>
 
-<p class="definition">Definition at line <a class="el" href="GenericSolverResults_8h_source.html#l00042">42</a> of file <a class="el" href="GenericSolverResults_8h_source.html">GenericSolverResults.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="GenericSolverResults_8h_source.html#l00043">43</a> of file <a class="el" href="GenericSolverResults_8h_source.html">GenericSolverResults.h</a>.</p>
 
 </div>
 </div>
@@ -252,7 +252,7 @@ template&lt;typename N , typename D , typename L &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="GenericSolverResults_8h_source.html#l00088">88</a> of file <a class="el" href="GenericSolverResults_8h_source.html">GenericSolverResults.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="GenericSolverResults_8h_source.html#l00089">89</a> of file <a class="el" href="GenericSolverResults_8h_source.html">GenericSolverResults.h</a>.</p>
 
 </div>
 </div>
@@ -282,7 +282,7 @@ template&lt;typename N , typename D , typename L &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="GenericSolverResults_8h_source.html#l00114">114</a> of file <a class="el" href="GenericSolverResults_8h_source.html">GenericSolverResults.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="GenericSolverResults_8h_source.html#l00115">115</a> of file <a class="el" href="GenericSolverResults_8h_source.html">GenericSolverResults.h</a>.</p>
 
 </div>
 </div>
@@ -312,7 +312,7 @@ template&lt;typename N , typename D , typename L &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="GenericSolverResults_8h_source.html#l00075">75</a> of file <a class="el" href="GenericSolverResults_8h_source.html">GenericSolverResults.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="GenericSolverResults_8h_source.html#l00076">76</a> of file <a class="el" href="GenericSolverResults_8h_source.html">GenericSolverResults.h</a>.</p>
 
 </div>
 </div>
@@ -352,9 +352,9 @@ template&lt;typename N , typename D , typename L &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="GenericSolverResults_8h_source.html#l00064">64</a> of file <a class="el" href="GenericSolverResults_8h_source.html">GenericSolverResults.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="GenericSolverResults_8h_source.html#l00065">65</a> of file <a class="el" href="GenericSolverResults_8h_source.html">GenericSolverResults.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="GenericSolverResults_8h_source.html#l00093">psr::GenericSolverResults&lt; N, D, L &gt;::resultAtInLLVMSSA()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="GenericSolverResults_8h_source.html#l00094">psr::GenericSolverResults&lt; N, D, L &gt;::resultAtInLLVMSSA()</a>.</p>
 
 </div>
 </div>
@@ -394,9 +394,9 @@ template&lt;typename N , typename D , typename L &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="GenericSolverResults_8h_source.html#l00093">93</a> of file <a class="el" href="GenericSolverResults_8h_source.html">GenericSolverResults.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="GenericSolverResults_8h_source.html#l00094">94</a> of file <a class="el" href="GenericSolverResults_8h_source.html">GenericSolverResults.h</a>.</p>
 
-<p class="reference">References <a class="el" href="GenericSolverResults_8h_source.html#l00064">psr::GenericSolverResults&lt; N, D, L &gt;::resultAt()</a>.</p>
+<p class="reference">References <a class="el" href="GenericSolverResults_8h_source.html#l00065">psr::GenericSolverResults&lt; N, D, L &gt;::resultAt()</a>.</p>
 
 </div>
 </div>
@@ -436,9 +436,9 @@ template&lt;typename N , typename D , typename L &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="GenericSolverResults_8h_source.html#l00070">70</a> of file <a class="el" href="GenericSolverResults_8h_source.html">GenericSolverResults.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="GenericSolverResults_8h_source.html#l00071">71</a> of file <a class="el" href="GenericSolverResults_8h_source.html">GenericSolverResults.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="IDEInstInteractionAnalysis_8h_source.html#l01088">psr::IDEInstInteractionAnalysisT&lt; EdgeFactType, SyntacticAnalysisOnly, EnableIndirectTaints &gt;::emitTextReport()</a>, <a class="el" href="IDETypeStateAnalysis_8h_source.html#l00516">psr::IDETypeStateAnalysis&lt; TypeStateDescriptionTy &gt;::emitTextReport()</a>, and <a class="el" href="GenericSolverResults_8h_source.html#l00104">psr::GenericSolverResults&lt; N, D, L &gt;::resultsAtInLLVMSSA()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="IDEInstInteractionAnalysis_8h_source.html#l01064">psr::IDEInstInteractionAnalysisT&lt; EdgeFactType, SyntacticAnalysisOnly, EnableIndirectTaints &gt;::emitTextReport()</a>, <a class="el" href="IDETypeStateAnalysis_8h_source.html#l00472">psr::IDETypeStateAnalysis&lt; TypeStateDescriptionTy &gt;::emitTextReport()</a>, and <a class="el" href="GenericSolverResults_8h_source.html#l00105">psr::GenericSolverResults&lt; N, D, L &gt;::resultsAtInLLVMSSA()</a>.</p>
 
 </div>
 </div>
@@ -478,9 +478,9 @@ template&lt;typename N , typename D , typename L &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="GenericSolverResults_8h_source.html#l00104">104</a> of file <a class="el" href="GenericSolverResults_8h_source.html">GenericSolverResults.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="GenericSolverResults_8h_source.html#l00105">105</a> of file <a class="el" href="GenericSolverResults_8h_source.html">GenericSolverResults.h</a>.</p>
 
-<p class="reference">References <a class="el" href="GenericSolverResults_8h_source.html#l00070">psr::GenericSolverResults&lt; N, D, L &gt;::resultsAt()</a>.</p>
+<p class="reference">References <a class="el" href="GenericSolverResults_8h_source.html#l00071">psr::GenericSolverResults&lt; N, D, L &gt;::resultsAt()</a>.</p>
 
 </div>
 </div>
@@ -509,7 +509,7 @@ template&lt;typename N , typename D , typename L &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="GenericSolverResults_8h_source.html#l00083">83</a> of file <a class="el" href="GenericSolverResults_8h_source.html">GenericSolverResults.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="GenericSolverResults_8h_source.html#l00084">84</a> of file <a class="el" href="GenericSolverResults_8h_source.html">GenericSolverResults.h</a>.</p>
 
 </div>
 </div>
@@ -519,7 +519,7 @@ template&lt;typename N , typename D , typename L &gt; </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Aug 20 2026 16:00:35 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Aug 20 2026 16:52:22 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

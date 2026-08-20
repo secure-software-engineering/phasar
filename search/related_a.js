@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['maybeuniqueptr_0',['MaybeUniquePtr',['../classpsr_1_1MaybeUniquePtr.html#a770d28f33f9661a6a34878cf80d76c2f',1,'psr::MaybeUniquePtr']]],
-  ['minmaxcounter_1',['MinMaxCounter',['../classpsr_1_1pamm_1_1Registry.html#a57c885327f8d609e0ec585fc0923d5fd',1,'psr::pamm::Registry']]]
+  ['pathsensitivitymanagermixin_0',['PathSensitivityManagerMixin',['../classpsr_1_1PathSensitivityManagerBase.html#a4d1e024cbffe9064b8416bf4aebbd04a',1,'psr::PathSensitivityManagerBase']]],
+  ['pointstoinfo_3c_20ptatraits_20_3e_1',['PointsToInfo&lt; PTATraits &gt;',['../classpsr_1_1PointsToInfoRef_3_01PTATraits_01_4.html#a6ca0afd680ccdb60462cfac887672b39',1,'psr::PointsToInfoRef&lt; PTATraits &gt;']]]
 ];

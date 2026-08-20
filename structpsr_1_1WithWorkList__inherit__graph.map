@@ -1,5 +1,5 @@
-<map id="psr::WithWorkList&lt; Base, WorkList &gt;" name="psr::WithWorkList&lt; Base, WorkList &gt;">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,79,152,119"/>
-<area shape="rect" id="Node000002" href="$classBase.html" title=" " alt="" coords="51,5,106,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="81,44,81,79,76,79,76,44"/>
+<map id="psr::WithWorkList&lt; Base, EnableStats &gt;" name="psr::WithWorkList&lt; Base, EnableStats &gt;">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,79,164,119"/>
+<area shape="rect" id="Node000002" href="$classBase.html" title=" " alt="" coords="57,5,112,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="87,44,87,79,82,79,82,44"/>
 </map>

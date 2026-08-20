@@ -36,13 +36,11 @@ var searchData=
   ['pointstoinfobase_3c_20pointstoinforef_3c_20ptatraits_20_3e_20_3e_33',['PointsToInfoBase&lt; PointsToInfoRef&lt; PTATraits &gt; &gt;',['../classpsr_1_1PointsToInfoBase.html',1,'psr']]],
   ['pointstoinforef_34',['PointsToInfoRef',['../classpsr_1_1PointsToInfoRef.html',1,'psr']]],
   ['pointstoinforef_3c_20ptatraits_20_3e_35',['PointsToInfoRef&lt; PTATraits &gt;',['../classpsr_1_1PointsToInfoRef_3_01PTATraits_01_4.html',1,'psr']]],
-  ['pointstoiterator_36',['PointsToIterator',['../classpsr_1_1PointsToIterator.html',1,'psr']]],
-  ['pointstoiteratorref_37',['PointsToIteratorRef',['../classpsr_1_1PointsToIteratorRef.html',1,'psr']]],
-  ['pointstotraits_38',['PointsToTraits',['../structpsr_1_1PointsToTraits.html',1,'psr']]],
-  ['pointstotraits_3c_20pointstoinfo_3c_20ptatraits_20_3e_20_3e_39',['PointsToTraits&lt; PointsToInfo&lt; PTATraits &gt; &gt;',['../structpsr_1_1PointsToTraits_3_01PointsToInfo_3_01PTATraits_01_4_01_4.html',1,'psr']]],
-  ['pointstotraits_3c_20pointstoinforef_3c_20ptatraits_20_3e_20_3e_40',['PointsToTraits&lt; PointsToInfoRef&lt; PTATraits &gt; &gt;',['../structpsr_1_1PointsToTraits_3_01PointsToInfoRef_3_01PTATraits_01_4_01_4.html',1,'psr']]],
-  ['precomputedresolver_41',['PrecomputedResolver',['../classpsr_1_1PrecomputedResolver.html',1,'psr']]],
-  ['prettyprinter_42',['PrettyPrinter',['../structpsr_1_1PrettyPrinter.html',1,'psr']]],
-  ['ptatraits_43',['PTATraits',['../classPTATraits.html',1,'']]],
-  ['punnedabicache_44',['PunnedABICache',['../classpsr_1_1PunnedABICache.html',1,'psr']]]
+  ['pointstotraits_36',['PointsToTraits',['../structpsr_1_1PointsToTraits.html',1,'psr']]],
+  ['pointstotraits_3c_20pointstoinfo_3c_20ptatraits_20_3e_20_3e_37',['PointsToTraits&lt; PointsToInfo&lt; PTATraits &gt; &gt;',['../structpsr_1_1PointsToTraits_3_01PointsToInfo_3_01PTATraits_01_4_01_4.html',1,'psr']]],
+  ['pointstotraits_3c_20pointstoinforef_3c_20ptatraits_20_3e_20_3e_38',['PointsToTraits&lt; PointsToInfoRef&lt; PTATraits &gt; &gt;',['../structpsr_1_1PointsToTraits_3_01PointsToInfoRef_3_01PTATraits_01_4_01_4.html',1,'psr']]],
+  ['precomputedresolver_39',['PrecomputedResolver',['../classpsr_1_1PrecomputedResolver.html',1,'psr']]],
+  ['prettyprinter_40',['PrettyPrinter',['../structpsr_1_1PrettyPrinter.html',1,'psr']]],
+  ['ptatraits_41',['PTATraits',['../classPTATraits.html',1,'']]],
+  ['punnedabicache_42',['PunnedABICache',['../classpsr_1_1PunnedABICache.html',1,'psr']]]
 ];

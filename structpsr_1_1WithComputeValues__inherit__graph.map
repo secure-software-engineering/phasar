@@ -1,9 +1,7 @@
 <map id="psr::WithComputeValues&lt; Base, ComputeValuesVal &gt;" name="psr::WithComputeValues&lt; Base, ComputeValuesVal &gt;">
-<area shape="rect" id="Node000001" title=" " alt="" coords="113,79,327,119"/>
-<area shape="rect" id="Node000003" href="$structpsr_1_1DefaultIDESolverConfig.html" title=" " alt="" coords="5,167,208,207"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="186,129,133,169,130,164,183,125"/>
-<area shape="rect" id="Node000004" href="$structpsr_1_1DefaultIDESolverConfig_3_01ProblemTy_01_4.html" title=" " alt="" coords="232,167,435,207"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="257,125,310,164,307,169,254,129"/>
-<area shape="rect" id="Node000002" href="$classBase.html" title=" " alt="" coords="193,5,247,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="223,44,223,79,217,79,217,44"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,37,220,77"/>
+<area shape="rect" id="Node000002" href="$structpsr_1_1DefaultIDESolverConfig.html" title=" " alt="" coords="268,5,471,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="233,40,268,35,268,41,234,45"/>
+<area shape="rect" id="Node000003" href="$structpsr_1_1DefaultIDESolverConfig_3_01ProblemTy_01_4.html" title=" " alt="" coords="268,69,471,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="234,70,268,74,268,79,233,75"/>
 </map>

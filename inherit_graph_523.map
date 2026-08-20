@@ -1,7 +1,7 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$classPTATraits.html" title=" " alt="" coords="5,45,85,70"/>
-<area shape="rect" id="Node000001" href="$structpsr_1_1PointsToTraits_3_01PointsToInfo_3_01PTATraits_01_4_01_4.html" title=" " alt="" coords="145,5,363,45"/>
-<area shape="poly" id="edge374_Node000000_Node000001" title=" " alt="" coords="98,47,144,39,145,45,99,52"/>
-<area shape="rect" id="Node000002" href="$structpsr_1_1PointsToTraits_3_01PointsToInfoRef_3_01PTATraits_01_4_01_4.html" title=" " alt="" coords="133,69,375,109"/>
-<area shape="poly" id="edge375_Node000000_Node000002" title=" " alt="" coords="99,63,134,68,133,73,98,68"/>
+<area shape="rect" id="Node000000" href="$structpsr_1_1WithComputeValues.html" title=" " alt="" coords="5,37,220,77"/>
+<area shape="rect" id="Node000001" href="$structpsr_1_1DefaultIDESolverConfig.html" title=" " alt="" coords="268,5,471,45"/>
+<area shape="poly" id="edge286_Node000000_Node000001" title=" " alt="" coords="233,40,268,35,268,41,234,45"/>
+<area shape="rect" id="Node000002" href="$structpsr_1_1DefaultIDESolverConfig_3_01ProblemTy_01_4.html" title=" " alt="" coords="268,69,471,109"/>
+<area shape="poly" id="edge287_Node000000_Node000002" title=" " alt="" coords="234,70,268,74,268,79,233,75"/>
 </map>

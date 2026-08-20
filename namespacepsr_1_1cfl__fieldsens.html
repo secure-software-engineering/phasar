@@ -99,6 +99,8 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1cfl__fieldsens_1_1CFLFieldSensEdgeFunctionImpl.html">CFLFieldSensEdgeFunctionImpl</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1cfl__fieldsens_1_1CFLFieldSensEdgeFunctions.html">CFLFieldSensEdgeFunctions</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1cfl__fieldsens_1_1FieldStringManager.html">FieldStringManager</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Interns the Store- and Load field-strings.  <a href="classpsr_1_1cfl__fieldsens_1_1FieldStringManager.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -115,8 +117,6 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:aab03198559863bff98b8dd15a3d6caba" id="r_aab03198559863bff98b8dd15a3d6caba"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classpsr_1_1InitialSeeds.html">InitialSeeds</a>&lt; IFDSDomain::n_t, IFDSDomain::d_t, <a class="el" href="structpsr_1_1cfl__fieldsens_1_1IFDSDomain.html#a78f13452c7f636088d0ccb30c7ec120c">IFDSDomain::l_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr_1_1cfl__fieldsens.html#aab03198559863bff98b8dd15a3d6caba">makeInitialSeeds</a> (const <a class="el" href="classpsr_1_1InitialSeeds.html">InitialSeeds</a>&lt; LLVMIFDSAnalysisDomainDefault::n_t, LLVMIFDSAnalysisDomainDefault::d_t, <a class="el" href="namespacepsr.html#a951662fd4f90e7136dd1d6679ad80a9b">BinaryDomain</a> &gt; &amp;UserSeeds, <a class="el" href="classpsr_1_1cfl__fieldsens_1_1FieldStringManager.html">FieldStringManager</a> &amp;Mgr)</td></tr>
-<tr class="separator:aab03198559863bff98b8dd15a3d6caba"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae0622c7d353e108c006821344c0ff934" id="r_ae0622c7d353e108c006821344c0ff934"><td class="memItemLeft" align="right" valign="top">std::pair&lt; const llvm::Value *, int32_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr_1_1cfl__fieldsens.html#ae0622c7d353e108c006821344c0ff934">getBaseAndOffset</a> (const llvm::Value *V, const llvm::DataLayout &amp;DL)</td></tr>
 <tr class="separator:ae0622c7d353e108c006821344c0ff934"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adfc7896419cd29521b8156c44d4d4a07" id="r_adfc7896419cd29521b8156c44d4d4a07"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="classbool.html">bool</a> AllowDeepTaints = true, typename ResultsT &gt; </td></tr>
@@ -164,7 +164,7 @@ template&lt;<a class="el" href="classbool.html">bool</a> AllowDeepTaints = true,
 <p>Given a QueryMap of the form map&lt;n_t, set&lt;d_t&gt;&gt;, calls the Handler for all inst-fact pairs that hold in a field-sensitive way and filters out all others.</p>
 <p>The Handler may opt into early exit by returning false. Returning void is permitted. </p>
 
-<p class="definition">Definition at line <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html#l00353">353</a> of file <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html">CFLFieldSensIFDSProblem.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html#l00345">345</a> of file <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html">CFLFieldSensIFDSProblem.h</a>.</p>
 
 <p class="reference">References <a class="el" href="MapUtils_8h_source.html#l00066">psr::getOr()</a>.</p>
 
@@ -205,7 +205,7 @@ template&lt;<a class="el" href="classbool.html">bool</a> AllowDeepTaints = true,
 </div><div class="memdoc">
 <p>Utility to strip off potential pointer-arithmetic from V and accumulating the byte-offset. </p>
 
-<p class="definition">Definition at line <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html#l00303">303</a> of file <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html">CFLFieldSensIFDSProblem.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html#l00295">295</a> of file <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html">CFLFieldSensIFDSProblem.h</a>.</p>
 
 <p class="reference">References <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html#l00176">psr::cfl_fieldsens::AccessPath::TopOffset</a>.</p>
 
@@ -255,45 +255,14 @@ template&lt;<a class="el" href="classbool.html">bool</a> AllowDeepTaints = true,
 
 <p>Checks whether Fact holds at Inst in a field-sensitive way. </p>
 
-<p class="definition">Definition at line <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html#l00322">322</a> of file <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html">CFLFieldSensIFDSProblem.h</a>.</p>
-
-</div>
-</div>
-<a id="aab03198559863bff98b8dd15a3d6caba" name="aab03198559863bff98b8dd15a3d6caba"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aab03198559863bff98b8dd15a3d6caba">&#9670;&#160;</a></span>makeInitialSeeds()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="classpsr_1_1InitialSeeds.html">InitialSeeds</a>&lt; IFDSDomain::n_t, IFDSDomain::d_t, <a class="el" href="structpsr_1_1cfl__fieldsens_1_1IFDSDomain.html#a78f13452c7f636088d0ccb30c7ec120c">IFDSDomain::l_t</a> &gt; psr::cfl_fieldsens::makeInitialSeeds </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="classpsr_1_1InitialSeeds.html">InitialSeeds</a>&lt; LLVMIFDSAnalysisDomainDefault::n_t, LLVMIFDSAnalysisDomainDefault::d_t, <a class="el" href="namespacepsr.html#a951662fd4f90e7136dd1d6679ad80a9b">BinaryDomain</a> &gt; &amp;&#160;</td>
-          <td class="paramname"><em>UserSeeds</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="classpsr_1_1cfl__fieldsens_1_1FieldStringManager.html">FieldStringManager</a> &amp;&#160;</td>
-          <td class="paramname"><em>Mgr</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Transforms user-defined seeds from usual IFDS seeds to field-sensitive IFDS seeds </p>
-
-<p class="reference">Referenced by <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html#l00543">psr::CFLFieldSensIFDSProblem::initialSeeds()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html#l00314">314</a> of file <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html">CFLFieldSensIFDSProblem.h</a>.</p>
 
 </div>
 </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Aug 20 2026 16:00:35 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Aug 20 2026 16:52:22 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

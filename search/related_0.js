@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['aliasinfo_3c_20v_2c_20n_20_3e_0',['AliasInfo&lt; V, N &gt;',['../classpsr_1_1AliasInfoRef.html#ac80e5978d1d3316428f625370f640b38',1,'psr::AliasInfoRef']]]
+  ['boxedconstptr_3c_20value_5ftype_20_3e_0',['BoxedConstPtr&lt; value_type &gt;',['../classpsr_1_1BoxedPtr.html#a441acbe28a2fb1665d03fb5d3e9952a9',1,'psr::BoxedPtr']]]
 ];

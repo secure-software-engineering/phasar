@@ -90,6 +90,7 @@ $(function() {
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="BoxedPointer_8h_source.html">phasar/Utils/BoxedPointer.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="MaybeUniquePtr_8h_source.html">phasar/Utils/MaybeUniquePtr.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="NonNullPtr_8h_source.html">phasar/Utils/NonNullPtr.h</a>&quot;</code><br />
 <code>#include &quot;llvm/ADT/IntrusiveRefCntPtr.h&quot;</code><br />
 <code>#include &lt;memory&gt;</code><br />
 <code>#include &lt;type_traits&gt;</code><br />
@@ -160,11 +161,14 @@ requires (!std::is_pointer_v&lt;T&gt;)</td></tr>
 <tr class="memitem:ac234b2709b70f43e939e587feece5e62" id="r_ac234b2709b70f43e939e587feece5e62"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
 <tr class="memitem:ac234b2709b70f43e939e587feece5e62"><td class="memTemplItemLeft" align="right" valign="top">constexpr <a class="el" href="classpsr_1_1BoxedConstPtr.html">BoxedConstPtr</a>&lt; T &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#ac234b2709b70f43e939e587feece5e62">psr::getPointerFrom</a> (<a class="el" href="classpsr_1_1BoxedConstPtr.html">BoxedConstPtr</a>&lt; T &gt; Ptr) noexcept</td></tr>
 <tr class="separator:ac234b2709b70f43e939e587feece5e62"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a31ada2be3531f6c38afd24ebe37eb29a" id="r_a31ada2be3531f6c38afd24ebe37eb29a"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:a31ada2be3531f6c38afd24ebe37eb29a"><td class="memTemplItemLeft" align="right" valign="top">LLVM_ATTRIBUTE_RETURNS_NONNULL constexpr T *&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a31ada2be3531f6c38afd24ebe37eb29a">psr::getPointerFrom</a> (NonNullPtr&lt; T &gt; Ptr) noexcept</td></tr>
+<tr class="separator:a31ada2be3531f6c38afd24ebe37eb29a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Aug 20 2026 16:00:34 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Aug 20 2026 16:52:21 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

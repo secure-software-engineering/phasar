@@ -90,7 +90,8 @@ $(function() {
   <div class="headertitle"><div class="title">IFDSSolver.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;<a class="el" href="IFDSTabulationProblem_8h_source.html">phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h</a>&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="IFDSProblem_8h_source.html">phasar/DataFlow/IfdsIde/IFDSProblem.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="IFDSTabulationProblem_8h_source.html">phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="IDESolver_8h_source.html">phasar/DataFlow/IfdsIde/Solver/IDESolver.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="BinaryDomain_8h_source.html">phasar/Domain/BinaryDomain.h</a>&quot;</code><br />
 <code>#include &lt;concepts&gt;</code><br />
@@ -125,14 +126,14 @@ Functions</h2></td></tr>
 <tr class="memitem:a784cdfccb37a766b06d6b0b4106cb8ec" id="r_a784cdfccb37a766b06d6b0b4106cb8ec"><td class="memTemplParams" colspan="2">template&lt;typename Problem , typename ICF &gt; </td></tr>
 <tr class="memitem:a784cdfccb37a766b06d6b0b4106cb8ec"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a784cdfccb37a766b06d6b0b4106cb8ec">psr::IFDSSolver</a> (Problem *, const ICF *) -&gt; <a class="el" href="classpsr_1_1IFDSSolver.html">IFDSSolver</a>&lt; typename Problem::ProblemAnalysisDomain, typename Problem::container_type, ICF &gt;</td></tr>
 <tr class="separator:a784cdfccb37a766b06d6b0b4106cb8ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afe44f35d87db298034bf9c3ce26c815e" id="r_afe44f35d87db298034bf9c3ce26c815e"><td class="memTemplParams" colspan="2">template&lt;typename <a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a> , typename Container &gt; </td></tr>
-<tr class="memitem:afe44f35d87db298034bf9c3ce26c815e"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="classpsr_1_1OwningSolverResults.html">OwningSolverResults</a>&lt; typename AnalysisDomainTy::n_t, typename AnalysisDomainTy::d_t, <a class="el" href="namespacepsr.html#a951662fd4f90e7136dd1d6679ad80a9b">BinaryDomain</a> &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#afe44f35d87db298034bf9c3ce26c815e">psr::solveIFDSProblem</a> (<a class="el" href="classpsr_1_1IFDSTabulationProblem.html">IFDSTabulationProblem</a>&lt; <a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a>, Container &gt; &amp;Problem, const ICFG auto &amp;ICF)</td></tr>
-<tr class="separator:afe44f35d87db298034bf9c3ce26c815e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5959150009807d680ec03f142d77b5ff" id="r_a5959150009807d680ec03f142d77b5ff"><td class="memTemplParams" colspan="2">template&lt;IFDSProblem ProblemTy&gt; </td></tr>
+<tr class="memitem:a5959150009807d680ec03f142d77b5ff"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a5959150009807d680ec03f142d77b5ff">psr::solveIFDSProblem</a> (ProblemTy &amp;Problem, const ICFG auto &amp;ICF) -&gt; <a class="el" href="classpsr_1_1OwningSolverResults.html">OwningSolverResults</a>&lt; typename ProblemTy::ProblemAnalysisDomain::n_t, typename ProblemTy::ProblemAnalysisDomain::d_t, <a class="el" href="namespacepsr.html#a951662fd4f90e7136dd1d6679ad80a9b">BinaryDomain</a> &gt;</td></tr>
+<tr class="separator:a5959150009807d680ec03f142d77b5ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Aug 20 2026 16:00:34 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Aug 20 2026 16:52:21 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

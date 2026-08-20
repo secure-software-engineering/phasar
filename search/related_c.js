@@ -1,5 +1,9 @@
 var searchData=
 [
-  ['pathsensitivitymanagermixin_0',['PathSensitivityManagerMixin',['../classpsr_1_1PathSensitivityManagerBase.html#a4d1e024cbffe9064b8416bf4aebbd04a',1,'psr::PathSensitivityManagerBase']]],
-  ['pointstoinfo_3c_20ptatraits_20_3e_1',['PointsToInfo&lt; PTATraits &gt;',['../classpsr_1_1PointsToInfoRef_3_01PTATraits_01_4.html#a6ca0afd680ccdb60462cfac887672b39',1,'psr::PointsToInfoRef&lt; PTATraits &gt;']]]
+  ['scopedtimer_0',['ScopedTimer',['../classpsr_1_1pamm_1_1Timer.html#a592487a91aa2b8fa43ab75715bce7a21',1,'psr::pamm::Timer']]],
+  ['sizeguardcheck_1',['SizeGuardCheck',['../classpsr_1_1LLVMPathConstraints.html#ae2c49b28398c424f37ae0578fdd40a67',1,'psr::LLVMPathConstraints']]],
+  ['stablevector_2',['StableVector',['../classpsr_1_1StableVector_1_1Iterator.html#af20bd897bff2f82d225073fbd9c86966',1,'psr::StableVector::Iterator']]],
+  ['std_3a_3ahash_3c_20psr_3a_3acallstringctx_3c_20n_2c_20k_20_3e_20_3e_3',['hash&lt; psr::CallStringCTX&lt; N, K &gt; &gt;',['../classpsr_1_1CallStringCTX.html#ae096d1140a9a61d553000b0151cf170b',1,'psr::CallStringCTX']]],
+  ['svfgcache_4',['SVFGCache',['../classpsr_1_1SparseLLVMBasedCFG.html#af7c72ac6a027fbf7fac92d6cc191f78c',1,'psr::SparseLLVMBasedCFG']]],
+  ['swap_5',['swap',['../classpsr_1_1PointsToInfo_3_01PTATraits_01_4.html#a9ee38d9f867694b0ba86b7405ff0f803',1,'psr::PointsToInfo&lt; PTATraits &gt;::swap'],['../classpsr_1_1MaybeUniquePtr.html#a1bea4127129797786f206a9f77705985',1,'psr::MaybeUniquePtr::swap'],['../classpsr_1_1StableVector.html#a336ff66f2a494658d3be75e0ec614490',1,'psr::StableVector::swap'],['../classpsr_1_1ValueIdMap.html#ad1f5f8859b22e84c5e18617ed6d8aedb',1,'psr::ValueIdMap::swap']]]
 ];

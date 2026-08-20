@@ -84,6 +84,7 @@ $(function() {
 <div class="header">
   <div class="summary">
 <a href="#namespaces">Namespaces</a> &#124;
+<a href="#concepts">Concepts</a> &#124;
 <a href="#typedef-members">Typedefs</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">Nullable.h File Reference</div></div>
@@ -101,35 +102,40 @@ Namespaces</h2></td></tr>
 <tr class="memitem:namespacepsr" id="r_namespacepsr"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html">psr</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="concepts" name="concepts"></a>
+Concepts</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptpsr_1_1IsNullable.html">psr::IsNullable</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr class="memitem:ad1d0602a9eee1460c855d6b3ce61201a" id="r_ad1d0602a9eee1460c855d6b3ce61201a"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
-<tr class="memitem:ad1d0602a9eee1460c855d6b3ce61201a"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#ad1d0602a9eee1460c855d6b3ce61201a">psr::Nullable</a> = std::conditional_t&lt; std::is_convertible_v&lt; T, <a class="el" href="classbool.html">bool</a> &gt;, T, std::optional&lt; T &gt; &gt;</td></tr>
-<tr class="separator:ad1d0602a9eee1460c855d6b3ce61201a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa5179235abf439e5cc74ed59d6ab2e0f" id="r_aa5179235abf439e5cc74ed59d6ab2e0f"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:aa5179235abf439e5cc74ed59d6ab2e0f"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#aa5179235abf439e5cc74ed59d6ab2e0f">psr::Nullable</a> = std::conditional_t&lt; IsNullable&lt; T &gt;, T, std::optional&lt; T &gt; &gt;</td></tr>
+<tr class="separator:aa5179235abf439e5cc74ed59d6ab2e0f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a7ae4682925592184eb9c8b37ccda386d" id="r_a7ae4682925592184eb9c8b37ccda386d"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; <br />
-requires std::is_convertible_v&lt;T, <a class="el" href="classbool.html">bool</a>&gt;</td></tr>
-<tr class="memitem:a7ae4682925592184eb9c8b37ccda386d"><td class="memTemplItemLeft" align="right" valign="top">constexpr T&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a7ae4682925592184eb9c8b37ccda386d">psr::unwrapNullable</a> (T &amp;&amp;Val) noexcept</td></tr>
-<tr class="separator:a7ae4682925592184eb9c8b37ccda386d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abe5d106f755d33afd9b485a74886fd47" id="r_abe5d106f755d33afd9b485a74886fd47"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; <br />
-requires (!std::is_convertible_v&lt;T, <a class="el" href="classbool.html">bool</a>&gt;)</td></tr>
-<tr class="memitem:abe5d106f755d33afd9b485a74886fd47"><td class="memTemplItemLeft" align="right" valign="top">constexpr T&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#abe5d106f755d33afd9b485a74886fd47">psr::unwrapNullable</a> (std::optional&lt; T &gt; &amp;&amp;Val) noexcept</td></tr>
-<tr class="separator:abe5d106f755d33afd9b485a74886fd47"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5a7c1c9e9cf2f66c6746b48dfd31ed08" id="r_a5a7c1c9e9cf2f66c6746b48dfd31ed08"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; <br />
-requires (!std::is_convertible_v&lt;T, <a class="el" href="classbool.html">bool</a>&gt;)</td></tr>
-<tr class="memitem:a5a7c1c9e9cf2f66c6746b48dfd31ed08"><td class="memTemplItemLeft" align="right" valign="top">constexpr const T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a5a7c1c9e9cf2f66c6746b48dfd31ed08">psr::unwrapNullable</a> (const std::optional&lt; T &gt; &amp;Val) noexcept</td></tr>
-<tr class="separator:a5a7c1c9e9cf2f66c6746b48dfd31ed08"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae430b25f765168712d9c3ec35d36f4dd" id="r_ae430b25f765168712d9c3ec35d36f4dd"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; <br />
-requires (!std::is_convertible_v&lt;T, <a class="el" href="classbool.html">bool</a>&gt;)</td></tr>
-<tr class="memitem:ae430b25f765168712d9c3ec35d36f4dd"><td class="memTemplItemLeft" align="right" valign="top">constexpr T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#ae430b25f765168712d9c3ec35d36f4dd">psr::unwrapNullable</a> (std::optional&lt; T &gt; &amp;Val) noexcept</td></tr>
-<tr class="separator:ae430b25f765168712d9c3ec35d36f4dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7920aaa60272cbc2f07773c471805f82" id="r_a7920aaa60272cbc2f07773c471805f82"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; <br />
+requires IsNullable&lt;T&gt;</td></tr>
+<tr class="memitem:a7920aaa60272cbc2f07773c471805f82"><td class="memTemplItemLeft" align="right" valign="top">constexpr T&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a7920aaa60272cbc2f07773c471805f82">psr::unwrapNullable</a> (T &amp;&amp;Val) noexcept</td></tr>
+<tr class="separator:a7920aaa60272cbc2f07773c471805f82"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acf95c73209d0dcfc21d44830c4a0caa6" id="r_acf95c73209d0dcfc21d44830c4a0caa6"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; <br />
+requires (!IsNullable&lt;T&gt;)</td></tr>
+<tr class="memitem:acf95c73209d0dcfc21d44830c4a0caa6"><td class="memTemplItemLeft" align="right" valign="top">constexpr T&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#acf95c73209d0dcfc21d44830c4a0caa6">psr::unwrapNullable</a> (std::optional&lt; T &gt; &amp;&amp;Val) noexcept</td></tr>
+<tr class="separator:acf95c73209d0dcfc21d44830c4a0caa6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a31bfc793f6a5fd1d4a02aaad7f407cfe" id="r_a31bfc793f6a5fd1d4a02aaad7f407cfe"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; <br />
+requires (!IsNullable&lt;T&gt;)</td></tr>
+<tr class="memitem:a31bfc793f6a5fd1d4a02aaad7f407cfe"><td class="memTemplItemLeft" align="right" valign="top">constexpr const T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a31bfc793f6a5fd1d4a02aaad7f407cfe">psr::unwrapNullable</a> (const std::optional&lt; T &gt; &amp;Val) noexcept</td></tr>
+<tr class="separator:a31bfc793f6a5fd1d4a02aaad7f407cfe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a82bf667a94bf179f9875c5e8aa5ef762" id="r_a82bf667a94bf179f9875c5e8aa5ef762"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; <br />
+requires (!IsNullable&lt;T&gt;)</td></tr>
+<tr class="memitem:a82bf667a94bf179f9875c5e8aa5ef762"><td class="memTemplItemLeft" align="right" valign="top">constexpr T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a82bf667a94bf179f9875c5e8aa5ef762">psr::unwrapNullable</a> (std::optional&lt; T &gt; &amp;Val) noexcept</td></tr>
+<tr class="separator:a82bf667a94bf179f9875c5e8aa5ef762"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Aug 20 2026 16:00:34 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Aug 20 2026 16:52:21 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

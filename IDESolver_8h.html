@@ -98,9 +98,10 @@ $(function() {
 <code>#include &quot;<a class="el" href="EdgeFunctionUtils_8h_source.html">phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="EdgeFunctions_8h_source.html">phasar/DataFlow/IfdsIde/EdgeFunctions.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="FlowFunctions_8h_source.html">phasar/DataFlow/IfdsIde/FlowFunctions.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="IDEProblem_8h_source.html">phasar/DataFlow/IfdsIde/IDEProblem.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="IDETabulationProblem_8h_source.html">phasar/DataFlow/IfdsIde/IDETabulationProblem.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="IFDSTabulationProblem_8h_source.html">phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="InitialSeeds_8h_source.html">phasar/DataFlow/IfdsIde/InitialSeeds.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="LegacyIDEProblemWrapper_8h_source.html">phasar/DataFlow/IfdsIde/LegacyIDEProblemWrapper.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="ESGEdgeKind_8h_source.html">phasar/DataFlow/IfdsIde/Solver/ESGEdgeKind.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="FlowEdgeFunctionCache_8h_source.html">phasar/DataFlow/IfdsIde/Solver/FlowEdgeFunctionCache.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="IDESolverAPIMixin_8h_source.html">phasar/DataFlow/IfdsIde/Solver/IDESolverAPIMixin.h</a>&quot;</code><br />
@@ -114,6 +115,7 @@ $(function() {
 <code>#include &quot;<a class="el" href="JoinLattice_8h_source.html">phasar/Utils/JoinLattice.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="Logger_8h_source.html">phasar/Utils/Logger.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="Macros_8h_source.html">phasar/Utils/Macros.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="NonNullPtr_8h_source.html">phasar/Utils/NonNullPtr.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="Nullable_8h_source.html">phasar/Utils/Nullable.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="PAMMMacros_8h_source.html">phasar/Utils/PAMMMacros.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="Table_8h_source.html">phasar/Utils/Table.h</a>&quot;</code><br />
@@ -162,14 +164,14 @@ Functions</h2></td></tr>
 <tr class="memitem:a0360a6ad657850e5e3b7a3d99469ef22" id="r_a0360a6ad657850e5e3b7a3d99469ef22"><td class="memTemplParams" colspan="2">template&lt;typename Problem , typename ICF &gt; </td></tr>
 <tr class="memitem:a0360a6ad657850e5e3b7a3d99469ef22"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a0360a6ad657850e5e3b7a3d99469ef22">psr::IDESolver</a> (Problem *, const ICF *) -&gt; <a class="el" href="classpsr_1_1IDESolver.html">IDESolver</a>&lt; typename Problem::ProblemAnalysisDomain, typename Problem::container_type, ICF &gt;</td></tr>
 <tr class="separator:a0360a6ad657850e5e3b7a3d99469ef22"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af3381471d670394f2bc4b7cbc15d4822" id="r_af3381471d670394f2bc4b7cbc15d4822"><td class="memTemplParams" colspan="2">template&lt;typename <a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a> , typename Container &gt; </td></tr>
-<tr class="memitem:af3381471d670394f2bc4b7cbc15d4822"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="classpsr_1_1OwningSolverResults.html">OwningSolverResults</a>&lt; typename AnalysisDomainTy::n_t, typename AnalysisDomainTy::d_t, typename AnalysisDomainTy::l_t &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#af3381471d670394f2bc4b7cbc15d4822">psr::solveIDEProblem</a> (<a class="el" href="classpsr_1_1IDETabulationProblem.html">IDETabulationProblem</a>&lt; <a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a>, Container &gt; &amp;Problem, const ICFG auto &amp;ICF)</td></tr>
-<tr class="separator:af3381471d670394f2bc4b7cbc15d4822"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0f17a64dd0ad0ba3e0bd0540636a9552" id="r_a0f17a64dd0ad0ba3e0bd0540636a9552"><td class="memTemplParams" colspan="2">template&lt;IDEProblem ProblemTy&gt; </td></tr>
+<tr class="memitem:a0f17a64dd0ad0ba3e0bd0540636a9552"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a0f17a64dd0ad0ba3e0bd0540636a9552">psr::solveIDEProblem</a> (ProblemTy &amp;Problem, const ICFG auto &amp;ICF) -&gt; <a class="el" href="classpsr_1_1OwningSolverResults.html">OwningSolverResults</a>&lt; typename ProblemTy::ProblemAnalysisDomain::n_t, typename ProblemTy::ProblemAnalysisDomain::d_t, typename ProblemTy::ProblemAnalysisDomain::l_t &gt;</td></tr>
+<tr class="separator:a0f17a64dd0ad0ba3e0bd0540636a9552"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Aug 20 2026 16:00:34 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Aug 20 2026 16:52:21 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

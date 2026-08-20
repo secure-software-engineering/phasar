@@ -557,10 +557,10 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00448" name="l00448"></a><span class="lineno">  448</span>    Nullable&lt;n_t&gt; CurrInst = BlockStart;</div>
 <div class="line"><a id="l00449" name="l00449"></a><span class="lineno">  449</span> </div>
 <div class="line"><a id="l00450" name="l00450"></a><span class="lineno">  450</span>    <span class="keywordflow">do</span> {</div>
-<div class="line"><a id="l00451" name="l00451"></a><span class="lineno">  451</span>      <span class="keyword">auto</span> Last = <a class="code hl_function" href="namespacepsr.html#a7ae4682925592184eb9c8b37ccda386d">unwrapNullable</a>(CurrInst);</div>
+<div class="line"><a id="l00451" name="l00451"></a><span class="lineno">  451</span>      <span class="keyword">auto</span> Last = <a class="code hl_function" href="namespacepsr.html#a7920aaa60272cbc2f07773c471805f82">unwrapNullable</a>(CurrInst);</div>
 <div class="line"><a id="l00452" name="l00452"></a><span class="lineno">  452</span> </div>
 <div class="line"><a id="l00453" name="l00453"></a><span class="lineno">  453</span>      <span class="keywordflow">do</span> {</div>
-<div class="line"><a id="l00454" name="l00454"></a><span class="lineno">  454</span>        <span class="keyword">auto</span> Curr = <a class="code hl_function" href="namespacepsr.html#a7ae4682925592184eb9c8b37ccda386d">unwrapNullable</a>(CurrInst);</div>
+<div class="line"><a id="l00454" name="l00454"></a><span class="lineno">  454</span>        <span class="keyword">auto</span> Curr = <a class="code hl_function" href="namespacepsr.html#a7920aaa60272cbc2f07773c471805f82">unwrapNullable</a>(CurrInst);</div>
 <div class="line"><a id="l00455" name="l00455"></a><span class="lineno">  455</span>        analyzeInstruction(IState, LocalState, CurrFunId, Curr);</div>
 <div class="line"><a id="l00456" name="l00456"></a><span class="lineno">  456</span>        Last = Curr;</div>
 <div class="line"><a id="l00457" name="l00457"></a><span class="lineno">  457</span>        <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (IsBlockAwareControlFlow&lt;i_t&gt;) {</div>
@@ -1023,7 +1023,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="ttc" id="anamespacepsr_html_a40959371d6d8d02e197a2939d33d5dea"><div class="ttname"><a href="namespacepsr.html#a40959371d6d8d02e197a2939d33d5dea">psr::assertNotNull</a></div><div class="ttdeci">LLVM_ATTRIBUTE_ALWAYS_INLINE T &amp; assertNotNull(T &amp;Value)</div><div class="ttdef"><b>Definition</b> <a href="Utilities_8h_source.html#l00317">Utilities.h:317</a></div></div>
 <div class="ttc" id="anamespacepsr_html_a412f805b6fc30e3319b0e3618875af7d"><div class="ttname"><a href="namespacepsr.html#a412f805b6fc30e3319b0e3618875af7d">psr::getEntryFunctions</a></div><div class="ttdeci">std::vector&lt; const llvm::Function * &gt; getEntryFunctions(const LLVMProjectIRDB &amp;IRDB, llvm::ArrayRef&lt; std::string &gt; EntryPoints)</div></div>
 <div class="ttc" id="anamespacepsr_html_a5462787d6bd41739c36e66d99f2aee6a"><div class="ttname"><a href="namespacepsr.html#a5462787d6bd41739c36e66d99f2aee6a">psr::DToString</a></div><div class="ttdeci">std::string DToString(const AbstractMemoryLocation &amp;AML)</div></div>
-<div class="ttc" id="anamespacepsr_html_a7ae4682925592184eb9c8b37ccda386d"><div class="ttname"><a href="namespacepsr.html#a7ae4682925592184eb9c8b37ccda386d">psr::unwrapNullable</a></div><div class="ttdeci">constexpr T unwrapNullable(T &amp;&amp;Val) noexcept</div><div class="ttdef"><b>Definition</b> <a href="Nullable_8h_source.html#l00026">Nullable.h:26</a></div></div>
+<div class="ttc" id="anamespacepsr_html_a7920aaa60272cbc2f07773c471805f82"><div class="ttname"><a href="namespacepsr.html#a7920aaa60272cbc2f07773c471805f82">psr::unwrapNullable</a></div><div class="ttdeci">constexpr T unwrapNullable(T &amp;&amp;Val) noexcept</div><div class="ttdef"><b>Definition</b> <a href="Nullable_8h_source.html#l00030">Nullable.h:30</a></div></div>
 <div class="ttc" id="anamespacepsr_html_a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd"><div class="ttname"><a href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">psr::ESGEdgeKind::Ret</a></div><div class="ttdeci">@ Ret</div></div>
 <div class="ttc" id="anamespacepsr_html_a8d0886fed3b61a4324c1c8d5d156bf03"><div class="ttname"><a href="namespacepsr.html#a8d0886fed3b61a4324c1c8d5d156bf03">psr::NToString</a></div><div class="ttdeci">decltype(auto) NToString(const N &amp;Node)</div><div class="ttdef"><b>Definition</b> <a href="Printer_8h_source.html#l00055">Printer.h:55</a></div></div>
 <div class="ttc" id="anamespacepsr_html_abc1cbd658869bed3bff5a13860fc646f"><div class="ttname"><a href="namespacepsr.html#abc1cbd658869bed3bff5a13860fc646f">psr::getOrDefault</a></div><div class="ttdeci">auto getOrDefault(MapT &amp;&amp;Map, KeyT &amp;&amp;Key) -&gt; ByConstRef&lt; std::remove_cvref_t&lt; decltype(Map.find(PSR_FWD(Key)) -&gt;second)&gt; &gt;</div><div class="ttdef"><b>Definition</b> <a href="MapUtils_8h_source.html#l00025">MapUtils.h:25</a></div></div>
@@ -1038,7 +1038,7 @@ $(document).ready(function() { init_codefold(0); });
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Aug 20 2026 16:00:34 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Aug 20 2026 16:52:21 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

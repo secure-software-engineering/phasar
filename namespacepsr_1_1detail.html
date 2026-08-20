@@ -117,10 +117,6 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>FlowFunctionCacheBase</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>HasBinaryValueDomain</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>HasBinaryValueDomain&lt; AnalysisDomainTy, typename AnalysisDomainTy::l_t &gt;</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>Hasher</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><b>IdBasedSolverResultsBase</b></td></tr>
@@ -134,6 +130,8 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><b>IDEReachableAllocationSitesDefaultFlowFunctionsImpl</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>IDESolverPerf</b></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><b>IDESolverProblemWrapperStorage</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><b>IDETypeStateAnalysisBase</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -154,6 +152,9 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><b>IsTemplateInstanceImpl</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><b>IterativeIDESolverResults</b></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><b>LegacyIDEProblemWrapperBase</b></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Holds everything that is common to both <a class="el" href="classpsr_1_1LegacyIDEProblemWrapper.html" title="A simple wrapper over a pointer to an IFDS/IDE problem, implementing the legacy IDETabulationProblem.">LegacyIDEProblemWrapper</a> specializations: the wrapped Problem pointer, the IFDSProblem/ FlowFunctionFactory forwarding, and the legacy-base bookkeeping (entry-points, solver-config, reports, soundness). <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><b>LLVMBasedCFGImpl</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -186,6 +187,9 @@ Typedefs</h2></td></tr>
 <tr class="memitem:a3bab5f69ef503f777c83fd7cdb600a1c" id="r_a3bab5f69ef503f777c83fd7cdb600a1c"><td class="memTemplParams" colspan="2">template&lt;typename <a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a> &gt; </td></tr>
 <tr class="memitem:a3bab5f69ef503f777c83fd7cdb600a1c"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr_1_1detail.html#a3bab5f69ef503f777c83fd7cdb600a1c">IterativeIDESolverResults_P</a> = IterativeIDESolverResults&lt; typename AnalysisDomainTy::n_t, typename AnalysisDomainTy::d_t, typename AnalysisDomainTy::l_t &gt;</td></tr>
 <tr class="separator:a3bab5f69ef503f777c83fd7cdb600a1c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a621fafbb6779019e6e4987ad35b0a254" id="r_a621fafbb6779019e6e4987ad35b0a254"><td class="memTemplParams" colspan="2">template&lt;typename <a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a> &gt; </td></tr>
+<tr class="memitem:a621fafbb6779019e6e4987ad35b0a254"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr_1_1detail.html#a621fafbb6779019e6e4987ad35b0a254">ValueDomainAdder</a> = std::conditional_t&lt; HasValueDomain&lt; <a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a> &gt;, <a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a>, WithBinaryValueDomainExtender&lt; <a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a> &gt; &gt;</td></tr>
+<tr class="separator:a621fafbb6779019e6e4987ad35b0a254"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af4f851b8b73bde08afb5e023d73c7903" id="r_af4f851b8b73bde08afb5e023d73c7903"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
 <tr class="memitem:af4f851b8b73bde08afb5e023d73c7903"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr_1_1detail.html#af4f851b8b73bde08afb5e023d73c7903">CellVecSmallVectorTy</a> = llvm::SmallVector&lt; T, 8 &gt;</td></tr>
 <tr class="separator:af4f851b8b73bde08afb5e023d73c7903"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -253,6 +257,24 @@ template&lt;typename <a class="el" href="classAnalysisDomainTy.html">AnalysisDom
 </div><div class="memdoc">
 
 <p class="definition">Definition at line <a class="el" href="IterativeIDESolverResults_8h_source.html#l00050">50</a> of file <a class="el" href="IterativeIDESolverResults_8h_source.html">IterativeIDESolverResults.h</a>.</p>
+
+</div>
+</div>
+<a id="a621fafbb6779019e6e4987ad35b0a254" name="a621fafbb6779019e6e4987ad35b0a254"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a621fafbb6779019e6e4987ad35b0a254">&#9670;&#160;</a></span>ValueDomainAdder</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename <a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a> &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="namespacepsr_1_1detail.html#a621fafbb6779019e6e4987ad35b0a254">psr::detail::ValueDomainAdder</a> = typedef std::conditional_t&lt;HasValueDomain&lt;<a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a>&gt;, <a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a>, WithBinaryValueDomainExtender&lt;<a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a>&gt; &gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="AnalysisDomain_8h_source.html#l00105">105</a> of file <a class="el" href="AnalysisDomain_8h_source.html">AnalysisDomain.h</a>.</p>
 
 </div>
 </div>
@@ -605,7 +627,7 @@ template&lt;typename OS_t , typename... Args, size_t... Idx&gt; </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Aug 20 2026 16:00:35 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Aug 20 2026 16:52:22 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

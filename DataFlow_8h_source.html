@@ -109,32 +109,36 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="preprocessor">#include &quot;<a class="code" href="EdgeFunctions_8h.html">phasar/DataFlow/IfdsIde/EdgeFunctions.h</a>&quot;</span></div>
 <div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="preprocessor">#include &quot;<a class="code" href="EntryPointUtils_8h.html">phasar/DataFlow/IfdsIde/EntryPointUtils.h</a>&quot;</span></div>
 <div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="preprocessor">#include &quot;<a class="code" href="FlowFunctions_8h.html">phasar/DataFlow/IfdsIde/FlowFunctions.h</a>&quot;</span></div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="preprocessor">#include &quot;<a class="code" href="IDETabulationProblem_8h.html">phasar/DataFlow/IfdsIde/IDETabulationProblem.h</a>&quot;</span></div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="preprocessor">#include &quot;<a class="code" href="IFDSTabulationProblem_8h.html">phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h</a>&quot;</span></div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="preprocessor">#include &quot;<a class="code" href="InitialSeeds_8h.html">phasar/DataFlow/IfdsIde/InitialSeeds.h</a>&quot;</span></div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#include &quot;<a class="code" href="FlowEdgeFunctionCache_8h.html">phasar/DataFlow/IfdsIde/Solver/FlowEdgeFunctionCache.h</a>&quot;</span></div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="preprocessor">#include &quot;<a class="code" href="IDESolver_8h.html">phasar/DataFlow/IfdsIde/Solver/IDESolver.h</a>&quot;</span></div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="preprocessor">#include &quot;<a class="code" href="IFDSSolver_8h.html">phasar/DataFlow/IfdsIde/Solver/IFDSSolver.h</a>&quot;</span></div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="preprocessor">#include &quot;<a class="code" href="JumpFunctions_8h.html">phasar/DataFlow/IfdsIde/Solver/JumpFunctions.h</a>&quot;</span></div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span><span class="preprocessor">#include &quot;<a class="code" href="PathAwareIDESolver_8h.html">phasar/DataFlow/IfdsIde/Solver/PathAwareIDESolver.h</a>&quot;</span></div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span><span class="preprocessor">#include &quot;<a class="code" href="PathEdge_8h.html">phasar/DataFlow/IfdsIde/Solver/PathEdge.h</a>&quot;</span></div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="preprocessor">#include &quot;<a class="code" href="SolverResults_8h.html">phasar/DataFlow/IfdsIde/SolverResults.h</a>&quot;</span></div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span><span class="preprocessor">#include &quot;<a class="code" href="CallStringCTX_8h.html">phasar/DataFlow/Mono/Contexts/CallStringCTX.h</a>&quot;</span></div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span><span class="preprocessor">#include &quot;<a class="code" href="InterMonoProblem_8h.html">phasar/DataFlow/Mono/InterMonoProblem.h</a>&quot;</span></div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span><span class="preprocessor">#include &quot;<a class="code" href="IntraMonoProblem_8h.html">phasar/DataFlow/Mono/IntraMonoProblem.h</a>&quot;</span></div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span><span class="preprocessor">#include &quot;<a class="code" href="InterMonoSolver_8h.html">phasar/DataFlow/Mono/Solver/InterMonoSolver.h</a>&quot;</span></div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span><span class="preprocessor">#include &quot;<a class="code" href="IntraMonoSolver_8h.html">phasar/DataFlow/Mono/Solver/IntraMonoSolver.h</a>&quot;</span></div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span><span class="preprocessor">#include &quot;<a class="code" href="ArraySetWorkList_8h.html">phasar/DataFlow/MonoIfds/ArraySetWorkList.h</a>&quot;</span></div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span><span class="preprocessor">#include &quot;<a class="code" href="DataFlowEnvironment_8h.html">phasar/DataFlow/MonoIfds/DataFlowEnvironment.h</a>&quot;</span></div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span><span class="preprocessor">#include &quot;<a class="code" href="IterationStrategy_8h.html">phasar/DataFlow/MonoIfds/IterationStrategy.h</a>&quot;</span></div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span><span class="preprocessor">#include &quot;<a class="code" href="MonoIFDSConfig_8h.html">phasar/DataFlow/MonoIfds/MonoIFDSConfig.h</a>&quot;</span></div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span><span class="preprocessor">#include &quot;<a class="code" href="MonoIFDSProblem_8h.html">phasar/DataFlow/MonoIfds/MonoIFDSProblem.h</a>&quot;</span></div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span><span class="preprocessor">#include &quot;<a class="code" href="MonoIFDSSolver_8h.html">phasar/DataFlow/MonoIfds/MonoIFDSSolver.h</a>&quot;</span></div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span><span class="preprocessor">#include &quot;<a class="code" href="RPOWorkList_8h.html">phasar/DataFlow/MonoIfds/RPOWorkList.h</a>&quot;</span></div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span><span class="preprocessor">#include &quot;<a class="code" href="PathSensitivityConfig_8h.html">phasar/DataFlow/PathSensitivity/PathSensitivityConfig.h</a>&quot;</span></div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span><span class="preprocessor">#include &quot;<a class="code" href="PathSensitivityManager_8h.html">phasar/DataFlow/PathSensitivity/PathSensitivityManager.h</a>&quot;</span></div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span> </div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span><span class="preprocessor">#endif </span><span class="comment">// PHASAR_DATAFLOW_H</span></div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="preprocessor">#include &quot;<a class="code" href="IDEProblem_8h.html">phasar/DataFlow/IfdsIde/IDEProblem.h</a>&quot;</span></div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="preprocessor">#include &quot;<a class="code" href="IDEProblemWrapper_8h.html">phasar/DataFlow/IfdsIde/IDEProblemWrapper.h</a>&quot;</span></div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="preprocessor">#include &quot;<a class="code" href="IDETabulationProblem_8h.html">phasar/DataFlow/IfdsIde/IDETabulationProblem.h</a>&quot;</span></div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#include &quot;<a class="code" href="IFDSProblem_8h.html">phasar/DataFlow/IfdsIde/IFDSProblem.h</a>&quot;</span></div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="preprocessor">#include &quot;<a class="code" href="IFDSTabulationProblem_8h.html">phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h</a>&quot;</span></div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="preprocessor">#include &quot;<a class="code" href="IfdsToIdeProblemAdapter_8h.html">phasar/DataFlow/IfdsIde/IfdsToIdeProblemAdapter.h</a>&quot;</span></div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="preprocessor">#include &quot;<a class="code" href="InitialSeeds_8h.html">phasar/DataFlow/IfdsIde/InitialSeeds.h</a>&quot;</span></div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span><span class="preprocessor">#include &quot;<a class="code" href="FlowEdgeFunctionCache_8h.html">phasar/DataFlow/IfdsIde/Solver/FlowEdgeFunctionCache.h</a>&quot;</span></div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span><span class="preprocessor">#include &quot;<a class="code" href="IDESolver_8h.html">phasar/DataFlow/IfdsIde/Solver/IDESolver.h</a>&quot;</span></div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="preprocessor">#include &quot;<a class="code" href="IFDSSolver_8h.html">phasar/DataFlow/IfdsIde/Solver/IFDSSolver.h</a>&quot;</span></div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span><span class="preprocessor">#include &quot;<a class="code" href="JumpFunctions_8h.html">phasar/DataFlow/IfdsIde/Solver/JumpFunctions.h</a>&quot;</span></div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span><span class="preprocessor">#include &quot;<a class="code" href="PathAwareIDESolver_8h.html">phasar/DataFlow/IfdsIde/Solver/PathAwareIDESolver.h</a>&quot;</span></div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span><span class="preprocessor">#include &quot;<a class="code" href="PathEdge_8h.html">phasar/DataFlow/IfdsIde/Solver/PathEdge.h</a>&quot;</span></div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span><span class="preprocessor">#include &quot;<a class="code" href="SolverResults_8h.html">phasar/DataFlow/IfdsIde/SolverResults.h</a>&quot;</span></div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span><span class="preprocessor">#include &quot;<a class="code" href="CallStringCTX_8h.html">phasar/DataFlow/Mono/Contexts/CallStringCTX.h</a>&quot;</span></div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span><span class="preprocessor">#include &quot;<a class="code" href="InterMonoProblem_8h.html">phasar/DataFlow/Mono/InterMonoProblem.h</a>&quot;</span></div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span><span class="preprocessor">#include &quot;<a class="code" href="IntraMonoProblem_8h.html">phasar/DataFlow/Mono/IntraMonoProblem.h</a>&quot;</span></div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span><span class="preprocessor">#include &quot;<a class="code" href="InterMonoSolver_8h.html">phasar/DataFlow/Mono/Solver/InterMonoSolver.h</a>&quot;</span></div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span><span class="preprocessor">#include &quot;<a class="code" href="IntraMonoSolver_8h.html">phasar/DataFlow/Mono/Solver/IntraMonoSolver.h</a>&quot;</span></div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span><span class="preprocessor">#include &quot;<a class="code" href="ArraySetWorkList_8h.html">phasar/DataFlow/MonoIfds/ArraySetWorkList.h</a>&quot;</span></div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span><span class="preprocessor">#include &quot;<a class="code" href="DataFlowEnvironment_8h.html">phasar/DataFlow/MonoIfds/DataFlowEnvironment.h</a>&quot;</span></div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span><span class="preprocessor">#include &quot;<a class="code" href="IterationStrategy_8h.html">phasar/DataFlow/MonoIfds/IterationStrategy.h</a>&quot;</span></div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span><span class="preprocessor">#include &quot;<a class="code" href="MonoIFDSConfig_8h.html">phasar/DataFlow/MonoIfds/MonoIFDSConfig.h</a>&quot;</span></div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span><span class="preprocessor">#include &quot;<a class="code" href="MonoIFDSProblem_8h.html">phasar/DataFlow/MonoIfds/MonoIFDSProblem.h</a>&quot;</span></div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span><span class="preprocessor">#include &quot;<a class="code" href="MonoIFDSSolver_8h.html">phasar/DataFlow/MonoIfds/MonoIFDSSolver.h</a>&quot;</span></div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span><span class="preprocessor">#include &quot;<a class="code" href="RPOWorkList_8h.html">phasar/DataFlow/MonoIfds/RPOWorkList.h</a>&quot;</span></div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span><span class="preprocessor">#include &quot;<a class="code" href="PathSensitivityConfig_8h.html">phasar/DataFlow/PathSensitivity/PathSensitivityConfig.h</a>&quot;</span></div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span><span class="preprocessor">#include &quot;<a class="code" href="PathSensitivityManager_8h.html">phasar/DataFlow/PathSensitivity/PathSensitivityManager.h</a>&quot;</span></div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span> </div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span><span class="preprocessor">#endif </span><span class="comment">// PHASAR_DATAFLOW_H</span></div>
 <div class="ttc" id="aArraySetWorkList_8h_html"><div class="ttname"><a href="ArraySetWorkList_8h.html">ArraySetWorkList.h</a></div></div>
 <div class="ttc" id="aCallStringCTX_8h_html"><div class="ttname"><a href="CallStringCTX_8h.html">CallStringCTX.h</a></div></div>
 <div class="ttc" id="aDataFlowEnvironment_8h_html"><div class="ttname"><a href="DataFlowEnvironment_8h.html">DataFlowEnvironment.h</a></div></div>
@@ -146,10 +150,14 @@ $(document).ready(function() { init_codefold(0); });
 <div class="ttc" id="aEntryPointUtils_8h_html"><div class="ttname"><a href="EntryPointUtils_8h.html">EntryPointUtils.h</a></div></div>
 <div class="ttc" id="aFlowEdgeFunctionCache_8h_html"><div class="ttname"><a href="FlowEdgeFunctionCache_8h.html">FlowEdgeFunctionCache.h</a></div></div>
 <div class="ttc" id="aFlowFunctions_8h_html"><div class="ttname"><a href="FlowFunctions_8h.html">FlowFunctions.h</a></div></div>
+<div class="ttc" id="aIDEProblemWrapper_8h_html"><div class="ttname"><a href="IDEProblemWrapper_8h.html">IDEProblemWrapper.h</a></div></div>
+<div class="ttc" id="aIDEProblem_8h_html"><div class="ttname"><a href="IDEProblem_8h.html">IDEProblem.h</a></div></div>
 <div class="ttc" id="aIDESolver_8h_html"><div class="ttname"><a href="IDESolver_8h.html">IDESolver.h</a></div></div>
 <div class="ttc" id="aIDETabulationProblem_8h_html"><div class="ttname"><a href="IDETabulationProblem_8h.html">IDETabulationProblem.h</a></div></div>
+<div class="ttc" id="aIFDSProblem_8h_html"><div class="ttname"><a href="IFDSProblem_8h.html">IFDSProblem.h</a></div></div>
 <div class="ttc" id="aIFDSSolver_8h_html"><div class="ttname"><a href="IFDSSolver_8h.html">IFDSSolver.h</a></div></div>
 <div class="ttc" id="aIFDSTabulationProblem_8h_html"><div class="ttname"><a href="IFDSTabulationProblem_8h.html">IFDSTabulationProblem.h</a></div></div>
+<div class="ttc" id="aIfdsToIdeProblemAdapter_8h_html"><div class="ttname"><a href="IfdsToIdeProblemAdapter_8h.html">IfdsToIdeProblemAdapter.h</a></div></div>
 <div class="ttc" id="aInitialSeeds_8h_html"><div class="ttname"><a href="InitialSeeds_8h.html">InitialSeeds.h</a></div></div>
 <div class="ttc" id="aInterMonoProblem_8h_html"><div class="ttname"><a href="InterMonoProblem_8h.html">InterMonoProblem.h</a></div></div>
 <div class="ttc" id="aInterMonoSolver_8h_html"><div class="ttname"><a href="InterMonoSolver_8h.html">InterMonoSolver.h</a></div></div>
@@ -169,7 +177,7 @@ $(document).ready(function() { init_codefold(0); });
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Aug 20 2026 16:00:34 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Aug 20 2026 16:52:21 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

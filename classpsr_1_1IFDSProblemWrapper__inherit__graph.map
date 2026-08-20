@@ -1,0 +1,14 @@
+<map id="psr::IFDSProblemWrapper&lt; ProblemTy &gt;" name="psr::IFDSProblemWrapper&lt; ProblemTy &gt;">
+<area shape="rect" id="Node000001" title="A simple wrapper over a pointer to an IFDS problem." alt="" coords="5,68,195,108"/>
+<area shape="rect" id="Node000002" href="$classpsr_1_1IfdsToIdeProblemAdapter.html" title=" " alt="" coords="244,35,533,75"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="208,73,243,69,244,74,209,78"/>
+<area shape="rect" id="Node000005" href="$classpsr_1_1IDEProblemWrapper.html" title="A simple wrapper over a pointer to an IFDS/IDE problem." alt="" coords="298,99,479,139"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="209,97,298,106,298,112,208,102"/>
+<area shape="rect" id="Node000003" href="$classpsr_1_1IfdsIdeProblemWrapper.html" title=" " alt="" coords="931,5,1133,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="507,30,582,20,744,11,907,15,931,16,930,21,907,20,744,16,583,25,508,35"/>
+<area shape="rect" id="Node000004" href="$classpsr_1_1IfdsIdeProblemWrapper.html" title=" " alt="" coords="583,35,785,75"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="547,52,582,52,582,57,547,57"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="799,42,930,31,931,36,799,48"/>
+<area shape="rect" id="Node000006" href="$classpsr_1_1IfdsIdeProblemWrapper_3_01ProblemTy_01_4.html" title=" " alt="" coords="583,99,785,139"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="493,116,583,116,583,121,493,121"/>
+</map>

@@ -89,11 +89,11 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p><code>#include &quot;<a class="el" href="IDETabulationProblem_8h_source.html">phasar/DataFlow/IfdsIde/IDETabulationProblem.h</a>&quot;</code></p>
+<p><code>#include &quot;<a class="el" href="SemiRing_8h_source.html">phasar/Utils/SemiRing.h</a>&quot;</code></p>
 <div class="dynheader">
 Inheritance diagram for psr::AllTopFnProvider&lt; AnalysisDomainTy &gt;:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="classpsr_1_1AllTopFnProvider_3_01AnalysisDomainTy_01_4__inherit__graph.svg" width="2066" height="1823"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="classpsr_1_1AllTopFnProvider_3_01AnalysisDomainTy_01_4__inherit__graph.svg" width="2804" height="1175"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
@@ -105,10 +105,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a030b6382ce81147c9b2a9fa9ce77ef2c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><div class="compoundTemplParams">template&lt;IdeAnalysisDomain AnalysisDomainTy&gt;<br />
+<div class="textblock"><div class="compoundTemplParams">template&lt;typename <a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a>&gt;<br />
 requires HasJoinLatticeTraits&lt;typename AnalysisDomainTy::l_t&gt;<br />
 class psr::AllTopFnProvider&lt; AnalysisDomainTy &gt;</div>
-<p class="definition">Definition at line <a class="el" href="IDETabulationProblem_8h_source.html#l00052">52</a> of file <a class="el" href="IDETabulationProblem_8h_source.html">IDETabulationProblem.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="SemiRing_8h_source.html#l00030">30</a> of file <a class="el" href="SemiRing_8h_source.html">SemiRing.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="aec5d6774efddddaaed586f5ac1b94c52" name="aec5d6774efddddaaed586f5ac1b94c52"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aec5d6774efddddaaed586f5ac1b94c52">&#9670;&#160;</a></span>~AllTopFnProvider()</h2>
@@ -116,7 +116,7 @@ class psr::AllTopFnProvider&lt; AnalysisDomainTy &gt;</div>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;IdeAnalysisDomain AnalysisDomainTy&gt; </div>
+template&lt;typename <a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a> &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -144,7 +144,7 @@ template&lt;IdeAnalysisDomain AnalysisDomainTy&gt; </div>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;IdeAnalysisDomain AnalysisDomainTy&gt; </div>
+template&lt;typename <a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a> &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -165,19 +165,19 @@ template&lt;IdeAnalysisDomain AnalysisDomainTy&gt; </div>
 
 <p>Returns an edge function that represents the top element of the analysis. </p>
 
-<p>Reimplemented in <a class="el" href="classpsr_1_1IDEGeneralizedLCA.html#afc0de401ebf78e3282f45878216bead1">psr::IDEGeneralizedLCA</a>, <a class="el" href="classpsr_1_1IDEProtoAnalysis.html#a42fe0e7b4fc2117378f234d90639f167">psr::IDEProtoAnalysis</a>, <a class="el" href="classpsr_1_1IDESolverTest.html#a823947261a58f10b1ab1203df2d1ea86">psr::IDESolverTest</a>, and <a class="el" href="classpsr_1_1IDETypeStateAnalysis.html#a665889d7dcab02a205bd7a4f9ee50925">psr::IDETypeStateAnalysis&lt; TypeStateDescriptionTy &gt;</a>.</p>
+<p>Reimplemented in <a class="el" href="classpsr_1_1LegacyIDEProblemWrapper_3_01ProblemTy_01_4.html#aac52eb322d00e6d40bc303653f1b7fff">psr::LegacyIDEProblemWrapper&lt; ProblemTy &gt;</a>, <a class="el" href="classpsr_1_1IDEGeneralizedLCA.html#afc0de401ebf78e3282f45878216bead1">psr::IDEGeneralizedLCA</a>, <a class="el" href="classpsr_1_1IDEProtoAnalysis.html#a42fe0e7b4fc2117378f234d90639f167">psr::IDEProtoAnalysis</a>, and <a class="el" href="classpsr_1_1IDESolverTest.html#a823947261a58f10b1ab1203df2d1ea86">psr::IDESolverTest</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="IDETabulationProblem_8h_source.html#l00056">56</a> of file <a class="el" href="IDETabulationProblem_8h_source.html">IDETabulationProblem.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="SemiRing_8h_source.html#l00034">34</a> of file <a class="el" href="SemiRing_8h_source.html">SemiRing.h</a>.</p>
 
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following file:<ul>
-<li>include/phasar/DataFlow/IfdsIde/<a class="el" href="IDETabulationProblem_8h_source.html">IDETabulationProblem.h</a></li>
+<li>include/phasar/Utils/<a class="el" href="SemiRing_8h_source.html">SemiRing.h</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Aug 20 2026 16:00:35 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Aug 20 2026 16:52:21 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

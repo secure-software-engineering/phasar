@@ -1,0 +1,12 @@
+<map id="psr::IfdsToIdeProblemAdapter&lt; Base &gt;" name="psr::IfdsToIdeProblemAdapter&lt; Base &gt;">
+<area shape="rect" id="Node000001" title=" " alt="" coords="43,80,257,120"/>
+<area shape="rect" id="Node000003" href="$classpsr_1_1IfdsToIdeProblemAdapter.html" title=" " alt="" coords="5,197,295,237"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="153,134,153,197,147,197,147,134"/>
+<area shape="rect" id="Node000002" href="$classBase.html" title=" " alt="" coords="123,5,177,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="153,44,153,80,147,80,147,44"/>
+<area shape="rect" id="Node000004" href="$classpsr_1_1IfdsIdeProblemWrapper.html" title=" " alt="" coords="54,389,257,429"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="154,251,157,389,152,389,148,251"/>
+<area shape="rect" id="Node000005" href="$classpsr_1_1IfdsIdeProblemWrapper.html" title=" " alt="" coords="171,287,374,327"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="189,243,248,284,245,289,186,248"/>
+<area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="242,338,179,391,176,387,238,334"/>
+</map>

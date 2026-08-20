@@ -92,6 +92,7 @@ $(function() {
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="CFG_8h_source.html">phasar/ControlFlow/CFG.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="IRDomain_8h_source.html">phasar/Domain/IRDomain.h</a>&quot;</code><br />
+<code>#include &lt;concepts&gt;</code><br />
 <code>#include &lt;type_traits&gt;</code><br />
 </div>
 <p><a href="AnalysisDomain_8h_source.html">Go to the source code of this file.</a></p>
@@ -113,17 +114,22 @@ Namespaces</h2></td></tr>
 Concepts</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptpsr_1_1IsAnalysisDomain.html">psr::IsAnalysisDomain</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptpsr_1_1HasValueDomain.html">psr::HasValueDomain</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr class="memitem:add61a93cb36cb5fcba8231b9ebc34ef2" id="r_add61a93cb36cb5fcba8231b9ebc34ef2"><td class="memTemplParams" colspan="2">template&lt;typename <a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a> &gt; </td></tr>
-<tr class="memitem:add61a93cb36cb5fcba8231b9ebc34ef2"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#add61a93cb36cb5fcba8231b9ebc34ef2">psr::WithBinaryValueDomain</a> = std::conditional_t&lt; detail::HasBinaryValueDomain&lt; <a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a> &gt;::value, <a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a>, detail::WithBinaryValueDomainExtender&lt; <a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a> &gt; &gt;</td></tr>
-<tr class="separator:add61a93cb36cb5fcba8231b9ebc34ef2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a621fafbb6779019e6e4987ad35b0a254" id="r_a621fafbb6779019e6e4987ad35b0a254"><td class="memTemplParams" colspan="2">template&lt;typename <a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a> &gt; </td></tr>
+<tr class="memitem:a621fafbb6779019e6e4987ad35b0a254"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr_1_1detail.html#a621fafbb6779019e6e4987ad35b0a254">psr::detail::ValueDomainAdder</a> = std::conditional_t&lt; HasValueDomain&lt; <a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a> &gt;, <a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a>, WithBinaryValueDomainExtender&lt; <a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a> &gt; &gt;</td></tr>
+<tr class="separator:a621fafbb6779019e6e4987ad35b0a254"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a48b26a7172bbfb937dacf397c444af59" id="r_a48b26a7172bbfb937dacf397c444af59"><td class="memTemplParams" colspan="2">template&lt;typename <a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a> &gt; </td></tr>
+<tr class="memitem:a48b26a7172bbfb937dacf397c444af59"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a48b26a7172bbfb937dacf397c444af59">psr::WithBinaryValueDomain</a> = std::conditional_t&lt; detail::HasBinaryValueDomain&lt; <a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a> &gt;, <a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a>, detail::WithBinaryValueDomainExtender&lt; <a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a> &gt; &gt;</td></tr>
+<tr class="separator:a48b26a7172bbfb937dacf397c444af59"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Aug 20 2026 16:00:34 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Aug 20 2026 16:52:21 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

@@ -86,7 +86,8 @@ $(function() {
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#namespaces">Namespaces</a> &#124;
 <a href="#concepts">Concepts</a> &#124;
-<a href="#typedef-members">Typedefs</a>  </div>
+<a href="#typedef-members">Typedefs</a> &#124;
+<a href="#var-members">Variables</a>  </div>
   <div class="headertitle"><div class="title">FlowFunctions.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
@@ -94,6 +95,7 @@ $(function() {
 <code>#include &quot;<a class="el" href="MaybeUniquePtr_8h_source.html">phasar/Utils/MaybeUniquePtr.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="TypeTraits_8h_source.html">phasar/Utils/TypeTraits.h</a>&quot;</code><br />
 <code>#include &quot;llvm/ADT/ArrayRef.h&quot;</code><br />
+<code>#include &lt;concepts&gt;</code><br />
 <code>#include &lt;functional&gt;</code><br />
 <code>#include &lt;initializer_list&gt;</code><br />
 <code>#include &lt;iterator&gt;</code><br />
@@ -127,23 +129,47 @@ Namespaces</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="concepts" name="concepts"></a>
 Concepts</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptpsr_1_1IsFlowFunctionLike.html">psr::IsFlowFunctionLike</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptpsr_1_1IsFlowFunctionPtr.html">psr::IsFlowFunctionPtr</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptpsr_1_1IsFlowFunctionOf.html">psr::IsFlowFunctionOf</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptpsr_1_1IsFlowFunctionPtrOf.html">psr::IsFlowFunctionPtrOf</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptpsr_1_1IsFlowFunctionOrFFPtr.html">psr::IsFlowFunctionOrFFPtr</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptpsr_1_1IsFlowFunctionOrFFPtrOf.html">psr::IsFlowFunctionOrFFPtrOf</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptpsr_1_1is__flowfunction__v.html">psr::is_flowfunction_v</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptpsr_1_1FlowFunctionFactory.html">psr::FlowFunctionFactory</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptpsr_1_1UnbalancedRetSideEffectProvider.html">psr::UnbalancedRetSideEffectProvider</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr class="memitem:aba8dc3a590a0fd08f8fe1df28e33423a" id="r_aba8dc3a590a0fd08f8fe1df28e33423a"><td class="memTemplParams" colspan="2">template&lt;is_flowfunction_v FF&gt; </td></tr>
+<tr class="memitem:ac80213f78118a756b336ca570726fc6e" id="r_ac80213f78118a756b336ca570726fc6e"><td class="memTemplParams" colspan="2">template&lt;IsFlowFunctionOrFFPtr T&gt; </td></tr>
+<tr class="memitem:ac80213f78118a756b336ca570726fc6e"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#ac80213f78118a756b336ca570726fc6e">psr::FFContainerType</a> = typename decltype([] { if constexpr(IsFlowFunctionLike&lt; T &gt;) { return std::type_identity&lt; typename T::container_type &gt;{}</td></tr>
+<tr class="separator:ac80213f78118a756b336ca570726fc6e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aba8dc3a590a0fd08f8fe1df28e33423a" id="r_aba8dc3a590a0fd08f8fe1df28e33423a"><td class="memTemplParams" colspan="2">template&lt;IsFlowFunctionLike FF&gt; </td></tr>
 <tr class="memitem:aba8dc3a590a0fd08f8fe1df28e33423a"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#aba8dc3a590a0fd08f8fe1df28e33423a">psr::FlowFunctionPtrTypeOf</a> = <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; FF &gt;</td></tr>
 <tr class="memdesc:aba8dc3a590a0fd08f8fe1df28e33423a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Given a flow-function type FF, returns a (smart) pointer type pointing to FF.  <br /></td></tr>
 <tr class="separator:aba8dc3a590a0fd08f8fe1df28e33423a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:add33d940596eaff0ef8b39851bbfe6cc" id="r_add33d940596eaff0ef8b39851bbfe6cc"><td class="memTemplParams" colspan="2">template&lt;typename D , typename Container  = std::set&lt;D&gt;&gt; </td></tr>
 <tr class="memitem:add33d940596eaff0ef8b39851bbfe6cc"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#add33d940596eaff0ef8b39851bbfe6cc">psr::FlowFunctionPtrType</a> = <a class="el" href="namespacepsr.html#aba8dc3a590a0fd08f8fe1df28e33423a">FlowFunctionPtrTypeOf</a>&lt; <a class="el" href="classpsr_1_1FlowFunction.html">FlowFunction</a>&lt; D, Container &gt; &gt;</td></tr>
 <tr class="separator:add33d940596eaff0ef8b39851bbfe6cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
+Variables</h2></td></tr>
+<tr class="memitem:af7880666ca5027ff98f56e36b731deab" id="r_af7880666ca5027ff98f56e36b731deab"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#af7880666ca5027ff98f56e36b731deab">psr::else</a></td></tr>
+<tr class="separator:af7880666ca5027ff98f56e36b731deab"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Aug 20 2026 16:00:34 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Aug 20 2026 16:52:21 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

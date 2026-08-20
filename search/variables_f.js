@@ -14,9 +14,10 @@ var searchData=
   ['preprocessexistingmodule_11',['PreprocessExistingModule',['../structpsr_1_1HelperAnalysisConfig.html#a0a2756b83988d295589d5c2fc547f6a4',1,'psr::HelperAnalysisConfig']]],
   ['printedgerecorder_12',['PrintEdgeRecorder',['../namespacepsr.html#a23dc83aa151d9e7c12567c7146a9cf64',1,'psr']]],
   ['printer_13',['Printer',['../classpsr_1_1IDETabulationProblem.html#ab43978c284788630b6cede12f1eee79b',1,'psr::IDETabulationProblem']]],
-  ['propagatedfact_14',['PropagatedFact',['../structpsr_1_1IterIDEPropagationJob.html#a21d517a057c0d4afa83280ecdf4a55e3',1,'psr::IterIDEPropagationJob']]],
-  ['pt_15',['pt',['../classpsr_1_1PointsToIteratorRef.html#aa502b6032a3c87ff73941ec3fbb28655',1,'psr::PointsToIteratorRef::PT'],['../classpsr_1_1OTFResolver.html#a0e27fd11d373be11c5a73eea1ca7a978',1,'psr::OTFResolver::PT'],['../classpsr_1_1IntraMonoProblem.html#a000539a5b50aef2db0cd52cfb5f09e88',1,'psr::IntraMonoProblem::PT']]],
-  ['ptaty_16',['PTATy',['../structpsr_1_1HelperAnalysisConfig.html#a059add244505d543b9b9a67329c50a5a',1,'psr::HelperAnalysisConfig']]],
-  ['punned_17',['Punned',['../structpsr_1_1LLVMMemoryAccess.html#a2c6b8e307b79e8c52cada11d1727276f',1,'psr::LLVMMemoryAccess']]],
-  ['purevirtualcallname_18',['PureVirtualCallName',['../classpsr_1_1DIBasedTypeHierarchy.html#aed67d877b67b0540eb2c69c90c66e7f6',1,'psr::DIBasedTypeHierarchy']]]
+  ['problem_14',['Problem',['../classpsr_1_1IFDSProblemWrapper.html#a997e447ad37a9b8ff7709eddb1f0f24b',1,'psr::IFDSProblemWrapper']]],
+  ['propagatedfact_15',['PropagatedFact',['../structpsr_1_1IterIDEPropagationJob.html#a21d517a057c0d4afa83280ecdf4a55e3',1,'psr::IterIDEPropagationJob']]],
+  ['pt_16',['pt',['../classpsr_1_1OTFResolver.html#a0e27fd11d373be11c5a73eea1ca7a978',1,'psr::OTFResolver::PT'],['../classpsr_1_1IntraMonoProblem.html#a000539a5b50aef2db0cd52cfb5f09e88',1,'psr::IntraMonoProblem::PT']]],
+  ['ptaty_17',['PTATy',['../structpsr_1_1HelperAnalysisConfig.html#a059add244505d543b9b9a67329c50a5a',1,'psr::HelperAnalysisConfig']]],
+  ['punned_18',['Punned',['../structpsr_1_1LLVMMemoryAccess.html#a2c6b8e307b79e8c52cada11d1727276f',1,'psr::LLVMMemoryAccess']]],
+  ['purevirtualcallname_19',['PureVirtualCallName',['../classpsr_1_1DIBasedTypeHierarchy.html#aed67d877b67b0540eb2c69c90c66e7f6',1,'psr::DIBasedTypeHierarchy']]]
 ];

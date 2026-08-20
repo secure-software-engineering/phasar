@@ -101,11 +101,6 @@ Inheritance diagram for psr::TaintConfigBase&lt; Derived &gt;:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:a26411549091d6bd3eecbbe629dc145f5" id="r_a26411549091d6bd3eecbbe629dc145f5"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1TaintConfigBase.html#a26411549091d6bd3eecbbe629dc145f5">SeedConfig</a> { <a class="el" href="classpsr_1_1TaintConfigBase.html#a26411549091d6bd3eecbbe629dc145f5ad637f66d25c9ff757bed6f168c73856e">Arguments</a> = 1
-, <a class="el" href="classpsr_1_1TaintConfigBase.html#a26411549091d6bd3eecbbe629dc145f5a49cc8e6220245b65cd7d20fc6ccc74f5">Instructions</a> = 2
-, <a class="el" href="classpsr_1_1TaintConfigBase.html#a26411549091d6bd3eecbbe629dc145f5ab1c94ca2fbc3e78fc30069c8d0f01680">All</a> = Arguments | Instructions
- }</td></tr>
-<tr class="separator:a26411549091d6bd3eecbbe629dc145f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1ca1027dad65adaded16e5e952658ec4" id="r_a1ca1027dad65adaded16e5e952658ec4"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1TaintConfigBase.html#a1ca1027dad65adaded16e5e952658ec4">n_t</a> = typename <a class="el" href="structpsr_1_1TaintConfigTraits.html">TaintConfigTraits</a>&lt; Derived &gt;::n_t</td></tr>
 <tr class="separator:a1ca1027dad65adaded16e5e952658ec4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a50bc0938374653e224b5e2b904394ca4" id="r_a50bc0938374653e224b5e2b904394ca4"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1TaintConfigBase.html#a50bc0938374653e224b5e2b904394ca4">v_t</a> = typename <a class="el" href="structpsr_1_1TaintConfigTraits.html">TaintConfigTraits</a>&lt; Derived &gt;::v_t</td></tr>
@@ -144,26 +139,26 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a92afb1e54486edafe385da4c682a8507" id="r_a92afb1e54486edafe385da4c682a8507"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1TaintConfigBase.html#a92afb1e54486edafe385da4c682a8507">skipSeed</a> (<a class="el" href="classpsr_1_1TaintConfigBase.html#a50bc0938374653e224b5e2b904394ca4">v_t</a> Val) const</td></tr>
 <tr class="separator:a92afb1e54486edafe385da4c682a8507"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad535fdaeb4829c9986eb6b21460f9029" id="r_ad535fdaeb4829c9986eb6b21460f9029"><td class="memTemplParams" colspan="2">template&lt;typename HandlerFn &gt; </td></tr>
-<tr class="memitem:ad535fdaeb4829c9986eb6b21460f9029"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1TaintConfigBase.html#ad535fdaeb4829c9986eb6b21460f9029">forAllGeneratedValuesAt</a> (<a class="el" href="classpsr_1_1TaintConfigBase.html#a1ca1027dad65adaded16e5e952658ec4">n_t</a> Inst, <a class="el" href="namespacepsr.html#ad1d0602a9eee1460c855d6b3ce61201a">Nullable</a>&lt; <a class="el" href="classpsr_1_1TaintConfigBase.html#a94e4d065d67ca15eed7b52ba9a0b88ec">f_t</a> &gt; Callee, HandlerFn &amp;&amp;Handler) const</td></tr>
+<tr class="memitem:ad535fdaeb4829c9986eb6b21460f9029"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1TaintConfigBase.html#ad535fdaeb4829c9986eb6b21460f9029">forAllGeneratedValuesAt</a> (<a class="el" href="classpsr_1_1TaintConfigBase.html#a1ca1027dad65adaded16e5e952658ec4">n_t</a> Inst, <a class="el" href="namespacepsr.html#aa5179235abf439e5cc74ed59d6ab2e0f">Nullable</a>&lt; <a class="el" href="classpsr_1_1TaintConfigBase.html#a94e4d065d67ca15eed7b52ba9a0b88ec">f_t</a> &gt; Callee, HandlerFn &amp;&amp;Handler) const</td></tr>
 <tr class="memdesc:ad535fdaeb4829c9986eb6b21460f9029"><td class="mdescLeft">&#160;</td><td class="mdescRight">Calls Handler for all operands of Inst (maybe including Inst itself) that are generated unconditionally as tainted.  <br /></td></tr>
 <tr class="separator:ad535fdaeb4829c9986eb6b21460f9029"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a72772c662cda34aa9426c8353bd4c5f9" id="r_a72772c662cda34aa9426c8353bd4c5f9"><td class="memTemplParams" colspan="2">template&lt;typename HandlerFn &gt; </td></tr>
-<tr class="memitem:a72772c662cda34aa9426c8353bd4c5f9"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1TaintConfigBase.html#a72772c662cda34aa9426c8353bd4c5f9">forAllLeakCandidatesAt</a> (<a class="el" href="classpsr_1_1TaintConfigBase.html#a1ca1027dad65adaded16e5e952658ec4">n_t</a> Inst, <a class="el" href="namespacepsr.html#ad1d0602a9eee1460c855d6b3ce61201a">Nullable</a>&lt; <a class="el" href="classpsr_1_1TaintConfigBase.html#a94e4d065d67ca15eed7b52ba9a0b88ec">f_t</a> &gt; Callee, HandlerFn &amp;&amp;Handler) const</td></tr>
+<tr class="memitem:a72772c662cda34aa9426c8353bd4c5f9"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1TaintConfigBase.html#a72772c662cda34aa9426c8353bd4c5f9">forAllLeakCandidatesAt</a> (<a class="el" href="classpsr_1_1TaintConfigBase.html#a1ca1027dad65adaded16e5e952658ec4">n_t</a> Inst, <a class="el" href="namespacepsr.html#aa5179235abf439e5cc74ed59d6ab2e0f">Nullable</a>&lt; <a class="el" href="classpsr_1_1TaintConfigBase.html#a94e4d065d67ca15eed7b52ba9a0b88ec">f_t</a> &gt; Callee, HandlerFn &amp;&amp;Handler) const</td></tr>
 <tr class="memdesc:a72772c662cda34aa9426c8353bd4c5f9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Calls Handler for all operands of Inst that may generate a leak when they are tainted.  <br /></td></tr>
 <tr class="separator:a72772c662cda34aa9426c8353bd4c5f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af8ce93d4d9252235d2b40e8a080d9d97" id="r_af8ce93d4d9252235d2b40e8a080d9d97"><td class="memTemplParams" colspan="2">template&lt;typename HandlerFn &gt; </td></tr>
-<tr class="memitem:af8ce93d4d9252235d2b40e8a080d9d97"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1TaintConfigBase.html#af8ce93d4d9252235d2b40e8a080d9d97">forAllSanitizedValuesAt</a> (<a class="el" href="classpsr_1_1TaintConfigBase.html#a1ca1027dad65adaded16e5e952658ec4">n_t</a> Inst, <a class="el" href="namespacepsr.html#ad1d0602a9eee1460c855d6b3ce61201a">Nullable</a>&lt; <a class="el" href="classpsr_1_1TaintConfigBase.html#a94e4d065d67ca15eed7b52ba9a0b88ec">f_t</a> &gt; Callee, HandlerFn &amp;&amp;Handler) const</td></tr>
+<tr class="memitem:af8ce93d4d9252235d2b40e8a080d9d97"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1TaintConfigBase.html#af8ce93d4d9252235d2b40e8a080d9d97">forAllSanitizedValuesAt</a> (<a class="el" href="classpsr_1_1TaintConfigBase.html#a1ca1027dad65adaded16e5e952658ec4">n_t</a> Inst, <a class="el" href="namespacepsr.html#aa5179235abf439e5cc74ed59d6ab2e0f">Nullable</a>&lt; <a class="el" href="classpsr_1_1TaintConfigBase.html#a94e4d065d67ca15eed7b52ba9a0b88ec">f_t</a> &gt; Callee, HandlerFn &amp;&amp;Handler) const</td></tr>
 <tr class="memdesc:af8ce93d4d9252235d2b40e8a080d9d97"><td class="mdescLeft">&#160;</td><td class="mdescRight">Calls Handler for all operands of Inst that become sanitized after the instruction is completed.  <br /></td></tr>
 <tr class="separator:af8ce93d4d9252235d2b40e8a080d9d97"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a78d695234c7895abbbc5462985a1975b" id="r_a78d695234c7895abbbc5462985a1975b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1TaintConfigBase.html#a78d695234c7895abbbc5462985a1975b">generatesValuesAt</a> (<a class="el" href="classpsr_1_1TaintConfigBase.html#a1ca1027dad65adaded16e5e952658ec4">n_t</a> Inst, <a class="el" href="namespacepsr.html#ad1d0602a9eee1460c855d6b3ce61201a">Nullable</a>&lt; <a class="el" href="classpsr_1_1TaintConfigBase.html#a94e4d065d67ca15eed7b52ba9a0b88ec">f_t</a> &gt; Callee) const</td></tr>
+<tr class="memitem:a78d695234c7895abbbc5462985a1975b" id="r_a78d695234c7895abbbc5462985a1975b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1TaintConfigBase.html#a78d695234c7895abbbc5462985a1975b">generatesValuesAt</a> (<a class="el" href="classpsr_1_1TaintConfigBase.html#a1ca1027dad65adaded16e5e952658ec4">n_t</a> Inst, <a class="el" href="namespacepsr.html#aa5179235abf439e5cc74ed59d6ab2e0f">Nullable</a>&lt; <a class="el" href="classpsr_1_1TaintConfigBase.html#a94e4d065d67ca15eed7b52ba9a0b88ec">f_t</a> &gt; Callee) const</td></tr>
 <tr class="separator:a78d695234c7895abbbc5462985a1975b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a11e5571e7a007f42c2baca3f99902496" id="r_a11e5571e7a007f42c2baca3f99902496"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1TaintConfigBase.html#a11e5571e7a007f42c2baca3f99902496">mayLeakValuesAt</a> (<a class="el" href="classpsr_1_1TaintConfigBase.html#a1ca1027dad65adaded16e5e952658ec4">n_t</a> Inst, <a class="el" href="namespacepsr.html#ad1d0602a9eee1460c855d6b3ce61201a">Nullable</a>&lt; <a class="el" href="classpsr_1_1TaintConfigBase.html#a94e4d065d67ca15eed7b52ba9a0b88ec">f_t</a> &gt; Callee) const</td></tr>
+<tr class="memitem:a11e5571e7a007f42c2baca3f99902496" id="r_a11e5571e7a007f42c2baca3f99902496"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1TaintConfigBase.html#a11e5571e7a007f42c2baca3f99902496">mayLeakValuesAt</a> (<a class="el" href="classpsr_1_1TaintConfigBase.html#a1ca1027dad65adaded16e5e952658ec4">n_t</a> Inst, <a class="el" href="namespacepsr.html#aa5179235abf439e5cc74ed59d6ab2e0f">Nullable</a>&lt; <a class="el" href="classpsr_1_1TaintConfigBase.html#a94e4d065d67ca15eed7b52ba9a0b88ec">f_t</a> &gt; Callee) const</td></tr>
 <tr class="separator:a11e5571e7a007f42c2baca3f99902496"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a56181415d1471314240b3ba029e3b529" id="r_a56181415d1471314240b3ba029e3b529"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1TaintConfigBase.html#a56181415d1471314240b3ba029e3b529">sanitizesValuesAt</a> (<a class="el" href="classpsr_1_1TaintConfigBase.html#a1ca1027dad65adaded16e5e952658ec4">n_t</a> Inst, <a class="el" href="namespacepsr.html#ad1d0602a9eee1460c855d6b3ce61201a">Nullable</a>&lt; <a class="el" href="classpsr_1_1TaintConfigBase.html#a94e4d065d67ca15eed7b52ba9a0b88ec">f_t</a> &gt; Callee) const</td></tr>
+<tr class="memitem:a56181415d1471314240b3ba029e3b529" id="r_a56181415d1471314240b3ba029e3b529"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1TaintConfigBase.html#a56181415d1471314240b3ba029e3b529">sanitizesValuesAt</a> (<a class="el" href="classpsr_1_1TaintConfigBase.html#a1ca1027dad65adaded16e5e952658ec4">n_t</a> Inst, <a class="el" href="namespacepsr.html#aa5179235abf439e5cc74ed59d6ab2e0f">Nullable</a>&lt; <a class="el" href="classpsr_1_1TaintConfigBase.html#a94e4d065d67ca15eed7b52ba9a0b88ec">f_t</a> &gt; Callee) const</td></tr>
 <tr class="separator:a56181415d1471314240b3ba029e3b529"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3f6339d54e90e487c4abd6227cc9f176" id="r_a3f6339d54e90e487c4abd6227cc9f176"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#aff032377459da673c2e7dfa583735d58">TaintCategory</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1TaintConfigBase.html#a3f6339d54e90e487c4abd6227cc9f176">getCategory</a> (<a class="el" href="classpsr_1_1TaintConfigBase.html#a50bc0938374653e224b5e2b904394ca4">v_t</a> Val) const</td></tr>
 <tr class="separator:a3f6339d54e90e487c4abd6227cc9f176"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa1421677546f7419e0ceff4c9689314b" id="r_aa1421677546f7419e0ceff4c9689314b"><td class="memItemLeft" align="right" valign="top">std::map&lt; <a class="el" href="classpsr_1_1TaintConfigBase.html#a1ca1027dad65adaded16e5e952658ec4">n_t</a>, std::set&lt; <a class="el" href="classpsr_1_1TaintConfigBase.html#a50bc0938374653e224b5e2b904394ca4">v_t</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1TaintConfigBase.html#aa1421677546f7419e0ceff4c9689314b">makeInitialSeeds</a> (<a class="el" href="classpsr_1_1TaintConfigBase.html#a26411549091d6bd3eecbbe629dc145f5">SeedConfig</a> Conf=<a class="el" href="classpsr_1_1TaintConfigBase.html#a26411549091d6bd3eecbbe629dc145f5ab1c94ca2fbc3e78fc30069c8d0f01680">SeedConfig::All</a>) const</td></tr>
+<tr class="memitem:aa1421677546f7419e0ceff4c9689314b" id="r_aa1421677546f7419e0ceff4c9689314b"><td class="memItemLeft" align="right" valign="top">std::map&lt; <a class="el" href="classpsr_1_1TaintConfigBase.html#a1ca1027dad65adaded16e5e952658ec4">n_t</a>, std::set&lt; <a class="el" href="classpsr_1_1TaintConfigBase.html#a50bc0938374653e224b5e2b904394ca4">v_t</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1TaintConfigBase.html#aa1421677546f7419e0ceff4c9689314b">makeInitialSeeds</a> (SeedConfig Conf=SeedConfig::All) const</td></tr>
 <tr class="separator:aa1421677546f7419e0ceff4c9689314b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4e9fad89b28a503af1459c7d2a03d2ad" id="r_a4e9fad89b28a503af1459c7d2a03d2ad"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1TaintConfigBase.html#a4e9fad89b28a503af1459c7d2a03d2ad">print</a> (llvm::raw_ostream &amp;OS=llvm::outs()) const</td></tr>
 <tr class="separator:a4e9fad89b28a503af1459c7d2a03d2ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -189,7 +184,7 @@ Friends</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><div class="compoundTemplParams">template&lt;typename Derived&gt;<br />
 class psr::TaintConfigBase&lt; Derived &gt;</div>
-<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00035">35</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00036">36</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
 </div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="a94e4d065d67ca15eed7b52ba9a0b88ec" name="a94e4d065d67ca15eed7b52ba9a0b88ec"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a94e4d065d67ca15eed7b52ba9a0b88ec">&#9670;&#160;</a></span>f_t</h2>
@@ -205,7 +200,7 @@ template&lt;typename Derived &gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00039">39</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00040">40</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
 
 </div>
 </div>
@@ -223,7 +218,7 @@ template&lt;typename Derived &gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00037">37</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00038">38</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
 
 </div>
 </div>
@@ -241,7 +236,7 @@ template&lt;typename Derived &gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00043">43</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00044">44</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
 
 </div>
 </div>
@@ -259,7 +254,7 @@ template&lt;typename Derived &gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00041">41</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00042">42</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
 
 </div>
 </div>
@@ -277,39 +272,7 @@ template&lt;typename Derived &gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00038">38</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
-
-</div>
-</div>
-<h2 class="groupheader">Member Enumeration Documentation</h2>
-<a id="a26411549091d6bd3eecbbe629dc145f5" name="a26411549091d6bd3eecbbe629dc145f5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a26411549091d6bd3eecbbe629dc145f5">&#9670;&#160;</a></span>SeedConfig</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename Derived &gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">enum class <a class="el" href="classpsr_1_1TaintConfigBase.html#a26411549091d6bd3eecbbe629dc145f5">psr::TaintConfigBase::SeedConfig</a></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">strong</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a26411549091d6bd3eecbbe629dc145f5ad637f66d25c9ff757bed6f168c73856e" name="a26411549091d6bd3eecbbe629dc145f5ad637f66d25c9ff757bed6f168c73856e"></a>Arguments&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a26411549091d6bd3eecbbe629dc145f5a49cc8e6220245b65cd7d20fc6ccc74f5" name="a26411549091d6bd3eecbbe629dc145f5a49cc8e6220245b65cd7d20fc6ccc74f5"></a>Instructions&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a26411549091d6bd3eecbbe629dc145f5ab1c94ca2fbc3e78fc30069c8d0f01680" name="a26411549091d6bd3eecbbe629dc145f5ab1c94ca2fbc3e78fc30069c8d0f01680"></a>All&#160;</td><td class="fielddoc"></td></tr>
-</table>
-
-<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00045">45</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00039">39</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
 
 </div>
 </div>
@@ -339,9 +302,9 @@ template&lt;typename Derived &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00155">155</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00156">156</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
 
-<p class="reference">References <a class="el" href="TaintConfigBase_8h_source.html#l00151">psr::TaintConfigBase&lt; Derived &gt;::print()</a>.</p>
+<p class="reference">References <a class="el" href="TaintConfigBase_8h_source.html#l00152">psr::TaintConfigBase&lt; Derived &gt;::print()</a>.</p>
 
 </div>
 </div>
@@ -367,7 +330,7 @@ template&lt;typename HandlerFn &gt; </div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ad1d0602a9eee1460c855d6b3ce61201a">Nullable</a>&lt; <a class="el" href="classpsr_1_1TaintConfigBase.html#a94e4d065d67ca15eed7b52ba9a0b88ec">f_t</a> &gt;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#aa5179235abf439e5cc74ed59d6ab2e0f">Nullable</a>&lt; <a class="el" href="classpsr_1_1TaintConfigBase.html#a94e4d065d67ca15eed7b52ba9a0b88ec">f_t</a> &gt;&#160;</td>
           <td class="paramname"><em>Callee</em>, </td>
         </tr>
         <tr>
@@ -392,7 +355,7 @@ template&lt;typename HandlerFn &gt; </div>
 <p>Calls Handler for all operands of Inst (maybe including Inst itself) that are generated unconditionally as tainted. </p>
 <p>If Inst is a function-call, the Callee function should be specified explicitly. </p>
 
-<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00102">102</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00103">103</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
 
 </div>
 </div>
@@ -418,7 +381,7 @@ template&lt;typename HandlerFn &gt; </div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ad1d0602a9eee1460c855d6b3ce61201a">Nullable</a>&lt; <a class="el" href="classpsr_1_1TaintConfigBase.html#a94e4d065d67ca15eed7b52ba9a0b88ec">f_t</a> &gt;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#aa5179235abf439e5cc74ed59d6ab2e0f">Nullable</a>&lt; <a class="el" href="classpsr_1_1TaintConfigBase.html#a94e4d065d67ca15eed7b52ba9a0b88ec">f_t</a> &gt;&#160;</td>
           <td class="paramname"><em>Callee</em>, </td>
         </tr>
         <tr>
@@ -443,7 +406,7 @@ template&lt;typename HandlerFn &gt; </div>
 <p>Calls Handler for all operands of Inst that may generate a leak when they are tainted. </p>
 <p>If Inst is a function-call, the Callee function should be specified explicitly. </p>
 
-<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00114">114</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00115">115</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
 
 </div>
 </div>
@@ -469,7 +432,7 @@ template&lt;typename HandlerFn &gt; </div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ad1d0602a9eee1460c855d6b3ce61201a">Nullable</a>&lt; <a class="el" href="classpsr_1_1TaintConfigBase.html#a94e4d065d67ca15eed7b52ba9a0b88ec">f_t</a> &gt;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#aa5179235abf439e5cc74ed59d6ab2e0f">Nullable</a>&lt; <a class="el" href="classpsr_1_1TaintConfigBase.html#a94e4d065d67ca15eed7b52ba9a0b88ec">f_t</a> &gt;&#160;</td>
           <td class="paramname"><em>Callee</em>, </td>
         </tr>
         <tr>
@@ -494,7 +457,7 @@ template&lt;typename HandlerFn &gt; </div>
 <p>Calls Handler for all operands of Inst that become sanitized after the instruction is completed. </p>
 <p>If Inst is a function-call, the Callee function should be specified explicitly. </p>
 
-<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00126">126</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00127">127</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
 
 </div>
 </div>
@@ -518,7 +481,7 @@ template&lt;typename Derived &gt; </div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ad1d0602a9eee1460c855d6b3ce61201a">Nullable</a>&lt; <a class="el" href="classpsr_1_1TaintConfigBase.html#a94e4d065d67ca15eed7b52ba9a0b88ec">f_t</a> &gt;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#aa5179235abf439e5cc74ed59d6ab2e0f">Nullable</a>&lt; <a class="el" href="classpsr_1_1TaintConfigBase.html#a94e4d065d67ca15eed7b52ba9a0b88ec">f_t</a> &gt;&#160;</td>
           <td class="paramname"><em>Callee</em>&#160;</td>
         </tr>
         <tr>
@@ -534,7 +497,7 @@ template&lt;typename Derived &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00132">132</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00133">133</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
 
 </div>
 </div>
@@ -564,7 +527,7 @@ template&lt;typename Derived &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00142">142</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00143">143</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
 
 </div>
 </div>
@@ -593,9 +556,9 @@ template&lt;typename Derived &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00074">74</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00075">75</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
 
-<p class="reference">References <a class="el" href="TaintConfigBase_8h_source.html#l00175">psr::TaintConfigBase&lt; Derived &gt;::SanitizerCallBack</a>.</p>
+<p class="reference">References <a class="el" href="TaintConfigBase_8h_source.html#l00176">psr::TaintConfigBase&lt; Derived &gt;::SanitizerCallBack</a>.</p>
 
 </div>
 </div>
@@ -624,9 +587,9 @@ template&lt;typename Derived &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00070">70</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00071">71</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
 
-<p class="reference">References <a class="el" href="TaintConfigBase_8h_source.html#l00174">psr::TaintConfigBase&lt; Derived &gt;::SinkCallBack</a>.</p>
+<p class="reference">References <a class="el" href="TaintConfigBase_8h_source.html#l00175">psr::TaintConfigBase&lt; Derived &gt;::SinkCallBack</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="TaintConfigUtilities_8h_source.html#l00093">psr::collectLeakedFacts()</a>.</p>
 
@@ -657,9 +620,9 @@ template&lt;typename Derived &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00078">78</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00079">79</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
 
-<p class="reference">References <a class="el" href="TaintConfigBase_8h_source.html#l00176">psr::TaintConfigBase&lt; Derived &gt;::SkipSeedsCallBack</a>.</p>
+<p class="reference">References <a class="el" href="TaintConfigBase_8h_source.html#l00177">psr::TaintConfigBase&lt; Derived &gt;::SkipSeedsCallBack</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="MonoIFDSTaintAnalysis_8h_source.html#l00102">psr::monoifds::TaintAnalysis::localAnalysis()</a>.</p>
 
@@ -690,9 +653,9 @@ template&lt;typename Derived &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00066">66</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00067">67</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
 
-<p class="reference">References <a class="el" href="TaintConfigBase_8h_source.html#l00173">psr::TaintConfigBase&lt; Derived &gt;::SourceCallBack</a>.</p>
+<p class="reference">References <a class="el" href="TaintConfigBase_8h_source.html#l00174">psr::TaintConfigBase&lt; Derived &gt;::SourceCallBack</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="TaintConfigUtilities_8h_source.html#l00051">psr::collectGeneratedFacts()</a>, and <a class="el" href="TaintConfigUtilities_8h_source.html#l00028">psr::forallGeneratedFacts()</a>.</p>
 
@@ -724,7 +687,7 @@ template&lt;typename Derived &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00088">88</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00089">89</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="TaintConfigUtilities_8h_source.html#l00122">psr::collectSanitizedFacts()</a>.</p>
 
@@ -756,7 +719,7 @@ template&lt;typename Derived &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00085">85</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00086">86</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="TaintConfigUtilities_8h_source.html#l00093">psr::collectLeakedFacts()</a>.</p>
 
@@ -788,7 +751,7 @@ template&lt;typename Derived &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00082">82</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00083">83</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="TaintConfigUtilities_8h_source.html#l00051">psr::collectGeneratedFacts()</a>, and <a class="el" href="TaintConfigUtilities_8h_source.html#l00028">psr::forallGeneratedFacts()</a>.</p>
 
@@ -808,8 +771,8 @@ template&lt;typename Derived &gt; </div>
         <tr>
           <td class="memname">std::map&lt; <a class="el" href="classpsr_1_1TaintConfigBase.html#a1ca1027dad65adaded16e5e952658ec4">n_t</a>, std::set&lt; <a class="el" href="classpsr_1_1TaintConfigBase.html#a50bc0938374653e224b5e2b904394ca4">v_t</a> &gt; &gt; <a class="el" href="classpsr_1_1TaintConfigBase.html">psr::TaintConfigBase</a>&lt; Derived &gt;::makeInitialSeeds </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classpsr_1_1TaintConfigBase.html#a26411549091d6bd3eecbbe629dc145f5">SeedConfig</a>&#160;</td>
-          <td class="paramname"><em>Conf</em> = <code><a class="el" href="classpsr_1_1TaintConfigBase.html#a26411549091d6bd3eecbbe629dc145f5ab1c94ca2fbc3e78fc30069c8d0f01680">SeedConfig::All</a></code></td><td>)</td>
+          <td class="paramtype">SeedConfig&#160;</td>
+          <td class="paramname"><em>Conf</em> = <code>SeedConfig::All</code></td><td>)</td>
           <td> const</td>
         </tr>
       </table>
@@ -820,7 +783,7 @@ template&lt;typename Derived &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00147">147</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00148">148</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
 
 </div>
 </div>
@@ -844,7 +807,7 @@ template&lt;typename Derived &gt; </div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ad1d0602a9eee1460c855d6b3ce61201a">Nullable</a>&lt; <a class="el" href="classpsr_1_1TaintConfigBase.html#a94e4d065d67ca15eed7b52ba9a0b88ec">f_t</a> &gt;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#aa5179235abf439e5cc74ed59d6ab2e0f">Nullable</a>&lt; <a class="el" href="classpsr_1_1TaintConfigBase.html#a94e4d065d67ca15eed7b52ba9a0b88ec">f_t</a> &gt;&#160;</td>
           <td class="paramname"><em>Callee</em>&#160;</td>
         </tr>
         <tr>
@@ -860,7 +823,7 @@ template&lt;typename Derived &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00135">135</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00136">136</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
 
 </div>
 </div>
@@ -890,9 +853,9 @@ template&lt;typename Derived &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00151">151</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00152">152</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="TaintConfigBase_8h_source.html#l00155">psr::TaintConfigBase&lt; Derived &gt;::dump()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="TaintConfigBase_8h_source.html#l00156">psr::TaintConfigBase&lt; Derived &gt;::dump()</a>.</p>
 
 </div>
 </div>
@@ -922,9 +885,9 @@ template&lt;typename Derived &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00058">58</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00059">59</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
 
-<p class="reference">References <a class="el" href="TaintConfigBase_8h_source.html#l00175">psr::TaintConfigBase&lt; Derived &gt;::SanitizerCallBack</a>.</p>
+<p class="reference">References <a class="el" href="TaintConfigBase_8h_source.html#l00176">psr::TaintConfigBase&lt; Derived &gt;::SanitizerCallBack</a>.</p>
 
 </div>
 </div>
@@ -954,9 +917,9 @@ template&lt;typename Derived &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00055">55</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00056">56</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
 
-<p class="reference">References <a class="el" href="TaintConfigBase_8h_source.html#l00174">psr::TaintConfigBase&lt; Derived &gt;::SinkCallBack</a>.</p>
+<p class="reference">References <a class="el" href="TaintConfigBase_8h_source.html#l00175">psr::TaintConfigBase&lt; Derived &gt;::SinkCallBack</a>.</p>
 
 </div>
 </div>
@@ -986,9 +949,9 @@ template&lt;typename Derived &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00061">61</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00062">62</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
 
-<p class="reference">References <a class="el" href="TaintConfigBase_8h_source.html#l00176">psr::TaintConfigBase&lt; Derived &gt;::SkipSeedsCallBack</a>.</p>
+<p class="reference">References <a class="el" href="TaintConfigBase_8h_source.html#l00177">psr::TaintConfigBase&lt; Derived &gt;::SkipSeedsCallBack</a>.</p>
 
 </div>
 </div>
@@ -1018,9 +981,9 @@ template&lt;typename Derived &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00052">52</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00053">53</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
 
-<p class="reference">References <a class="el" href="TaintConfigBase_8h_source.html#l00173">psr::TaintConfigBase&lt; Derived &gt;::SourceCallBack</a>.</p>
+<p class="reference">References <a class="el" href="TaintConfigBase_8h_source.html#l00174">psr::TaintConfigBase&lt; Derived &gt;::SourceCallBack</a>.</p>
 
 </div>
 </div>
@@ -1044,7 +1007,7 @@ template&lt;typename Derived &gt; </div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ad1d0602a9eee1460c855d6b3ce61201a">Nullable</a>&lt; <a class="el" href="classpsr_1_1TaintConfigBase.html#a94e4d065d67ca15eed7b52ba9a0b88ec">f_t</a> &gt;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#aa5179235abf439e5cc74ed59d6ab2e0f">Nullable</a>&lt; <a class="el" href="classpsr_1_1TaintConfigBase.html#a94e4d065d67ca15eed7b52ba9a0b88ec">f_t</a> &gt;&#160;</td>
           <td class="paramname"><em>Callee</em>&#160;</td>
         </tr>
         <tr>
@@ -1060,7 +1023,7 @@ template&lt;typename Derived &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00138">138</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00139">139</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
 
 </div>
 </div>
@@ -1090,9 +1053,9 @@ template&lt;typename Derived &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00092">92</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00093">93</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
 
-<p class="reference">References <a class="el" href="TaintConfigBase_8h_source.html#l00176">psr::TaintConfigBase&lt; Derived &gt;::SkipSeedsCallBack</a>.</p>
+<p class="reference">References <a class="el" href="TaintConfigBase_8h_source.html#l00177">psr::TaintConfigBase&lt; Derived &gt;::SkipSeedsCallBack</a>.</p>
 
 </div>
 </div>
@@ -1133,7 +1096,7 @@ template&lt;typename Derived &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00157">157</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00158">158</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
 
 </div>
 </div>
@@ -1160,9 +1123,9 @@ template&lt;typename Derived &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00175">175</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00176">176</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="TaintConfigBase_8h_source.html#l00074">psr::TaintConfigBase&lt; Derived &gt;::getRegisteredSanitizerCallBack()</a>, and <a class="el" href="TaintConfigBase_8h_source.html#l00058">psr::TaintConfigBase&lt; Derived &gt;::registerSanitizerCallBack()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="TaintConfigBase_8h_source.html#l00075">psr::TaintConfigBase&lt; Derived &gt;::getRegisteredSanitizerCallBack()</a>, and <a class="el" href="TaintConfigBase_8h_source.html#l00059">psr::TaintConfigBase&lt; Derived &gt;::registerSanitizerCallBack()</a>.</p>
 
 </div>
 </div>
@@ -1188,9 +1151,9 @@ template&lt;typename Derived &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00174">174</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00175">175</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="TaintConfigBase_8h_source.html#l00070">psr::TaintConfigBase&lt; Derived &gt;::getRegisteredSinkCallBack()</a>, and <a class="el" href="TaintConfigBase_8h_source.html#l00055">psr::TaintConfigBase&lt; Derived &gt;::registerSinkCallBack()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="TaintConfigBase_8h_source.html#l00071">psr::TaintConfigBase&lt; Derived &gt;::getRegisteredSinkCallBack()</a>, and <a class="el" href="TaintConfigBase_8h_source.html#l00056">psr::TaintConfigBase&lt; Derived &gt;::registerSinkCallBack()</a>.</p>
 
 </div>
 </div>
@@ -1216,9 +1179,9 @@ template&lt;typename Derived &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00176">176</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00177">177</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="TaintConfigBase_8h_source.html#l00078">psr::TaintConfigBase&lt; Derived &gt;::getRegisteredSkipSeedsCallBack()</a>, <a class="el" href="TaintConfigBase_8h_source.html#l00061">psr::TaintConfigBase&lt; Derived &gt;::registerSkipSeedsCallBack()</a>, and <a class="el" href="TaintConfigBase_8h_source.html#l00092">psr::TaintConfigBase&lt; Derived &gt;::skipSeed()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="TaintConfigBase_8h_source.html#l00079">psr::TaintConfigBase&lt; Derived &gt;::getRegisteredSkipSeedsCallBack()</a>, <a class="el" href="TaintConfigBase_8h_source.html#l00062">psr::TaintConfigBase&lt; Derived &gt;::registerSkipSeedsCallBack()</a>, and <a class="el" href="TaintConfigBase_8h_source.html#l00093">psr::TaintConfigBase&lt; Derived &gt;::skipSeed()</a>.</p>
 
 </div>
 </div>
@@ -1244,9 +1207,9 @@ template&lt;typename Derived &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00173">173</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TaintConfigBase_8h_source.html#l00174">174</a> of file <a class="el" href="TaintConfigBase_8h_source.html">TaintConfigBase.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="TaintConfigBase_8h_source.html#l00066">psr::TaintConfigBase&lt; Derived &gt;::getRegisteredSourceCallBack()</a>, and <a class="el" href="TaintConfigBase_8h_source.html#l00052">psr::TaintConfigBase&lt; Derived &gt;::registerSourceCallBack()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="TaintConfigBase_8h_source.html#l00067">psr::TaintConfigBase&lt; Derived &gt;::getRegisteredSourceCallBack()</a>, and <a class="el" href="TaintConfigBase_8h_source.html#l00053">psr::TaintConfigBase&lt; Derived &gt;::registerSourceCallBack()</a>.</p>
 
 </div>
 </div>
@@ -1256,7 +1219,7 @@ template&lt;typename Derived &gt; </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Aug 20 2026 16:00:35 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Aug 20 2026 16:52:22 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

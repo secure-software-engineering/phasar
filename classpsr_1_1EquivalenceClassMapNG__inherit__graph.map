@@ -1,7 +1,9 @@
 <map id="psr::EquivalenceClassMapNG&lt; TKey, TValue, ValueComparator &gt;" name="psr::EquivalenceClassMapNG&lt; TKey, TValue, ValueComparator &gt;">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,57,283,97"/>
-<area shape="rect" id="Node000002" href="$classpsr_1_1EquivalenceClassMapNG.html" title=" " alt="" coords="515,5,720,60"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="296,60,514,40,515,45,297,65"/>
-<area shape="rect" id="Node000003" href="$classpsr_1_1EquivalenceClassMapNG.html" title=" " alt="" coords="515,85,720,154"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="257,96,307,103,414,112,514,116,514,121,414,117,306,109,256,102"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,99,283,139"/>
+<area shape="rect" id="Node000002" href="$classpsr_1_1EquivalenceClassMapNG.html" title=" " alt="" coords="548,5,753,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="214,92,306,67,431,48,547,36,548,41,432,53,307,73,215,98"/>
+<area shape="rect" id="Node000003" href="$classpsr_1_1EquivalenceClassMapNG.html" title=" " alt="" coords="548,85,753,154"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="296,117,548,117,548,122,296,122"/>
+<area shape="rect" id="Node000004" href="$classpsr_1_1EquivalenceClassMapNG.html" title=" " alt="" coords="515,179,787,233"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="248,140,307,151,515,185,514,190,306,157,247,145"/>
 </map>

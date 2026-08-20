@@ -92,8 +92,9 @@ $(function() {
 <div class="textblock"><code>#include &quot;<a class="el" href="DefaultEdgeFunctionSingletonCache_8h_source.html">phasar/DataFlow/IfdsIde/DefaultEdgeFunctionSingletonCache.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="EdgeFunction_8h_source.html">phasar/DataFlow/IfdsIde/EdgeFunction.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="EdgeFunctionUtils_8h_source.html">phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="FlowFunctions_8h_source.html">phasar/DataFlow/IfdsIde/FlowFunctions.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="IDETabulationProblem_8h_source.html">phasar/DataFlow/IfdsIde/IDETabulationProblem.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="IfdsIdeProblemMixin_8h_source.html">phasar/DataFlow/IfdsIde/IfdsIdeProblemMixin.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="InitialSeeds_8h_source.html">phasar/DataFlow/IfdsIde/InitialSeeds.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="GenericSolverResults_8h_source.html">phasar/DataFlow/IfdsIde/Solver/GenericSolverResults.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="SolverResults_8h_source.html">phasar/DataFlow/IfdsIde/SolverResults.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="LatticeDomain_8h_source.html">phasar/Domain/LatticeDomain.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="LLVMBasedICFG_8h_source.html">phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h</a>&quot;</code><br />
@@ -103,7 +104,6 @@ $(function() {
 <code>#include &quot;<a class="el" href="LLVMZeroValue_8h_source.html">phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="LLVMAnalysisDomain_8h_source.html">phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="LLVMAliasInfo_8h_source.html">phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="LLVMPointsToUtils_8h_source.html">phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="LLVMIRToSrc_8h_source.html">phasar/PhasarLLVM/Utils/LLVMIRToSrc.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="LLVMShorthands_8h_source.html">phasar/PhasarLLVM/Utils/LLVMShorthands.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="BitVectorSet_8h_source.html">phasar/Utils/BitVectorSet.h</a>&quot;</code><br />
@@ -112,7 +112,6 @@ $(function() {
 <code>#include &quot;<a class="el" href="Printer_8h_source.html">phasar/Utils/Printer.h</a>&quot;</code><br />
 <code>#include &quot;llvm/ADT/SmallVector.h&quot;</code><br />
 <code>#include &quot;llvm/ADT/Twine.h&quot;</code><br />
-<code>#include &quot;llvm/IR/Argument.h&quot;</code><br />
 <code>#include &quot;llvm/IR/Attributes.h&quot;</code><br />
 <code>#include &quot;llvm/IR/Constant.h&quot;</code><br />
 <code>#include &quot;llvm/IR/Constants.h&quot;</code><br />
@@ -123,14 +122,11 @@ $(function() {
 <code>#include &quot;llvm/IR/Instructions.h&quot;</code><br />
 <code>#include &quot;llvm/IR/Value.h&quot;</code><br />
 <code>#include &quot;llvm/Support/Casting.h&quot;</code><br />
-<code>#include &quot;llvm/Support/Compiler.h&quot;</code><br />
 <code>#include &quot;llvm/Support/ErrorHandling.h&quot;</code><br />
 <code>#include &quot;llvm/Support/raw_os_ostream.h&quot;</code><br />
 <code>#include &quot;llvm/Support/raw_ostream.h&quot;</code><br />
 <code>#include &lt;functional&gt;</code><br />
 <code>#include &lt;initializer_list&gt;</code><br />
-<code>#include &lt;map&gt;</code><br />
-<code>#include &lt;memory&gt;</code><br />
 <code>#include &lt;set&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
 <code>#include &lt;type_traits&gt;</code><br />
@@ -181,7 +177,7 @@ Typedefs</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Aug 20 2026 16:00:34 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Aug 20 2026 16:52:21 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

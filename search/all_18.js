@@ -8,5 +8,5 @@ var searchData=
   ['zero_5',['ZERO',['../namespacepsr.html#a2fce9d3845fc23ffbbcf90335fc90b3ca529e9e0beb5f85d1f132917c1a09860c',1,'psr']]],
   ['zeroed_6',['ZEROED',['../namespacepsr.html#a8dc4b8ce8fe88df9a828dd6d6f912039a7ce1502770488565d1931d44023822f4',1,'psr']]],
   ['zeroedflowfunction_7',['zeroedflowfunction',['../classpsr_1_1ZeroedFlowFunction.html',1,'psr::ZeroedFlowFunction&lt; D, Container &gt;'],['../classpsr_1_1ZeroedFlowFunction.html#a17b16f169c727633f6c6d48e82ff230f',1,'psr::ZeroedFlowFunction::ZeroedFlowFunction()']]],
-  ['zerovalue_8',['ZeroValue',['../classpsr_1_1IDETabulationProblem.html#adc2f8c78529b4a5c077019c74dd5ba2b',1,'psr::IDETabulationProblem']]]
+  ['zerovalue_8',['zerovalue',['../classpsr_1_1IDETabulationProblem.html#adc2f8c78529b4a5c077019c74dd5ba2b',1,'psr::IDETabulationProblem::ZeroValue'],['../classpsr_1_1IfdsIdeProblemMixin.html#aaefcbd4de03918bb982302b82e70db6a',1,'psr::IfdsIdeProblemMixin::ZeroValue']]]
 ];
