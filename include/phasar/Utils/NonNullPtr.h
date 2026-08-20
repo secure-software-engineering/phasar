@@ -9,6 +9,7 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
+#include "phasar/Utils/Macros.h"
 #include "phasar/Utils/Utilities.h"
 
 #include "llvm/Support/Compiler.h"
@@ -23,14 +24,16 @@ class PSR_POINTER(T) NonNullPtr : public std::reference_wrapper<T> {
 public:
   constexpr NonNullPtr(std::nullptr_t) = delete;
 
-  LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr NonNullPtr(T *Ptr) noexcept
+  LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr NonNullPtr(
+      T *Ptr PSR_LIFETIMEBOUND) noexcept
       : std::reference_wrapper<T>(psr::assertNotNull(Ptr)) {}
 
   LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr NonNullPtr(
-      std::reference_wrapper<T> RW) noexcept
+      std::reference_wrapper<T> RW PSR_LIFETIMEBOUND) noexcept
       : std::reference_wrapper<T>(RW) {}
 
-  LLVM_ATTRIBUTE_ALWAYS_INLINE explicit constexpr NonNullPtr(T &Ref) noexcept
+  LLVM_ATTRIBUTE_ALWAYS_INLINE explicit constexpr NonNullPtr(
+      T &Ref PSR_LIFETIMEBOUND) noexcept
       : std::reference_wrapper<T>(Ref) {}
 
   template <typename U>

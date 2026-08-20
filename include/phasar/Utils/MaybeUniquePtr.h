@@ -70,7 +70,8 @@ class PSR_TRIVIAL_ABI MaybeUniquePtr
 public:
   constexpr MaybeUniquePtr() noexcept = default;
 
-  constexpr MaybeUniquePtr(T *Pointer, bool Owns = false) noexcept
+  constexpr MaybeUniquePtr(T *Pointer PSR_LIFETIMEBOUND,
+                           bool Owns = false) noexcept
       : detail::MaybeUniquePtrBase<T, RequireAlignment>(Pointer,
                                                         Owns && Pointer) {}
 

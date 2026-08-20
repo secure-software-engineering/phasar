@@ -1,6 +1,6 @@
 #include <stdlib.h>
 
-// Minimized spec-mesa pattern: H->A and H->B alias H (field-insensitively),
+// H->A and H->B alias H (field-insensitively),
 // only H->B is initialized, then H->A = H->B (an llvm.memcpy). Each field's
 // call through H->A must still resolve to only its own function.
 struct Ops {

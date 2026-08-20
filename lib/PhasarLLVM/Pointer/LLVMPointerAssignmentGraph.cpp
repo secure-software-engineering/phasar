@@ -2,6 +2,7 @@
 
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMGlobalInitCache.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointerSemantics.h"
 #include "phasar/PhasarLLVM/Pointer/MemSSAUtils.h"
 #include "phasar/PhasarLLVM/Utils/LLVMFunctionDataFlowFacts.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
@@ -79,6 +80,7 @@ struct PSR_INTERNAL_LINKAGE LLVMPAGBuilder::PAGBuildData {
   const llvm::DataLayout &DL;           // NOLINT
   ValueCompressor<v_t> &VC;             // NOLINT
   const PAGMappedLibrarySummary &MLSum; // NOLINT
+  PunnedABICache PunnedABI{&DL};
 
   LLVMPAGBuilder::MemSSAProviderFn *MemSSAProvider = nullptr;
   llvm::MemorySSA *CurrentMemSSA = nullptr;
@@ -102,6 +104,25 @@ struct PSR_INTERNAL_LINKAGE LLVMPAGBuilder::PAGBuildData {
     }
 
     return Id;
+  }
+
+  // Registers \p V as another name for node \p Id, i.e. makes the two the
+  // same node.
+  //
+  // If \p V already owns a node the alias can no longer be recorded. Fall back
+  // to a pair of Assign edges
+  void addAliasOrEquate(LLVMPBStrategyRef Strategy, PAGVariable V, ValueId Id,
+                        const llvm::Instruction *AtInstruction) {
+    if (VC.addAlias(V, Id)) {
+      return;
+    }
+    const auto Existing = VC.getOrNull(V);
+    assert(Existing && "addAlias only fails when V already owns an id");
+    if (*Existing == Id) {
+      return;
+    }
+    addEdge(Strategy, Id, *Existing, Assign{}, AtInstruction);
+    addEdge(Strategy, *Existing, Id, Assign{}, AtInstruction);
   }
 
   void addAllIncomingStores(LLVMPBStrategyRef Strategy, ValueId To,
@@ -255,12 +276,17 @@ struct PSR_INTERNAL_LINKAGE LLVMPAGBuilder::PAGBuildData {
       return (void)getVariable(Alloca, Strategy);
     }
 
-    if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(&I)) {
-      return handleStore(Strategy, Store);
-    }
-
-    if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(&I)) {
-      return handleLoad(Strategy, Load);
+    if (const auto Access = asMemoryAccess(I, DL)) {
+      if (!Access->mayTransferPointer()) {
+        return;
+      }
+      if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(&I)) {
+        return handleLoad(Strategy, Load, *Access);
+      }
+      if (llvm::isa<llvm::StoreInst>(&I)) {
+        return handleStore(Strategy, *Access);
+      }
+      return handleAtomicAccess(Strategy, *Access);
     }
 
     if (const auto *Cast = llvm::dyn_cast<llvm::CastInst>(&I)) {
@@ -306,26 +332,31 @@ struct PSR_INTERNAL_LINKAGE LLVMPAGBuilder::PAGBuildData {
     psr::forEachPointerOperand(RawOp, copyOrRef(Handler));
   }
 
-  void handleStore(LLVMPBStrategyRef Strategy, const llvm::StoreInst *Store) {
-
-    if (definitelyContainsNoPointer(Store->getValueOperand())) {
-      return;
-    }
-
-    handleOperand(Store->getPointerOperand(), [&](const auto *PointerOp) {
+  void handleStore(LLVMPBStrategyRef Strategy, const LLVMMemoryAccess &Access) {
+    handleOperand(Access.Pointer, [&](const auto *PointerOp) {
       auto PointerObj = getVariable(PointerOp, Strategy);
-      handleOperand(Store->getValueOperand(), [&](const auto *ValueOp) {
+      handleOperand(Access.StoredValue, [&](const auto *ValueOp) {
         auto ValueObj = getVariable(ValueOp, Strategy);
-        addEdge(Strategy, ValueObj, PointerObj, StorePOI{}, Store);
+        addEdge(Strategy, ValueObj, PointerObj, StorePOI{}, Access.Instr);
       });
     });
   }
 
-  void handleLoad(LLVMPBStrategyRef Strategy, const llvm::LoadInst *Ld) {
-    if (definitelyContainsNoPointer(Ld)) {
-      return;
-    }
+  void handleAtomicAccess(LLVMPBStrategyRef Strategy,
+                          const LLVMMemoryAccess &Access) {
+    auto DstObj = getVariable(Access.LoadedInto, Strategy);
+    handleOperand(Access.Pointer, [&](const auto *PointerOp) {
+      auto PointerObj = getVariable(PointerOp, Strategy);
+      handleOperand(Access.StoredValue, [&](const auto *ValueOp) {
+        auto ValueObj = getVariable(ValueOp, Strategy);
+        addEdge(Strategy, ValueObj, PointerObj, StorePOI{}, Access.Instr);
+      });
+      addEdge(Strategy, PointerObj, DstObj, Load{}, Access.Instr);
+    });
+  }
 
+  void handleLoad(LLVMPBStrategyRef Strategy, const llvm::LoadInst *Ld,
+                  const LLVMMemoryAccess &Access) {
     if (CurrentMemSSA) {
       llvm::SmallPtrSet<const llvm::StoreInst *, 4> Defs;
       const bool HasLiveOnEntry = collectReachingDefs(Ld, *CurrentMemSSA, Defs);
@@ -334,7 +365,7 @@ struct PSR_INTERNAL_LINKAGE LLVMPAGBuilder::PAGBuildData {
           const auto *ValueOp = (*Defs.begin())->getValueOperand();
           if (!llvm::isa<llvm::ConstantExpr>(ValueOp) &&
               !definitelyContainsNoPointer(ValueOp)) {
-            VC.addAlias(Ld, getVariable(ValueOp, Strategy));
+            addAliasOrEquate(Strategy, Ld, getVariable(ValueOp, Strategy), Ld);
             return;
           }
         }
@@ -357,13 +388,13 @@ struct PSR_INTERNAL_LINKAGE LLVMPAGBuilder::PAGBuildData {
       }
     }
 
-    handleOperand(Ld->getPointerOperand(), [&](const auto *PointerOp) {
+    handleOperand(Access.Pointer, [&](const auto *PointerOp) {
       auto PointerObj = getVariable(PointerOp, Strategy);
 
       const auto ReuseOrCreate = [&](auto &Map, auto Key) {
         auto [It, Inserted] = Map.try_emplace(Key, ValueId{});
         if (!Inserted) {
-          VC.addAlias(Ld, It->second);
+          addAliasOrEquate(Strategy, Ld, It->second, Ld);
           return;
         }
         auto LoadObj = getVariable(Ld, Strategy);
@@ -399,7 +430,7 @@ struct PSR_INTERNAL_LINKAGE LLVMPAGBuilder::PAGBuildData {
       }
     }
 
-    VC.addAlias(Cast, OperandObj);
+    addAliasOrEquate(Strategy, Cast, OperandObj, nullptr);
   }
 
   void handleCast(LLVMPBStrategyRef Strategy, const llvm::User *Cast) {
@@ -424,7 +455,7 @@ struct PSR_INTERNAL_LINKAGE LLVMPAGBuilder::PAGBuildData {
           auto [It, Inserted] =
               LocalGeps[PointerOp].try_emplace(Offset.getSExtValue());
           if (!Inserted) {
-            VC.addAlias(Gep, It->second);
+            addAliasOrEquate(Strategy, Gep, It->second, nullptr);
             return;
           }
 
@@ -539,7 +570,8 @@ struct PSR_INTERNAL_LINKAGE LLVMPAGBuilder::PAGBuildData {
     llvm::SmallVector<llvm::SmallDenseSet<ValueId>> Args;
     for (const auto &Arg : Call->args()) {
       auto &ArgVal = Args.emplace_back();
-      if (definitelyContainsNoPointer(Arg)) {
+      if (definitelyContainsNoPointer(Arg) &&
+          !PunnedABI.isCoercedPointer(Arg.get(), Call->getFunction())) {
         continue;
       }
 
@@ -549,7 +581,8 @@ struct PSR_INTERNAL_LINKAGE LLVMPAGBuilder::PAGBuildData {
     }
 
     std::optional<ValueId> CSVal;
-    if (!definitelyContainsNoPointer(Call)) {
+    if (!definitelyContainsNoPointer(Call) ||
+        PunnedABI.isCoercedPointer(Call, Call->getFunction())) {
       CSVal = getVariable(Call, Strategy);
     }
 
@@ -564,7 +597,8 @@ struct PSR_INTERNAL_LINKAGE LLVMPAGBuilder::PAGBuildData {
 
   void handleReturn(LLVMPBStrategyRef Strategy, const llvm::ReturnInst *Ret) {
     const auto *RetVal = Ret->getReturnValue();
-    if (!RetVal || definitelyContainsNoPointer(RetVal)) {
+    if (!RetVal || (definitelyContainsNoPointer(RetVal) &&
+                    !PunnedABI.isCoercedPointer(RetVal, Ret->getFunction()))) {
       return;
     }
 
@@ -691,6 +725,14 @@ void psr::LLVMPAGBuilder::buildPAG(const LLVMProjectIRDB &IRDB,
   BData.OutgoingLoads.resize(NumPresentValues);
 
   BData.OnlyIncomingStoresAndOutgoingLoads.reserve(NumPossibleValues);
+
+  // Strategies index their per-value tables by ValueId, so they must see every
+  // id, including those a pre-populated VC already holds.
+  for (const auto &[Id, Vars] : VC.id2vars().enumerate()) {
+    if (!Vars.empty()) {
+      Strategy.onAddValue(Vars.front(), Id);
+    }
+  }
 
   BData.initializeGlobals(IRDB, Strategy);
   BData.initializeFunctions(IRDB, Strategy);
