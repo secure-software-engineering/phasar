@@ -42,7 +42,7 @@ protected:
         HA,
         std::vector{HasGlobalCtor ? LLVMBasedICFG::GlobalCRuntimeModelName.str()
                                   : "main"});
-    IDESolver LCASolver(LCAProblem, &ICFG);
+    IDESolver LCASolver(&LCAProblem, &ICFG);
     LCASolver.solve();
     if (PrintDump) {
       HA.getProjectIRDB().dump();

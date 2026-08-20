@@ -10,7 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_LLVMFUNCTIONDATAFLOWFACTS_H
 #define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_LLVMFUNCTIONDATAFLOWFACTS_H
 
-#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/DB/ProjectIRDB.h"
 #include "phasar/Utils/DefaultValue.h"
 #include "phasar/Utils/FunctionDataFlowFacts.h"
 #include "phasar/Utils/MapUtils.h"
@@ -23,9 +23,13 @@
 namespace psr::library_summary {
 
 class LLVMFunctionDataFlowFacts;
+
 [[nodiscard]] LLVMFunctionDataFlowFacts
 readFromFDFF(const FunctionDataFlowFacts &Fdff,
              std::invocable<llvm::StringRef> auto GetFunctionByNameOrNull);
+
+[[nodiscard]] LLVMFunctionDataFlowFacts
+readFromFDFF(const FunctionDataFlowFacts &Fdff, const ProjectIRDB auto &IRDB);
 
 /// @brief A LLVM-specific mapping of FunctionDataFlowFacts
 class LLVMFunctionDataFlowFacts {
@@ -76,6 +80,13 @@ public:
     }
 
     return Ret;
+  }
+
+  [[nodiscard]] friend LLVMFunctionDataFlowFacts
+  readFromFDFF(const FunctionDataFlowFacts &Fdff,
+               const ProjectIRDB auto &IRDB) {
+    return readFromFDFF(
+        Fdff, [&IRDB](llvm::StringRef Name) { return IRDB.getFunction(Name); });
   }
 
 private:

@@ -835,7 +835,7 @@ TEST(PathsDAGTest, InLLVMSSA) {
                           &PT, psr::Soundness::Soundy,
                           /*IncludeGlobals*/ false);
   psr::IDELinearConstantAnalysis LCAProblem(&IRDB, &ICFG, {"main"});
-  psr::PathAwareIDESolver LCASolver(LCAProblem, &ICFG);
+  psr::PathAwareIDESolver LCASolver(&LCAProblem, &ICFG);
   LCASolver.solve();
   // if (PrintDump) {
   //   // IRDB->print();

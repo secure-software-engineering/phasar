@@ -11,6 +11,7 @@
 
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/Utils/HashUtils.h"
+#include "phasar/Utils/Macros.h"
 #include "phasar/Utils/UsedGlobalsHolder.h"
 #include "phasar/Utils/Utilities.h"
 
@@ -33,12 +34,12 @@ public:
 
   // Passed AI should already be FilteredAliasSet or similar
   explicit AliasCache(
-      LLVMAliasIteratorRef AI [[clang::lifetime_capture_by(this)]],
+      LLVMAliasIteratorRef AI PSR_LIFETIME_CAPTURE_BY(this),
       llvm::function_ref<bool(const llvm::Value *)> SkipSeedsCallBack
-      [[clang::lifetime_capture_by(this)]],
+          PSR_LIFETIME_CAPTURE_BY(this),
       const UsedGlobalsHolder<const llvm::GlobalVariable *>::GlobalSet
-          *PermittedGlobals [[clang::lifetime_capture_by(this)]],
-      std::pmr::memory_resource *MRes [[clang::lifetime_capture_by(this)]])
+          *PermittedGlobals PSR_LIFETIME_CAPTURE_BY(this),
+      std::pmr::memory_resource *MRes PSR_LIFETIME_CAPTURE_BY(this))
       : AI(AI), SkipSeedsCallBack(SkipSeedsCallBack),
         PermittedGlobals(&assertNotNull(PermittedGlobals)),
         Cache(&assertNotNull(MRes)) {}

@@ -18,7 +18,7 @@
 
 namespace psr {
 template <typename T>
-class [[gsl::Pointer(T)]] NonNullPtr : public std::reference_wrapper<T> {
+class PSR_POINTER(T) NonNullPtr : public std::reference_wrapper<T> {
   using Base = std::reference_wrapper<T>;
 
 public:

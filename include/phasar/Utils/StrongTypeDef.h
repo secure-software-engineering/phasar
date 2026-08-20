@@ -10,6 +10,7 @@
  *****************************************************************************/
 
 #include "phasar/Utils/ByRef.h"
+#include "phasar/Utils/Macros.h"
 
 #include "llvm/ADT/DenseMapInfo.h"
 #include "llvm/Support/HashBuilder.h"
@@ -20,7 +21,7 @@
 
 #define PHASAR_STRONG_TYPEDEF(NAMESPACE, TYPE, NAME, ...)                      \
   namespace NAMESPACE {                                                        \
-  enum class [[clang::enum_extensibility(open)]] NAME : TYPE { __VA_ARGS__ };  \
+  enum class PSR_ENUM_EXTENSIBILITY(open) NAME : TYPE { __VA_ARGS__ };         \
   }                                                                            \
   namespace llvm {                                                             \
   template <> struct DenseMapInfo<NAMESPACE::NAME> {                           \

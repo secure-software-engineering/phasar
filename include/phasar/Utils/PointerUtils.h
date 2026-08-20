@@ -3,6 +3,7 @@
 
 #include "phasar/Utils/BoxedPointer.h"
 #include "phasar/Utils/MaybeUniquePtr.h"
+#include "phasar/Utils/NonNullPtr.h"
 
 #include "llvm/ADT/IntrusiveRefCntPtr.h"
 
@@ -91,6 +92,12 @@ template <typename T>
 [[nodiscard]] constexpr BoxedConstPtr<T>
 getPointerFrom(BoxedConstPtr<T> Ptr) noexcept {
   return Ptr;
+}
+
+template <typename T>
+[[nodiscard]] LLVM_ATTRIBUTE_RETURNS_NONNULL constexpr T *
+getPointerFrom(NonNullPtr<T> Ptr) noexcept {
+  return Ptr.get();
 }
 
 static_assert(

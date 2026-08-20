@@ -76,7 +76,7 @@ struct PAGMappedLibrarySummary {
 
 } // namespace
 
-struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
+struct PSR_INTERNAL_LINKAGE LLVMPAGBuilder::PAGBuildData {
   const llvm::DataLayout &DL;           // NOLINT
   ValueCompressor<v_t> &VC;             // NOLINT
   const PAGMappedLibrarySummary &MLSum; // NOLINT
@@ -696,9 +696,7 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
 static const auto &getMappedLibSum(
     std::optional<library_summary::LLVMFunctionDataFlowFacts> &MLSumBuf,
     const LLVMProjectIRDB &IRDB) {
-  MLSumBuf.emplace(library_summary::readFromFDFF(
-      getLibCSummary(),
-      [&IRDB](llvm::StringRef FName) { return IRDB.getFunction(FName); }));
+  MLSumBuf.emplace(library_summary::readFromFDFF(getLibCSummary(), IRDB));
   return *MLSumBuf;
 }
 

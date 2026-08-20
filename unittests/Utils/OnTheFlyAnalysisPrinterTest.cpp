@@ -86,7 +86,7 @@ protected:
     initialize(IRFile);
     GTPrinter.convertGT(HA->getProjectIRDB());
     UnInitProblem->setAnalysisPrinter(&GTPrinter);
-    IFDSSolver Solver(*UnInitProblem, &HA->getICFG());
+    IFDSSolver Solver(&*UnInitProblem, &HA->getICFG());
     Solver.solve();
     GTPrinter.onFinalize();
   }

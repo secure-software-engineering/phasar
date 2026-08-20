@@ -72,7 +72,7 @@ protected:
 
     UnInitProblem.setAnalysisPrinter(&GTPrinter);
     GTPrinter.onInitialize();
-    IFDSSolver Solver(UnInitProblem, &HA.getICFG());
+    IFDSSolver Solver(&UnInitProblem, &HA.getICFG());
     Solver.solve();
     GTPrinter.onFinalize();
   }

@@ -82,9 +82,8 @@ using IDESolverConfig = WithComputeValues<IDESolverConfigBase, true>;
 using IFDSSolverConfig = WithComputeValues<IDESolverConfigBase, false>;
 
 template <typename Base, bool ComputeValuesVal>
-struct [[clang::preferred_name(IDESolverConfig),
-         clang::preferred_name(IFDSSolverConfig)]]
-WithComputeValues : Base {
+struct PSR_PREFERRED_NAME(IDESolverConfig)
+    PSR_PREFERRED_NAME(IFDSSolverConfig) WithComputeValues : Base {
   static constexpr bool ComputeValues = ComputeValuesVal;
 };
 
@@ -93,8 +92,8 @@ using IDESolverConfigWithStats = WithStats<IDESolverConfig, true>;
 using IFDSSolverConfigWithStats = WithStats<IFDSSolverConfig, true>;
 
 template <typename Base, bool EnableStats>
-struct [[clang::preferred_name(IDESolverConfigWithStats),
-         clang::preferred_name(IFDSSolverConfigWithStats)]] WithStats : Base {
+struct PSR_PREFERRED_NAME(IDESolverConfigWithStats)
+    PSR_PREFERRED_NAME(IFDSSolverConfigWithStats) WithStats : Base {
   static constexpr bool EnableStatistics = EnableStats;
 };
 
@@ -112,8 +111,7 @@ template <typename Base, JumpFunctionGCMode GCMode> struct WithGCMode;
 using IFDSSolverConfigWithStatsAndGC =
     WithGCMode<IFDSSolverConfigWithStats, JumpFunctionGCMode::Enabled>;
 template <typename Base, JumpFunctionGCMode GCMode>
-struct [[clang::preferred_name(IFDSSolverConfigWithStatsAndGC)]] WithGCMode
-    : Base {
+struct PSR_PREFERRED_NAME(IFDSSolverConfigWithStatsAndGC) WithGCMode : Base {
   static constexpr JumpFunctionGCMode EnableJumpFunctionGC = GCMode;
 };
 

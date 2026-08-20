@@ -17,6 +17,7 @@
 #ifndef PHASAR_DATAFLOW_IFDSIDE_SOLVER_IFDSSOLVER_H
 #define PHASAR_DATAFLOW_IFDSIDE_SOLVER_IFDSSOLVER_H
 
+#include "phasar/DataFlow/IfdsIde/IFDSProblem.h"
 #include "phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h"
 #include "phasar/DataFlow/IfdsIde/Solver/IDESolver.h"
 #include "phasar/Domain/BinaryDomain.h"
@@ -50,18 +51,23 @@ public:
   using n_t = typename AnalysisDomainTy::n_t;
   using i_t = ICFGTy;
 
-  template <typename IfdsDomainTy>
-    requires(std::same_as<WithBinaryValueDomain<AnalysisDomainTy>,
-                          WithBinaryValueDomain<IfdsDomainTy>>)
-  IFDSSolver(IFDSTabulationProblem<IfdsDomainTy, Container> &IFDSProblem,
-             const ICFGTy *ICF)
+  template <IFDSProblem ProblemTy>
+    requires(std::same_as<
+             WithBinaryValueDomain<AnalysisDomainTy>,
+             WithBinaryValueDomain<typename ProblemTy::ProblemAnalysisDomain>>)
+  [[deprecated(
+      "Use the other overload of IFDSSolver() instead, which takes the "
+      "ifds-problem by pointer. This documents better that the solver captures "
+      "the address without taking ownership")]] IFDSSolver(ProblemTy
+                                                               &IFDSProblem,
+                                                           const ICFGTy *ICF)
       : Base(IFDSProblem, ICF) {}
 
-  template <typename IfdsDomainTy>
-    requires(std::same_as<WithBinaryValueDomain<AnalysisDomainTy>,
-                          WithBinaryValueDomain<IfdsDomainTy>>)
-  IFDSSolver(IFDSTabulationProblem<IfdsDomainTy, Container> *IFDSProblem,
-             const ICFGTy *ICF)
+  template <IFDSProblem ProblemTy>
+    requires(std::same_as<
+             WithBinaryValueDomain<AnalysisDomainTy>,
+             WithBinaryValueDomain<typename ProblemTy::ProblemAnalysisDomain>>)
+  IFDSSolver(ProblemTy *IFDSProblem, const ICFGTy *ICF)
       : Base(IFDSProblem, ICF) {}
 
   ~IFDSSolver() override = default;
@@ -131,11 +137,11 @@ using IFDSSolver_P
         IFDSSolver<typename Problem::ProblemAnalysisDomain,
                    typename Problem::container_type>;
 
-template <typename AnalysisDomainTy, typename Container>
-OwningSolverResults<typename AnalysisDomainTy::n_t,
-                    typename AnalysisDomainTy::d_t, BinaryDomain>
-solveIFDSProblem(IFDSTabulationProblem<AnalysisDomainTy, Container> &Problem,
-                 const ICFG auto &ICF) {
+template <IFDSProblem ProblemTy>
+auto solveIFDSProblem(ProblemTy &Problem, const ICFG auto &ICF)
+    -> OwningSolverResults<typename ProblemTy::ProblemAnalysisDomain::n_t,
+                           typename ProblemTy::ProblemAnalysisDomain::d_t,
+                           BinaryDomain> {
   IFDSSolver Solver(&Problem, &ICF);
   Solver.solve();
   return Solver.consumeSolverResults();

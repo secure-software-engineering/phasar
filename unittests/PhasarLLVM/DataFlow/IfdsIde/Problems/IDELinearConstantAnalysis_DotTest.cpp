@@ -30,7 +30,7 @@ protected:
     HelperAnalyses HA(PathToLlFiles + LlvmFilePath, EntryPoints);
     auto LCAProblem =
         createAnalysisProblem<IDELinearConstantAnalysis>(HA, EntryPoints);
-    IDESolver LCASolver(LCAProblem, &HA.getICFG());
+    IDESolver LCASolver(&LCAProblem, &HA.getICFG());
     LCASolver.solve();
     if (EmitESG) {
       Logger::enable();

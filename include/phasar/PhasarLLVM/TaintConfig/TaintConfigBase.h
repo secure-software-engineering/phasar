@@ -11,6 +11,7 @@
 #define PHASAR_PHASARLLVM_TAINTCONFIG_TAINTCONFIGBASE_H
 
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfigData.h"
+#include "phasar/Utils/Macros.h"
 #include "phasar/Utils/Nullable.h"
 
 #include "llvm/ADT/FunctionExtras.h"
@@ -42,7 +43,7 @@ public:
       llvm::unique_function<std::set<v_t>(n_t) const>;
   using SkipSeedsCallBackTy = llvm::unique_function<bool(v_t) const>;
 
-  enum class [[clang::flag_enum]] SeedConfig {
+  enum class PSR_FLAG_ENUM SeedConfig {
     Arguments = 1,
     Instructions = 2,
 

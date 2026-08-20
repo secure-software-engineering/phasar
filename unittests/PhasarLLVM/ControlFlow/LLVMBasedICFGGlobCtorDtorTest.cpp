@@ -198,7 +198,7 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest1) {
   IDELinearConstantAnalysis Problem(
       &IRDB, &ICFG, {LLVMBasedICFG::GlobalCRuntimeModelName.str()});
 
-  IDESolver Solver(Problem, &ICFG);
+  IDESolver Solver(&Problem, &ICFG);
 
   Solver.solve();
 
@@ -233,7 +233,7 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest2) {
   IDELinearConstantAnalysis Problem(
       &IRDB, &ICFG, {LLVMBasedICFG::GlobalCRuntimeModelName.str()});
 
-  IDESolver Solver(Problem, &ICFG);
+  IDESolver Solver(&Problem, &ICFG);
 
   Solver.solve();
 
@@ -275,7 +275,7 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest3) {
   IDELinearConstantAnalysis Problem(
       &IRDB, &ICFG, {LLVMBasedICFG::GlobalCRuntimeModelName.str()});
 
-  IDESolver Solver(Problem, &ICFG);
+  IDESolver Solver(&Problem, &ICFG);
 
   Solver.solve();
 
@@ -320,7 +320,7 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, DISABLED_LCATest4) {
   IDELinearConstantAnalysis Problem(
       &IRDB, &ICFG, {LLVMBasedICFG::GlobalCRuntimeModelName.str()});
 
-  IDESolver Solver(Problem, &ICFG);
+  IDESolver Solver(&Problem, &ICFG);
 
   Solver.solve();
 
@@ -353,7 +353,7 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest4_1) {
   IDELinearConstantAnalysis Problem(
       &IRDB, &ICFG, {LLVMBasedICFG::GlobalCRuntimeModelName.str()});
 
-  IDESolver Solver(Problem, &ICFG);
+  IDESolver Solver(&Problem, &ICFG);
 
   Solver.solve();
 
@@ -400,7 +400,7 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest5) {
   IDELinearConstantAnalysis Problem(
       &IRDB, &ICFG, {LLVMBasedICFG::GlobalCRuntimeModelName.str()});
 
-  IDESolver Solver(Problem, &ICFG);
+  IDESolver Solver(&Problem, &ICFG);
 
   // const auto *GlobalDtor =
   //     ICFG.getRegisteredDtorsCallerOrNull(IRDB.getModule());

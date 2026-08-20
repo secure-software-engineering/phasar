@@ -38,4 +38,59 @@
 #define PSR_LIFETIMEBOUND
 #endif
 
+#if __has_cpp_attribute(clang::lifetime_capture_by)
+#define PSR_LIFETIME_CAPTURE_BY(...) [[clang::lifetime_capture_by(__VA_ARGS__)]]
+#else
+#define PSR_LIFETIME_CAPTURE_BY(...)
+#endif
+
+#if __has_cpp_attribute(clang::internal_linkage)
+#define PSR_INTERNAL_LINKAGE [[clang::internal_linkage]]
+#else
+#define PSR_INTERNAL_LINKAGE
+#endif
+
+#if __has_cpp_attribute(clang::trivial_abi)
+#define PSR_TRIVIAL_ABI [[clang::trivial_abi]]
+#else
+#define PSR_TRIVIAL_ABI
+#endif
+
+#if __has_cpp_attribute(clang::require_explicit_initialization)
+#define PSR_REQUIRE_EXPLICIT_INITIALIZATION                                    \
+  [[clang::require_explicit_initialization]]
+#else
+#define PSR_REQUIRE_EXPLICIT_INITIALIZATION
+#endif
+
+#if __has_cpp_attribute(clang::enum_extensibility)
+#define PSR_ENUM_EXTENSIBILITY(...) [[clang::enum_extensibility(__VA_ARGS__)]]
+#else
+#define PSR_ENUM_EXTENSIBILITY(...)
+#endif
+
+#if __has_cpp_attribute(gsl::Owner)
+#define PSR_OWNER(...) [[gsl::Owner(__VA_ARGS__)]]
+#else
+#define PSR_OWNER(...)
+#endif
+
+#if __has_cpp_attribute(gsl::Pointer)
+#define PSR_POINTER(...) [[gsl::Pointer(__VA_ARGS__)]]
+#else
+#define PSR_POINTER(...)
+#endif
+
+#if __has_cpp_attribute(clang::flag_enum)
+#define PSR_FLAG_ENUM [[clang::flag_enum]]
+#else
+#define PSR_FLAG_ENUM
+#endif
+
+#if __has_cpp_attribute(clang::preferred_name)
+#define PSR_PREFERRED_NAME(...) [[clang::preferred_name(__VA_ARGS__)]]
+#else
+#define PSR_PREFERRED_NAME(...)
+#endif
+
 #endif // PHASAR_UTILS_MACROS_H

@@ -24,6 +24,8 @@
 
 using namespace psr;
 
+static_assert(IsSemiRing<BinarySemiRing>);
+
 /* ============== TEST FIXTURE ============== */
 class WPDSSolverTest : public ::testing::TestWithParam<std::string_view> {
 protected:

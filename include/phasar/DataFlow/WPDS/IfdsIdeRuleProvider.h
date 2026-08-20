@@ -11,6 +11,9 @@
 
 #include "phasar/ControlFlow/SparseCFGProvider.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
+#include "phasar/DataFlow/IfdsIde/IDEProblem.h"
+#include "phasar/DataFlow/IfdsIde/IDEProblemWrapper.h"
+#include "phasar/DataFlow/IfdsIde/IFDSProblem.h"
 #include "phasar/DataFlow/IfdsIde/Solver/FlowEdgeFunctionCache.h"
 #include "phasar/DataFlow/WPDS/RuleProvider.h"
 #include "phasar/Domain/BinaryDomain.h"
@@ -35,7 +38,8 @@ template <typename ProblemT> struct WeightTypeOf<true, ProblemT> {
 };
 } // namespace detail
 
-template <typename ProblemT, typename ICFGTy, bool ComputeWeights>
+template <IFDSProblem ProblemT, typename ICFGTy,
+          bool ComputeWeights = IDEProblem<ProblemT>>
 class IfdsIdeRuleProvider {
 public:
   using control_location_type = typename ProblemT::d_t;
@@ -209,14 +213,14 @@ public:
         std::tuple<control_location_type, stack_element_type, weight_type>>
         Outs;
 
-    for (const auto &[Inst, Facts] : Problem->initialSeeds().getSeeds()) {
+    for (const auto &[Inst, Facts] : Problem.initialSeeds().getSeeds()) {
       for (const auto &[Fact, Val] : Facts) {
         if constexpr (ComputeWeights) {
           using l_t = typename ProblemT::l_t;
-          if (Val == Problem->topElement()) {
+          if (Val == Problem.topElement()) {
             continue;
           }
-          if (Val == Problem->bottomElement()) {
+          if (Val == Problem.bottomElement()) {
             if constexpr (HasJoinLatticeTraits<l_t>) {
               Outs.emplace_back(Fact, Inst, AllBottom<l_t>{});
             } else {
@@ -248,17 +252,17 @@ private:
     }
   }
 
-  ProblemT *Problem{};
+  IfdsIdeProblemWrapper<ProblemT> Problem;
   const ICFGTy *ICF{};
 
-  FlowEdgeFunctionCache<typename ProblemT::ProblemAnalysisDomain> FECache{
-      *Problem};
+  FlowEdgeFunctionCache<typename IfdsIdeProblemWrapper<ProblemT>::IDEProblemTy>
+      FECache{&Problem.ideProblem()};
 };
 
-template <typename ProblemT, typename ICFGTy>
+template <IDEProblem ProblemT, typename ICFGTy>
 using IDERuleProvider = IfdsIdeRuleProvider<ProblemT, ICFGTy, true>;
 
-template <typename ProblemT, typename ICFGTy>
+template <IFDSProblem ProblemT, typename ICFGTy>
 using IFDSRuleProvider = IfdsIdeRuleProvider<ProblemT, ICFGTy, false>;
 
 } // namespace psr::wpds

@@ -58,7 +58,7 @@ namespace psr {
 /// Applications: An Experience Report"
 /// (<https://doi.org/10.4230/LIPIcs.ECOOP.2024.36>) by Schiebel, Sattler,
 /// Schubert, Apel, and Bodden.
-template <typename ProblemTy,
+template <IFDSProblem ProblemTy,
           typename StaticSolverConfigTy = DefaultIDESolverConfig<ProblemTy>,
           ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t>
 class IterativeIDESolver
@@ -69,10 +69,8 @@ class IterativeIDESolver
           std::conditional_t<StaticSolverConfigTy::ComputeValues,
                              typename ProblemTy::ProblemAnalysisDomain::l_t,
                              BinaryDomain>>,
-      public IterativeIDESolverBase<
-          StaticSolverConfigTy,
-          typename StaticSolverConfigTy::template EdgeFunctionPtrType<
-              typename ProblemTy::ProblemAnalysisDomain::l_t>>,
+      public IterativeIDESolverBase<StaticSolverConfigTy,
+                                    typename ProblemTy::EdgeFunctionType>,
       public IDESolverAPIMixin<
           IterativeIDESolver<ProblemTy, StaticSolverConfigTy, ICFGTy>> {
 
@@ -93,10 +91,8 @@ public:
   using config_t = StaticSolverConfigTy;
 
 private:
-  using base_t = IterativeIDESolverBase<
-      StaticSolverConfigTy,
-      typename StaticSolverConfigTy::template EdgeFunctionPtrType<
-          typename domain_t::l_t>>;
+  using base_t = IterativeIDESolverBase<StaticSolverConfigTy,
+                                        typename ProblemTy::EdgeFunctionType>;
 
   using base_results_t = detail::IterativeIDESolverResults<n_t, d_t, l_t>;
 
@@ -404,9 +400,9 @@ private:
 
   void submitInitialSeeds() {
     auto Seeds = Problem.initialSeeds();
-    EdgeFunctionPtrType IdFun = [] {
+    EdgeFunctionPtrType IdFun = [&] {
       if constexpr (ComputeValues) {
-        return EdgeIdentity<l_t>{};
+        return Problem.identity();
       } else {
         return EdgeFunctionPtrType{};
       }
@@ -874,9 +870,9 @@ private:
                                  combineIds(AtInstructionId, CalleeId))
             .computeTargets(CSFact);
 
-    EdgeFunctionPtrType IdEF = [] {
+    EdgeFunctionPtrType IdEF = [&] {
       if constexpr (ComputeValues) {
-        return EdgeIdentity<l_t>{};
+        return Problem.identity();
       } else {
         return EdgeFunctionPtrType{};
       }

@@ -1,5 +1,7 @@
+#pragma once
+
 /******************************************************************************
- * Copyright (c) 2023 Philipp Schubert.
+ * Copyright (c) 2026 Fabian Schiebel.
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of LICENSE.txt.
  *
@@ -7,12 +9,8 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_TAINTCONFIG_H
-#define PHASAR_PHASARLLVM_TAINTCONFIG_H
-
-#include "phasar/PhasarLLVM/TaintConfig/DoubleFreeConfig.h"
 #include "phasar/PhasarLLVM/TaintConfig/LLVMTaintConfig.h"
-#include "phasar/PhasarLLVM/TaintConfig/TaintConfigBase.h"
-#include "phasar/PhasarLLVM/TaintConfig/TaintConfigUtilities.h"
 
-#endif // PHASAR_PHASARLLVM_TAINTCONFIG_H
+namespace psr {
+LLVMTaintConfig getDoubleFreeConfig();
+} // namespace psr

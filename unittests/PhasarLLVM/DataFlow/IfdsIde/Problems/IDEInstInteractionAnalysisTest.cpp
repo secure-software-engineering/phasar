@@ -163,7 +163,7 @@ protected:
     };
     // register the above generator function
     IIAProblem.registerEdgeFactGenerator(Generator);
-    IDESolver IIASolver(IIAProblem, &HA->getICFG());
+    IDESolver IIASolver(&IIAProblem, &HA->getICFG());
     IIASolver.solve();
     if (PrintDump) {
       IIASolver.dumpResults();

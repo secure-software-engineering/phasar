@@ -76,6 +76,27 @@ public:
   };
 };
 
+template <typename L> class DerivedJoinLattice {
+public:
+  using l_t = L;
+
+  [[nodiscard]] constexpr l_t topElement()
+    requires HasJoinLatticeTraits<L>
+  {
+    return JoinLatticeTraits<l_t>::top();
+  }
+  [[nodiscard]] constexpr l_t bottomElement()
+    requires HasJoinLatticeTraits<L>
+  {
+    return JoinLatticeTraits<l_t>::bottom();
+  }
+  [[nodiscard]] constexpr l_t join(l_t Lhs, l_t Rhs)
+    requires HasJoinLatticeTraits<L>
+  {
+    return JoinLatticeTraits<l_t>::join(std::move(Lhs), std::move(Rhs));
+  }
+};
+
 template <typename L> struct NonTopBotValue {
   using type = L;
 

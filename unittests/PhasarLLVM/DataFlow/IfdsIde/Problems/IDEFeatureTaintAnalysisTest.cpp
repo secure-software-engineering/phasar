@@ -128,7 +128,7 @@ protected:
     auto IIAProblem = createAnalysisProblem<IDEFeatureTaintAnalysis>(
         *HA, EntryPoints, Generator);
 
-    IDESolver IIASolver(IIAProblem, &HA->getICFG());
+    IDESolver IIASolver(&IIAProblem, &HA->getICFG());
     // IterativeIDESolver IIASolver(&IIAProblem, &HA->getICFG());
     auto Results = IIASolver.solve();
 

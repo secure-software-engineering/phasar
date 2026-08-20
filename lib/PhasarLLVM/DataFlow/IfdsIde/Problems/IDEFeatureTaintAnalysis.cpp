@@ -34,7 +34,7 @@ using d_t = IDEFeatureTaintAnalysisDomain::d_t;
 IDEFeatureTaintAnalysis::IDEFeatureTaintAnalysis(
     const LLVMProjectIRDB *IRDB, LLVMAliasInfoRef PT,
     std::vector<std::string> EntryPoints, FeatureTaintGenerator &&TaintGen)
-    : IDETabulationProblem<IDEFeatureTaintAnalysisDomain>(
+    : IfdsIdeProblemMixin<IDEFeatureTaintAnalysisDomain>(
           IRDB, std::move(EntryPoints), LLVMZeroValue::getInstance()),
       TaintGen(std::move(TaintGen)), PT(PT) {}
 
@@ -93,7 +93,7 @@ static bool canKillPointerOp(const llvm::Value *PointerOp,
 
   if (llvm::isa<llvm::Instruction>(Src) ||
       llvm::isa<llvm::Instruction>(PointerOp)) {
-    return PointerOpMayAliases.count(Src);
+    return PointerOpMayAliases.contains(Src);
   }
 
   return false;
@@ -115,7 +115,7 @@ static auto getStoreFF(bool GeneratesFact, LLVMAliasInfoRef PT,
       [Dest, Value, PointerRet = std::move(PointerRet),
        ValuePTS = std::move(ValuePTS),
        GeneratesFact](d_t Src) -> container_type {
-        if (Dest == Src || (PointerRet.count(Src) &&
+        if (Dest == Src || (PointerRet.contains(Src) &&
                             canKillPointerOp(Dest, Src, PointerRet))) {
           return {};
         }
@@ -126,7 +126,7 @@ static auto getStoreFF(bool GeneratesFact, LLVMAliasInfoRef PT,
           // ... or from zero, if we manually generate a fact here
           if (Value == Src ||
               (GeneratesFact && LLVMZeroValue::isLLVMZeroValue(Src)) ||
-              ValuePTS->count(Src)) {
+              ValuePTS->contains(Src)) {
             return PointerRet;
           }
 
@@ -157,7 +157,7 @@ auto IDEFeatureTaintAnalysis::getNormalFlowFunction(n_t Curr, n_t /* Succ */)
           bool GenFromZero =
               GeneratesFact && LLVMZeroValue::isLLVMZeroValue(Source);
 
-          if (GenFromZero || Source == PointerOp || PTS->count(Source)) {
+          if (GenFromZero || Source == PointerOp || PTS->contains(Source)) {
             return {Source, Load};
           }
 
@@ -614,32 +614,29 @@ auto IDEFeatureTaintAnalysis::initialSeeds() -> InitialSeeds<n_t, d_t, l_t> {
   InitialSeeds<n_t, d_t, l_t> Seeds;
 
   LLVMBasedCFG CFG;
-  forallStartingPoints(this->EntryPoints, IRDB, CFG, [this, &Seeds](n_t SP) {
-    // Set initial seeds at the required entry points and generate the global
-    // variables using generalized initial seeds
+  forallStartingPoints(
+      this->EntryPoints, getProjectIRDB(), CFG, [this, &Seeds](n_t SP) {
+        // Set initial seeds at the required entry points and generate the
+        // global variables using generalized initial seeds
 
-    // Generate zero value at the entry points
-    Seeds.addSeed(SP, this->getZeroValue(), 0);
-    // Generate formal parameters of entry points, e.g. main(). Formal
-    // parameters will otherwise cause trouble by overriding alloca
-    // instructions without being valid data-flow facts themselves.
+        // Generate zero value at the entry points
+        Seeds.addSeed(SP, this->getZeroValue(), 0);
+        // Generate formal parameters of entry points, e.g. main(). Formal
+        // parameters will otherwise cause trouble by overriding alloca
+        // instructions without being valid data-flow facts themselves.
 
-    // Generate all global variables using generalized initial seeds
-    for (const auto &G : this->IRDB->getModule()->globals()) {
-      if (const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(&G)) {
-        l_t InitialValues = TaintGen.getGeneratedTaintsAt(GV);
-        if (InitialValues.Taints.any()) {
-          Seeds.addSeed(SP, GV, std::move(InitialValues));
+        // Generate all global variables using generalized initial seeds
+        for (const auto &G : this->IRDB->getModule()->globals()) {
+          if (const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(&G)) {
+            l_t InitialValues = TaintGen.getGeneratedTaintsAt(GV);
+            if (InitialValues.Taints.any()) {
+              Seeds.addSeed(SP, GV, std::move(InitialValues));
+            }
+          }
         }
-      }
-    }
-  });
+      });
 
   return Seeds;
-}
-
-bool IDEFeatureTaintAnalysis::isZeroValue(d_t FlowFact) const noexcept {
-  return LLVMZeroValue::isLLVMZeroValue(FlowFact);
 }
 
 void IDEFeatureTaintAnalysis::emitTextReport(
