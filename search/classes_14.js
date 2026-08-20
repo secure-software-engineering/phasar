@@ -6,7 +6,7 @@ var searchData=
   ['valuecompressor_3',['ValueCompressor',['../classpsr_1_1ValueCompressor.html',1,'psr']]],
   ['valuecomputationjob_4',['ValueComputationJob',['../unionpsr_1_1IterativeIDESolverBase_1_1ValueComputationJob.html',1,'psr::IterativeIDESolverBase']]],
   ['valueidmap_5',['ValueIdMap',['../classpsr_1_1ValueIdMap.html',1,'psr']]],
-  ['valueidmap_3c_20valueid_2c_20psr_3a_3aroaringaliasset_3c_20valueid_20_3e_20_3e_6',['ValueIdMap&lt; ValueId, psr::RoaringAliasSet&lt; ValueId &gt; &gt;',['../classpsr_1_1ValueIdMap.html',1,'psr']]],
+  ['valueidmap_3c_20valueid_2c_20psr_3a_3asparsebitset_3c_20valueid_20_3e_20_3e_6',['ValueIdMap&lt; ValueId, psr::SparseBitSet&lt; ValueId &gt; &gt;',['../classpsr_1_1ValueIdMap.html',1,'psr']]],
   ['valuepropagationjob_7',['ValuePropagationJob',['../structpsr_1_1IterativeIDESolverBase_1_1ValuePropagationJob.html',1,'psr::IterativeIDESolverBase']]],
   ['varannotation_8',['VarAnnotation',['../classpsr_1_1VarAnnotation.html',1,'psr']]],
   ['variable_9',['Variable',['../structpsr_1_1vta_1_1Variable.html',1,'psr::vta']]],

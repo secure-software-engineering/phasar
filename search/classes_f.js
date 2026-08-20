@@ -43,5 +43,6 @@ var searchData=
   ['pointstotraits_3c_20pointstoinforef_3c_20ptatraits_20_3e_20_3e_40',['PointsToTraits&lt; PointsToInfoRef&lt; PTATraits &gt; &gt;',['../structpsr_1_1PointsToTraits_3_01PointsToInfoRef_3_01PTATraits_01_4_01_4.html',1,'psr']]],
   ['precomputedresolver_41',['PrecomputedResolver',['../classpsr_1_1PrecomputedResolver.html',1,'psr']]],
   ['prettyprinter_42',['PrettyPrinter',['../structpsr_1_1PrettyPrinter.html',1,'psr']]],
-  ['ptatraits_43',['PTATraits',['../classPTATraits.html',1,'']]]
+  ['ptatraits_43',['PTATraits',['../classPTATraits.html',1,'']]],
+  ['punnedabicache_44',['PunnedABICache',['../classpsr_1_1PunnedABICache.html',1,'psr']]]
 ];

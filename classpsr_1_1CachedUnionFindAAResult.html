@@ -109,8 +109,8 @@ Static Public Member Functions</h2></td></tr>
 <tr class="separator:a8ca66e7d6a3c1f82fa9f62a4856a7b19"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><div class="compoundTemplParams">template&lt;UnionFindAAResult AAResT, <a class="el" href="classbool.html">bool</a> ShouldCacheMayAlias = true&gt;<br />
-class psr::CachedUnionFindAAResult&lt; AAResT, ShouldCacheMayAlias &gt;</div><p>Lazy cache that wraps any <code>UnionFindAAResult</code> and memoises <code><a class="el" href="classpsr_1_1CachedUnionFindAAResult.html#aa7acb96f23d9d2a8ef8d968bf4e481cb">getRawAliasSet()</a></code> results in a <code><a class="el" href="classpsr_1_1ValueIdMap.html" title="A dense, partially-populated map keyed by a sequential integer-like id.">ValueIdMap</a></code>.</p>
+<div class="textblock"><div class="compoundTemplParams">template&lt;RawAAResult AAResT, <a class="el" href="classbool.html">bool</a> ShouldCacheMayAlias = true&gt;<br />
+class psr::CachedUnionFindAAResult&lt; AAResT, ShouldCacheMayAlias &gt;</div><p>Lazy cache that wraps any <code>RawAAResult</code> and memoises <code><a class="el" href="classpsr_1_1CachedUnionFindAAResult.html#aa7acb96f23d9d2a8ef8d968bf4e481cb">getRawAliasSet()</a></code> results in a <code><a class="el" href="classpsr_1_1ValueIdMap.html" title="A dense, partially-populated map keyed by a sequential integer-like id.">ValueIdMap</a></code>.</p>
 <p>Not thread-safe. Each unique <code>ValueId</code> is computed at most once on first access.</p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
@@ -119,7 +119,7 @@ class psr::CachedUnionFindAAResult&lt; AAResT, ShouldCacheMayAlias &gt;</div><p>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="UnionFindAA_8h_source.html#l00126">126</a> of file <a class="el" href="UnionFindAA_8h_source.html">UnionFindAA.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="UnionFindAA_8h_source.html#l00095">95</a> of file <a class="el" href="UnionFindAA_8h_source.html">UnionFindAA.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="af0c2281be1d910af5b0c26f79405d2a2" name="af0c2281be1d910af5b0c26f79405d2a2"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#af0c2281be1d910af5b0c26f79405d2a2">&#9670;&#160;</a></span>CachedUnionFindAAResult()</h2>
@@ -127,7 +127,7 @@ class psr::CachedUnionFindAAResult&lt; AAResT, ShouldCacheMayAlias &gt;</div><p>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;UnionFindAAResult AAResT, <a class="el" href="classbool.html">bool</a> ShouldCacheMayAlias = true&gt; </div>
+template&lt;RawAAResult AAResT, <a class="el" href="classbool.html">bool</a> ShouldCacheMayAlias = true&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -147,7 +147,7 @@ template&lt;UnionFindAAResult AAResT, <a class="el" href="classbool.html">bool</
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="UnionFindAA_8h_source.html#l00128">128</a> of file <a class="el" href="UnionFindAA_8h_source.html">UnionFindAA.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="UnionFindAA_8h_source.html#l00097">97</a> of file <a class="el" href="UnionFindAA_8h_source.html">UnionFindAA.h</a>.</p>
 
 </div>
 </div>
@@ -158,7 +158,7 @@ template&lt;UnionFindAAResult AAResT, <a class="el" href="classbool.html">bool</
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;UnionFindAAResult AAResT, <a class="el" href="classbool.html">bool</a> ShouldCacheMayAlias = true&gt; </div>
+template&lt;RawAAResult AAResT, <a class="el" href="classbool.html">bool</a> ShouldCacheMayAlias = true&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -178,9 +178,9 @@ template&lt;UnionFindAAResult AAResT, <a class="el" href="classbool.html">bool</
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="UnionFindAA_8h_source.html#l00136">136</a> of file <a class="el" href="UnionFindAA_8h_source.html">UnionFindAA.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="UnionFindAA_8h_source.html#l00105">105</a> of file <a class="el" href="UnionFindAA_8h_source.html">UnionFindAA.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="UnionFindAA_8h_source.html#l00144">psr::CachedUnionFindAAResult&lt; AAResT, ShouldCacheMayAlias &gt;::mayAlias()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="UnionFindAA_8h_source.html#l00113">psr::CachedUnionFindAAResult&lt; AAResT, ShouldCacheMayAlias &gt;::mayAlias()</a>.</p>
 
 </div>
 </div>
@@ -190,7 +190,7 @@ template&lt;UnionFindAAResult AAResT, <a class="el" href="classbool.html">bool</
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;UnionFindAAResult AAResT, <a class="el" href="classbool.html">bool</a> ShouldCacheMayAlias = true&gt; </div>
+template&lt;RawAAResult AAResT, <a class="el" href="classbool.html">bool</a> ShouldCacheMayAlias = true&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -209,7 +209,7 @@ template&lt;UnionFindAAResult AAResT, <a class="el" href="classbool.html">bool</
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="UnionFindAA_8h_source.html#l00132">132</a> of file <a class="el" href="UnionFindAA_8h_source.html">UnionFindAA.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="UnionFindAA_8h_source.html#l00101">101</a> of file <a class="el" href="UnionFindAA_8h_source.html">UnionFindAA.h</a>.</p>
 
 </div>
 </div>
@@ -219,7 +219,7 @@ template&lt;UnionFindAAResult AAResT, <a class="el" href="classbool.html">bool</
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;UnionFindAAResult AAResT, <a class="el" href="classbool.html">bool</a> ShouldCacheMayAlias = true&gt; </div>
+template&lt;RawAAResult AAResT, <a class="el" href="classbool.html">bool</a> ShouldCacheMayAlias = true&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -249,9 +249,9 @@ template&lt;UnionFindAAResult AAResT, <a class="el" href="classbool.html">bool</
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="UnionFindAA_8h_source.html#l00144">144</a> of file <a class="el" href="UnionFindAA_8h_source.html">UnionFindAA.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="UnionFindAA_8h_source.html#l00113">113</a> of file <a class="el" href="UnionFindAA_8h_source.html">UnionFindAA.h</a>.</p>
 
-<p class="reference">References <a class="el" href="UnionFindAA_8h_source.html#l00136">psr::CachedUnionFindAAResult&lt; AAResT, ShouldCacheMayAlias &gt;::getRawAliasSet()</a>.</p>
+<p class="reference">References <a class="el" href="UnionFindAA_8h_source.html#l00105">psr::CachedUnionFindAAResult&lt; AAResT, ShouldCacheMayAlias &gt;::getRawAliasSet()</a>.</p>
 
 </div>
 </div>
@@ -261,7 +261,7 @@ template&lt;UnionFindAAResult AAResT, <a class="el" href="classbool.html">bool</
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;UnionFindAAResult AAResT, <a class="el" href="classbool.html">bool</a> ShouldCacheMayAlias = true&gt; </div>
+template&lt;RawAAResult AAResT, <a class="el" href="classbool.html">bool</a> ShouldCacheMayAlias = true&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -280,7 +280,7 @@ template&lt;UnionFindAAResult AAResT, <a class="el" href="classbool.html">bool</
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="UnionFindAA_8h_source.html#l00134">134</a> of file <a class="el" href="UnionFindAA_8h_source.html">UnionFindAA.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="UnionFindAA_8h_source.html#l00103">103</a> of file <a class="el" href="UnionFindAA_8h_source.html">UnionFindAA.h</a>.</p>
 
 </div>
 </div>
@@ -290,7 +290,7 @@ template&lt;UnionFindAAResult AAResT, <a class="el" href="classbool.html">bool</
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Aug 19 2026 16:39:43 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Aug 20 2026 16:00:35 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

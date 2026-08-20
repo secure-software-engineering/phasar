@@ -154,7 +154,7 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1AliasInfoTraits_3_01LLVMAliasSet_01_4.html">AliasInfoTraits&lt; LLVMAliasSet &gt;</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1AliasInfoTraits_3_01LLVMUnionFindAliasSet_01_4.html">AliasInfoTraits&lt; LLVMUnionFindAliasSet &gt;</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1AliasInfoTraits_3_01LLVMRawAliasSet_01_4.html">AliasInfoTraits&lt; LLVMRawAliasSet &gt;</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1AliasIteratorRef.html">AliasIteratorRef</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A type-erased reference to any object implementing the IsAliasIterator interface. Use this, if your alias-aware analysis just needs a minimal interface to work with aliases and does not require the versatility of <a class="el" href="classpsr_1_1AliasInfoRef.html" title="A type-erased reference to any object implementing the IsAliasInfo interface. Use this,...">AliasInfoRef</a>.  <a href="classpsr_1_1AliasIteratorRef.html#details">More...</a><br /></td></tr>
@@ -273,6 +273,8 @@ Classes</h2></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A utility class that assigns a sequential Id to every inserted object.  <a href="classpsr_1_1Compressor_3_01T_00_01IdT_01_4.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1ConstantEdgeFunction.html">ConstantEdgeFunction</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1ContextSensitivityOptions.html">ContextSensitivityOptions</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1ControlFlowOrder.html">ControlFlowOrder</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -696,11 +698,14 @@ C/C++" by Schubert et al.  <a href="classpsr_1_1GlobalCtorsDtorsModel.html#detai
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1LLVMIRDomain.html">LLVMIRDomain</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMLocalUnionFindAliasIterator.html">LLVMLocalUnionFindAliasIterator</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMLocalRawAliasIterator.html">LLVMLocalRawAliasIterator</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMLocalUnionFindAliasIteratorMixin.html">LLVMLocalUnionFindAliasIteratorMixin</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMLocalRawAliasIteratorMixin.html">LLVMLocalRawAliasIteratorMixin</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMMapKeyCompressor.html">LLVMMapKeyCompressor</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1LLVMMemoryAccess.html">LLVMMemoryAccess</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The memory access to model for a load, store, atomicrmw or cmpxchg.  <a href="structpsr_1_1LLVMMemoryAccess.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMPAGBuilder.html">LLVMPAGBuilder</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -711,17 +716,17 @@ C/C++" by Schubert et al.  <a href="classpsr_1_1GlobalCtorsDtorsModel.html#detai
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Project IR Database that manages a LLVM IR module.  <a href="classpsr_1_1LLVMProjectIRDB.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1LLVMRawAliasIterator.html">LLVMRawAliasIterator</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1LLVMRawAliasIteratorMixin.html">LLVMRawAliasIteratorMixin</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMRawAliasSet.html">LLVMRawAliasSet</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1LLVMRawAliasSetBase.html">LLVMRawAliasSetBase</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMSourceManager.html">LLVMSourceManager</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMTaintConfig.html">LLVMTaintConfig</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1LLVMUnionFindAliasIterator.html">LLVMUnionFindAliasIterator</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1LLVMUnionFindAliasIteratorMixin.html">LLVMUnionFindAliasIteratorMixin</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMUnionFindAliasSet.html">LLVMUnionFindAliasSet</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1LLVMValueIDLess.html">LLVMValueIDLess</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Does less-than comparison based on the annotated ID.  <a href="structpsr_1_1LLVMValueIDLess.html#details">More...</a><br /></td></tr>
@@ -857,11 +862,15 @@ C/C++" by Schubert et al.  <a href="classpsr_1_1GlobalCtorsDtorsModel.html#detai
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1PrettyPrinter.html">PrettyPrinter</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1PunnedABICache.html">PunnedABICache</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1RandomChangeASTConsumer.html">RandomChangeASTConsumer</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1RandomChangeFrontendAction.html">RandomChangeFrontendAction</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1RandomChangeVisitor.html">RandomChangeVisitor</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1RawAAResultIntersection.html">RawAAResultIntersection</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1Ref2PointerConverter.html">Ref2PointerConverter</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -872,8 +881,6 @@ C/C++" by Schubert et al.  <a href="classpsr_1_1GlobalCtorsDtorsModel.html#detai
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A base class for call-target resolvers. Used to build call graphs.  <a href="classpsr_1_1Resolver.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1ReverseCGGraph.html">ReverseCGGraph</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1RoaringAliasSet.html">RoaringAliasSet</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1RTAResolver.html">RTAResolver</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A resolver that performs Rapid Type Analysis to resolve calls to C++ virtual functions. Requires debug information.  <a href="classpsr_1_1RTAResolver.html#details">More...</a><br /></td></tr>
@@ -920,6 +927,8 @@ C/C++" by Schubert et al.  <a href="classpsr_1_1GlobalCtorsDtorsModel.html#detai
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A struct that contains information about a source code line, function name, file name corresponding to the IR statement.  <a href="structpsr_1_1SourceCodeInfo.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1SourceMgrPrinter.html">SourceMgrPrinter</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1SparseBitSet.html">SparseBitSet</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1SparseCFGBase.html">SparseCFGBase</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -977,8 +986,6 @@ C/C++" by Schubert et al.  <a href="classpsr_1_1GlobalCtorsDtorsModel.html#detai
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1UnionFindAACombinator.html">UnionFindAACombinator</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1UnionFindAAResultBase.html">UnionFindAAResultBase</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1UnionFindAAResultIntersection.html">UnionFindAAResultIntersection</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1UnionFindAliasIterator.html">UnionFindAliasIterator</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Implements the AliasIterator interface on union-find alias-analysis results.  <a href="structpsr_1_1UnionFindAliasIterator.html#details">More...</a><br /></td></tr>
@@ -1128,10 +1135,13 @@ Concepts</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptpsr_1_1IsPointsToIterator.html">IsPointsToIterator</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptpsr_1_1RawAAResult.html">RawAAResult</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="classBase.html">Base</a> interface for results of a ValueId-based alias-analysis. <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptpsr_1_1IsRawAliasSet.html">IsRawAliasSet</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptpsr_1_1UnionFindAAResult.html">UnionFindAAResult</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="classBase.html">Base</a> interface for results of a union-find alias-analysis. <br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">For backwards-compatibility only. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptpsr_1_1CanEfficientlyPassByValue.html">CanEfficientlyPassByValue</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1293,6 +1303,17 @@ Typedefs</h2></td></tr>
 <tr class="separator:a0beffa0029dfbf34c21e440ef3447690"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0c600cd5295264b6c51437bdd2eba6cd" id="r_a0c600cd5295264b6c51437bdd2eba6cd"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a0c600cd5295264b6c51437bdd2eba6cd">LLVMPointsToIterator</a> = <a class="el" href="classpsr_1_1PointsToIterator.html">PointsToIterator</a>&lt; const llvm::Value *, const llvm::Value *, const llvm::Instruction * &gt;</td></tr>
 <tr class="separator:a0c600cd5295264b6c51437bdd2eba6cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a21b51c5fef812af57c1084af26033e0a" id="r_a21b51c5fef812af57c1084af26033e0a"><td class="memTemplParams" colspan="2">template&lt;typename AAResT &gt; </td></tr>
+<tr class="memitem:a21b51c5fef812af57c1084af26033e0a"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a21b51c5fef812af57c1084af26033e0a">LLVMUnionFindAliasIterator</a> = <a class="el" href="structpsr_1_1LLVMRawAliasIterator.html">LLVMRawAliasIterator</a>&lt; AAResT &gt;</td></tr>
+<tr class="memdesc:a21b51c5fef812af57c1084af26033e0a"><td class="mdescLeft">&#160;</td><td class="mdescRight">For backwards-comppatibility only.  <br /></td></tr>
+<tr class="separator:a21b51c5fef812af57c1084af26033e0a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6c03ee57b954fb9ded8acb44dbc70484" id="r_a6c03ee57b954fb9ded8acb44dbc70484"><td class="memTemplParams" colspan="2">template&lt;typename AAResT &gt; </td></tr>
+<tr class="memitem:a6c03ee57b954fb9ded8acb44dbc70484"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a6c03ee57b954fb9ded8acb44dbc70484">LLVMLocalUnionFindAliasIterator</a> = <a class="el" href="classpsr_1_1LLVMLocalRawAliasIterator.html">LLVMLocalRawAliasIterator</a>&lt; AAResT &gt;</td></tr>
+<tr class="memdesc:a6c03ee57b954fb9ded8acb44dbc70484"><td class="mdescLeft">&#160;</td><td class="mdescRight">For backwards-comppatibility only.  <br /></td></tr>
+<tr class="separator:a6c03ee57b954fb9ded8acb44dbc70484"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a00e35dfaf52bfa84f09f8cfd18c0eac7" id="r_a00e35dfaf52bfa84f09f8cfd18c0eac7"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a00e35dfaf52bfa84f09f8cfd18c0eac7">LLVMUnionFindAliasSet</a> = <a class="el" href="classpsr_1_1LLVMRawAliasSet.html">LLVMRawAliasSet</a></td></tr>
+<tr class="memdesc:a00e35dfaf52bfa84f09f8cfd18c0eac7"><td class="mdescLeft">&#160;</td><td class="mdescRight">For backwards compatibility only.  <br /></td></tr>
+<tr class="separator:a00e35dfaf52bfa84f09f8cfd18c0eac7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3984ab6ef97f14adbd41a728202ea430" id="r_a3984ab6ef97f14adbd41a728202ea430"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a3984ab6ef97f14adbd41a728202ea430">SVFBasedPointsToInfo</a> = <a class="el" href="classpsr_1_1PointsToInfo.html">PointsToInfo</a>&lt; <a class="el" href="structpsr_1_1SVFPointsToInfoTraits.html">SVFPointsToInfoTraits</a> &gt;</td></tr>
 <tr class="separator:a3984ab6ef97f14adbd41a728202ea430"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0635128f9f8dddd238e27749c907ab55" id="r_a0635128f9f8dddd238e27749c907ab55"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a0635128f9f8dddd238e27749c907ab55">SVFBasedPointsToInfoRef</a> = <a class="el" href="classpsr_1_1PointsToInfoRef.html">PointsToInfoRef</a>&lt; <a class="el" href="structpsr_1_1SVFPointsToInfoTraits.html">SVFPointsToInfoTraits</a> &gt;</td></tr>
@@ -1303,9 +1324,17 @@ Typedefs</h2></td></tr>
 <tr class="separator:a1a29ecd312949be1fe4a872d25310838"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8e179bd12d0563219238d9cee786c0a2" id="r_a8e179bd12d0563219238d9cee786c0a2"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a8e179bd12d0563219238d9cee786c0a2">FunctionRange</a> = llvm::iterator_range&lt; llvm::mapped_iterator&lt; llvm::Module::const_iterator, <a class="el" href="structpsr_1_1Ref2PointerConverter.html">Ref2PointerConverter</a>&lt; llvm::Function &gt; &gt; &gt;</td></tr>
 <tr class="separator:a8e179bd12d0563219238d9cee786c0a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7dfd79c7862c222131cdb86c5eb59963" id="r_a7dfd79c7862c222131cdb86c5eb59963"><td class="memTemplParams" colspan="2">template&lt;SmallIdType IdT&gt; </td></tr>
+<tr class="memitem:a7dfd79c7862c222131cdb86c5eb59963"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a7dfd79c7862c222131cdb86c5eb59963">RoaringAliasSet</a> = <a class="el" href="classpsr_1_1SparseBitSet.html">SparseBitSet</a>&lt; IdT &gt;</td></tr>
+<tr class="memdesc:a7dfd79c7862c222131cdb86c5eb59963"><td class="mdescLeft">&#160;</td><td class="mdescRight">For backwards-compatibility only.  <br /></td></tr>
+<tr class="separator:a7dfd79c7862c222131cdb86c5eb59963"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a25b64c0288c49921d70cdf58c2957e9f" id="r_a25b64c0288c49921d70cdf58c2957e9f"><td class="memTemplParams" colspan="2">template&lt;SmallIdType IdT&gt; </td></tr>
-<tr class="memitem:a25b64c0288c49921d70cdf58c2957e9f"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a25b64c0288c49921d70cdf58c2957e9f">RawAliasSet</a> = <a class="el" href="classpsr_1_1RoaringAliasSet.html">RoaringAliasSet</a>&lt; IdT &gt;</td></tr>
+<tr class="memitem:a25b64c0288c49921d70cdf58c2957e9f"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a25b64c0288c49921d70cdf58c2957e9f">RawAliasSet</a> = <a class="el" href="namespacepsr.html#a7dfd79c7862c222131cdb86c5eb59963">RoaringAliasSet</a>&lt; IdT &gt;</td></tr>
+<tr class="memdesc:a25b64c0288c49921d70cdf58c2957e9f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The default type used for alias/points-to sets.  <br /></td></tr>
 <tr class="separator:a25b64c0288c49921d70cdf58c2957e9f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a490fd8fa8cbf9dbaa91617ea8445ad26" id="r_a490fd8fa8cbf9dbaa91617ea8445ad26"><td class="memTemplParams" colspan="2">template&lt;RawAAResult FirstT, RawAAResult SecondT&gt; </td></tr>
+<tr class="memitem:a490fd8fa8cbf9dbaa91617ea8445ad26"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a490fd8fa8cbf9dbaa91617ea8445ad26">UnionFindAAResultIntersection</a> = <a class="el" href="structpsr_1_1RawAAResultIntersection.html">RawAAResultIntersection</a>&lt; FirstT, SecondT &gt;</td></tr>
+<tr class="separator:a490fd8fa8cbf9dbaa91617ea8445ad26"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab1fa2b63d3a5ab4934961480f678afea" id="r_ab1fa2b63d3a5ab4934961480f678afea"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
 <tr class="memitem:ab1fa2b63d3a5ab4934961480f678afea"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef</a> = std::conditional_t&lt; CanEfficientlyPassByValue&lt; T &gt;, T, const T &amp; &gt;</td></tr>
 <tr class="separator:ab1fa2b63d3a5ab4934961480f678afea"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1715,59 +1744,65 @@ requires std::is_invocable_r_v&lt;<a class="el" href="classbool.html">bool</a>, 
 <tr class="separator:a60bc13bd6263ea2b385b6f3f53a4d925"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3a97bb4ce2e818b9d68bbc2b9793dc13" id="r_a3a97bb4ce2e818b9d68bbc2b9793dc13"><td class="memItemLeft" align="right" valign="top">const llvm::Value *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a3a97bb4ce2e818b9d68bbc2b9793dc13">fromMetaDataId</a> (const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;IRDB, llvm::StringRef Id)</td></tr>
 <tr class="separator:a3a97bb4ce2e818b9d68bbc2b9793dc13"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa64b2f5831c46d3900c1b0676b6fe3b8" id="r_aa64b2f5831c46d3900c1b0676b6fe3b8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structpsr_1_1AndersenOTFResult.html">AndersenOTFResult</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#aa64b2f5831c46d3900c1b0676b6fe3b8">computeAndersenOTFRaw</a> (const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;IRDB, llvm::ArrayRef&lt; const llvm::Function * &gt; <a class="el" href="namespacepsr.html#abee833e16ef749173730713d144c91b1">EntryPoints</a>, <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt; VC=nullptr, <a class="el" href="namespacepsr.html#ad4ab98da08f52ab38d81dd5206820318">Soundness</a> S=Soundness::Soundy)</td></tr>
-<tr class="separator:aa64b2f5831c46d3900c1b0676b6fe3b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6bdd30d621d7a04bf0bbee7d2ea7fdf6" id="r_a6bdd30d621d7a04bf0bbee7d2ea7fdf6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structpsr_1_1LLVMUnionFindAliasIterator.html">LLVMUnionFindAliasIterator</a>&lt; <a class="el" href="structpsr_1_1AndersenOTFResult.html">AndersenOTFResult</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a6bdd30d621d7a04bf0bbee7d2ea7fdf6">computeAndersenOTF</a> (const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;IRDB, llvm::ArrayRef&lt; const llvm::Function * &gt; <a class="el" href="namespacepsr.html#abee833e16ef749173730713d144c91b1">EntryPoints</a>, <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt; VC=nullptr, <a class="el" href="namespacepsr.html#ad4ab98da08f52ab38d81dd5206820318">Soundness</a> S=Soundness::Soundy)</td></tr>
-<tr class="separator:a6bdd30d621d7a04bf0bbee7d2ea7fdf6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adc61286e489b0e689a1d8f24fb79f95c" id="r_adc61286e489b0e689a1d8f24fb79f95c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structpsr_1_1AndersenOTFResult.html">AndersenOTFResult</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#adc61286e489b0e689a1d8f24fb79f95c">computeAndersenOTFRaw</a> (const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;IRDB, llvm::ArrayRef&lt; const llvm::Function * &gt; <a class="el" href="namespacepsr.html#abee833e16ef749173730713d144c91b1">EntryPoints</a>, <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt; VC=nullptr, <a class="el" href="namespacepsr.html#ad4ab98da08f52ab38d81dd5206820318">Soundness</a> S=Soundness::Soundy, <a class="el" href="structpsr_1_1ContextSensitivityOptions.html">ContextSensitivityOptions</a> CSOpts={})</td></tr>
+<tr class="separator:adc61286e489b0e689a1d8f24fb79f95c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac9f3790e00028114592ca1371a2e3e73" id="r_ac9f3790e00028114592ca1371a2e3e73"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structpsr_1_1LLVMRawAliasIterator.html">LLVMRawAliasIterator</a>&lt; <a class="el" href="structpsr_1_1AndersenOTFResult.html">AndersenOTFResult</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#ac9f3790e00028114592ca1371a2e3e73">computeAndersenOTF</a> (const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;IRDB, llvm::ArrayRef&lt; const llvm::Function * &gt; <a class="el" href="namespacepsr.html#abee833e16ef749173730713d144c91b1">EntryPoints</a>, <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt; VC=nullptr, <a class="el" href="namespacepsr.html#ad4ab98da08f52ab38d81dd5206820318">Soundness</a> S=Soundness::Soundy, <a class="el" href="structpsr_1_1ContextSensitivityOptions.html">ContextSensitivityOptions</a> CSOpts={})</td></tr>
+<tr class="separator:ac9f3790e00028114592ca1371a2e3e73"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8a982fbabe1c6d8e9f32085ef7073744" id="r_a8a982fbabe1c6d8e9f32085ef7073744"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a8a982fbabe1c6d8e9f32085ef7073744">isInReachableAllocationSitesTy</a> (const llvm::Value *V, const llvm::Value *PotentialValue, <a class="el" href="classbool.html">bool</a> IntraProcOnly, const llvm::Function *VFun=nullptr, const llvm::GlobalObject *VG=nullptr)</td></tr>
 <tr class="separator:a8a982fbabe1c6d8e9f32085ef7073744"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9b4a6a18460593d7a0abe8d34a3749cd" id="r_a9b4a6a18460593d7a0abe8d34a3749cd"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a9b4a6a18460593d7a0abe8d34a3749cd">to_string</a> (<a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> Var)</td></tr>
 <tr class="separator:a9b4a6a18460593d7a0abe8d34a3749cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a03ad4608b4ed8d873f6aac59bb832ae2" id="r_a03ad4608b4ed8d873f6aac59bb832ae2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a03ad4608b4ed8d873f6aac59bb832ae2">mayHidePointer</a> (const llvm::DataLayout &amp;DL, const llvm::Type *Ty)</td></tr>
+<tr class="separator:a03ad4608b4ed8d873f6aac59bb832ae2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7c9041b6ce889ef5a741b431ed2b4f02" id="r_a7c9041b6ce889ef5a741b431ed2b4f02"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a7c9041b6ce889ef5a741b431ed2b4f02">isPunnedPointerAccess</a> (const llvm::DataLayout &amp;DL, const llvm::Value *Ptr, const llvm::Type *AccessedTy)</td></tr>
+<tr class="separator:a7c9041b6ce889ef5a741b431ed2b4f02"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a21ee07d3ae66d7bf2ea267fa99315bf4" id="r_a21ee07d3ae66d7bf2ea267fa99315bf4"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="structpsr_1_1LLVMMemoryAccess.html">LLVMMemoryAccess</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a21ee07d3ae66d7bf2ea267fa99315bf4">asMemoryAccess</a> (const llvm::Instruction &amp;I, const llvm::DataLayout &amp;DL)</td></tr>
+<tr class="separator:a21ee07d3ae66d7bf2ea267fa99315bf4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2ccaeb34a380dc7d090df36ad86c5f5a" id="r_a2ccaeb34a380dc7d090df36ad86c5f5a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a2ccaeb34a380dc7d090df36ad86c5f5a">isInterestingPointer</a> (const llvm::Value *V)</td></tr>
 <tr class="memdesc:a2ccaeb34a380dc7d090df36ad86c5f5a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns true if the given pointer is an interesting pointer, i.e. not a constant null pointer.  <br /></td></tr>
 <tr class="separator:a2ccaeb34a380dc7d090df36ad86c5f5a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa6bb9d0694ad9a170d02ff11c51857b7" id="r_aa6bb9d0694ad9a170d02ff11c51857b7"><td class="memItemLeft" align="right" valign="top">constexpr std::invocable&lt; ValueId &gt; auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#aa6bb9d0694ad9a170d02ff11c51857b7">llvmUnionFindAliasHandler</a> (const <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &amp;VC, std::invocable&lt; const llvm::Value * &gt; auto Callback)</td></tr>
-<tr class="separator:aa6bb9d0694ad9a170d02ff11c51857b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab599103e02bb62382c08752a65f32219" id="r_ab599103e02bb62382c08752a65f32219"><td class="memTemplParams" colspan="2">template&lt;typename AAResT &gt; </td></tr>
-<tr class="memitem:ab599103e02bb62382c08752a65f32219"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#ab599103e02bb62382c08752a65f32219">LLVMUnionFindAliasIterator</a> (AAResT, <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; const <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt;) -&gt; <a class="el" href="structpsr_1_1LLVMUnionFindAliasIterator.html">LLVMUnionFindAliasIterator</a>&lt; AAResT &gt;</td></tr>
-<tr class="separator:ab599103e02bb62382c08752a65f32219"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0c34018bc7ed0b20982881c556cfbb75" id="r_a0c34018bc7ed0b20982881c556cfbb75"><td class="memTemplParams" colspan="2">template&lt;typename AAResT &gt; </td></tr>
-<tr class="memitem:a0c34018bc7ed0b20982881c556cfbb75"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a0c34018bc7ed0b20982881c556cfbb75">LLVMUnionFindAliasIterator</a> (AAResT, const <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; *) -&gt; <a class="el" href="structpsr_1_1LLVMUnionFindAliasIterator.html">LLVMUnionFindAliasIterator</a>&lt; AAResT &gt;</td></tr>
-<tr class="separator:a0c34018bc7ed0b20982881c556cfbb75"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a98dbcb05ea094d1fef11b506e60a3373" id="r_a98dbcb05ea094d1fef11b506e60a3373"><td class="memTemplParams" colspan="2">template&lt;pag::PBStrategy AnalysisT, std::derived_from&lt; <a class="el" href="classpsr_1_1PAGBuilder.html">PAGBuilder</a>&lt; <a class="el" href="structpsr_1_1LLVMPAGDomain.html">LLVMPAGDomain</a> &gt; &gt; PAGBuilderImpl = LLVMPAGBuilder&gt; </td></tr>
-<tr class="memitem:a98dbcb05ea094d1fef11b506e60a3373"><td class="memTemplItemLeft" align="right" valign="top">UnionFindAAResult auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a98dbcb05ea094d1fef11b506e60a3373">computeUnionFindAARaw</a> (const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;IRDB, AnalysisT &amp;&amp;Ana, <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt; VC=nullptr, PAGBuilderImpl Impl=<a class="el" href="classpsr_1_1LLVMPAGBuilder.html#a5e0186ac2846f4135a2162a89bb72fa9">LLVMPAGBuilder::withBuiltinMemSSA</a>())</td></tr>
-<tr class="separator:a98dbcb05ea094d1fef11b506e60a3373"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8c734d3135436520da62005169b39b61" id="r_a8c734d3135436520da62005169b39b61"><td class="memTemplParams" colspan="2">template&lt;pag::CanOnAddEdge AnalysisT, std::derived_from&lt; <a class="el" href="classpsr_1_1PAGBuilder.html">PAGBuilder</a>&lt; <a class="el" href="structpsr_1_1LLVMPAGDomain.html">LLVMPAGDomain</a> &gt; &gt; PAGBuilderImpl = LLVMPAGBuilder&gt; </td></tr>
-<tr class="memitem:a8c734d3135436520da62005169b39b61"><td class="memTemplItemLeft" align="right" valign="top">UnionFindAAResult auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a8c734d3135436520da62005169b39b61">computeUnionFindAARaw</a> (const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;IRDB, AnalysisT &amp;&amp;Ana, const <a class="el" href="namespacepsr.html#a7ed5d2bc3d093f9da2f285ae3f8cc35b">LLVMBasedCallGraph</a> &amp;CG, <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt; VC=nullptr, PAGBuilderImpl Impl=<a class="el" href="classpsr_1_1LLVMPAGBuilder.html#a5e0186ac2846f4135a2162a89bb72fa9">LLVMPAGBuilder::withBuiltinMemSSA</a>())</td></tr>
-<tr class="separator:a8c734d3135436520da62005169b39b61"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae7a1fd0bed17f6d7bb3b8a2a2f0a3369" id="r_ae7a1fd0bed17f6d7bb3b8a2a2f0a3369"><td class="memItemLeft" align="right" valign="top">constexpr std::invocable&lt; ValueId &gt; auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#ae7a1fd0bed17f6d7bb3b8a2a2f0a3369">llvmRawAliasHandler</a> (const <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &amp;VC, std::invocable&lt; const llvm::Value * &gt; auto Callback)</td></tr>
+<tr class="separator:ae7a1fd0bed17f6d7bb3b8a2a2f0a3369"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac7f3a4ddec12f4db967a6b6acebcbd88" id="r_ac7f3a4ddec12f4db967a6b6acebcbd88"><td class="memTemplParams" colspan="2">template&lt;typename AAResT &gt; </td></tr>
+<tr class="memitem:ac7f3a4ddec12f4db967a6b6acebcbd88"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#ac7f3a4ddec12f4db967a6b6acebcbd88">LLVMRawAliasIterator</a> (AAResT, <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; const <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt;) -&gt; <a class="el" href="structpsr_1_1LLVMRawAliasIterator.html">LLVMRawAliasIterator</a>&lt; AAResT &gt;</td></tr>
+<tr class="separator:ac7f3a4ddec12f4db967a6b6acebcbd88"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abe751a61ff7bb278959b2abd8a740ba3" id="r_abe751a61ff7bb278959b2abd8a740ba3"><td class="memTemplParams" colspan="2">template&lt;typename AAResT &gt; </td></tr>
+<tr class="memitem:abe751a61ff7bb278959b2abd8a740ba3"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#abe751a61ff7bb278959b2abd8a740ba3">LLVMRawAliasIterator</a> (AAResT, const <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; *) -&gt; <a class="el" href="structpsr_1_1LLVMRawAliasIterator.html">LLVMRawAliasIterator</a>&lt; AAResT &gt;</td></tr>
+<tr class="separator:abe751a61ff7bb278959b2abd8a740ba3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a74e88b0cd3ca02dbc3450b000dc2d625" id="r_a74e88b0cd3ca02dbc3450b000dc2d625"><td class="memItemLeft" align="right" valign="top">llvm::StringRef&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a74e88b0cd3ca02dbc3450b000dc2d625">to_string</a> (<a class="el" href="structpsr_1_1LLVMRawAliasSetBase.html#a55037d85f5833e626a276a4a7dcf219c">LLVMRawAliasSetBase::AnalysisLocality</a> ALoc) noexcept</td></tr>
+<tr class="separator:a74e88b0cd3ca02dbc3450b000dc2d625"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7d4abb03c185b24cf1af808476425d17" id="r_a7d4abb03c185b24cf1af808476425d17"><td class="memTemplParams" colspan="2">template&lt;pag::PBStrategy AnalysisT, std::derived_from&lt; <a class="el" href="classpsr_1_1PAGBuilder.html">PAGBuilder</a>&lt; <a class="el" href="structpsr_1_1LLVMPAGDomain.html">LLVMPAGDomain</a> &gt; &gt; PAGBuilderImpl = LLVMPAGBuilder&gt; </td></tr>
+<tr class="memitem:a7d4abb03c185b24cf1af808476425d17"><td class="memTemplItemLeft" align="right" valign="top">RawAAResult auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a7d4abb03c185b24cf1af808476425d17">computeUnionFindAARaw</a> (const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;IRDB, AnalysisT &amp;&amp;Ana, <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt; VC=nullptr, PAGBuilderImpl Impl=<a class="el" href="classpsr_1_1LLVMPAGBuilder.html#a5e0186ac2846f4135a2162a89bb72fa9">LLVMPAGBuilder::withBuiltinMemSSA</a>())</td></tr>
+<tr class="separator:a7d4abb03c185b24cf1af808476425d17"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a26f36a4eb840fd1436043f52ae84315f" id="r_a26f36a4eb840fd1436043f52ae84315f"><td class="memTemplParams" colspan="2">template&lt;pag::CanOnAddEdge AnalysisT, std::derived_from&lt; <a class="el" href="classpsr_1_1PAGBuilder.html">PAGBuilder</a>&lt; <a class="el" href="structpsr_1_1LLVMPAGDomain.html">LLVMPAGDomain</a> &gt; &gt; PAGBuilderImpl = LLVMPAGBuilder&gt; </td></tr>
+<tr class="memitem:a26f36a4eb840fd1436043f52ae84315f"><td class="memTemplItemLeft" align="right" valign="top">RawAAResult auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a26f36a4eb840fd1436043f52ae84315f">computeUnionFindAARaw</a> (const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;IRDB, AnalysisT &amp;&amp;Ana, const <a class="el" href="namespacepsr.html#a7ed5d2bc3d093f9da2f285ae3f8cc35b">LLVMBasedCallGraph</a> &amp;CG, <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt; VC=nullptr, PAGBuilderImpl Impl=<a class="el" href="classpsr_1_1LLVMPAGBuilder.html#a5e0186ac2846f4135a2162a89bb72fa9">LLVMPAGBuilder::withBuiltinMemSSA</a>())</td></tr>
+<tr class="separator:a26f36a4eb840fd1436043f52ae84315f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6b6c0e7f948a945b4d5f09934f7c10e6" id="r_a6b6c0e7f948a945b4d5f09934f7c10e6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structpsr_1_1CallingContextSensUnionFindAAResult.html">CallingContextSensUnionFindAAResult</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a6b6c0e7f948a945b4d5f09934f7c10e6">computeCtxSensUnionFindAARaw</a> (const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;IRDB, const <a class="el" href="namespacepsr.html#a7ed5d2bc3d093f9da2f285ae3f8cc35b">LLVMBasedCallGraph</a> &amp;CG, <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt; VC=nullptr)</td></tr>
 <tr class="separator:a6b6c0e7f948a945b4d5f09934f7c10e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa79368e732e72d9eef0d70bc27ab80fc" id="r_aa79368e732e72d9eef0d70bc27ab80fc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structpsr_1_1BasicUnionFindAAResult.html">BasicUnionFindAAResult</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#aa79368e732e72d9eef0d70bc27ab80fc">computeBotCtxSensUnionFindAARaw</a> (const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;IRDB, const <a class="el" href="namespacepsr.html#a7ed5d2bc3d093f9da2f285ae3f8cc35b">LLVMBasedCallGraph</a> &amp;CG, <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt; VC=nullptr)</td></tr>
 <tr class="separator:aa79368e732e72d9eef0d70bc27ab80fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a235e30cff6ab8e750e2249a4828d0fed" id="r_a235e30cff6ab8e750e2249a4828d0fed"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structpsr_1_1BasicUnionFindAAResult.html">BasicUnionFindAAResult</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a235e30cff6ab8e750e2249a4828d0fed">computeIndSensUnionFindAARaw</a> (const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;IRDB, const <a class="el" href="namespacepsr.html#a7ed5d2bc3d093f9da2f285ae3f8cc35b">LLVMBasedCallGraph</a> &amp;CG, <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt; VC=nullptr)</td></tr>
 <tr class="separator:a235e30cff6ab8e750e2249a4828d0fed"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4ff9c7083f49be04ac6ce570bbc783eb" id="r_a4ff9c7083f49be04ac6ce570bbc783eb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structpsr_1_1UnionFindAAResultIntersection.html">UnionFindAAResultIntersection</a>&lt; <a class="el" href="structpsr_1_1CallingContextSensUnionFindAAResult.html">CallingContextSensUnionFindAAResult</a>, <a class="el" href="structpsr_1_1BasicUnionFindAAResult.html">BasicUnionFindAAResult</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a4ff9c7083f49be04ac6ce570bbc783eb">computeCtxIndSensUnionFindAARaw</a> (const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;IRDB, const <a class="el" href="namespacepsr.html#a7ed5d2bc3d093f9da2f285ae3f8cc35b">LLVMBasedCallGraph</a> &amp;CG, <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt; VC=nullptr)</td></tr>
-<tr class="separator:a4ff9c7083f49be04ac6ce570bbc783eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a51298182b5be58fc566c502a6570c52d" id="r_a51298182b5be58fc566c502a6570c52d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structpsr_1_1UnionFindAAResultIntersection.html">UnionFindAAResultIntersection</a>&lt; <a class="el" href="structpsr_1_1BasicUnionFindAAResult.html">BasicUnionFindAAResult</a>, <a class="el" href="structpsr_1_1BasicUnionFindAAResult.html">BasicUnionFindAAResult</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a51298182b5be58fc566c502a6570c52d">computeBotCtxIndSensUnionFindAARaw</a> (const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;IRDB, const <a class="el" href="namespacepsr.html#a7ed5d2bc3d093f9da2f285ae3f8cc35b">LLVMBasedCallGraph</a> &amp;CG, <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt; VC=nullptr)</td></tr>
-<tr class="separator:a51298182b5be58fc566c502a6570c52d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae1f340ab822b0c713a62cfb284438277" id="r_ae1f340ab822b0c713a62cfb284438277"><td class="memTemplParams" colspan="2">template&lt;pag::PBStrategy AnalysisT, std::derived_from&lt; <a class="el" href="classpsr_1_1PAGBuilder.html">PAGBuilder</a>&lt; <a class="el" href="structpsr_1_1LLVMPAGDomain.html">LLVMPAGDomain</a> &gt; &gt; PAGBuilderImpl = LLVMPAGBuilder&gt; </td></tr>
-<tr class="memitem:ae1f340ab822b0c713a62cfb284438277"><td class="memTemplItemLeft" align="right" valign="top">IsLLVMAliasIterator auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#ae1f340ab822b0c713a62cfb284438277">computeUnionFindAA</a> (const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;IRDB, AnalysisT &amp;&amp;Ana, <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt; VC=nullptr, PAGBuilderImpl Impl=<a class="el" href="classpsr_1_1LLVMPAGBuilder.html#a5e0186ac2846f4135a2162a89bb72fa9">LLVMPAGBuilder::withBuiltinMemSSA</a>())</td></tr>
-<tr class="separator:ae1f340ab822b0c713a62cfb284438277"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6f2ff6c7ca85c9acb84fc1a66431f901" id="r_a6f2ff6c7ca85c9acb84fc1a66431f901"><td class="memTemplParams" colspan="2">template&lt;pag::CanOnAddEdge AnalysisT, std::derived_from&lt; <a class="el" href="classpsr_1_1PAGBuilder.html">PAGBuilder</a>&lt; <a class="el" href="structpsr_1_1LLVMPAGDomain.html">LLVMPAGDomain</a> &gt; &gt; PAGBuilderImpl = LLVMPAGBuilder&gt; </td></tr>
-<tr class="memitem:a6f2ff6c7ca85c9acb84fc1a66431f901"><td class="memTemplItemLeft" align="right" valign="top">IsLLVMAliasIterator auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a6f2ff6c7ca85c9acb84fc1a66431f901">computeUnionFindAA</a> (const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;IRDB, AnalysisT &amp;&amp;Ana, const <a class="el" href="namespacepsr.html#a7ed5d2bc3d093f9da2f285ae3f8cc35b">LLVMBasedCallGraph</a> &amp;CG, <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt; VC=nullptr, PAGBuilderImpl Impl=<a class="el" href="classpsr_1_1LLVMPAGBuilder.html#a5e0186ac2846f4135a2162a89bb72fa9">LLVMPAGBuilder::withBuiltinMemSSA</a>())</td></tr>
-<tr class="separator:a6f2ff6c7ca85c9acb84fc1a66431f901"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adc999c1c4e06029afe71cf3189b724ca" id="r_adc999c1c4e06029afe71cf3189b724ca"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structpsr_1_1LLVMUnionFindAliasIterator.html">LLVMUnionFindAliasIterator</a>&lt; <a class="el" href="structpsr_1_1CallingContextSensUnionFindAAResult.html">CallingContextSensUnionFindAAResult</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#adc999c1c4e06029afe71cf3189b724ca">computeCtxSensUnionFindAA</a> (const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;IRDB, const <a class="el" href="namespacepsr.html#a7ed5d2bc3d093f9da2f285ae3f8cc35b">LLVMBasedCallGraph</a> &amp;CG, <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt; VC=nullptr)</td></tr>
-<tr class="separator:adc999c1c4e06029afe71cf3189b724ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a489fe000712e8d91b08de22bf0f9c4ec" id="r_a489fe000712e8d91b08de22bf0f9c4ec"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structpsr_1_1LLVMUnionFindAliasIterator.html">LLVMUnionFindAliasIterator</a>&lt; <a class="el" href="structpsr_1_1BasicUnionFindAAResult.html">BasicUnionFindAAResult</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a489fe000712e8d91b08de22bf0f9c4ec">computeBotCtxSensUnionFindAA</a> (const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;IRDB, const <a class="el" href="namespacepsr.html#a7ed5d2bc3d093f9da2f285ae3f8cc35b">LLVMBasedCallGraph</a> &amp;CG, <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt; VC=nullptr)</td></tr>
-<tr class="separator:a489fe000712e8d91b08de22bf0f9c4ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a747b675e1b5a241989126f8bcdde1894" id="r_a747b675e1b5a241989126f8bcdde1894"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structpsr_1_1LLVMUnionFindAliasIterator.html">LLVMUnionFindAliasIterator</a>&lt; <a class="el" href="structpsr_1_1BasicUnionFindAAResult.html">BasicUnionFindAAResult</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a747b675e1b5a241989126f8bcdde1894">computeIndSensUnionFindAA</a> (const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;IRDB, const <a class="el" href="namespacepsr.html#a7ed5d2bc3d093f9da2f285ae3f8cc35b">LLVMBasedCallGraph</a> &amp;CG, <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt; VC=nullptr)</td></tr>
-<tr class="separator:a747b675e1b5a241989126f8bcdde1894"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7421981adb78c33607bd9d1f31516168" id="r_a7421981adb78c33607bd9d1f31516168"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structpsr_1_1LLVMUnionFindAliasIterator.html">LLVMUnionFindAliasIterator</a>&lt; <a class="el" href="structpsr_1_1UnionFindAAResultIntersection.html">UnionFindAAResultIntersection</a>&lt; <a class="el" href="structpsr_1_1CallingContextSensUnionFindAAResult.html">CallingContextSensUnionFindAAResult</a>, <a class="el" href="structpsr_1_1BasicUnionFindAAResult.html">BasicUnionFindAAResult</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a7421981adb78c33607bd9d1f31516168">computeCtxIndSensUnionFindAA</a> (const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;IRDB, const <a class="el" href="namespacepsr.html#a7ed5d2bc3d093f9da2f285ae3f8cc35b">LLVMBasedCallGraph</a> &amp;CG, <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt; VC=nullptr)</td></tr>
-<tr class="separator:a7421981adb78c33607bd9d1f31516168"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a708233fd9a5c7df627afb7b2ecab4285" id="r_a708233fd9a5c7df627afb7b2ecab4285"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structpsr_1_1LLVMUnionFindAliasIterator.html">LLVMUnionFindAliasIterator</a>&lt; <a class="el" href="structpsr_1_1UnionFindAAResultIntersection.html">UnionFindAAResultIntersection</a>&lt; <a class="el" href="structpsr_1_1BasicUnionFindAAResult.html">BasicUnionFindAAResult</a>, <a class="el" href="structpsr_1_1BasicUnionFindAAResult.html">BasicUnionFindAAResult</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a708233fd9a5c7df627afb7b2ecab4285">computeBotCtxIndSensUnionFindAA</a> (const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;IRDB, const <a class="el" href="namespacepsr.html#a7ed5d2bc3d093f9da2f285ae3f8cc35b">LLVMBasedCallGraph</a> &amp;CG, <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt; VC=nullptr)</td></tr>
-<tr class="separator:a708233fd9a5c7df627afb7b2ecab4285"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aaa481f29d0335930e26cc3a19d6168e1" id="r_aaa481f29d0335930e26cc3a19d6168e1"><td class="memItemLeft" align="right" valign="top">llvm::StringRef&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#aaa481f29d0335930e26cc3a19d6168e1">to_string</a> (<a class="el" href="classpsr_1_1LLVMUnionFindAliasSet.html#ac3d2e1d8af7d979453ceae5b6599013a">LLVMUnionFindAliasSet::AnalysisLocality</a> ALoc) noexcept</td></tr>
-<tr class="separator:aaa481f29d0335930e26cc3a19d6168e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a47c09c8a0898007a0b712d13a26be9c5" id="r_a47c09c8a0898007a0b712d13a26be9c5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structpsr_1_1RawAAResultIntersection.html">RawAAResultIntersection</a>&lt; <a class="el" href="structpsr_1_1CallingContextSensUnionFindAAResult.html">CallingContextSensUnionFindAAResult</a>, <a class="el" href="structpsr_1_1BasicUnionFindAAResult.html">BasicUnionFindAAResult</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a47c09c8a0898007a0b712d13a26be9c5">computeCtxIndSensUnionFindAARaw</a> (const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;IRDB, const <a class="el" href="namespacepsr.html#a7ed5d2bc3d093f9da2f285ae3f8cc35b">LLVMBasedCallGraph</a> &amp;CG, <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt; VC=nullptr)</td></tr>
+<tr class="separator:a47c09c8a0898007a0b712d13a26be9c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae36f4026d46992c758fd4857b1417b2d" id="r_ae36f4026d46992c758fd4857b1417b2d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structpsr_1_1RawAAResultIntersection.html">RawAAResultIntersection</a>&lt; <a class="el" href="structpsr_1_1BasicUnionFindAAResult.html">BasicUnionFindAAResult</a>, <a class="el" href="structpsr_1_1BasicUnionFindAAResult.html">BasicUnionFindAAResult</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#ae36f4026d46992c758fd4857b1417b2d">computeBotCtxIndSensUnionFindAARaw</a> (const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;IRDB, const <a class="el" href="namespacepsr.html#a7ed5d2bc3d093f9da2f285ae3f8cc35b">LLVMBasedCallGraph</a> &amp;CG, <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt; VC=nullptr)</td></tr>
+<tr class="separator:ae36f4026d46992c758fd4857b1417b2d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a45e86cd6603460b223664e482c187dbd" id="r_a45e86cd6603460b223664e482c187dbd"><td class="memTemplParams" colspan="2">template&lt;pag::PBStrategy AnalysisT, std::derived_from&lt; <a class="el" href="classpsr_1_1PAGBuilder.html">PAGBuilder</a>&lt; <a class="el" href="structpsr_1_1LLVMPAGDomain.html">LLVMPAGDomain</a> &gt; &gt; PAGBuilderImpl = LLVMPAGBuilder&gt; </td></tr>
+<tr class="memitem:a45e86cd6603460b223664e482c187dbd"><td class="memTemplItemLeft" align="right" valign="top">IsLLVMAliasIterator auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a45e86cd6603460b223664e482c187dbd">computeUnionFindAA</a> (const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;IRDB, AnalysisT &amp;&amp;Ana, <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt; VC <a class="el" href="Macros_8h.html#a40a2c0af46b8c6ff86d04f8401348f46">PSR_LIFETIMEBOUND</a>=nullptr, PAGBuilderImpl Impl=<a class="el" href="classpsr_1_1LLVMPAGBuilder.html#a5e0186ac2846f4135a2162a89bb72fa9">LLVMPAGBuilder::withBuiltinMemSSA</a>())</td></tr>
+<tr class="separator:a45e86cd6603460b223664e482c187dbd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4bb81382eeb1f6a5575ac3c6a0604a92" id="r_a4bb81382eeb1f6a5575ac3c6a0604a92"><td class="memTemplParams" colspan="2">template&lt;pag::CanOnAddEdge AnalysisT, std::derived_from&lt; <a class="el" href="classpsr_1_1PAGBuilder.html">PAGBuilder</a>&lt; <a class="el" href="structpsr_1_1LLVMPAGDomain.html">LLVMPAGDomain</a> &gt; &gt; PAGBuilderImpl = LLVMPAGBuilder&gt; </td></tr>
+<tr class="memitem:a4bb81382eeb1f6a5575ac3c6a0604a92"><td class="memTemplItemLeft" align="right" valign="top">IsLLVMAliasIterator auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a4bb81382eeb1f6a5575ac3c6a0604a92">computeUnionFindAA</a> (const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;IRDB, AnalysisT &amp;&amp;Ana, const <a class="el" href="namespacepsr.html#a7ed5d2bc3d093f9da2f285ae3f8cc35b">LLVMBasedCallGraph</a> &amp;CG, <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt; VC <a class="el" href="Macros_8h.html#a40a2c0af46b8c6ff86d04f8401348f46">PSR_LIFETIMEBOUND</a>=nullptr, PAGBuilderImpl Impl=<a class="el" href="classpsr_1_1LLVMPAGBuilder.html#a5e0186ac2846f4135a2162a89bb72fa9">LLVMPAGBuilder::withBuiltinMemSSA</a>())</td></tr>
+<tr class="separator:a4bb81382eeb1f6a5575ac3c6a0604a92"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a633dcd1ba66ee2356069d66e81c9e864" id="r_a633dcd1ba66ee2356069d66e81c9e864"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structpsr_1_1LLVMRawAliasIterator.html">LLVMRawAliasIterator</a>&lt; <a class="el" href="structpsr_1_1CallingContextSensUnionFindAAResult.html">CallingContextSensUnionFindAAResult</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a633dcd1ba66ee2356069d66e81c9e864">computeCtxSensUnionFindAA</a> (const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;IRDB, const <a class="el" href="namespacepsr.html#a7ed5d2bc3d093f9da2f285ae3f8cc35b">LLVMBasedCallGraph</a> &amp;CG, <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt; VC <a class="el" href="Macros_8h.html#a40a2c0af46b8c6ff86d04f8401348f46">PSR_LIFETIMEBOUND</a>=nullptr)</td></tr>
+<tr class="separator:a633dcd1ba66ee2356069d66e81c9e864"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa3c411b6c58e5212e816a81b60061e89" id="r_aa3c411b6c58e5212e816a81b60061e89"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structpsr_1_1LLVMRawAliasIterator.html">LLVMRawAliasIterator</a>&lt; <a class="el" href="structpsr_1_1BasicUnionFindAAResult.html">BasicUnionFindAAResult</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#aa3c411b6c58e5212e816a81b60061e89">computeBotCtxSensUnionFindAA</a> (const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;IRDB, const <a class="el" href="namespacepsr.html#a7ed5d2bc3d093f9da2f285ae3f8cc35b">LLVMBasedCallGraph</a> &amp;CG, <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt; VC <a class="el" href="Macros_8h.html#a40a2c0af46b8c6ff86d04f8401348f46">PSR_LIFETIMEBOUND</a>=nullptr)</td></tr>
+<tr class="separator:aa3c411b6c58e5212e816a81b60061e89"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a12610866f24368f540965cef8571d7a6" id="r_a12610866f24368f540965cef8571d7a6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structpsr_1_1LLVMRawAliasIterator.html">LLVMRawAliasIterator</a>&lt; <a class="el" href="structpsr_1_1BasicUnionFindAAResult.html">BasicUnionFindAAResult</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a12610866f24368f540965cef8571d7a6">computeIndSensUnionFindAA</a> (const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;IRDB, const <a class="el" href="namespacepsr.html#a7ed5d2bc3d093f9da2f285ae3f8cc35b">LLVMBasedCallGraph</a> &amp;CG, <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt; VC <a class="el" href="Macros_8h.html#a40a2c0af46b8c6ff86d04f8401348f46">PSR_LIFETIMEBOUND</a>=nullptr)</td></tr>
+<tr class="separator:a12610866f24368f540965cef8571d7a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac170363aff0788139d37fc77fef081f1" id="r_ac170363aff0788139d37fc77fef081f1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structpsr_1_1LLVMRawAliasIterator.html">LLVMRawAliasIterator</a>&lt; <a class="el" href="structpsr_1_1RawAAResultIntersection.html">RawAAResultIntersection</a>&lt; <a class="el" href="structpsr_1_1CallingContextSensUnionFindAAResult.html">CallingContextSensUnionFindAAResult</a>, <a class="el" href="structpsr_1_1BasicUnionFindAAResult.html">BasicUnionFindAAResult</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#ac170363aff0788139d37fc77fef081f1">computeCtxIndSensUnionFindAA</a> (const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;IRDB, const <a class="el" href="namespacepsr.html#a7ed5d2bc3d093f9da2f285ae3f8cc35b">LLVMBasedCallGraph</a> &amp;CG, <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt; VC <a class="el" href="Macros_8h.html#a40a2c0af46b8c6ff86d04f8401348f46">PSR_LIFETIMEBOUND</a>=nullptr)</td></tr>
+<tr class="separator:ac170363aff0788139d37fc77fef081f1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4c243d2d1e06f25de590c6ce372c9fab" id="r_a4c243d2d1e06f25de590c6ce372c9fab"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structpsr_1_1LLVMRawAliasIterator.html">LLVMRawAliasIterator</a>&lt; <a class="el" href="structpsr_1_1RawAAResultIntersection.html">RawAAResultIntersection</a>&lt; <a class="el" href="structpsr_1_1BasicUnionFindAAResult.html">BasicUnionFindAAResult</a>, <a class="el" href="structpsr_1_1BasicUnionFindAAResult.html">BasicUnionFindAAResult</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a4c243d2d1e06f25de590c6ce372c9fab">computeBotCtxIndSensUnionFindAA</a> (const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;IRDB, const <a class="el" href="namespacepsr.html#a7ed5d2bc3d093f9da2f285ae3f8cc35b">LLVMBasedCallGraph</a> &amp;CG, <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt; VC <a class="el" href="Macros_8h.html#a40a2c0af46b8c6ff86d04f8401348f46">PSR_LIFETIMEBOUND</a>=nullptr)</td></tr>
+<tr class="separator:a4c243d2d1e06f25de590c6ce372c9fab"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a545d377ac4572445bcbe32b639feeb05" id="r_a545d377ac4572445bcbe32b639feeb05"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a545d377ac4572445bcbe32b639feeb05">collectReachingDefs</a> (llvm::MemoryAccess *MA, const llvm::MemorySSA &amp;MSSA, llvm::SmallPtrSetImpl&lt; const llvm::StoreInst * &gt; &amp;ReachingDefs, llvm::SmallPtrSetImpl&lt; llvm::MemoryAccess * &gt; &amp;Visited)</td></tr>
 <tr class="separator:a545d377ac4572445bcbe32b639feeb05"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a78e5337125082f13b7fe8a876c109a6c" id="r_a78e5337125082f13b7fe8a876c109a6c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a78e5337125082f13b7fe8a876c109a6c">collectReachingDefs</a> (const llvm::LoadInst *Load, llvm::MemorySSA &amp;MSSA, llvm::SmallPtrSetImpl&lt; const llvm::StoreInst * &gt; &amp;ReachingDefs)</td></tr>
@@ -2011,6 +2046,8 @@ requires std::is_same_v&lt;typename ContainerTy::value_type, const llvm::Value *
 <tr class="separator:aa00ca6fa65d80c797c9820c2088b9c0c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1d7e8e0325ae290072875ea2a35f9332" id="r_a1d7e8e0325ae290072875ea2a35f9332"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a1d7e8e0325ae290072875ea2a35f9332">isConsistentCall</a> (const llvm::CallBase *CallSite, const llvm::Function *DestFun)</td></tr>
 <tr class="separator:a1d7e8e0325ae290072875ea2a35f9332"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a49666bdf7bd34568403fac64c991564c" id="r_a49666bdf7bd34568403fac64c991564c"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a49666bdf7bd34568403fac64c991564c">isAndersenOTFAA</a> (<a class="el" href="namespacepsr.html#afadf03970cb93e1afc369c320209ae7c">AliasAnalysisType</a> AATy) noexcept</td></tr>
+<tr class="separator:a49666bdf7bd34568403fac64c991564c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2878628a5d57ead74de5afad8d56af14" id="r_a2878628a5d57ead74de5afad8d56af14"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a2878628a5d57ead74de5afad8d56af14">toString</a> (<a class="el" href="namespacepsr.html#afadf03970cb93e1afc369c320209ae7c">AliasAnalysisType</a> PA)</td></tr>
 <tr class="separator:a2878628a5d57ead74de5afad8d56af14"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a67f9450c8286b53bca8a7f4fea6424f2" id="r_a67f9450c8286b53bca8a7f4fea6424f2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#afadf03970cb93e1afc369c320209ae7c">AliasAnalysisType</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a67f9450c8286b53bca8a7f4fea6424f2">toAliasAnalysisType</a> (llvm::StringRef S)</td></tr>
@@ -2421,7 +2458,9 @@ Variables</h2></td></tr>
 <tr class="memitem:a06a011dfd124da09b4bf8b06c926bb24"><td class="memTemplItemLeft" align="right" valign="top">constexpr <a class="el" href="classbool.html">bool</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a06a011dfd124da09b4bf8b06c926bb24">IsTriviallyRelocatable</a></td></tr>
 <tr class="separator:a06a011dfd124da09b4bf8b06c926bb24"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Typedef Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>LLVM-level questions that <a class="el" href="classpsr_1_1LLVMPAGBuilder.html">LLVMPAGBuilder</a> and <a class="el" href="classpsr_1_1AndersenOTFSolver.html">AndersenOTFSolver</a> must answer identically. They emit different node and edge kinds, but must not disagree on which IR constructs carry pointers. </p>
+</div><h2 class="groupheader">Typedef Documentation</h2>
 <a id="ab1fa2b63d3a5ab4934961480f678afea" name="ab1fa2b63d3a5ab4934961480f678afea"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab1fa2b63d3a5ab4934961480f678afea">&#9670;&#160;</a></span>ByConstRef</h2>
 
@@ -2852,6 +2891,26 @@ template&lt;typename IdT &gt; </div>
 
 </div>
 </div>
+<a id="a6c03ee57b954fb9ded8acb44dbc70484" name="a6c03ee57b954fb9ded8acb44dbc70484"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6c03ee57b954fb9ded8acb44dbc70484">&#9670;&#160;</a></span>LLVMLocalUnionFindAliasIterator</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename AAResT &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="namespacepsr.html#a6c03ee57b954fb9ded8acb44dbc70484">psr::LLVMLocalUnionFindAliasIterator</a> = typedef <a class="el" href="classpsr_1_1LLVMLocalRawAliasIterator.html">LLVMLocalRawAliasIterator</a>&lt;AAResT&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>For backwards-comppatibility only. </p>
+
+<p class="definition">Definition at line <a class="el" href="LLVMUnionFindAA_8h_source.html#l00040">40</a> of file <a class="el" href="LLVMUnionFindAA_8h_source.html">LLVMUnionFindAA.h</a>.</p>
+
+</div>
+</div>
 <a id="a0c600cd5295264b6c51437bdd2eba6cd" name="a0c600cd5295264b6c51437bdd2eba6cd"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a0c600cd5295264b6c51437bdd2eba6cd">&#9670;&#160;</a></span>LLVMPointsToIterator</h2>
 
@@ -2884,6 +2943,44 @@ template&lt;typename IdT &gt; </div>
 
 </div>
 </div>
+<a id="a21b51c5fef812af57c1084af26033e0a" name="a21b51c5fef812af57c1084af26033e0a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a21b51c5fef812af57c1084af26033e0a">&#9670;&#160;</a></span>LLVMUnionFindAliasIterator</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename AAResT &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="namespacepsr.html#a21b51c5fef812af57c1084af26033e0a">psr::LLVMUnionFindAliasIterator</a> = typedef <a class="el" href="structpsr_1_1LLVMRawAliasIterator.html">LLVMRawAliasIterator</a>&lt;AAResT&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>For backwards-comppatibility only. </p>
+
+<p class="definition">Definition at line <a class="el" href="LLVMUnionFindAA_8h_source.html#l00036">36</a> of file <a class="el" href="LLVMUnionFindAA_8h_source.html">LLVMUnionFindAA.h</a>.</p>
+
+</div>
+</div>
+<a id="a00e35dfaf52bfa84f09f8cfd18c0eac7" name="a00e35dfaf52bfa84f09f8cfd18c0eac7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a00e35dfaf52bfa84f09f8cfd18c0eac7">&#9670;&#160;</a></span>LLVMUnionFindAliasSet</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="namespacepsr.html#a00e35dfaf52bfa84f09f8cfd18c0eac7">psr::LLVMUnionFindAliasSet</a> = typedef <a class="el" href="classpsr_1_1LLVMRawAliasSet.html">LLVMRawAliasSet</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>For backwards compatibility only. </p>
+
+<p class="definition">Definition at line <a class="el" href="LLVMUnionFindAliasSet_8h_source.html#l00016">16</a> of file <a class="el" href="LLVMUnionFindAliasSet_8h_source.html">LLVMUnionFindAliasSet.h</a>.</p>
+
+</div>
+</div>
 <a id="ad1d0602a9eee1460c855d6b3ce61201a" name="ad1d0602a9eee1460c855d6b3ce61201a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad1d0602a9eee1460c855d6b3ce61201a">&#9670;&#160;</a></span>Nullable</h2>
 
@@ -2911,12 +3008,14 @@ template&lt;typename T &gt; </div>
 template&lt;SmallIdType IdT&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="namespacepsr.html#a25b64c0288c49921d70cdf58c2957e9f">psr::RawAliasSet</a> = typedef <a class="el" href="classpsr_1_1RoaringAliasSet.html">RoaringAliasSet</a>&lt;IdT&gt;</td>
+          <td class="memname">using <a class="el" href="namespacepsr.html#a25b64c0288c49921d70cdf58c2957e9f">psr::RawAliasSet</a> = typedef <a class="el" href="namespacepsr.html#a7dfd79c7862c222131cdb86c5eb59963">RoaringAliasSet</a>&lt;IdT&gt;</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="RawAliasSet_8h_source.html#l00296">296</a> of file <a class="el" href="RawAliasSet_8h_source.html">RawAliasSet.h</a>.</p>
+<p>The default type used for alias/points-to sets. </p>
+
+<p class="definition">Definition at line <a class="el" href="RawAliasSet_8h_source.html#l00065">65</a> of file <a class="el" href="RawAliasSet_8h_source.html">RawAliasSet.h</a>.</p>
 
 </div>
 </div>
@@ -2935,6 +3034,26 @@ template&lt;typename T &gt; </div>
 </div><div class="memdoc">
 
 <p class="definition">Definition at line <a class="el" href="RepeatIterator_8h_source.html#l00071">71</a> of file <a class="el" href="RepeatIterator_8h_source.html">RepeatIterator.h</a>.</p>
+
+</div>
+</div>
+<a id="a7dfd79c7862c222131cdb86c5eb59963" name="a7dfd79c7862c222131cdb86c5eb59963"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7dfd79c7862c222131cdb86c5eb59963">&#9670;&#160;</a></span>RoaringAliasSet</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;SmallIdType IdT&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="namespacepsr.html#a7dfd79c7862c222131cdb86c5eb59963">psr::RoaringAliasSet</a> = typedef <a class="el" href="classpsr_1_1SparseBitSet.html">SparseBitSet</a>&lt;IdT&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>For backwards-compatibility only. </p>
+
+<p class="definition">Definition at line <a class="el" href="RawAliasSet_8h_source.html#l00062">62</a> of file <a class="el" href="RawAliasSet_8h_source.html">RawAliasSet.h</a>.</p>
 
 </div>
 </div>
@@ -3017,6 +3136,24 @@ template&lt;typename Derived &gt; </div>
 </div><div class="memdoc">
 
 <p class="definition">Definition at line <a class="el" href="SVFPointsToSet_8h_source.html#l00055">55</a> of file <a class="el" href="SVFPointsToSet_8h_source.html">SVFPointsToSet.h</a>.</p>
+
+</div>
+</div>
+<a id="a490fd8fa8cbf9dbaa91617ea8445ad26" name="a490fd8fa8cbf9dbaa91617ea8445ad26"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a490fd8fa8cbf9dbaa91617ea8445ad26">&#9670;&#160;</a></span>UnionFindAAResultIntersection</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;RawAAResult FirstT, RawAAResult SecondT&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="namespacepsr.html#a490fd8fa8cbf9dbaa91617ea8445ad26">psr::UnionFindAAResultIntersection</a> = typedef <a class="el" href="structpsr_1_1RawAAResultIntersection.html">RawAAResultIntersection</a>&lt;FirstT, SecondT&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="UnionFindAA_8h_source.html#l00049">49</a> of file <a class="el" href="UnionFindAA_8h_source.html">UnionFindAA.h</a>.</p>
 
 </div>
 </div>
@@ -4151,6 +4288,48 @@ template&lt;typename T &gt; </div>
 
 </div>
 </div>
+<a id="a21ee07d3ae66d7bf2ea267fa99315bf4" name="a21ee07d3ae66d7bf2ea267fa99315bf4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a21ee07d3ae66d7bf2ea267fa99315bf4">&#9670;&#160;</a></span>asMemoryAccess()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::optional&lt; <a class="el" href="structpsr_1_1LLVMMemoryAccess.html">LLVMMemoryAccess</a> &gt; psr::asMemoryAccess </td>
+          <td>(</td>
+          <td class="paramtype">const llvm::Instruction &amp;&#160;</td>
+          <td class="paramname"><em>I</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const llvm::DataLayout &amp;&#160;</td>
+          <td class="paramname"><em>DL</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Decomposes <code>I</code>, or returns nullopt if it is not a memory access. Field- insensitively an atomicrmw is a store of the new value plus a load of the old one; cmpxchg likewise, into its { ty, i1 } result.</p>
+<p>The result still has to pass mayTransferPointer(). </p>
+
+<p class="definition">Definition at line <a class="el" href="LLVMPointerSemantics_8h_source.html#l00103">103</a> of file <a class="el" href="LLVMPointerSemantics_8h_source.html">LLVMPointerSemantics.h</a>.</p>
+
+<p class="reference">References <a class="el" href="LLVMPointerSemantics_8h_source.html#l00076">psr::LLVMMemoryAccess::Instr</a>, and <a class="el" href="LLVMPointerSemantics_8h_source.html#l00058">isPunnedPointerAccess()</a>.</p>
+
+</div>
+</div>
 <a id="ac0063fdc8ef7f84d987423561581b7a6" name="ac0063fdc8ef7f84d987423561581b7a6"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac0063fdc8ef7f84d987423561581b7a6">&#9670;&#160;</a></span>assertAllNotNull()</h2>
 
@@ -5120,14 +5299,14 @@ requires std::is_same_v&lt;typename ContainerTy::value_type, const llvm::Value *
 
 </div>
 </div>
-<a id="a6bdd30d621d7a04bf0bbee7d2ea7fdf6" name="a6bdd30d621d7a04bf0bbee7d2ea7fdf6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6bdd30d621d7a04bf0bbee7d2ea7fdf6">&#9670;&#160;</a></span>computeAndersenOTF()</h2>
+<a id="ac9f3790e00028114592ca1371a2e3e73" name="ac9f3790e00028114592ca1371a2e3e73"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac9f3790e00028114592ca1371a2e3e73">&#9670;&#160;</a></span>computeAndersenOTF()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="structpsr_1_1LLVMUnionFindAliasIterator.html">LLVMUnionFindAliasIterator</a>&lt; <a class="el" href="structpsr_1_1AndersenOTFResult.html">AndersenOTFResult</a> &gt; psr::computeAndersenOTF </td>
+          <td class="memname"><a class="el" href="structpsr_1_1LLVMRawAliasIterator.html">LLVMRawAliasIterator</a>&lt; <a class="el" href="structpsr_1_1AndersenOTFResult.html">AndersenOTFResult</a> &gt; psr::computeAndersenOTF </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;&#160;</td>
           <td class="paramname"><em>IRDB</em>, </td>
@@ -5148,7 +5327,13 @@ requires std::is_same_v&lt;typename ContainerTy::value_type, const llvm::Value *
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="namespacepsr.html#ad4ab98da08f52ab38d81dd5206820318">Soundness</a>&#160;</td>
-          <td class="paramname"><em>S</em> = <code>Soundness::Soundy</code>&#160;</td>
+          <td class="paramname"><em>S</em> = <code>Soundness::Soundy</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structpsr_1_1ContextSensitivityOptions.html">ContextSensitivityOptions</a>&#160;</td>
+          <td class="paramname"><em>CSOpts</em> = <code>{}</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -5157,12 +5342,12 @@ requires std::is_same_v&lt;typename ContainerTy::value_type, const llvm::Value *
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Runs the Andersen OTF fixpoint and returns an <code><a class="el" href="structpsr_1_1LLVMUnionFindAliasIterator.html">LLVMUnionFindAliasIterator</a></code> that implements <code>IsLLVMAliasIterator</code>. </p>
+<p>Runs the Andersen OTF fixpoint and returns an <code>LLVMUnionFindAliasIterator</code> that implements <code>IsLLVMAliasIterator</code>. </p>
 
 </div>
 </div>
-<a id="aa64b2f5831c46d3900c1b0676b6fe3b8" name="aa64b2f5831c46d3900c1b0676b6fe3b8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa64b2f5831c46d3900c1b0676b6fe3b8">&#9670;&#160;</a></span>computeAndersenOTFRaw()</h2>
+<a id="adc61286e489b0e689a1d8f24fb79f95c" name="adc61286e489b0e689a1d8f24fb79f95c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adc61286e489b0e689a1d8f24fb79f95c">&#9670;&#160;</a></span>computeAndersenOTFRaw()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -5189,7 +5374,13 @@ requires std::is_same_v&lt;typename ContainerTy::value_type, const llvm::Value *
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="namespacepsr.html#ad4ab98da08f52ab38d81dd5206820318">Soundness</a>&#160;</td>
-          <td class="paramname"><em>S</em> = <code>Soundness::Soundy</code>&#160;</td>
+          <td class="paramname"><em>S</em> = <code>Soundness::Soundy</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structpsr_1_1ContextSensitivityOptions.html">ContextSensitivityOptions</a>&#160;</td>
+          <td class="paramname"><em>CSOpts</em> = <code>{}</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -5202,14 +5393,48 @@ requires std::is_same_v&lt;typename ContainerTy::value_type, const llvm::Value *
 
 </div>
 </div>
-<a id="a708233fd9a5c7df627afb7b2ecab4285" name="a708233fd9a5c7df627afb7b2ecab4285"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a708233fd9a5c7df627afb7b2ecab4285">&#9670;&#160;</a></span>computeBotCtxIndSensUnionFindAA()</h2>
+<a id="a4c243d2d1e06f25de590c6ce372c9fab" name="a4c243d2d1e06f25de590c6ce372c9fab"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4c243d2d1e06f25de590c6ce372c9fab">&#9670;&#160;</a></span>computeBotCtxIndSensUnionFindAA()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="structpsr_1_1LLVMUnionFindAliasIterator.html">LLVMUnionFindAliasIterator</a>&lt; <a class="el" href="structpsr_1_1UnionFindAAResultIntersection.html">UnionFindAAResultIntersection</a>&lt; <a class="el" href="structpsr_1_1BasicUnionFindAAResult.html">BasicUnionFindAAResult</a>, <a class="el" href="structpsr_1_1BasicUnionFindAAResult.html">BasicUnionFindAAResult</a> &gt; &gt; psr::computeBotCtxIndSensUnionFindAA </td>
+          <td class="memname"><a class="el" href="structpsr_1_1LLVMRawAliasIterator.html">LLVMRawAliasIterator</a>&lt; <a class="el" href="structpsr_1_1RawAAResultIntersection.html">RawAAResultIntersection</a>&lt; <a class="el" href="structpsr_1_1BasicUnionFindAAResult.html">BasicUnionFindAAResult</a>, <a class="el" href="structpsr_1_1BasicUnionFindAAResult.html">BasicUnionFindAAResult</a> &gt; &gt; psr::computeBotCtxIndSensUnionFindAA </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;&#160;</td>
+          <td class="paramname"><em>IRDB</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespacepsr.html#a7ed5d2bc3d093f9da2f285ae3f8cc35b">LLVMBasedCallGraph</a> &amp;&#160;</td>
+          <td class="paramname"><em>CG</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt; VC&#160;</td>
+          <td class="paramname"><em>PSR_LIFETIMEBOUND</em> = <code>nullptr</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ae36f4026d46992c758fd4857b1417b2d" name="ae36f4026d46992c758fd4857b1417b2d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae36f4026d46992c758fd4857b1417b2d">&#9670;&#160;</a></span>computeBotCtxIndSensUnionFindAARaw()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structpsr_1_1RawAAResultIntersection.html">RawAAResultIntersection</a>&lt; <a class="el" href="structpsr_1_1BasicUnionFindAAResult.html">BasicUnionFindAAResult</a>, <a class="el" href="structpsr_1_1BasicUnionFindAAResult.html">BasicUnionFindAAResult</a> &gt; psr::computeBotCtxIndSensUnionFindAARaw </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;&#160;</td>
           <td class="paramname"><em>IRDB</em>, </td>
@@ -5236,14 +5461,14 @@ requires std::is_same_v&lt;typename ContainerTy::value_type, const llvm::Value *
 
 </div>
 </div>
-<a id="a51298182b5be58fc566c502a6570c52d" name="a51298182b5be58fc566c502a6570c52d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a51298182b5be58fc566c502a6570c52d">&#9670;&#160;</a></span>computeBotCtxIndSensUnionFindAARaw()</h2>
+<a id="aa3c411b6c58e5212e816a81b60061e89" name="aa3c411b6c58e5212e816a81b60061e89"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa3c411b6c58e5212e816a81b60061e89">&#9670;&#160;</a></span>computeBotCtxSensUnionFindAA()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="structpsr_1_1UnionFindAAResultIntersection.html">UnionFindAAResultIntersection</a>&lt; <a class="el" href="structpsr_1_1BasicUnionFindAAResult.html">BasicUnionFindAAResult</a>, <a class="el" href="structpsr_1_1BasicUnionFindAAResult.html">BasicUnionFindAAResult</a> &gt; psr::computeBotCtxIndSensUnionFindAARaw </td>
+          <td class="memname"><a class="el" href="structpsr_1_1LLVMRawAliasIterator.html">LLVMRawAliasIterator</a>&lt; <a class="el" href="structpsr_1_1BasicUnionFindAAResult.html">BasicUnionFindAAResult</a> &gt; psr::computeBotCtxSensUnionFindAA </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;&#160;</td>
           <td class="paramname"><em>IRDB</em>, </td>
@@ -5257,42 +5482,8 @@ requires std::is_same_v&lt;typename ContainerTy::value_type, const llvm::Value *
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt;&#160;</td>
-          <td class="paramname"><em>VC</em> = <code>nullptr</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a489fe000712e8d91b08de22bf0f9c4ec" name="a489fe000712e8d91b08de22bf0f9c4ec"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a489fe000712e8d91b08de22bf0f9c4ec">&#9670;&#160;</a></span>computeBotCtxSensUnionFindAA()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="structpsr_1_1LLVMUnionFindAliasIterator.html">LLVMUnionFindAliasIterator</a>&lt; <a class="el" href="structpsr_1_1BasicUnionFindAAResult.html">BasicUnionFindAAResult</a> &gt; psr::computeBotCtxSensUnionFindAA </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;&#160;</td>
-          <td class="paramname"><em>IRDB</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="namespacepsr.html#a7ed5d2bc3d093f9da2f285ae3f8cc35b">LLVMBasedCallGraph</a> &amp;&#160;</td>
-          <td class="paramname"><em>CG</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt;&#160;</td>
-          <td class="paramname"><em>VC</em> = <code>nullptr</code>&#160;</td>
+          <td class="paramtype"><a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt; VC&#160;</td>
+          <td class="paramname"><em>PSR_LIFETIMEBOUND</em> = <code>nullptr</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -5504,7 +5695,7 @@ template&lt;typename N , typename F &gt; </div>
 
 <p class="definition">Definition at line <a class="el" href="CGSCCs_8h_source.html#l00126">126</a> of file <a class="el" href="CGSCCs_8h_source.html">CGSCCs.h</a>.</p>
 
-<p class="reference">References <a class="el" href="SCCGeneric_8h_source.html#l00097">psr::SCCDependencyGraph&lt; GraphNodeId &gt;::ChildrenOfSCC</a>, <a class="el" href="BitSet_8h_source.html#l00134">psr::BitSet&lt; IdT, BitVectorTy &gt;::erase()</a>, <a class="el" href="BitSet_8h_source.html#l00209">psr::BitSet&lt; IdT, BitVectorTy &gt;::foreach()</a>, <a class="el" href="CallGraphBase_8h_source.html#l00103">psr::CallGraphBase&lt; Derived &gt;::getCallersOf()</a>, <a class="el" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">Ret</a>, <a class="el" href="SCCGeneric_8h_source.html#l00035">psr::SCCHolder&lt; GraphNodeId &gt;::SCCOfNode</a>, <a class="el" href="BitSet_8h_source.html#l00278">psr::BitSet&lt; IdT, BitVectorTy &gt;::size()</a>, and <a class="el" href="SCCGeneric_8h_source.html#l00040">psr::SCCHolder&lt; GraphNodeId &gt;::size()</a>.</p>
+<p class="reference">References <a class="el" href="SCCGeneric_8h_source.html#l00097">psr::SCCDependencyGraph&lt; GraphNodeId &gt;::ChildrenOfSCC</a>, <a class="el" href="BitSet_8h_source.html#l00134">psr::BitSet&lt; IdT, BitVectorTy &gt;::erase()</a>, <a class="el" href="BitSet_8h_source.html#l00209">psr::BitSet&lt; IdT, BitVectorTy &gt;::foreach()</a>, <a class="el" href="CallGraphBase_8h_source.html#l00104">psr::CallGraphBase&lt; Derived &gt;::getCallersOf()</a>, <a class="el" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">Ret</a>, <a class="el" href="SCCGeneric_8h_source.html#l00035">psr::SCCHolder&lt; GraphNodeId &gt;::SCCOfNode</a>, <a class="el" href="BitSet_8h_source.html#l00278">psr::BitSet&lt; IdT, BitVectorTy &gt;::size()</a>, and <a class="el" href="SCCGeneric_8h_source.html#l00040">psr::SCCHolder&lt; GraphNodeId &gt;::size()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="CGSCCs_8h_source.html#l00158">computeCGSCCCallers()</a>.</p>
 
@@ -5582,20 +5773,54 @@ requires InstructionClassifier&lt;C&gt;</div>
 
 <p class="definition">Definition at line <a class="el" href="CGSCCs_8h_source.html#l00029">29</a> of file <a class="el" href="CGSCCs_8h_source.html">CGSCCs.h</a>.</p>
 
-<p class="reference">References <a class="el" href="BitSet_8h_source.html#l00108">psr::BitSet&lt; IdT, BitVectorTy &gt;::contains()</a>, <a class="el" href="BitSet_8h_source.html#l00134">psr::BitSet&lt; IdT, BitVectorTy &gt;::erase()</a>, <a class="el" href="CallGraphBase_8h_source.html#l00093">psr::CallGraphBase&lt; Derived &gt;::getCalleesOfCallAt()</a>, <a class="el" href="BitSet_8h_source.html#l00113">psr::BitSet&lt; IdT, BitVectorTy &gt;::insert()</a>, and <a class="el" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">Ret</a>.</p>
+<p class="reference">References <a class="el" href="BitSet_8h_source.html#l00108">psr::BitSet&lt; IdT, BitVectorTy &gt;::contains()</a>, <a class="el" href="BitSet_8h_source.html#l00134">psr::BitSet&lt; IdT, BitVectorTy &gt;::erase()</a>, <a class="el" href="CallGraphBase_8h_source.html#l00094">psr::CallGraphBase&lt; Derived &gt;::getCalleesOfCallAt()</a>, <a class="el" href="BitSet_8h_source.html#l00113">psr::BitSet&lt; IdT, BitVectorTy &gt;::insert()</a>, and <a class="el" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">Ret</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="CGSCCs_8h_source.html#l00119">computeCGSCCs()</a>.</p>
 
 </div>
 </div>
-<a id="a7421981adb78c33607bd9d1f31516168" name="a7421981adb78c33607bd9d1f31516168"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7421981adb78c33607bd9d1f31516168">&#9670;&#160;</a></span>computeCtxIndSensUnionFindAA()</h2>
+<a id="ac170363aff0788139d37fc77fef081f1" name="ac170363aff0788139d37fc77fef081f1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac170363aff0788139d37fc77fef081f1">&#9670;&#160;</a></span>computeCtxIndSensUnionFindAA()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="structpsr_1_1LLVMUnionFindAliasIterator.html">LLVMUnionFindAliasIterator</a>&lt; <a class="el" href="structpsr_1_1UnionFindAAResultIntersection.html">UnionFindAAResultIntersection</a>&lt; <a class="el" href="structpsr_1_1CallingContextSensUnionFindAAResult.html">CallingContextSensUnionFindAAResult</a>, <a class="el" href="structpsr_1_1BasicUnionFindAAResult.html">BasicUnionFindAAResult</a> &gt; &gt; psr::computeCtxIndSensUnionFindAA </td>
+          <td class="memname"><a class="el" href="structpsr_1_1LLVMRawAliasIterator.html">LLVMRawAliasIterator</a>&lt; <a class="el" href="structpsr_1_1RawAAResultIntersection.html">RawAAResultIntersection</a>&lt; <a class="el" href="structpsr_1_1CallingContextSensUnionFindAAResult.html">CallingContextSensUnionFindAAResult</a>, <a class="el" href="structpsr_1_1BasicUnionFindAAResult.html">BasicUnionFindAAResult</a> &gt; &gt; psr::computeCtxIndSensUnionFindAA </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;&#160;</td>
+          <td class="paramname"><em>IRDB</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespacepsr.html#a7ed5d2bc3d093f9da2f285ae3f8cc35b">LLVMBasedCallGraph</a> &amp;&#160;</td>
+          <td class="paramname"><em>CG</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt; VC&#160;</td>
+          <td class="paramname"><em>PSR_LIFETIMEBOUND</em> = <code>nullptr</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a47c09c8a0898007a0b712d13a26be9c5" name="a47c09c8a0898007a0b712d13a26be9c5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a47c09c8a0898007a0b712d13a26be9c5">&#9670;&#160;</a></span>computeCtxIndSensUnionFindAARaw()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structpsr_1_1RawAAResultIntersection.html">RawAAResultIntersection</a>&lt; <a class="el" href="structpsr_1_1CallingContextSensUnionFindAAResult.html">CallingContextSensUnionFindAAResult</a>, <a class="el" href="structpsr_1_1BasicUnionFindAAResult.html">BasicUnionFindAAResult</a> &gt; psr::computeCtxIndSensUnionFindAARaw </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;&#160;</td>
           <td class="paramname"><em>IRDB</em>, </td>
@@ -5622,14 +5847,14 @@ requires InstructionClassifier&lt;C&gt;</div>
 
 </div>
 </div>
-<a id="a4ff9c7083f49be04ac6ce570bbc783eb" name="a4ff9c7083f49be04ac6ce570bbc783eb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4ff9c7083f49be04ac6ce570bbc783eb">&#9670;&#160;</a></span>computeCtxIndSensUnionFindAARaw()</h2>
+<a id="a633dcd1ba66ee2356069d66e81c9e864" name="a633dcd1ba66ee2356069d66e81c9e864"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a633dcd1ba66ee2356069d66e81c9e864">&#9670;&#160;</a></span>computeCtxSensUnionFindAA()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="structpsr_1_1UnionFindAAResultIntersection.html">UnionFindAAResultIntersection</a>&lt; <a class="el" href="structpsr_1_1CallingContextSensUnionFindAAResult.html">CallingContextSensUnionFindAAResult</a>, <a class="el" href="structpsr_1_1BasicUnionFindAAResult.html">BasicUnionFindAAResult</a> &gt; psr::computeCtxIndSensUnionFindAARaw </td>
+          <td class="memname"><a class="el" href="structpsr_1_1LLVMRawAliasIterator.html">LLVMRawAliasIterator</a>&lt; <a class="el" href="structpsr_1_1CallingContextSensUnionFindAAResult.html">CallingContextSensUnionFindAAResult</a> &gt; psr::computeCtxSensUnionFindAA </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;&#160;</td>
           <td class="paramname"><em>IRDB</em>, </td>
@@ -5643,42 +5868,8 @@ requires InstructionClassifier&lt;C&gt;</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt;&#160;</td>
-          <td class="paramname"><em>VC</em> = <code>nullptr</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="adc999c1c4e06029afe71cf3189b724ca" name="adc999c1c4e06029afe71cf3189b724ca"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#adc999c1c4e06029afe71cf3189b724ca">&#9670;&#160;</a></span>computeCtxSensUnionFindAA()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="structpsr_1_1LLVMUnionFindAliasIterator.html">LLVMUnionFindAliasIterator</a>&lt; <a class="el" href="structpsr_1_1CallingContextSensUnionFindAAResult.html">CallingContextSensUnionFindAAResult</a> &gt; psr::computeCtxSensUnionFindAA </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;&#160;</td>
-          <td class="paramname"><em>IRDB</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="namespacepsr.html#a7ed5d2bc3d093f9da2f285ae3f8cc35b">LLVMBasedCallGraph</a> &amp;&#160;</td>
-          <td class="paramname"><em>CG</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt;&#160;</td>
-          <td class="paramname"><em>VC</em> = <code>nullptr</code>&#160;</td>
+          <td class="paramtype"><a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt; VC&#160;</td>
+          <td class="paramname"><em>PSR_LIFETIMEBOUND</em> = <code>nullptr</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -5724,14 +5915,14 @@ requires InstructionClassifier&lt;C&gt;</div>
 
 </div>
 </div>
-<a id="a747b675e1b5a241989126f8bcdde1894" name="a747b675e1b5a241989126f8bcdde1894"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a747b675e1b5a241989126f8bcdde1894">&#9670;&#160;</a></span>computeIndSensUnionFindAA()</h2>
+<a id="a12610866f24368f540965cef8571d7a6" name="a12610866f24368f540965cef8571d7a6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a12610866f24368f540965cef8571d7a6">&#9670;&#160;</a></span>computeIndSensUnionFindAA()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="structpsr_1_1LLVMUnionFindAliasIterator.html">LLVMUnionFindAliasIterator</a>&lt; <a class="el" href="structpsr_1_1BasicUnionFindAAResult.html">BasicUnionFindAAResult</a> &gt; psr::computeIndSensUnionFindAA </td>
+          <td class="memname"><a class="el" href="structpsr_1_1LLVMRawAliasIterator.html">LLVMRawAliasIterator</a>&lt; <a class="el" href="structpsr_1_1BasicUnionFindAAResult.html">BasicUnionFindAAResult</a> &gt; psr::computeIndSensUnionFindAA </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;&#160;</td>
           <td class="paramname"><em>IRDB</em>, </td>
@@ -5745,8 +5936,8 @@ requires InstructionClassifier&lt;C&gt;</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt;&#160;</td>
-          <td class="paramname"><em>VC</em> = <code>nullptr</code>&#160;</td>
+          <td class="paramtype"><a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt; VC&#160;</td>
+          <td class="paramname"><em>PSR_LIFETIMEBOUND</em> = <code>nullptr</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -5998,7 +6189,7 @@ Strongly Connected Components", Pearce 2015, DOI: <a href="https://doi.org/10.10
 
 <p class="definition">Definition at line <a class="el" href="SCCGeneric_8h_source.html#l00439">439</a> of file <a class="el" href="SCCGeneric_8h_source.html">SCCGeneric.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="BottomupUnionFindAA_8h_source.html#l00097">psr::BottomupUnionFindAA&lt; AnalysisDomainT, SoundnessFlag &gt;::BottomupUnionFindAA()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="BottomupUnionFindAA_8h_source.html#l00098">psr::BottomupUnionFindAA&lt; AnalysisDomainT, SoundnessFlag &gt;::BottomupUnionFindAA()</a>.</p>
 
 </div>
 </div>
@@ -6048,8 +6239,8 @@ template&lt;typename G , <a class="el" href="classbool.html">bool</a> Iterative 
 
 </div>
 </div>
-<a id="a6f2ff6c7ca85c9acb84fc1a66431f901" name="a6f2ff6c7ca85c9acb84fc1a66431f901"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6f2ff6c7ca85c9acb84fc1a66431f901">&#9670;&#160;</a></span>computeUnionFindAA() <span class="overload">[1/2]</span></h2>
+<a id="a4bb81382eeb1f6a5575ac3c6a0604a92" name="a4bb81382eeb1f6a5575ac3c6a0604a92"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4bb81382eeb1f6a5575ac3c6a0604a92">&#9670;&#160;</a></span>computeUnionFindAA() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -6080,8 +6271,8 @@ template&lt;pag::CanOnAddEdge AnalysisT, std::derived_from&lt; <a class="el" hre
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt;&#160;</td>
-          <td class="paramname"><em>VC</em> = <code>nullptr</code>, </td>
+          <td class="paramtype"><a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt; VC&#160;</td>
+          <td class="paramname"><em>PSR_LIFETIMEBOUND</em> = <code>nullptr</code>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -6102,14 +6293,14 @@ template&lt;pag::CanOnAddEdge AnalysisT, std::derived_from&lt; <a class="el" hre
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="LLVMUnionFindAA_8h_source.html#l00437">437</a> of file <a class="el" href="LLVMUnionFindAA_8h_source.html">LLVMUnionFindAA.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMUnionFindAA_8h_source.html#l00159">159</a> of file <a class="el" href="LLVMUnionFindAA_8h_source.html">LLVMUnionFindAA.h</a>.</p>
 
-<p class="reference">References <a class="el" href="LLVMUnionFindAA_8h_source.html#l00418">computeUnionFindAA()</a>, and <a class="el" href="Macros_8h_source.html#l00016">PSR_FWD</a>.</p>
+<p class="reference">References <a class="el" href="LLVMUnionFindAA_8h_source.html#l00140">computeUnionFindAA()</a>, and <a class="el" href="Macros_8h_source.html#l00016">PSR_FWD</a>.</p>
 
 </div>
 </div>
-<a id="ae1f340ab822b0c713a62cfb284438277" name="ae1f340ab822b0c713a62cfb284438277"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae1f340ab822b0c713a62cfb284438277">&#9670;&#160;</a></span>computeUnionFindAA() <span class="overload">[2/2]</span></h2>
+<a id="a45e86cd6603460b223664e482c187dbd" name="a45e86cd6603460b223664e482c187dbd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a45e86cd6603460b223664e482c187dbd">&#9670;&#160;</a></span>computeUnionFindAA() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -6134,8 +6325,8 @@ template&lt;pag::PBStrategy AnalysisT, std::derived_from&lt; <a class="el" href=
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt;&#160;</td>
-          <td class="paramname"><em>VC</em> = <code>nullptr</code>, </td>
+          <td class="paramtype"><a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt; VC&#160;</td>
+          <td class="paramname"><em>PSR_LIFETIMEBOUND</em> = <code>nullptr</code>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -6155,7 +6346,7 @@ template&lt;pag::PBStrategy AnalysisT, std::derived_from&lt; <a class="el" href=
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Builds the PAG and returns a <code><a class="el" href="structpsr_1_1LLVMUnionFindAliasIterator.html">LLVMUnionFindAliasIterator</a></code> (owns the <code><a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a></code> and the raw result) that implements the <code>IsLLVMAliasIterator</code> concept.</p>
+<p>Builds the PAG and returns a <code>LLVMUnionFindAliasIterator</code> (owns the <code><a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a></code> and the raw result) that implements the <code>IsLLVMAliasIterator</code> concept.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">IRDB</td><td>The project to analyze. </td></tr>
@@ -6166,16 +6357,16 @@ template&lt;pag::PBStrategy AnalysisT, std::derived_from&lt; <a class="el" href=
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="LLVMUnionFindAA_8h_source.html#l00418">418</a> of file <a class="el" href="LLVMUnionFindAA_8h_source.html">LLVMUnionFindAA.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMUnionFindAA_8h_source.html#l00140">140</a> of file <a class="el" href="LLVMUnionFindAA_8h_source.html">LLVMUnionFindAA.h</a>.</p>
 
-<p class="reference">References <a class="el" href="LLVMUnionFindAA_8h_source.html#l00354">computeUnionFindAARaw()</a>, <a class="el" href="MaybeUniquePtr_8h_source.html#l00140">psr::MaybeUniquePtr&lt; T, RequireAlignment &gt;::get()</a>, and <a class="el" href="Macros_8h_source.html#l00016">PSR_FWD</a>.</p>
+<p class="reference">References <a class="el" href="LLVMUnionFindAA_8h_source.html#l00077">computeUnionFindAARaw()</a>, and <a class="el" href="Macros_8h_source.html#l00016">PSR_FWD</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="LLVMUnionFindAA_8h_source.html#l00437">computeUnionFindAA()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="LLVMUnionFindAA_8h_source.html#l00159">computeUnionFindAA()</a>.</p>
 
 </div>
 </div>
-<a id="a8c734d3135436520da62005169b39b61" name="a8c734d3135436520da62005169b39b61"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8c734d3135436520da62005169b39b61">&#9670;&#160;</a></span>computeUnionFindAARaw() <span class="overload">[1/2]</span></h2>
+<a id="a26f36a4eb840fd1436043f52ae84315f" name="a26f36a4eb840fd1436043f52ae84315f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a26f36a4eb840fd1436043f52ae84315f">&#9670;&#160;</a></span>computeUnionFindAARaw() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -6186,7 +6377,7 @@ template&lt;pag::CanOnAddEdge AnalysisT, std::derived_from&lt; <a class="el" hre
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">UnionFindAAResult auto psr::computeUnionFindAARaw </td>
+          <td class="memname">RawAAResult auto psr::computeUnionFindAARaw </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;&#160;</td>
           <td class="paramname"><em>IRDB</em>, </td>
@@ -6228,14 +6419,14 @@ template&lt;pag::CanOnAddEdge AnalysisT, std::derived_from&lt; <a class="el" hre
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="LLVMUnionFindAA_8h_source.html#l00374">374</a> of file <a class="el" href="LLVMUnionFindAA_8h_source.html">LLVMUnionFindAA.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMUnionFindAA_8h_source.html#l00097">97</a> of file <a class="el" href="LLVMUnionFindAA_8h_source.html">LLVMUnionFindAA.h</a>.</p>
 
-<p class="reference">References <a class="el" href="LLVMUnionFindAA_8h_source.html#l00354">computeUnionFindAARaw()</a>, and <a class="el" href="Macros_8h_source.html#l00016">PSR_FWD</a>.</p>
+<p class="reference">References <a class="el" href="LLVMUnionFindAA_8h_source.html#l00077">computeUnionFindAARaw()</a>, and <a class="el" href="Macros_8h_source.html#l00016">PSR_FWD</a>.</p>
 
 </div>
 </div>
-<a id="a98dbcb05ea094d1fef11b506e60a3373" name="a98dbcb05ea094d1fef11b506e60a3373"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a98dbcb05ea094d1fef11b506e60a3373">&#9670;&#160;</a></span>computeUnionFindAARaw() <span class="overload">[2/2]</span></h2>
+<a id="a7d4abb03c185b24cf1af808476425d17" name="a7d4abb03c185b24cf1af808476425d17"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7d4abb03c185b24cf1af808476425d17">&#9670;&#160;</a></span>computeUnionFindAARaw() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -6246,7 +6437,7 @@ template&lt;pag::PBStrategy AnalysisT, std::derived_from&lt; <a class="el" href=
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">UnionFindAAResult auto psr::computeUnionFindAARaw </td>
+          <td class="memname">RawAAResult auto psr::computeUnionFindAARaw </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;&#160;</td>
           <td class="paramname"><em>IRDB</em>, </td>
@@ -6281,7 +6472,7 @@ template&lt;pag::PBStrategy AnalysisT, std::derived_from&lt; <a class="el" href=
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Low-level entry point: builds the PAG for <code>IRDB</code> using the given <code>AnalysisT</code> strategy, and returns the raw alias-analysis result (not wrapped in an <code><a class="el" href="structpsr_1_1LLVMUnionFindAliasIterator.html">LLVMUnionFindAliasIterator</a></code>).</p>
+<p>Low-level entry point: builds the PAG for <code>IRDB</code> using the given <code>AnalysisT</code> strategy, and returns the raw alias-analysis result (not wrapped in an <code>LLVMUnionFindAliasIterator</code>).</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">IRDB</td><td>The project to analyze. </td></tr>
@@ -6292,11 +6483,11 @@ template&lt;pag::PBStrategy AnalysisT, std::derived_from&lt; <a class="el" href=
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="LLVMUnionFindAA_8h_source.html#l00354">354</a> of file <a class="el" href="LLVMUnionFindAA_8h_source.html">LLVMUnionFindAA.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMUnionFindAA_8h_source.html#l00077">77</a> of file <a class="el" href="LLVMUnionFindAA_8h_source.html">LLVMUnionFindAA.h</a>.</p>
 
 <p class="reference">References <a class="el" href="Macros_8h_source.html#l00016">PSR_FWD</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="LLVMUnionFindAA_8h_source.html#l00418">computeUnionFindAA()</a>, and <a class="el" href="LLVMUnionFindAA_8h_source.html#l00374">computeUnionFindAARaw()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="LLVMUnionFindAA_8h_source.html#l00140">computeUnionFindAA()</a>, and <a class="el" href="LLVMUnionFindAA_8h_source.html#l00097">computeUnionFindAARaw()</a>.</p>
 
 </div>
 </div>
@@ -6414,7 +6605,7 @@ template&lt;typename T &gt; </div>
 
 <p class="definition">Definition at line <a class="el" href="Utilities_8h_source.html#l00280">280</a> of file <a class="el" href="Utilities_8h_source.html">Utilities.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="UnionFindAA_8h_source.html#l00166">psr::UnionFindAliasIterator&lt; AAResT, Var2IdMapper, Id2VarMapper &gt;::forallAliasesOf()</a>, <a class="el" href="LLVMUnionFindAA_8h_source.html#l00109">psr::LLVMUnionFindAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, <a class="el" href="LLVMUnionFindAA_8h_source.html#l00251">psr::LLVMLocalUnionFindAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, <a class="el" href="LLVMUnionFindAA_8h_source.html#l00264">psr::LLVMLocalUnionFindAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, <a class="el" href="LLVMUnionFindAA_8h_source.html#l00270">psr::LLVMLocalUnionFindAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, <a class="el" href="LLVMUnionFindAA_8h_source.html#l00258">psr::LLVMLocalUnionFindAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, <a class="el" href="LLVMUnionFindAA_8h_source.html#l00101">psr::LLVMUnionFindAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, <a class="el" href="LLVMUnionFindAA_8h_source.html#l00236">psr::LLVMLocalUnionFindAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, <a class="el" href="LLVMUnionFindAA_8h_source.html#l00042">llvmUnionFindAliasHandler()</a>, <a class="el" href="RawAliasSet_8h_source.html#l00138">psr::LLVMRawAliasSet&lt; IdT &gt;::mergeWithDiff()</a>, <a class="el" href="RawAliasSet_8h_source.html#l00132">psr::LLVMRawAliasSet&lt; IdT &gt;::mergeWithDiff()</a>, <a class="el" href="RawAliasSet_8h_source.html#l00230">psr::RoaringAliasSet&lt; IdT &gt;::mergeWithDiff()</a>, and <a class="el" href="RawAliasSet_8h_source.html#l00258">psr::RoaringAliasSet&lt; IdT &gt;::mergeWithDiff()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="UnionFindAA_8h_source.html#l00135">psr::UnionFindAliasIterator&lt; AAResT, Var2IdMapper, Id2VarMapper &gt;::forallAliasesOf()</a>, <a class="el" href="LLVMRawAAResults_8h_source.html#l00072">psr::LLVMRawAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, <a class="el" href="LLVMRawAAResults_8h_source.html#l00212">psr::LLVMLocalRawAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, <a class="el" href="LLVMRawAAResults_8h_source.html#l00225">psr::LLVMLocalRawAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, <a class="el" href="LLVMRawAAResults_8h_source.html#l00231">psr::LLVMLocalRawAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, <a class="el" href="LLVMRawAAResults_8h_source.html#l00219">psr::LLVMLocalRawAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, <a class="el" href="LLVMRawAAResults_8h_source.html#l00065">psr::LLVMRawAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, <a class="el" href="LLVMRawAAResults_8h_source.html#l00197">psr::LLVMLocalRawAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, <a class="el" href="LLVMRawAAResults_8h_source.html#l00026">llvmRawAliasHandler()</a>, <a class="el" href="SparseBitSet_8h_source.html#l00090">psr::SparseBitSet&lt; IdT &gt;::mergeWithDiff()</a>, and <a class="el" href="SparseBitSet_8h_source.html#l00118">psr::SparseBitSet&lt; IdT &gt;::mergeWithDiff()</a>.</p>
 
 </div>
 </div>
@@ -6863,7 +7054,7 @@ template&lt;typename L &gt; </div>
 
 <p class="reference">References <a class="el" href="LLVMShorthands_8h_source.html#l00285">definitelyContainsNoPointerFast()</a>, and <a class="el" href="namespacepsr_1_1detail.html#a2a884f2fee0e2ce1b0d8c14b2f14c06f">psr::detail::definitelyContainsNoPointerImpl()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="LLVMShorthands_8h_source.html#l00312">definitelyContainsNoPointer()</a>, <a class="el" href="LLVMShorthands_8h_source.html#l00324">forEachPointerOperand()</a>, and <a class="el" href="LLVMGlobalInitCache_8h_source.html#l00043">psr::GlobalInitCache::getOrCreate()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="LLVMShorthands_8h_source.html#l00312">definitelyContainsNoPointer()</a>, <a class="el" href="LLVMShorthands_8h_source.html#l00324">forEachPointerOperand()</a>, <a class="el" href="LLVMGlobalInitCache_8h_source.html#l00043">psr::GlobalInitCache::getOrCreate()</a>, <a class="el" href="LLVMPointerSemantics_8h_source.html#l00147">psr::PunnedABICache::isCoercedPointer()</a>, <a class="el" href="LLVMPointerSemantics_8h_source.html#l00058">isPunnedPointerAccess()</a>, and <a class="el" href="LLVMPointerSemantics_8h_source.html#l00092">psr::LLVMMemoryAccess::mayTransferPointer()</a>.</p>
 
 </div>
 </div>
@@ -7898,7 +8089,7 @@ requires std::is_default_constructible_v&lt;T&gt;</div>
 
 <p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00373">373</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="LLVMUnionFindAA_8h_source.html#l00264">psr::LLVMLocalUnionFindAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, <a class="el" href="LLVMUnionFindAA_8h_source.html#l00270">psr::LLVMLocalUnionFindAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, <a class="el" href="LLVMUnionFindAA_8h_source.html#l00258">psr::LLVMLocalUnionFindAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, and <a class="el" href="LLVMUnionFindAA_8h_source.html#l00231">psr::LLVMLocalUnionFindAliasIteratorMixin&lt; Derived, AAResT &gt;::getRawAliasSet()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="LLVMRawAAResults_8h_source.html#l00225">psr::LLVMLocalRawAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, <a class="el" href="LLVMRawAAResults_8h_source.html#l00231">psr::LLVMLocalRawAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, <a class="el" href="LLVMRawAAResults_8h_source.html#l00219">psr::LLVMLocalRawAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, and <a class="el" href="LLVMRawAAResults_8h_source.html#l00192">psr::LLVMLocalRawAliasIteratorMixin&lt; Derived, AAResT &gt;::getRawAliasSet()</a>.</p>
 
 </div>
 </div>
@@ -8660,7 +8851,7 @@ requires std::is_lvalue_reference_v&lt;MapT&gt;</div>
 
 <p class="reference">References <a class="el" href="Macros_8h_source.html#l00016">PSR_FWD</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="LLVMUnionFindAA_8h_source.html#l00236">psr::LLVMLocalUnionFindAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html#l00041">psr::library_summary::LLVMFunctionDataFlowFacts::getFacts()</a>, <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html#l00053">psr::library_summary::LLVMFunctionDataFlowFacts::getFactsForFunction()</a>, <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html#l00061">psr::library_summary::LLVMFunctionDataFlowFacts::getFactsForFunctionOrNull()</a>, and <a class="el" href="LLVMUnionFindAA_8h_source.html#l00220">psr::LLVMLocalUnionFindAliasIteratorMixin&lt; Derived, AAResT &gt;::getRawAliasSet()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="LLVMRawAAResults_8h_source.html#l00197">psr::LLVMLocalRawAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html#l00041">psr::library_summary::LLVMFunctionDataFlowFacts::getFacts()</a>, <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html#l00053">psr::library_summary::LLVMFunctionDataFlowFacts::getFactsForFunction()</a>, <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html#l00061">psr::library_summary::LLVMFunctionDataFlowFacts::getFactsForFunctionOrNull()</a>, and <a class="el" href="LLVMRawAAResults_8h_source.html#l00181">psr::LLVMLocalRawAliasIteratorMixin&lt; Derived, AAResT &gt;::getRawAliasSet()</a>.</p>
 
 </div>
 </div>
@@ -10315,6 +10506,34 @@ template&lt;typename IdT  = size_t&gt; </div>
 
 </div>
 </div>
+<a id="a49666bdf7bd34568403fac64c991564c" name="a49666bdf7bd34568403fac64c991564c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a49666bdf7bd34568403fac64c991564c">&#9670;&#160;</a></span>isAndersenOTFAA()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr <a class="el" href="classbool.html">bool</a> psr::isAndersenOTFAA </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#afadf03970cb93e1afc369c320209ae7c">AliasAnalysisType</a>&#160;</td>
+          <td class="paramname"><em>AATy</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="AliasAnalysisType_8h_source.html#l00019">19</a> of file <a class="el" href="AliasAnalysisType_8h_source.html">AliasAnalysisType.h</a>.</p>
+
+</div>
+</div>
 <a id="a1d7e8e0325ae290072875ea2a35f9332" name="a1d7e8e0325ae290072875ea2a35f9332"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a1d7e8e0325ae290072875ea2a35f9332">&#9670;&#160;</a></span>isConsistentCall()</h2>
 
@@ -10482,7 +10701,7 @@ template&lt;typename IdT  = size_t&gt; </div>
 </div><div class="memdoc">
 <p>Utility function to check whether PotentialValue may be in the reachable allocation-sites of V, if V and PotentialValue alias. </p>
 
-<p class="reference">Referenced by <a class="el" href="LLVMUnionFindAliasSet_8h_source.html#l00148">psr::LLVMUnionFindAliasSet::isInReachableAllocationSites()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="LLVMRawAliasSet_8h_source.html#l00175">psr::LLVMRawAliasSet::isInReachableAllocationSites()</a>.</p>
 
 </div>
 </div>
@@ -10549,7 +10768,7 @@ template&lt;typename IdT  = size_t&gt; </div>
 
 <p class="definition">Definition at line <a class="el" href="LLVMPointsToUtils_8h_source.html#l00026">26</a> of file <a class="el" href="LLVMPointsToUtils_8h_source.html">LLVMPointsToUtils.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="LLVMUnionFindAliasSet_8h_source.html#l00148">psr::LLVMUnionFindAliasSet::isInReachableAllocationSites()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="LLVMRawAliasSet_8h_source.html#l00175">psr::LLVMRawAliasSet::isInReachableAllocationSites()</a>.</p>
 
 </div>
 </div>
@@ -10630,6 +10849,56 @@ template&lt;typename IdT  = size_t&gt; </div>
 <p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00395">395</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
 
 <p class="reference">References <a class="el" href="namespacepsr.html#a4d2d980af08e299e8d6cb6b219b78a2d">stripMemberAndTypedef()</a>.</p>
+
+</div>
+</div>
+<a id="a7c9041b6ce889ef5a741b431ed2b4f02" name="a7c9041b6ce889ef5a741b431ed2b4f02"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7c9041b6ce889ef5a741b431ed2b4f02">&#9670;&#160;</a></span>isPunnedPointerAccess()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classbool.html">bool</a> psr::isPunnedPointerAccess </td>
+          <td>(</td>
+          <td class="paramtype">const llvm::DataLayout &amp;&#160;</td>
+          <td class="paramname"><em>DL</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const llvm::Value *&#160;</td>
+          <td class="paramname"><em>Ptr</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const llvm::Type *&#160;</td>
+          <td class="paramname"><em>AccessedTy</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Whether Ptr is a memory-location (alloca or global), accessed as an integer.</p>
+<p>Useful for handling atomicrmw of pointers, which clang punns to i64, and for ABI-coerced aggregates (see <a class="el" href="classpsr_1_1PunnedABICache.html">PunnedABICache</a>). </p>
+
+<p class="definition">Definition at line <a class="el" href="LLVMPointerSemantics_8h_source.html#l00058">58</a> of file <a class="el" href="LLVMPointerSemantics_8h_source.html">LLVMPointerSemantics.h</a>.</p>
+
+<p class="reference">References <a class="el" href="LLVMShorthands_8h_source.html#l00300">definitelyContainsNoPointer()</a>, and <a class="el" href="LLVMPointerSemantics_8h_source.html#l00038">mayHidePointer()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="LLVMPointerSemantics_8h_source.html#l00103">asMemoryAccess()</a>.</p>
 
 </div>
 </div>
@@ -10880,6 +11149,109 @@ template&lt;typename FF &gt; </div>
 
 </div>
 </div>
+<a id="ae7a1fd0bed17f6d7bb3b8a2a2f0a3369" name="ae7a1fd0bed17f6d7bb3b8a2a2f0a3369"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae7a1fd0bed17f6d7bb3b8a2a2f0a3369">&#9670;&#160;</a></span>llvmRawAliasHandler()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr std::invocable&lt; ValueId &gt; auto psr::llvmRawAliasHandler </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>VC</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::invocable&lt; const llvm::Value * &gt; auto&#160;</td>
+          <td class="paramname"><em>Callback</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Returns a <code>ValueId</code> handler suitable for <code><a class="el" href="classpsr_1_1SparseBitSet.html#a9e8f2fd6fa608226e0588a495b68ddd2">RawAliasSet::foreach()</a></code> that maps each alias <code>ValueId</code> back to all of its underlying <code>llvm::Value*</code> (via <code>VC</code>), forwarding non-null values to <code>Callback</code>. </p>
+
+<p class="definition">Definition at line <a class="el" href="LLVMRawAAResults_8h_source.html#l00026">26</a> of file <a class="el" href="LLVMRawAAResults_8h_source.html">LLVMRawAAResults.h</a>.</p>
+
+<p class="reference">References <a class="el" href="Utilities_8h_source.html#l00280">copyOrRef()</a>, and <a class="el" href="ValueCompressor_8h_source.html#l00057">psr::ValueCompressor&lt; T &gt;::id2vars()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="LLVMRawAAResults_8h_source.html#l00065">psr::LLVMRawAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, and <a class="el" href="LLVMRawAAResults_8h_source.html#l00197">psr::LLVMLocalRawAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>.</p>
+
+</div>
+</div>
+<a id="abe751a61ff7bb278959b2abd8a740ba3" name="abe751a61ff7bb278959b2abd8a740ba3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abe751a61ff7bb278959b2abd8a740ba3">&#9670;&#160;</a></span>LLVMRawAliasIterator() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename AAResT &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structpsr_1_1LLVMRawAliasIterator.html">psr::LLVMRawAliasIterator</a> </td>
+          <td>(</td>
+          <td class="paramtype">AAResT&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; *&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> -&gt;  <a class="el" href="structpsr_1_1LLVMRawAliasIterator.html">LLVMRawAliasIterator</a>&lt; AAResT &gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ac7f3a4ddec12f4db967a6b6acebcbd88" name="ac7f3a4ddec12f4db967a6b6acebcbd88"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac7f3a4ddec12f4db967a6b6acebcbd88">&#9670;&#160;</a></span>LLVMRawAliasIterator() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename AAResT &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structpsr_1_1LLVMRawAliasIterator.html">psr::LLVMRawAliasIterator</a> </td>
+          <td>(</td>
+          <td class="paramtype">AAResT&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; const <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt;&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> -&gt;  <a class="el" href="structpsr_1_1LLVMRawAliasIterator.html">LLVMRawAliasIterator</a>&lt; AAResT &gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a7cf69d66c4dce52d63040e3c38da4e03" name="a7cf69d66c4dce52d63040e3c38da4e03"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7cf69d66c4dce52d63040e3c38da4e03">&#9670;&#160;</a></span>llvmTypeToString() <span class="overload">[1/2]</span></h2>
 
@@ -10949,109 +11321,6 @@ template&lt;typename FF &gt; </div>
   </table>
   </dd>
 </dl>
-
-</div>
-</div>
-<a id="aa6bb9d0694ad9a170d02ff11c51857b7" name="aa6bb9d0694ad9a170d02ff11c51857b7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa6bb9d0694ad9a170d02ff11c51857b7">&#9670;&#160;</a></span>llvmUnionFindAliasHandler()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr std::invocable&lt; ValueId &gt; auto psr::llvmUnionFindAliasHandler </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &amp;&#160;</td>
-          <td class="paramname"><em>VC</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">std::invocable&lt; const llvm::Value * &gt; auto&#160;</td>
-          <td class="paramname"><em>Callback</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>Returns a <code>ValueId</code> handler suitable for <code><a class="el" href="classpsr_1_1RoaringAliasSet.html#a3a806d7e90a0d6af481e8de75b619c1f">RawAliasSet::foreach()</a></code> that maps each alias <code>ValueId</code> back to all of its underlying <code>llvm::Value*</code> (via <code>VC</code>), forwarding non-null values to <code>Callback</code>. </p>
-
-<p class="definition">Definition at line <a class="el" href="LLVMUnionFindAA_8h_source.html#l00042">42</a> of file <a class="el" href="LLVMUnionFindAA_8h_source.html">LLVMUnionFindAA.h</a>.</p>
-
-<p class="reference">References <a class="el" href="Utilities_8h_source.html#l00280">copyOrRef()</a>, and <a class="el" href="ValueCompressor_8h_source.html#l00057">psr::ValueCompressor&lt; T &gt;::id2vars()</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="LLVMUnionFindAA_8h_source.html#l00101">psr::LLVMUnionFindAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, and <a class="el" href="LLVMUnionFindAA_8h_source.html#l00236">psr::LLVMLocalUnionFindAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>.</p>
-
-</div>
-</div>
-<a id="a0c34018bc7ed0b20982881c556cfbb75" name="a0c34018bc7ed0b20982881c556cfbb75"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0c34018bc7ed0b20982881c556cfbb75">&#9670;&#160;</a></span>LLVMUnionFindAliasIterator() <span class="overload">[1/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename AAResT &gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="structpsr_1_1LLVMUnionFindAliasIterator.html">psr::LLVMUnionFindAliasIterator</a> </td>
-          <td>(</td>
-          <td class="paramtype">AAResT&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; *&#160;</td>
-          <td class="paramname">&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td> -&gt;  <a class="el" href="structpsr_1_1LLVMUnionFindAliasIterator.html">LLVMUnionFindAliasIterator</a>&lt; AAResT &gt;</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ab599103e02bb62382c08752a65f32219" name="ab599103e02bb62382c08752a65f32219"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab599103e02bb62382c08752a65f32219">&#9670;&#160;</a></span>LLVMUnionFindAliasIterator() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename AAResT &gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="structpsr_1_1LLVMUnionFindAliasIterator.html">psr::LLVMUnionFindAliasIterator</a> </td>
-          <td>(</td>
-          <td class="paramtype">AAResT&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; const <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt;&#160;</td>
-          <td class="paramname">&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td> -&gt;  <a class="el" href="structpsr_1_1LLVMUnionFindAliasIterator.html">LLVMUnionFindAliasIterator</a>&lt; AAResT &gt;</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
 
 </div>
 </div>
@@ -11406,6 +11675,49 @@ template&lt;typename T , typename MapFn &gt; </div>
 </div><div class="memdoc">
 
 <p class="definition">Definition at line <a class="el" href="ErrorHandling_8h_source.html#l00064">64</a> of file <a class="el" href="ErrorHandling_8h_source.html">ErrorHandling.h</a>.</p>
+
+</div>
+</div>
+<a id="a03ad4608b4ed8d873f6aac59bb832ae2" name="a03ad4608b4ed8d873f6aac59bb832ae2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a03ad4608b4ed8d873f6aac59bb832ae2">&#9670;&#160;</a></span>mayHidePointer()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classbool.html">bool</a> psr::mayHidePointer </td>
+          <td>(</td>
+          <td class="paramtype">const llvm::DataLayout &amp;&#160;</td>
+          <td class="paramname"><em>DL</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const llvm::Type *&#160;</td>
+          <td class="paramname"><em>Ty</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Whether a value of the pointer-free type <code>Ty</code> is laid out such that it could hold pointer bit patterns. </p>
+
+<p class="definition">Definition at line <a class="el" href="LLVMPointerSemantics_8h_source.html#l00038">38</a> of file <a class="el" href="LLVMPointerSemantics_8h_source.html">LLVMPointerSemantics.h</a>.</p>
+
+<p class="reference">References <a class="el" href="LLVMPointerSemantics_8h_source.html#l00038">mayHidePointer()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="LLVMPointerSemantics_8h_source.html#l00147">psr::PunnedABICache::isCoercedPointer()</a>, <a class="el" href="LLVMPointerSemantics_8h_source.html#l00058">isPunnedPointerAccess()</a>, and <a class="el" href="LLVMPointerSemantics_8h_source.html#l00038">mayHidePointer()</a>.</p>
 
 </div>
 </div>
@@ -13456,8 +13768,8 @@ template&lt;<a class="el" href="classsize__t.html">size_t</a> N&gt; </div>
 
 </div>
 </div>
-<a id="aaa481f29d0335930e26cc3a19d6168e1" name="aaa481f29d0335930e26cc3a19d6168e1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aaa481f29d0335930e26cc3a19d6168e1">&#9670;&#160;</a></span>to_string() <span class="overload">[6/14]</span></h2>
+<a id="a74e88b0cd3ca02dbc3450b000dc2d625" name="a74e88b0cd3ca02dbc3450b000dc2d625"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a74e88b0cd3ca02dbc3450b000dc2d625">&#9670;&#160;</a></span>to_string() <span class="overload">[6/14]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -13468,7 +13780,7 @@ template&lt;<a class="el" href="classsize__t.html">size_t</a> N&gt; </div>
         <tr>
           <td class="memname">llvm::StringRef psr::to_string </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classpsr_1_1LLVMUnionFindAliasSet.html#ac3d2e1d8af7d979453ceae5b6599013a">LLVMUnionFindAliasSet::AnalysisLocality</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="structpsr_1_1LLVMRawAliasSetBase.html#a55037d85f5833e626a276a4a7dcf219c">LLVMRawAliasSetBase::AnalysisLocality</a>&#160;</td>
           <td class="paramname"><em>ALoc</em></td><td>)</td>
           <td></td>
         </tr>
@@ -14220,7 +14532,7 @@ requires std::is_convertible_v&lt;T, <a class="el" href="classbool.html">bool</a
 
 <p class="definition">Definition at line <a class="el" href="Nullable_8h_source.html#l00026">26</a> of file <a class="el" href="Nullable_8h_source.html">Nullable.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="ControlFlowOrder_8h_source.html#l00038">computeCFGOrder()</a>, <a class="el" href="UnionFindAA_8h_source.html#l00388">psr::CallingContextSensUnionFindAA&lt; AnalysisDomainT, K &gt;::onAddValue()</a>, <a class="el" href="IDESolver_8h_source.html#l00416">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::processCall()</a>, <a class="el" href="IDESolver_8h_source.html#l00958">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::processExit()</a>, and <a class="el" href="IDESolver_8h_source.html#l00621">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::processNormalFlow()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="ControlFlowOrder_8h_source.html#l00038">computeCFGOrder()</a>, <a class="el" href="UnionFindAA_8h_source.html#l00357">psr::CallingContextSensUnionFindAA&lt; AnalysisDomainT, K &gt;::onAddValue()</a>, <a class="el" href="IDESolver_8h_source.html#l00416">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::processCall()</a>, <a class="el" href="IDESolver_8h_source.html#l00958">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::processExit()</a>, and <a class="el" href="IDESolver_8h_source.html#l00621">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::processNormalFlow()</a>.</p>
 
 </div>
 </div>
@@ -14498,7 +14810,7 @@ template&lt;typename T &gt; </div>
 
 <p class="definition">Definition at line <a class="el" href="TypedArray_8h_source.html#l00025">25</a> of file <a class="el" href="TypedArray_8h_source.html">TypedArray.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="UnionFindAA_8h_source.html#l00550">psr::IndirectionSensUnionFindAA&lt; AnalysisDomainT, K &gt;::onAddValue()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="UnionFindAA_8h_source.html#l00520">psr::IndirectionSensUnionFindAA&lt; AnalysisDomainT, K &gt;::onAddValue()</a>.</p>
 
 </div>
 </div>
@@ -14719,7 +15031,7 @@ template&lt;typename Var , typename T &gt; </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Aug 19 2026 16:39:43 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Aug 20 2026 16:00:34 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

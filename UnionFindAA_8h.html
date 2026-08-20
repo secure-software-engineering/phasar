@@ -86,6 +86,7 @@ $(function() {
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#namespaces">Namespaces</a> &#124;
 <a href="#concepts">Concepts</a> &#124;
+<a href="#typedef-members">Typedefs</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">UnionFindAA.h File Reference</div></div>
 </div><!--header-->
@@ -93,6 +94,7 @@ $(function() {
 <div class="textblock"><code>#include &quot;<a class="el" href="CallGraph_8h_source.html">phasar/ControlFlow/CallGraph.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="CallingContextConstructor_8h_source.html">phasar/Pointer/CallingContextConstructor.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="PointerAssignmentGraph_8h_source.html">phasar/Pointer/PointerAssignmentGraph.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="RawAAResult_8h_source.html">phasar/Pointer/RawAAResult.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="RawAliasSet_8h_source.html">phasar/Pointer/RawAliasSet.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="ByRef_8h_source.html">phasar/Utils/ByRef.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="IotaIterator_8h_source.html">phasar/Utils/IotaIterator.h</a>&quot;</code><br />
@@ -112,6 +114,7 @@ $(function() {
 <code>#include &quot;llvm/ADT/DenseMap.h&quot;</code><br />
 <code>#include &quot;llvm/ADT/STLExtras.h&quot;</code><br />
 <code>#include &quot;llvm/Support/ErrorHandling.h&quot;</code><br />
+<code>#include &lt;cassert&gt;</code><br />
 <code>#include &lt;concepts&gt;</code><br />
 <code>#include &lt;functional&gt;</code><br />
 <code>#include &lt;type_traits&gt;</code><br />
@@ -120,8 +123,6 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1UnionFindAAResultIntersection.html">psr::UnionFindAAResultIntersection&lt; FirstT, SecondT &gt;</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1UnionFindAACombinator.html">psr::UnionFindAACombinator&lt; FirstT, SecondT &gt;</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1CachedUnionFindAAResult.html">psr::CachedUnionFindAAResult&lt; AAResT, ShouldCacheMayAlias &gt;</a></td></tr>
@@ -150,8 +151,14 @@ Namespaces</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="concepts" name="concepts"></a>
 Concepts</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptpsr_1_1UnionFindAAResult.html">psr::UnionFindAAResult</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="classBase.html">Base</a> interface for results of a union-find alias-analysis. <br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">For backwards-compatibility only. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
+Typedefs</h2></td></tr>
+<tr class="memitem:a490fd8fa8cbf9dbaa91617ea8445ad26" id="r_a490fd8fa8cbf9dbaa91617ea8445ad26"><td class="memTemplParams" colspan="2">template&lt;RawAAResult FirstT, RawAAResult SecondT&gt; </td></tr>
+<tr class="memitem:a490fd8fa8cbf9dbaa91617ea8445ad26"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a490fd8fa8cbf9dbaa91617ea8445ad26">psr::UnionFindAAResultIntersection</a> = <a class="el" href="structpsr_1_1RawAAResultIntersection.html">RawAAResultIntersection</a>&lt; FirstT, SecondT &gt;</td></tr>
+<tr class="separator:a490fd8fa8cbf9dbaa91617ea8445ad26"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
@@ -162,7 +169,7 @@ Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Aug 19 2026 16:39:43 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Aug 20 2026 16:00:34 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

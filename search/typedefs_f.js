@@ -8,5 +8,6 @@ var searchData=
   ['result_5',['Result',['../classpsr_1_1GeneralStatisticsAnalysis.html#a66163fbaa5ef1cbaae903e67a2c31034',1,'psr::GeneralStatisticsAnalysis']]],
   ['return_6',['Return',['../structllvm_1_1DenseMapInfo_3_01psr_1_1vta_1_1TAGNode_01_4.html#a335c15bb0220ee6094fda2c0421d3b70',1,'llvm::DenseMapInfo&lt; psr::vta::TAGNode &gt;']]],
   ['revcgty_7',['RevCGTy',['../classpsr_1_1BottomupUnionFindAA.html#ab8f4bdb95b4c8e36da62e2ac7d02d878',1,'psr::BottomupUnionFindAA']]],
-  ['roots_5fiterator_8',['roots_iterator',['../structpsr_1_1GraphTraits_3_01AdjacencyList_3_01T_00_01VtxId_00_01EdgeTy_01_4_01_4.html#ad80ced2b768aaa2ed95cc20622fc6dfe',1,'psr::GraphTraits&lt; AdjacencyList&lt; T, VtxId, EdgeTy &gt; &gt;']]]
+  ['roaringaliasset_8',['RoaringAliasSet',['../namespacepsr.html#a7dfd79c7862c222131cdb86c5eb59963',1,'psr']]],
+  ['roots_5fiterator_9',['roots_iterator',['../structpsr_1_1GraphTraits_3_01AdjacencyList_3_01T_00_01VtxId_00_01EdgeTy_01_4_01_4.html#ad80ced2b768aaa2ed95cc20622fc6dfe',1,'psr::GraphTraits&lt; AdjacencyList&lt; T, VtxId, EdgeTy &gt; &gt;']]]
 ];

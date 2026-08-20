@@ -485,9 +485,9 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00329" name="l00329"></a><span class="lineno">  329</span>  }</div>
 </div>
 <div class="line"><a id="l00330" name="l00330"></a><span class="lineno">  330</span><span class="comment"></span> </div>
-<div class="line"><a id="l00331" name="l00331"></a><span class="lineno">  331</span><span class="comment">  /// Called by buildPAG() for every (unique) node that should be added to the</span></div>
-<div class="line"><a id="l00332" name="l00332"></a><span class="lineno">  332</span><span class="comment">  /// PAG, *excluding* nodes that have already been registered in the used</span></div>
-<div class="line"><a id="l00333" name="l00333"></a><span class="lineno">  333</span><span class="comment">  /// ValueCompressor before buildPAG() was called.</span></div>
+<div class="line"><a id="l00331" name="l00331"></a><span class="lineno">  331</span><span class="comment">  /// Called by buildPAG() once per (unique) PAG node, with ascending VIds</span></div>
+<div class="line"><a id="l00332" name="l00332"></a><span class="lineno">  332</span><span class="comment">  /// starting at zero. Nodes already present in a pre-populated</span></div>
+<div class="line"><a id="l00333" name="l00333"></a><span class="lineno">  333</span><span class="comment">  /// ValueCompressor are reported first, before the PAG is traversed.</span></div>
 <div class="line"><a id="l00334" name="l00334"></a><span class="lineno">  334</span><span class="comment">  ///</span></div>
 <div class="line"><a id="l00335" name="l00335"></a><span class="lineno">  335</span><span class="comment">  /// \param Variable The IR-specific variable/value for which the new node</span></div>
 <div class="line"><a id="l00336" name="l00336"></a><span class="lineno">  336</span><span class="comment">  /// has been created.</span></div>
@@ -707,7 +707,7 @@ $(document).ready(function() { init_codefold(0); });
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Aug 19 2026 16:39:43 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Aug 20 2026 16:00:34 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

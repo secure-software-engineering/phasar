@@ -100,9 +100,9 @@ Inheritance diagram for psr::UnionFindAACombinator&lt; FirstT, SecondT &gt;:</di
 Public Member Functions</h2></td></tr>
 <tr class="memitem:abf17178090230642105daa723186ce93" id="r_abf17178090230642105daa723186ce93"><td class="memItemLeft" align="right" valign="top">constexpr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1UnionFindAACombinator.html#abf17178090230642105daa723186ce93">UnionFindAACombinator</a> (std::convertible_to&lt; FirstT &gt; auto &amp;&amp;<a class="el" href="structpsr_1_1pag_1_1PBStrategyCombinator.html#aa4f90b9f30f58d68ff0424e3aa2efb9a">First</a>, std::convertible_to&lt; SecondT &gt; auto &amp;&amp;<a class="el" href="structpsr_1_1pag_1_1PBStrategyCombinator.html#ae954cb9fa9e0cc20b103fede12d46a5e">Second</a>)</td></tr>
 <tr class="separator:abf17178090230642105daa723186ce93"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a690ec12cad1d3524cecfb85ee9a0494b" id="r_a690ec12cad1d3524cecfb85ee9a0494b"><td class="memTemplParams" colspan="2">template&lt;std::predicate&lt; ValueId &gt; FilterFn = TrueFn&gt; </td></tr>
-<tr class="memitem:a690ec12cad1d3524cecfb85ee9a0494b"><td class="memTemplItemLeft" align="right" valign="top">UnionFindAAResult auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structpsr_1_1UnionFindAACombinator.html#a690ec12cad1d3524cecfb85ee9a0494b">consumeAAResults</a> (<a class="el" href="classsize__t.html">size_t</a> NumVars, FilterFn ShouldInclude={}) &amp;&amp;</td></tr>
-<tr class="separator:a690ec12cad1d3524cecfb85ee9a0494b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9c517ebb47180de93a4e378fcd964bef" id="r_a9c517ebb47180de93a4e378fcd964bef"><td class="memTemplParams" colspan="2">template&lt;std::predicate&lt; ValueId &gt; FilterFn = TrueFn&gt; </td></tr>
+<tr class="memitem:a9c517ebb47180de93a4e378fcd964bef"><td class="memTemplItemLeft" align="right" valign="top">RawAAResult auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structpsr_1_1UnionFindAACombinator.html#a9c517ebb47180de93a4e378fcd964bef">consumeAAResults</a> (<a class="el" href="classsize__t.html">size_t</a> NumVars, FilterFn ShouldInclude={}) &amp;&amp;</td></tr>
+<tr class="separator:a9c517ebb47180de93a4e378fcd964bef"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_structpsr_1_1pag_1_1PBStrategyCombinator"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_structpsr_1_1pag_1_1PBStrategyCombinator')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="structpsr_1_1pag_1_1PBStrategyCombinator.html">psr::pag::PBStrategyCombinator&lt; FirstT, SecondT &gt;</a></td></tr>
 <tr class="memitem:a665a73a6d6bb1ba1f3cbf5a86500cca3 inherit pub_methods_structpsr_1_1pag_1_1PBStrategyCombinator" id="r_a665a73a6d6bb1ba1f3cbf5a86500cca3"><td class="memItemLeft" align="right" valign="top">constexpr void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1pag_1_1PBStrategyCombinator.html#a665a73a6d6bb1ba1f3cbf5a86500cca3">onAddEdge</a> (ValueId From, ValueId To, <a class="el" href="structpsr_1_1pag_1_1Edge.html">Edge</a> E, <a class="el" href="namespacepsr.html#ad1d0602a9eee1460c855d6b3ce61201a">Nullable</a>&lt; <a class="el" href="structpsr_1_1pag_1_1PBStrategyCombinator.html#ae4625e87812b1a605f740256a63d8666">n_t</a> &gt; AtInstruction)</td></tr>
 <tr class="separator:a665a73a6d6bb1ba1f3cbf5a86500cca3 inherit pub_methods_structpsr_1_1pag_1_1PBStrategyCombinator"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -135,9 +135,9 @@ Additional Inherited Members</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><div class="compoundTemplParams">template&lt;pag::PBStrategy FirstT, pag::CanOnAddEdge SecondT&gt;<br />
 requires (std::same_as&lt;typename FirstT::n_t, typename SecondT::n_t&gt; &amp;&amp; std::same_as&lt;typename FirstT::v_t, typename SecondT::v_t&gt; &amp;&amp; std::same_as&lt;typename FirstT::f_t, typename SecondT::f_t&gt; &amp;&amp; std::same_as&lt;typename FirstT::db_t, typename SecondT::db_t&gt;)<br />
-struct psr::UnionFindAACombinator&lt; FirstT, SecondT &gt;</div><p>Specialization of <code>PBStrategyCombinator</code> for two union-find analyses whose results should be intersected for better precision. Both analyses must operate on the same analysis domain. After <code>buildPAG()</code> completes, call <code><a class="el" href="structpsr_1_1UnionFindAACombinator.html#a690ec12cad1d3524cecfb85ee9a0494b">consumeAAResults()</a></code> to obtain a <code><a class="el" href="structpsr_1_1UnionFindAAResultIntersection.html">UnionFindAAResultIntersection</a></code>. </p>
+struct psr::UnionFindAACombinator&lt; FirstT, SecondT &gt;</div><p>Specialization of <code>PBStrategyCombinator</code> for two union-find analyses whose results should be intersected for better precision. Both analyses must operate on the same analysis domain. After <code>buildPAG()</code> completes, call <code><a class="el" href="structpsr_1_1UnionFindAACombinator.html#a9c517ebb47180de93a4e378fcd964bef">consumeAAResults()</a></code> to obtain a <code>UnionFindAAResultIntersection</code>. </p>
 
-<p class="definition">Definition at line <a class="el" href="UnionFindAA_8h_source.html#l00091">91</a> of file <a class="el" href="UnionFindAA_8h_source.html">UnionFindAA.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="UnionFindAA_8h_source.html#l00060">60</a> of file <a class="el" href="UnionFindAA_8h_source.html">UnionFindAA.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="abf17178090230642105daa723186ce93" name="abf17178090230642105daa723186ce93"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#abf17178090230642105daa723186ce93">&#9670;&#160;</a></span>UnionFindAACombinator()</h2>
@@ -175,15 +175,15 @@ template&lt;pag::PBStrategy FirstT, pag::CanOnAddEdge SecondT&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="UnionFindAA_8h_source.html#l00094">94</a> of file <a class="el" href="UnionFindAA_8h_source.html">UnionFindAA.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="UnionFindAA_8h_source.html#l00063">63</a> of file <a class="el" href="UnionFindAA_8h_source.html">UnionFindAA.h</a>.</p>
 
 <p class="reference">References <a class="el" href="Macros_8h_source.html#l00016">PSR_FWD</a>.</p>
 
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a690ec12cad1d3524cecfb85ee9a0494b" name="a690ec12cad1d3524cecfb85ee9a0494b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a690ec12cad1d3524cecfb85ee9a0494b">&#9670;&#160;</a></span>consumeAAResults()</h2>
+<a id="a9c517ebb47180de93a4e378fcd964bef" name="a9c517ebb47180de93a4e378fcd964bef"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9c517ebb47180de93a4e378fcd964bef">&#9670;&#160;</a></span>consumeAAResults()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -196,7 +196,7 @@ template&lt;std::predicate&lt; ValueId &gt; FilterFn = TrueFn&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">UnionFindAAResult auto <a class="el" href="structpsr_1_1UnionFindAACombinator.html">psr::UnionFindAACombinator</a>&lt; FirstT, SecondT &gt;::consumeAAResults </td>
+          <td class="memname">RawAAResult auto <a class="el" href="structpsr_1_1UnionFindAACombinator.html">psr::UnionFindAACombinator</a>&lt; FirstT, SecondT &gt;::consumeAAResults </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="classsize__t.html">size_t</a>&#160;</td>
           <td class="paramname"><em>NumVars</em>, </td>
@@ -220,7 +220,7 @@ template&lt;std::predicate&lt; ValueId &gt; FilterFn = TrueFn&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="UnionFindAA_8h_source.html#l00101">101</a> of file <a class="el" href="UnionFindAA_8h_source.html">UnionFindAA.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="UnionFindAA_8h_source.html#l00070">70</a> of file <a class="el" href="UnionFindAA_8h_source.html">UnionFindAA.h</a>.</p>
 
 </div>
 </div>
@@ -230,7 +230,7 @@ template&lt;std::predicate&lt; ValueId &gt; FilterFn = TrueFn&gt; </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Aug 19 2026 16:39:44 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Aug 20 2026 16:00:35 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

@@ -361,7 +361,7 @@ template&lt;typename AnalysisDomainT &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Called by buildPAG() for every (unique) node that should be added to the PAG, <em>excluding</em> nodes that have already been registered in the used <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a> before buildPAG() was called.</p>
+<p>Called by buildPAG() once per (unique) PAG node, with ascending VIds starting at zero. Nodes already present in a pre-populated <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a> are reported first, before the PAG is traversed.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">Variable</td><td>The IR-specific variable/value for which the new node has been created. </td></tr>
@@ -428,7 +428,7 @@ template&lt;typename AnalysisDomainT &gt; </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Aug 19 2026 16:39:44 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Aug 20 2026 16:00:35 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

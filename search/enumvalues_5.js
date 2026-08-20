@@ -6,5 +6,5 @@ var searchData=
   ['followreturnspastseeds_3',['FollowReturnsPastSeeds',['../namespacepsr.html#a92b02d6b2a969583645d366406bc2ae6a4654acc18bcab30fd9698c3a8b89c2d2',1,'psr']]],
   ['freed_4',['FREED',['../namespacepsr.html#a8dc4b8ce8fe88df9a828dd6d6f912039a90542187ae4644dbf826fcb1ed8a5372',1,'psr']]],
   ['full_5',['Full',['../namespacepsr.html#a40c472b9f8de123f74784de0fb41adc5abbd47109890259c0127154db1af26c75',1,'psr']]],
-  ['functionlocal_6',['FunctionLocal',['../classpsr_1_1LLVMUnionFindAliasSet.html#ac3d2e1d8af7d979453ceae5b6599013aaaf5361b59248b962d686ae97e67f1f46',1,'psr::LLVMUnionFindAliasSet']]]
+  ['functionlocal_6',['FunctionLocal',['../structpsr_1_1LLVMRawAliasSetBase.html#a55037d85f5833e626a276a4a7dcf219caaf5361b59248b962d686ae97e67f1f46',1,'psr::LLVMRawAliasSetBase']]]
 ];

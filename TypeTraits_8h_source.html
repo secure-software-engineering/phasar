@@ -199,7 +199,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T, <span class="keyword">typename</span> Over&gt;</div>
 <div class="foldopen" id="foldopen00106" data-start="{" data-end="}">
 <div class="line"><a id="l00106" name="l00106"></a><span class="lineno"><a class="line" href="conceptpsr_1_1is__iterable__over__v.html">  106</a></span><span class="keyword">concept </span><a class="code hl_concept" href="conceptpsr_1_1is__iterable__over__v.html">is_iterable_over_v</a> = <a class="code hl_concept" href="conceptpsr_1_1is__iterable__v.html">is_iterable_v&lt;T&gt;</a> &amp;&amp; <span class="keyword">requires</span>(T &amp;Val) {</div>
-<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>  { *llvm::adl_begin(Val) } -&gt; <a class="code hl_concept" href="conceptpsr_1_1same__as__decay.html">same_as_decay&lt;Over&gt;</a>;</div>
+<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>  { *llvm::adl_begin(Val) } -&gt; std::convertible_to&lt;Over&gt;;</div>
 <div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>};</div>
 </div>
 <div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span> </div>
@@ -542,7 +542,7 @@ $(document).ready(function() { init_codefold(0); });
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Aug 19 2026 16:39:43 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Aug 20 2026 16:00:34 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

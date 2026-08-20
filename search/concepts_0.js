@@ -105,9 +105,10 @@ var searchData=
   ['psr_3a_3aprojectirdb_102',['ProjectIRDB',['../conceptpsr_1_1ProjectIRDB.html',1,'psr']]],
   ['psr_3a_3aprojectsymboltable_103',['ProjectSymbolTable',['../conceptpsr_1_1ProjectSymbolTable.html',1,'psr']]],
   ['psr_3a_3aproper_5fsubclass_5fof_104',['proper_subclass_of',['../conceptpsr_1_1proper__subclass__of.html',1,'psr']]],
-  ['psr_3a_3asame_5fas_5fdecay_105',['same_as_decay',['../conceptpsr_1_1same__as__decay.html',1,'psr']]],
-  ['psr_3a_3asmallidtype_106',['SmallIdType',['../conceptpsr_1_1SmallIdType.html',1,'psr']]],
-  ['psr_3a_3aunionfindaaresult_107',['UnionFindAAResult',['../conceptpsr_1_1UnionFindAAResult.html',1,'psr']]],
-  ['psr_3a_3awpds_3a_3acaninjectadditionalpushedges_108',['CanInjectAdditionalPushEdges',['../conceptpsr_1_1wpds_1_1CanInjectAdditionalPushEdges.html',1,'psr::wpds']]],
-  ['psr_3a_3awpds_3a_3aruleprovider_109',['RuleProvider',['../conceptpsr_1_1wpds_1_1RuleProvider.html',1,'psr::wpds']]]
+  ['psr_3a_3arawaaresult_105',['RawAAResult',['../conceptpsr_1_1RawAAResult.html',1,'psr']]],
+  ['psr_3a_3asame_5fas_5fdecay_106',['same_as_decay',['../conceptpsr_1_1same__as__decay.html',1,'psr']]],
+  ['psr_3a_3asmallidtype_107',['SmallIdType',['../conceptpsr_1_1SmallIdType.html',1,'psr']]],
+  ['psr_3a_3aunionfindaaresult_108',['UnionFindAAResult',['../conceptpsr_1_1UnionFindAAResult.html',1,'psr']]],
+  ['psr_3a_3awpds_3a_3acaninjectadditionalpushedges_109',['CanInjectAdditionalPushEdges',['../conceptpsr_1_1wpds_1_1CanInjectAdditionalPushEdges.html',1,'psr::wpds']]],
+  ['psr_3a_3awpds_3a_3aruleprovider_110',['RuleProvider',['../conceptpsr_1_1wpds_1_1RuleProvider.html',1,'psr::wpds']]]
 ];

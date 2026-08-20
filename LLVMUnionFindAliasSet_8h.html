@@ -83,55 +83,30 @@ $(function() {
 </div><!-- top -->
 <div class="header">
   <div class="summary">
-<a href="#nested-classes">Classes</a> &#124;
 <a href="#namespaces">Namespaces</a> &#124;
-<a href="#func-members">Functions</a>  </div>
+<a href="#typedef-members">Typedefs</a>  </div>
   <div class="headertitle"><div class="title">LLVMUnionFindAliasSet.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;<a class="el" href="LLVMBasedCallGraph_8h_source.html">phasar/PhasarLLVM/ControlFlow/LLVMBasedCallGraph.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="LLVMAliasSet_8h_source.html">phasar/PhasarLLVM/Pointer/LLVMAliasSet.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="LLVMPointerAssignmentGraph_8h_source.html">phasar/PhasarLLVM/Pointer/LLVMPointerAssignmentGraph.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="LLVMPointsToUtils_8h_source.html">phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="AliasAnalysisType_8h_source.html">phasar/Pointer/AliasAnalysisType.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="AliasInfoTraits_8h_source.html">phasar/Pointer/AliasInfoTraits.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="AliasResult_8h_source.html">phasar/Pointer/AliasResult.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="AliasSetOwner_8h_source.html">phasar/Pointer/AliasSetOwner.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="RawAliasSet_8h_source.html">phasar/Pointer/RawAliasSet.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="UnionFindAliasAnalysisType_8h_source.html">phasar/Pointer/UnionFindAliasAnalysisType.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="AnalysisProperties_8h_source.html">phasar/Utils/AnalysisProperties.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="TypedVector_8h_source.html">phasar/Utils/TypedVector.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="ValueCompressor_8h_source.html">phasar/Utils/ValueCompressor.h</a>&quot;</code><br />
-<code>#include &lt;memory&gt;</code><br />
-<code>#include &lt;type_traits&gt;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="LLVMRawAliasSet_8h_source.html">phasar/PhasarLLVM/Pointer/LLVMRawAliasSet.h</a>&quot;</code><br />
 </div>
 <p><a href="LLVMUnionFindAliasSet_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
-Classes</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1AliasInfoTraits_3_01LLVMUnionFindAliasSet_01_4.html">psr::AliasInfoTraits&lt; LLVMUnionFindAliasSet &gt;</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMUnionFindAliasSet.html">psr::LLVMUnionFindAliasSet</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1LLVMUnionFindAliasSet_1_1Config.html">psr::LLVMUnionFindAliasSet::Config</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
 Namespaces</h2></td></tr>
-<tr class="memitem:namespacellvm" id="r_namespacellvm"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacellvm.html">llvm</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:namespacepsr" id="r_namespacepsr"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html">psr</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
-Functions</h2></td></tr>
-<tr class="memitem:aaa481f29d0335930e26cc3a19d6168e1" id="r_aaa481f29d0335930e26cc3a19d6168e1"><td class="memItemLeft" align="right" valign="top">llvm::StringRef&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#aaa481f29d0335930e26cc3a19d6168e1">psr::to_string</a> (<a class="el" href="classpsr_1_1LLVMUnionFindAliasSet.html#ac3d2e1d8af7d979453ceae5b6599013a">LLVMUnionFindAliasSet::AnalysisLocality</a> ALoc) noexcept</td></tr>
-<tr class="separator:aaa481f29d0335930e26cc3a19d6168e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
+Typedefs</h2></td></tr>
+<tr class="memitem:a00e35dfaf52bfa84f09f8cfd18c0eac7" id="r_a00e35dfaf52bfa84f09f8cfd18c0eac7"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a00e35dfaf52bfa84f09f8cfd18c0eac7">psr::LLVMUnionFindAliasSet</a> = <a class="el" href="classpsr_1_1LLVMRawAliasSet.html">LLVMRawAliasSet</a></td></tr>
+<tr class="memdesc:a00e35dfaf52bfa84f09f8cfd18c0eac7"><td class="mdescLeft">&#160;</td><td class="mdescRight">For backwards compatibility only.  <br /></td></tr>
+<tr class="separator:a00e35dfaf52bfa84f09f8cfd18c0eac7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Aug 19 2026 16:39:43 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Aug 20 2026 16:00:34 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

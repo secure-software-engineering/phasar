@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>PhASAR: psr::LLVMRawAliasSet&lt; IdT &gt; Class Template Reference</title>
+<title>PhASAR: psr::LLVMRawAliasSet Class Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -83,382 +83,406 @@ $(function() {
 </div><!-- top -->
 <div class="header">
   <div class="summary">
-<a href="#pub-types">Public Types</a> &#124;
+<a href="#nested-classes">Classes</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="classpsr_1_1LLVMRawAliasSet-members.html">List of all members</a>  </div>
-  <div class="headertitle"><div class="title">psr::LLVMRawAliasSet&lt; IdT &gt; Class Template Reference</div></div>
+  <div class="headertitle"><div class="title">psr::LLVMRawAliasSet Class Reference</div></div>
 </div><!--header-->
 <div class="contents">
 
-<p><code>#include &quot;<a class="el" href="RawAliasSet_8h_source.html">phasar/Pointer/RawAliasSet.h</a>&quot;</code></p>
+<p><code>#include &quot;<a class="el" href="LLVMRawAliasSet_8h_source.html">phasar/PhasarLLVM/Pointer/LLVMRawAliasSet.h</a>&quot;</code></p>
+<div class="dynheader">
+Inheritance diagram for psr::LLVMRawAliasSet:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classpsr_1_1LLVMRawAliasSet__inherit__graph.svg" width="486" height="228"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
-Public Types</h2></td></tr>
-<tr class="memitem:a93e87a74d87d07963d3768625cea0598" id="r_a93e87a74d87d07963d3768625cea0598"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMRawAliasSet.html#a93e87a74d87d07963d3768625cea0598">value_type</a> = IdT</td></tr>
-<tr class="separator:a93e87a74d87d07963d3768625cea0598"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a8695d8df3fea1edb57714059f688efde" id="r_a8695d8df3fea1edb57714059f688efde"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMRawAliasSet.html#a8695d8df3fea1edb57714059f688efde">LLVMRawAliasSet</a> ()=default</td></tr>
-<tr class="separator:a8695d8df3fea1edb57714059f688efde"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad9db2c8c1d3758248d64ce859840272b" id="r_ad9db2c8c1d3758248d64ce859840272b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMRawAliasSet.html#ad9db2c8c1d3758248d64ce859840272b">insert</a> (IdT Id)</td></tr>
-<tr class="separator:ad9db2c8c1d3758248d64ce859840272b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3f61bd25ad58834ddc7cd95e0f67e7ec" id="r_a3f61bd25ad58834ddc7cd95e0f67e7ec"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMRawAliasSet.html#a3f61bd25ad58834ddc7cd95e0f67e7ec">tryInsert</a> (IdT Id)</td></tr>
-<tr class="separator:a3f61bd25ad58834ddc7cd95e0f67e7ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab8f21199eac6735d43aa987d3cf002d8" id="r_ab8f21199eac6735d43aa987d3cf002d8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMRawAliasSet.html#ab8f21199eac6735d43aa987d3cf002d8">contains</a> (IdT Id) const</td></tr>
-<tr class="separator:ab8f21199eac6735d43aa987d3cf002d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a01aa9dd0e387b7a37ec295e1de46b255" id="r_a01aa9dd0e387b7a37ec295e1de46b255"><td class="memTemplParams" colspan="2">template&lt;std::invocable&lt; IdT &gt; HandlerFn&gt; </td></tr>
-<tr class="memitem:a01aa9dd0e387b7a37ec295e1de46b255"><td class="memTemplItemLeft" align="right" valign="top">LLVM_ATTRIBUTE_ALWAYS_INLINE void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMRawAliasSet.html#a01aa9dd0e387b7a37ec295e1de46b255">foreach</a> (HandlerFn Handler) const</td></tr>
-<tr class="separator:a01aa9dd0e387b7a37ec295e1de46b255"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac3a581c2030176f53662f9632838d3b4" id="r_ac3a581c2030176f53662f9632838d3b4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMRawAliasSet.html#ac3a581c2030176f53662f9632838d3b4">operator|=</a> (const <a class="el" href="classpsr_1_1LLVMRawAliasSet.html">LLVMRawAliasSet</a> &amp;Other)</td></tr>
-<tr class="separator:ac3a581c2030176f53662f9632838d3b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4665868b38f056718f22cb54c749ab42" id="r_a4665868b38f056718f22cb54c749ab42"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMRawAliasSet.html#a4665868b38f056718f22cb54c749ab42">operator&amp;=</a> (const <a class="el" href="classpsr_1_1LLVMRawAliasSet.html">LLVMRawAliasSet</a> &amp;Other)</td></tr>
-<tr class="separator:a4665868b38f056718f22cb54c749ab42"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a594dffc7727a2b56dc6e9fe85bd1dc96" id="r_a594dffc7727a2b56dc6e9fe85bd1dc96"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMRawAliasSet.html#a594dffc7727a2b56dc6e9fe85bd1dc96">operator-=</a> (const <a class="el" href="classpsr_1_1LLVMRawAliasSet.html">LLVMRawAliasSet</a> &amp;Other)</td></tr>
-<tr class="separator:a594dffc7727a2b56dc6e9fe85bd1dc96"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6179166ce1315000cf705ed387d9b0d4" id="r_a6179166ce1315000cf705ed387d9b0d4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classpsr_1_1LLVMRawAliasSet.html">LLVMRawAliasSet</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMRawAliasSet.html#a6179166ce1315000cf705ed387d9b0d4">operator-</a> (const <a class="el" href="classpsr_1_1LLVMRawAliasSet.html">LLVMRawAliasSet</a> &amp;Other) const</td></tr>
-<tr class="separator:a6179166ce1315000cf705ed387d9b0d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4e503664985c05e9f058723bc16ee6a8" id="r_a4e503664985c05e9f058723bc16ee6a8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMRawAliasSet.html#a4e503664985c05e9f058723bc16ee6a8">empty</a> () const noexcept</td></tr>
-<tr class="separator:a4e503664985c05e9f058723bc16ee6a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a58b96c4256507a9d9a0ebc1f425415f7" id="r_a58b96c4256507a9d9a0ebc1f425415f7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classsize__t.html">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMRawAliasSet.html#a58b96c4256507a9d9a0ebc1f425415f7">size</a> () const noexcept</td></tr>
-<tr class="separator:a58b96c4256507a9d9a0ebc1f425415f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aeec20098d721a3808cbe59e3c8d85af3" id="r_aeec20098d721a3808cbe59e3c8d85af3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMRawAliasSet.html#aeec20098d721a3808cbe59e3c8d85af3">clear</a> () noexcept</td></tr>
-<tr class="separator:aeec20098d721a3808cbe59e3c8d85af3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a890156f80a2ad6a06fd004ae0b4983d8" id="r_a890156f80a2ad6a06fd004ae0b4983d8"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMRawAliasSet.html#a890156f80a2ad6a06fd004ae0b4983d8">begin</a> () const noexcept</td></tr>
-<tr class="separator:a890156f80a2ad6a06fd004ae0b4983d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a779f98d07f650cfe126f6b5834f7cd17" id="r_a779f98d07f650cfe126f6b5834f7cd17"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMRawAliasSet.html#a779f98d07f650cfe126f6b5834f7cd17">end</a> () const noexcept</td></tr>
-<tr class="separator:a779f98d07f650cfe126f6b5834f7cd17"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af8c2a6f38514cef05c8dcdcd944308bf" id="r_af8c2a6f38514cef05c8dcdcd944308bf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMRawAliasSet.html#af8c2a6f38514cef05c8dcdcd944308bf">tryMergeWith</a> (const <a class="el" href="classpsr_1_1LLVMRawAliasSet.html">LLVMRawAliasSet</a> &amp;Other)</td></tr>
-<tr class="separator:af8c2a6f38514cef05c8dcdcd944308bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2fc5e069c57319d69a88ebb931112a62" id="r_a2fc5e069c57319d69a88ebb931112a62"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMRawAliasSet.html#a2fc5e069c57319d69a88ebb931112a62">erase</a> (IdT Id)</td></tr>
-<tr class="separator:a2fc5e069c57319d69a88ebb931112a62"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4b1812b8e2aaebe9732eed3601741795" id="r_a4b1812b8e2aaebe9732eed3601741795"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMRawAliasSet.html#a4b1812b8e2aaebe9732eed3601741795">operator==</a> (const <a class="el" href="classpsr_1_1LLVMRawAliasSet.html">LLVMRawAliasSet</a> &amp;Other) const noexcept</td></tr>
-<tr class="separator:a4b1812b8e2aaebe9732eed3601741795"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aaa1a26b30ea257073446cfa3d0223fa4" id="r_aaa1a26b30ea257073446cfa3d0223fa4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMRawAliasSet.html#aaa1a26b30ea257073446cfa3d0223fa4">mergeWithDiff</a> (const <a class="el" href="classpsr_1_1LLVMRawAliasSet.html">LLVMRawAliasSet</a> &amp;Other, std::invocable&lt; IdT &gt; auto WithNewElem, <a class="el" href="classpsr_1_1LLVMRawAliasSet.html">LLVMRawAliasSet</a> &amp;IntoDiff)</td></tr>
-<tr class="separator:aaa1a26b30ea257073446cfa3d0223fa4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7da2530a0814c5876f82de4c7b1b4c1c" id="r_a7da2530a0814c5876f82de4c7b1b4c1c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMRawAliasSet.html#a7da2530a0814c5876f82de4c7b1b4c1c">mergeWithDiff</a> (const <a class="el" href="classpsr_1_1LLVMRawAliasSet.html">LLVMRawAliasSet</a> &amp;Other, std::invocable&lt; IdT &gt; auto WithNewElem)</td></tr>
-<tr class="separator:a7da2530a0814c5876f82de4c7b1b4c1c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4aa3465412cc0aaf6563b95d4f0d5bc1" id="r_a4aa3465412cc0aaf6563b95d4f0d5bc1"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMRawAliasSet.html#a4aa3465412cc0aaf6563b95d4f0d5bc1">LLVMRawAliasSet</a> (const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> *IRDB, const <a class="el" href="namespacepsr.html#a7ed5d2bc3d093f9da2f285ae3f8cc35b">LLVMBasedCallGraph</a> &amp;BaseCG, <a class="el" href="structpsr_1_1LLVMRawAliasSetBase_1_1Config.html">Config</a> Cfg, <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; *VC)</td></tr>
+<tr class="separator:a4aa3465412cc0aaf6563b95d4f0d5bc1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4e3af4423ecbea977a2c3247ac7602bf" id="r_a4e3af4423ecbea977a2c3247ac7602bf"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMRawAliasSet.html#a4e3af4423ecbea977a2c3247ac7602bf">LLVMRawAliasSet</a> (const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> *IRDB, const <a class="el" href="namespacepsr.html#a7ed5d2bc3d093f9da2f285ae3f8cc35b">LLVMBasedCallGraph</a> &amp;BaseCG, <a class="el" href="structpsr_1_1LLVMRawAliasSetBase_1_1Config.html">Config</a> Cfg)</td></tr>
+<tr class="separator:a4e3af4423ecbea977a2c3247ac7602bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac85da24bf3058a1bfc0430136da644a8" id="r_ac85da24bf3058a1bfc0430136da644a8"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMRawAliasSet.html#ac85da24bf3058a1bfc0430136da644a8">LLVMRawAliasSet</a> (const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> *IRDB, const <a class="el" href="namespacepsr.html#a7ed5d2bc3d093f9da2f285ae3f8cc35b">LLVMBasedCallGraph</a> &amp;BaseCG)</td></tr>
+<tr class="separator:ac85da24bf3058a1bfc0430136da644a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2bb8b9eace14899af3d787128e714ff0" id="r_a2bb8b9eace14899af3d787128e714ff0"><td class="memTemplParams" colspan="2">template&lt;RawAAResult AAResT&gt; </td></tr>
+<tr class="memitem:a2bb8b9eace14899af3d787128e714ff0"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMRawAliasSet.html#a2bb8b9eace14899af3d787128e714ff0">LLVMRawAliasSet</a> (AAResT &amp;&amp;AARes, <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt; VC, <a class="el" href="namespacepsr.html#a802871ae358a52662bc020884222f466">AnalysisProperties</a> Props={})</td></tr>
+<tr class="separator:a2bb8b9eace14899af3d787128e714ff0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3656f58e299933f61ee8ea7ed552789d" id="r_a3656f58e299933f61ee8ea7ed552789d"><td class="memItemLeft" align="right" valign="top">constexpr std::true_type&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMRawAliasSet.html#a3656f58e299933f61ee8ea7ed552789d">isInterProcedural</a> () const noexcept</td></tr>
+<tr class="separator:a3656f58e299933f61ee8ea7ed552789d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4441b14c5270812b247404571cb4f292" id="r_a4441b14c5270812b247404571cb4f292"><td class="memItemLeft" align="right" valign="top">constexpr std::integral_constant&lt; <a class="el" href="namespacepsr.html#afadf03970cb93e1afc369c320209ae7c">AliasAnalysisType</a>, AliasAnalysisType::UnionFind &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMRawAliasSet.html#a4441b14c5270812b247404571cb4f292">getAliasAnalysisType</a> () const noexcept</td></tr>
+<tr class="separator:a4441b14c5270812b247404571cb4f292"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa003c561115650a36eeb8ef34e86a844" id="r_aa003c561115650a36eeb8ef34e86a844"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="namespacepsr.html#a802871ae358a52662bc020884222f466">AnalysisProperties</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMRawAliasSet.html#aa003c561115650a36eeb8ef34e86a844">getAnalysisProperties</a> () const noexcept</td></tr>
+<tr class="separator:aa003c561115650a36eeb8ef34e86a844"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a355c48927924199755ff3aeed122965f" id="r_a355c48927924199755ff3aeed122965f"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="namespacepsr.html#ad7cac0de91e70a0960ff6db0fa168499">AliasResult</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMRawAliasSet.html#a355c48927924199755ff3aeed122965f">alias</a> (<a class="el" href="structpsr_1_1LLVMRawAliasSetBase.html#ab744d727dfe677600374bd7f9689915a">v_t</a> V1, <a class="el" href="structpsr_1_1LLVMRawAliasSetBase.html#ab744d727dfe677600374bd7f9689915a">v_t</a> V2, <a class="el" href="structpsr_1_1LLVMRawAliasSetBase.html#ad450ad706e056c3f4f5bc37d8ab9c11c">n_t</a> I) const</td></tr>
+<tr class="separator:a355c48927924199755ff3aeed122965f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a20a70cb1808ac17b72f2c374430ababc" id="r_a20a70cb1808ac17b72f2c374430ababc"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMRawAliasSet.html#a20a70cb1808ac17b72f2c374430ababc">foreachAliasOf</a> (<a class="el" href="structpsr_1_1LLVMRawAliasSetBase.html#ab744d727dfe677600374bd7f9689915a">v_t</a> V, <a class="el" href="structpsr_1_1LLVMRawAliasSetBase.html#ad450ad706e056c3f4f5bc37d8ab9c11c">n_t</a> I, llvm::function_ref&lt; void(<a class="el" href="structpsr_1_1LLVMRawAliasSetBase.html#ab744d727dfe677600374bd7f9689915a">v_t</a>)&gt; WithAlias) const</td></tr>
+<tr class="separator:a20a70cb1808ac17b72f2c374430ababc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a442f486074a73c159147a1899b7b97e8" id="r_a442f486074a73c159147a1899b7b97e8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structpsr_1_1LLVMRawAliasSetBase.html#afd2948778f7b26c242fe425637f7653f">AliasSetPtrTy</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMRawAliasSet.html#a442f486074a73c159147a1899b7b97e8">getAliasSet</a> (<a class="el" href="structpsr_1_1LLVMRawAliasSetBase.html#ab744d727dfe677600374bd7f9689915a">v_t</a> V, <a class="el" href="structpsr_1_1LLVMRawAliasSetBase.html#ad450ad706e056c3f4f5bc37d8ab9c11c">n_t</a> I)</td></tr>
+<tr class="separator:a442f486074a73c159147a1899b7b97e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a170ca9167bb91e1a047a55584f2f4466" id="r_a170ca9167bb91e1a047a55584f2f4466"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structpsr_1_1LLVMRawAliasSetBase.html#a0bea01a3b128f7a296fda6c18453a336">AllocationSiteSetPtrTy</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMRawAliasSet.html#a170ca9167bb91e1a047a55584f2f4466">getReachableAllocationSites</a> (<a class="el" href="structpsr_1_1LLVMRawAliasSetBase.html#ab744d727dfe677600374bd7f9689915a">v_t</a> V, <a class="el" href="classbool.html">bool</a> IntraProcOnly, <a class="el" href="structpsr_1_1LLVMRawAliasSetBase.html#ad450ad706e056c3f4f5bc37d8ab9c11c">n_t</a> I) const</td></tr>
+<tr class="separator:a170ca9167bb91e1a047a55584f2f4466"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a11e6dc3b0047316af7592f9bbc9fb243" id="r_a11e6dc3b0047316af7592f9bbc9fb243"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMRawAliasSet.html#a11e6dc3b0047316af7592f9bbc9fb243">isInReachableAllocationSites</a> (const llvm::Value *V, const llvm::Value *PotentialValue, <a class="el" href="classbool.html">bool</a> IntraProcOnly, const llvm::Instruction *I) const</td></tr>
+<tr class="separator:a11e6dc3b0047316af7592f9bbc9fb243"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6de0da1e25a378a46ca908a35e430c32" id="r_a6de0da1e25a378a46ca908a35e430c32"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMRawAliasSet.html#a6de0da1e25a378a46ca908a35e430c32">print</a> (llvm::raw_ostream &amp;OS) const</td></tr>
+<tr class="separator:a6de0da1e25a378a46ca908a35e430c32"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a207660ecd138eacc89960e8395b91245" id="r_a207660ecd138eacc89960e8395b91245"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMRawAliasSet.html#a207660ecd138eacc89960e8395b91245">printAsJson</a> (llvm::raw_ostream &amp;OS) const</td></tr>
+<tr class="separator:a207660ecd138eacc89960e8395b91245"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab02dd8d6c1123293bbb7aa191c726c33" id="r_ab02dd8d6c1123293bbb7aa191c726c33"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMRawAliasSet.html#ab02dd8d6c1123293bbb7aa191c726c33">isValid</a> () const noexcept</td></tr>
+<tr class="separator:ab02dd8d6c1123293bbb7aa191c726c33"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_methods_classpsr_1_1AnalysisPropertiesMixin"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classpsr_1_1AnalysisPropertiesMixin')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classpsr_1_1AnalysisPropertiesMixin.html">psr::AnalysisPropertiesMixin&lt; LLVMRawAliasSet &gt;</a></td></tr>
+<tr class="memitem:ac784f8150e60f4b216bbb35d5123d13c inherit pub_methods_classpsr_1_1AnalysisPropertiesMixin" id="r_ac784f8150e60f4b216bbb35d5123d13c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1AnalysisPropertiesMixin.html#ac784f8150e60f4b216bbb35d5123d13c">isFieldSensitive</a> () const noexcept</td></tr>
+<tr class="separator:ac784f8150e60f4b216bbb35d5123d13c inherit pub_methods_classpsr_1_1AnalysisPropertiesMixin"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0c0bf52c2da09c6b6ebab21dcb9e2b18 inherit pub_methods_classpsr_1_1AnalysisPropertiesMixin" id="r_a0c0bf52c2da09c6b6ebab21dcb9e2b18"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1AnalysisPropertiesMixin.html#a0c0bf52c2da09c6b6ebab21dcb9e2b18">isContextSensitive</a> () const noexcept</td></tr>
+<tr class="separator:a0c0bf52c2da09c6b6ebab21dcb9e2b18 inherit pub_methods_classpsr_1_1AnalysisPropertiesMixin"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7f8073296868510c22c6da75f05059a6 inherit pub_methods_classpsr_1_1AnalysisPropertiesMixin" id="r_a7f8073296868510c22c6da75f05059a6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1AnalysisPropertiesMixin.html#a7f8073296868510c22c6da75f05059a6">isFlowSensitive</a> () const noexcept</td></tr>
+<tr class="separator:a7f8073296868510c22c6da75f05059a6 inherit pub_methods_classpsr_1_1AnalysisPropertiesMixin"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="inherited" name="inherited"></a>
+Additional Inherited Members</h2></td></tr>
+<tr class="inherit_header pub_types_structpsr_1_1LLVMRawAliasSetBase"><td colspan="2" onclick="javascript:toggleInherit('pub_types_structpsr_1_1LLVMRawAliasSetBase')"><img src="closed.png" alt="-"/>&#160;Public Types inherited from <a class="el" href="structpsr_1_1LLVMRawAliasSetBase.html">psr::LLVMRawAliasSetBase</a></td></tr>
+<tr class="memitem:a55037d85f5833e626a276a4a7dcf219c inherit pub_types_structpsr_1_1LLVMRawAliasSetBase" id="r_a55037d85f5833e626a276a4a7dcf219c"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1LLVMRawAliasSetBase.html#a55037d85f5833e626a276a4a7dcf219c">AnalysisLocality</a> : uint8_t { <a class="el" href="structpsr_1_1LLVMRawAliasSetBase.html#a55037d85f5833e626a276a4a7dcf219ca4cc6684df7b4a92b1dec6fce3264fac8">Global</a>
+, <a class="el" href="structpsr_1_1LLVMRawAliasSetBase.html#a55037d85f5833e626a276a4a7dcf219caaf5361b59248b962d686ae97e67f1f46">FunctionLocal</a>
+ }</td></tr>
+<tr class="separator:a55037d85f5833e626a276a4a7dcf219c inherit pub_types_structpsr_1_1LLVMRawAliasSetBase"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0fb373f75d0373b97eccc802fc104f13 inherit pub_types_structpsr_1_1LLVMRawAliasSetBase" id="r_a0fb373f75d0373b97eccc802fc104f13"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1LLVMRawAliasSetBase.html#a0fb373f75d0373b97eccc802fc104f13">traits_t</a> = <a class="el" href="structpsr_1_1AliasInfoTraits.html">AliasInfoTraits</a>&lt; <a class="el" href="classpsr_1_1LLVMRawAliasSet.html">LLVMRawAliasSet</a> &gt;</td></tr>
+<tr class="separator:a0fb373f75d0373b97eccc802fc104f13 inherit pub_types_structpsr_1_1LLVMRawAliasSetBase"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad450ad706e056c3f4f5bc37d8ab9c11c inherit pub_types_structpsr_1_1LLVMRawAliasSetBase" id="r_ad450ad706e056c3f4f5bc37d8ab9c11c"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1LLVMRawAliasSetBase.html#ad450ad706e056c3f4f5bc37d8ab9c11c">n_t</a> = <a class="el" href="structpsr_1_1DefaultAATraits.html#a8efd63804c08cf12babcc30498a82b8e">traits_t::n_t</a></td></tr>
+<tr class="separator:ad450ad706e056c3f4f5bc37d8ab9c11c inherit pub_types_structpsr_1_1LLVMRawAliasSetBase"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab744d727dfe677600374bd7f9689915a inherit pub_types_structpsr_1_1LLVMRawAliasSetBase" id="r_ab744d727dfe677600374bd7f9689915a"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1LLVMRawAliasSetBase.html#ab744d727dfe677600374bd7f9689915a">v_t</a> = <a class="el" href="structpsr_1_1DefaultAATraits.html#abb47606595e55cb8f419e6c85eee462c">traits_t::v_t</a></td></tr>
+<tr class="separator:ab744d727dfe677600374bd7f9689915a inherit pub_types_structpsr_1_1LLVMRawAliasSetBase"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adbecdb266c61e619f6bbbb7b9eb74a5e inherit pub_types_structpsr_1_1LLVMRawAliasSetBase" id="r_adbecdb266c61e619f6bbbb7b9eb74a5e"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1LLVMRawAliasSetBase.html#adbecdb266c61e619f6bbbb7b9eb74a5e">AliasSetTy</a> = <a class="el" href="structpsr_1_1DefaultAATraits.html#af5eacfc7a83f715a709328aa47cf9fc2">traits_t::AliasSetTy</a></td></tr>
+<tr class="separator:adbecdb266c61e619f6bbbb7b9eb74a5e inherit pub_types_structpsr_1_1LLVMRawAliasSetBase"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afd2948778f7b26c242fe425637f7653f inherit pub_types_structpsr_1_1LLVMRawAliasSetBase" id="r_afd2948778f7b26c242fe425637f7653f"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1LLVMRawAliasSetBase.html#afd2948778f7b26c242fe425637f7653f">AliasSetPtrTy</a> = <a class="el" href="structpsr_1_1DefaultAATraits.html#aa0d97119f3260dea04834a7ee3d1728b">traits_t::AliasSetPtrTy</a></td></tr>
+<tr class="separator:afd2948778f7b26c242fe425637f7653f inherit pub_types_structpsr_1_1LLVMRawAliasSetBase"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0bea01a3b128f7a296fda6c18453a336 inherit pub_types_structpsr_1_1LLVMRawAliasSetBase" id="r_a0bea01a3b128f7a296fda6c18453a336"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1LLVMRawAliasSetBase.html#a0bea01a3b128f7a296fda6c18453a336">AllocationSiteSetPtrTy</a> = <a class="el" href="structpsr_1_1DefaultAATraits.html#a16e4e3edc39bf32aa0649546f5d89bc5">traits_t::AllocationSiteSetPtrTy</a></td></tr>
+<tr class="separator:a0bea01a3b128f7a296fda6c18453a336 inherit pub_types_structpsr_1_1LLVMRawAliasSetBase"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><div class="compoundTemplParams">template&lt;SmallIdType IdT&gt;<br />
-class psr::LLVMRawAliasSet&lt; IdT &gt;</div><p>Sparse bit-set used to represent alias sets in union-find analyses.</p>
-<p>Currently backed by <code>llvm::SparseBitVector</code> for compact storage when ids are scattered in a large range and dense storage when ids are clustered. Satisfies <code>IsRawAliasSet</code>.</p>
-<dl class="tparams"><dt>Template Parameters</dt><dd>
-  <table class="tparams">
-    <tr><td class="paramname">IdT</td><td>Integer-like id type (e.g., <code>ValueId</code>). </td></tr>
-  </table>
-  </dd>
-</dl>
+<div class="textblock"><p>Concrete <code>IsAliasInfo</code> implementation backed by a raw alias analysis. Provides convenience constructors to invoke union-find-based analyses, but can be instantiated with <em>any</em> analysis result that conforms to <code>RawAAResult</code> .</p>
+<p>Alias sets are materialized lazily on first query and cached per <code>ValueId</code> in <code>AliasSets</code>.</p>
+<dl class="section note"><dt>Note</dt><dd>When <code><a class="el" href="structpsr_1_1LLVMRawAliasSetBase.html#a55037d85f5833e626a276a4a7dcf219caaf5361b59248b962d686ae97e67f1f46">AnalysisLocality::FunctionLocal</a></code> is selected, alias sets are filtered to variables visible in the function that contains the query instruction. The per-<code>ValueId</code> cache does <b>not</b> account for the instruction context, so the first caller's function wins — do not mix queries to local pointers from different functions for the same value in local mode. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="RawAliasSet_8h_source.html#l00074">74</a> of file <a class="el" href="RawAliasSet_8h_source.html">RawAliasSet.h</a>.</p>
-</div><h2 class="groupheader">Member Typedef Documentation</h2>
-<a id="a93e87a74d87d07963d3768625cea0598" name="a93e87a74d87d07963d3768625cea0598"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a93e87a74d87d07963d3768625cea0598">&#9670;&#160;</a></span>value_type</h2>
+<p class="definition">Definition at line <a class="el" href="LLVMRawAliasSet_8h_source.html#l00096">96</a> of file <a class="el" href="LLVMRawAliasSet_8h_source.html">LLVMRawAliasSet.h</a>.</p>
+</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a id="a4aa3465412cc0aaf6563b95d4f0d5bc1" name="a4aa3465412cc0aaf6563b95d4f0d5bc1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4aa3465412cc0aaf6563b95d4f0d5bc1">&#9670;&#160;</a></span>LLVMRawAliasSet() <span class="overload">[1/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
-<div class="memtemplate">
-template&lt;SmallIdType IdT&gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname">using <a class="el" href="classpsr_1_1LLVMRawAliasSet.html">psr::LLVMRawAliasSet</a>&lt; IdT &gt;::value_type =  IdT</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="RawAliasSet_8h_source.html#l00076">76</a> of file <a class="el" href="RawAliasSet_8h_source.html">RawAliasSet.h</a>.</p>
-
-</div>
-</div>
-<h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a8695d8df3fea1edb57714059f688efde" name="a8695d8df3fea1edb57714059f688efde"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8695d8df3fea1edb57714059f688efde">&#9670;&#160;</a></span>LLVMRawAliasSet()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;SmallIdType IdT&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classpsr_1_1LLVMRawAliasSet.html">psr::LLVMRawAliasSet</a>&lt; IdT &gt;::LLVMRawAliasSet </td>
+          <td class="memname">psr::LLVMRawAliasSet::LLVMRawAliasSet </td>
           <td>(</td>
-          <td class="paramname"></td><td>)</td>
+          <td class="paramtype">const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> *&#160;</td>
+          <td class="paramname"><em>IRDB</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">const <a class="el" href="namespacepsr.html#a7ed5d2bc3d093f9da2f285ae3f8cc35b">LLVMBasedCallGraph</a> &amp;&#160;</td>
+          <td class="paramname"><em>BaseCG</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structpsr_1_1LLVMRawAliasSetBase_1_1Config.html">Config</a>&#160;</td>
+          <td class="paramname"><em>Cfg</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; *&#160;</td>
+          <td class="paramname"><em>VC</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">default</span></span>  </td>
+<span class="mlabels"><span class="mlabel">explicit</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="a4e3af4423ecbea977a2c3247ac7602bf" name="a4e3af4423ecbea977a2c3247ac7602bf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4e3af4423ecbea977a2c3247ac7602bf">&#9670;&#160;</a></span>LLVMRawAliasSet() <span class="overload">[2/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">psr::LLVMRawAliasSet::LLVMRawAliasSet </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> *&#160;</td>
+          <td class="paramname"><em>IRDB</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespacepsr.html#a7ed5d2bc3d093f9da2f285ae3f8cc35b">LLVMBasedCallGraph</a> &amp;&#160;</td>
+          <td class="paramname"><em>BaseCG</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structpsr_1_1LLVMRawAliasSetBase_1_1Config.html">Config</a>&#160;</td>
+          <td class="paramname"><em>Cfg</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">explicit</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="LLVMRawAliasSet_8h_source.html#l00102">102</a> of file <a class="el" href="LLVMRawAliasSet_8h_source.html">LLVMRawAliasSet.h</a>.</p>
+
+</div>
+</div>
+<a id="ac85da24bf3058a1bfc0430136da644a8" name="ac85da24bf3058a1bfc0430136da644a8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac85da24bf3058a1bfc0430136da644a8">&#9670;&#160;</a></span>LLVMRawAliasSet() <span class="overload">[3/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">psr::LLVMRawAliasSet::LLVMRawAliasSet </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> *&#160;</td>
+          <td class="paramname"><em>IRDB</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespacepsr.html#a7ed5d2bc3d093f9da2f285ae3f8cc35b">LLVMBasedCallGraph</a> &amp;&#160;</td>
+          <td class="paramname"><em>BaseCG</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">explicit</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="LLVMRawAliasSet_8h_source.html#l00105">105</a> of file <a class="el" href="LLVMRawAliasSet_8h_source.html">LLVMRawAliasSet.h</a>.</p>
+
+</div>
+</div>
+<a id="a2bb8b9eace14899af3d787128e714ff0" name="a2bb8b9eace14899af3d787128e714ff0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2bb8b9eace14899af3d787128e714ff0">&#9670;&#160;</a></span>LLVMRawAliasSet() <span class="overload">[4/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;RawAAResult AAResT&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">psr::LLVMRawAliasSet::LLVMRawAliasSet </td>
+          <td>(</td>
+          <td class="paramtype">AAResT &amp;&amp;&#160;</td>
+          <td class="paramname"><em>AARes</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt;&#160;</td>
+          <td class="paramname"><em>VC</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#a802871ae358a52662bc020884222f466">AnalysisProperties</a>&#160;</td>
+          <td class="paramname"><em>Props</em> = <code>{}</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">explicit</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="LLVMRawAliasSet_8h_source.html#l00110">110</a> of file <a class="el" href="LLVMRawAliasSet_8h_source.html">LLVMRawAliasSet.h</a>.</p>
 
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a890156f80a2ad6a06fd004ae0b4983d8" name="a890156f80a2ad6a06fd004ae0b4983d8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a890156f80a2ad6a06fd004ae0b4983d8">&#9670;&#160;</a></span>begin()</h2>
+<a id="a355c48927924199755ff3aeed122965f" name="a355c48927924199755ff3aeed122965f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a355c48927924199755ff3aeed122965f">&#9670;&#160;</a></span>alias()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<div class="memtemplate">
-template&lt;SmallIdType IdT&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">auto <a class="el" href="classpsr_1_1LLVMRawAliasSet.html">psr::LLVMRawAliasSet</a>&lt; IdT &gt;::begin </td>
+          <td class="memname">constexpr <a class="el" href="namespacepsr.html#ad7cac0de91e70a0960ff6db0fa168499">AliasResult</a> psr::LLVMRawAliasSet::alias </td>
           <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="RawAliasSet_8h_source.html#l00119">119</a> of file <a class="el" href="RawAliasSet_8h_source.html">RawAliasSet.h</a>.</p>
-
-</div>
-</div>
-<a id="aeec20098d721a3808cbe59e3c8d85af3" name="aeec20098d721a3808cbe59e3c8d85af3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aeec20098d721a3808cbe59e3c8d85af3">&#9670;&#160;</a></span>clear()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;SmallIdType IdT&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void <a class="el" href="classpsr_1_1LLVMRawAliasSet.html">psr::LLVMRawAliasSet</a>&lt; IdT &gt;::clear </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="RawAliasSet_8h_source.html#l00117">117</a> of file <a class="el" href="RawAliasSet_8h_source.html">RawAliasSet.h</a>.</p>
-
-</div>
-</div>
-<a id="ab8f21199eac6735d43aa987d3cf002d8" name="ab8f21199eac6735d43aa987d3cf002d8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab8f21199eac6735d43aa987d3cf002d8">&#9670;&#160;</a></span>contains()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;SmallIdType IdT&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="classbool.html">bool</a> <a class="el" href="classpsr_1_1LLVMRawAliasSet.html">psr::LLVMRawAliasSet</a>&lt; IdT &gt;::contains </td>
-          <td>(</td>
-          <td class="paramtype">IdT&#160;</td>
-          <td class="paramname"><em>Id</em></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="RawAliasSet_8h_source.html#l00086">86</a> of file <a class="el" href="RawAliasSet_8h_source.html">RawAliasSet.h</a>.</p>
-
-</div>
-</div>
-<a id="a4e503664985c05e9f058723bc16ee6a8" name="a4e503664985c05e9f058723bc16ee6a8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4e503664985c05e9f058723bc16ee6a8">&#9670;&#160;</a></span>empty()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;SmallIdType IdT&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="classbool.html">bool</a> <a class="el" href="classpsr_1_1LLVMRawAliasSet.html">psr::LLVMRawAliasSet</a>&lt; IdT &gt;::empty </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="RawAliasSet_8h_source.html#l00114">114</a> of file <a class="el" href="RawAliasSet_8h_source.html">RawAliasSet.h</a>.</p>
-
-</div>
-</div>
-<a id="a779f98d07f650cfe126f6b5834f7cd17" name="a779f98d07f650cfe126f6b5834f7cd17"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a779f98d07f650cfe126f6b5834f7cd17">&#9670;&#160;</a></span>end()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;SmallIdType IdT&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">auto <a class="el" href="classpsr_1_1LLVMRawAliasSet.html">psr::LLVMRawAliasSet</a>&lt; IdT &gt;::end </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="RawAliasSet_8h_source.html#l00120">120</a> of file <a class="el" href="RawAliasSet_8h_source.html">RawAliasSet.h</a>.</p>
-
-</div>
-</div>
-<a id="a2fc5e069c57319d69a88ebb931112a62" name="a2fc5e069c57319d69a88ebb931112a62"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2fc5e069c57319d69a88ebb931112a62">&#9670;&#160;</a></span>erase()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;SmallIdType IdT&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void <a class="el" href="classpsr_1_1LLVMRawAliasSet.html">psr::LLVMRawAliasSet</a>&lt; IdT &gt;::erase </td>
-          <td>(</td>
-          <td class="paramtype">IdT&#160;</td>
-          <td class="paramname"><em>Id</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="RawAliasSet_8h_source.html#l00126">126</a> of file <a class="el" href="RawAliasSet_8h_source.html">RawAliasSet.h</a>.</p>
-
-</div>
-</div>
-<a id="a01aa9dd0e387b7a37ec295e1de46b255" name="a01aa9dd0e387b7a37ec295e1de46b255"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a01aa9dd0e387b7a37ec295e1de46b255">&#9670;&#160;</a></span>foreach()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;SmallIdType IdT&gt; </div>
-<div class="memtemplate">
-template&lt;std::invocable&lt; IdT &gt; HandlerFn&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">LLVM_ATTRIBUTE_ALWAYS_INLINE void <a class="el" href="classpsr_1_1LLVMRawAliasSet.html">psr::LLVMRawAliasSet</a>&lt; IdT &gt;::foreach </td>
-          <td>(</td>
-          <td class="paramtype">HandlerFn&#160;</td>
-          <td class="paramname"><em>Handler</em></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="RawAliasSet_8h_source.html#l00089">89</a> of file <a class="el" href="RawAliasSet_8h_source.html">RawAliasSet.h</a>.</p>
-
-</div>
-</div>
-<a id="ad9db2c8c1d3758248d64ce859840272b" name="ad9db2c8c1d3758248d64ce859840272b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad9db2c8c1d3758248d64ce859840272b">&#9670;&#160;</a></span>insert()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;SmallIdType IdT&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void <a class="el" href="classpsr_1_1LLVMRawAliasSet.html">psr::LLVMRawAliasSet</a>&lt; IdT &gt;::insert </td>
-          <td>(</td>
-          <td class="paramtype">IdT&#160;</td>
-          <td class="paramname"><em>Id</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="RawAliasSet_8h_source.html#l00080">80</a> of file <a class="el" href="RawAliasSet_8h_source.html">RawAliasSet.h</a>.</p>
-
-</div>
-</div>
-<a id="a7da2530a0814c5876f82de4c7b1b4c1c" name="a7da2530a0814c5876f82de4c7b1b4c1c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7da2530a0814c5876f82de4c7b1b4c1c">&#9670;&#160;</a></span>mergeWithDiff() <span class="overload">[1/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;SmallIdType IdT&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="classbool.html">bool</a> <a class="el" href="classpsr_1_1LLVMRawAliasSet.html">psr::LLVMRawAliasSet</a>&lt; IdT &gt;::mergeWithDiff </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="classpsr_1_1LLVMRawAliasSet.html">LLVMRawAliasSet</a>&lt; IdT &gt; &amp;&#160;</td>
-          <td class="paramname"><em>Other</em>, </td>
+          <td class="paramtype"><a class="el" href="structpsr_1_1LLVMRawAliasSetBase.html#ab744d727dfe677600374bd7f9689915a">v_t</a>&#160;</td>
+          <td class="paramname"><em>V1</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">std::invocable&lt; IdT &gt; auto&#160;</td>
-          <td class="paramname"><em>WithNewElem</em>&#160;</td>
+          <td class="paramtype"><a class="el" href="structpsr_1_1LLVMRawAliasSetBase.html#ab744d727dfe677600374bd7f9689915a">v_t</a>&#160;</td>
+          <td class="paramname"><em>V2</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structpsr_1_1LLVMRawAliasSetBase.html#ad450ad706e056c3f4f5bc37d8ab9c11c">n_t</a>&#160;</td>
+          <td class="paramname"><em>I</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="LLVMRawAliasSet_8h_source.html#l00138">138</a> of file <a class="el" href="LLVMRawAliasSet_8h_source.html">LLVMRawAliasSet.h</a>.</p>
+
+<p class="reference">References <a class="el" href="LLVMRawAliasSet_8h_source.html#l00194">isValid()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="LLVMRawAliasSet_8h_source.html#l00175">isInReachableAllocationSites()</a>.</p>
+
+</div>
+</div>
+<a id="a20a70cb1808ac17b72f2c374430ababc" name="a20a70cb1808ac17b72f2c374430ababc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a20a70cb1808ac17b72f2c374430ababc">&#9670;&#160;</a></span>foreachAliasOf()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void psr::LLVMRawAliasSet::foreachAliasOf </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structpsr_1_1LLVMRawAliasSetBase.html#ab744d727dfe677600374bd7f9689915a">v_t</a>&#160;</td>
+          <td class="paramname"><em>V</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structpsr_1_1LLVMRawAliasSetBase.html#ad450ad706e056c3f4f5bc37d8ab9c11c">n_t</a>&#160;</td>
+          <td class="paramname"><em>I</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">llvm::function_ref&lt; void(<a class="el" href="structpsr_1_1LLVMRawAliasSetBase.html#ab744d727dfe677600374bd7f9689915a">v_t</a>)&gt;&#160;</td>
+          <td class="paramname"><em>WithAlias</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="LLVMRawAliasSet_8h_source.html#l00143">143</a> of file <a class="el" href="LLVMRawAliasSet_8h_source.html">LLVMRawAliasSet.h</a>.</p>
+
+<p class="reference">References <a class="el" href="LLVMRawAliasSet_8h_source.html#l00194">isValid()</a>.</p>
+
+</div>
+</div>
+<a id="a4441b14c5270812b247404571cb4f292" name="a4441b14c5270812b247404571cb4f292"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4441b14c5270812b247404571cb4f292">&#9670;&#160;</a></span>getAliasAnalysisType()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr std::integral_constant&lt; <a class="el" href="namespacepsr.html#afadf03970cb93e1afc369c320209ae7c">AliasAnalysisType</a>, AliasAnalysisType::UnionFind &gt; psr::LLVMRawAliasSet::getAliasAnalysisType </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="LLVMRawAliasSet_8h_source.html#l00129">129</a> of file <a class="el" href="LLVMRawAliasSet_8h_source.html">LLVMRawAliasSet.h</a>.</p>
+
+</div>
+</div>
+<a id="a442f486074a73c159147a1899b7b97e8" name="a442f486074a73c159147a1899b7b97e8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a442f486074a73c159147a1899b7b97e8">&#9670;&#160;</a></span>getAliasSet()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structpsr_1_1LLVMRawAliasSetBase.html#afd2948778f7b26c242fe425637f7653f">AliasSetPtrTy</a> psr::LLVMRawAliasSet::getAliasSet </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structpsr_1_1LLVMRawAliasSetBase.html#ab744d727dfe677600374bd7f9689915a">v_t</a>&#160;</td>
+          <td class="paramname"><em>V</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structpsr_1_1LLVMRawAliasSetBase.html#ad450ad706e056c3f4f5bc37d8ab9c11c">n_t</a>&#160;</td>
+          <td class="paramname"><em>I</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -473,45 +497,70 @@ template&lt;SmallIdType IdT&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="RawAliasSet_8h_source.html#l00138">138</a> of file <a class="el" href="RawAliasSet_8h_source.html">RawAliasSet.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMRawAliasSet_8h_source.html#l00149">149</a> of file <a class="el" href="LLVMRawAliasSet_8h_source.html">LLVMRawAliasSet.h</a>.</p>
 
-<p class="reference">References <a class="el" href="Utilities_8h_source.html#l00280">psr::copyOrRef()</a>.</p>
+<p class="reference">References <a class="el" href="TypedVector_8h_source.html#l00062">psr::TypedVector&lt; IdT, ValueT, SmallSize &gt;::inbounds()</a>, and <a class="el" href="LLVMRawAliasSet_8h_source.html#l00194">isValid()</a>.</p>
 
 </div>
 </div>
-<a id="aaa1a26b30ea257073446cfa3d0223fa4" name="aaa1a26b30ea257073446cfa3d0223fa4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aaa1a26b30ea257073446cfa3d0223fa4">&#9670;&#160;</a></span>mergeWithDiff() <span class="overload">[2/2]</span></h2>
+<a id="aa003c561115650a36eeb8ef34e86a844" name="aa003c561115650a36eeb8ef34e86a844"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa003c561115650a36eeb8ef34e86a844">&#9670;&#160;</a></span>getAnalysisProperties()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<div class="memtemplate">
-template&lt;SmallIdType IdT&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classbool.html">bool</a> <a class="el" href="classpsr_1_1LLVMRawAliasSet.html">psr::LLVMRawAliasSet</a>&lt; IdT &gt;::mergeWithDiff </td>
+          <td class="memname">constexpr <a class="el" href="namespacepsr.html#a802871ae358a52662bc020884222f466">AnalysisProperties</a> psr::LLVMRawAliasSet::getAnalysisProperties </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="classpsr_1_1LLVMRawAliasSet.html">LLVMRawAliasSet</a>&lt; IdT &gt; &amp;&#160;</td>
-          <td class="paramname"><em>Other</em>, </td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="LLVMRawAliasSet_8h_source.html#l00134">134</a> of file <a class="el" href="LLVMRawAliasSet_8h_source.html">LLVMRawAliasSet.h</a>.</p>
+
+</div>
+</div>
+<a id="a170ca9167bb91e1a047a55584f2f4466" name="a170ca9167bb91e1a047a55584f2f4466"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a170ca9167bb91e1a047a55584f2f4466">&#9670;&#160;</a></span>getReachableAllocationSites()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structpsr_1_1LLVMRawAliasSetBase.html#a0bea01a3b128f7a296fda6c18453a336">AllocationSiteSetPtrTy</a> psr::LLVMRawAliasSet::getReachableAllocationSites </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structpsr_1_1LLVMRawAliasSetBase.html#ab744d727dfe677600374bd7f9689915a">v_t</a>&#160;</td>
+          <td class="paramname"><em>V</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">std::invocable&lt; IdT &gt; auto&#160;</td>
-          <td class="paramname"><em>WithNewElem</em>, </td>
+          <td class="paramtype"><a class="el" href="classbool.html">bool</a>&#160;</td>
+          <td class="paramname"><em>IntraProcOnly</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="classpsr_1_1LLVMRawAliasSet.html">LLVMRawAliasSet</a>&lt; IdT &gt; &amp;&#160;</td>
-          <td class="paramname"><em>IntoDiff</em>&#160;</td>
+          <td class="paramtype"><a class="el" href="structpsr_1_1LLVMRawAliasSetBase.html#ad450ad706e056c3f4f5bc37d8ab9c11c">n_t</a>&#160;</td>
+          <td class="paramname"><em>I</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
           <td>)</td>
-          <td></td><td></td>
+          <td></td><td> const</td>
         </tr>
       </table>
   </td>
@@ -521,29 +570,49 @@ template&lt;SmallIdType IdT&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="RawAliasSet_8h_source.html#l00132">132</a> of file <a class="el" href="RawAliasSet_8h_source.html">RawAliasSet.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMRawAliasSet_8h_source.html#l00165">165</a> of file <a class="el" href="LLVMRawAliasSet_8h_source.html">LLVMRawAliasSet.h</a>.</p>
 
-<p class="reference">References <a class="el" href="Utilities_8h_source.html#l00280">psr::copyOrRef()</a>.</p>
+<p class="reference">References <a class="el" href="LLVMRawAliasSet_8h_source.html#l00194">isValid()</a>.</p>
 
 </div>
 </div>
-<a id="a4665868b38f056718f22cb54c749ab42" name="a4665868b38f056718f22cb54c749ab42"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4665868b38f056718f22cb54c749ab42">&#9670;&#160;</a></span>operator&amp;=()</h2>
+<a id="a11e6dc3b0047316af7592f9bbc9fb243" name="a11e6dc3b0047316af7592f9bbc9fb243"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a11e6dc3b0047316af7592f9bbc9fb243">&#9670;&#160;</a></span>isInReachableAllocationSites()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<div class="memtemplate">
-template&lt;SmallIdType IdT&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">void <a class="el" href="classpsr_1_1LLVMRawAliasSet.html">psr::LLVMRawAliasSet</a>&lt; IdT &gt;::operator&amp;= </td>
+          <td class="memname"><a class="el" href="classbool.html">bool</a> psr::LLVMRawAliasSet::isInReachableAllocationSites </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="classpsr_1_1LLVMRawAliasSet.html">LLVMRawAliasSet</a>&lt; IdT &gt; &amp;&#160;</td>
-          <td class="paramname"><em>Other</em></td><td>)</td>
+          <td class="paramtype">const llvm::Value *&#160;</td>
+          <td class="paramname"><em>V</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">const llvm::Value *&#160;</td>
+          <td class="paramname"><em>PotentialValue</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classbool.html">bool</a>&#160;</td>
+          <td class="paramname"><em>IntraProcOnly</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const llvm::Instruction *&#160;</td>
+          <td class="paramname"><em>I</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
         </tr>
       </table>
   </td>
@@ -553,145 +622,50 @@ template&lt;SmallIdType IdT&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="RawAliasSet_8h_source.html#l00103">103</a> of file <a class="el" href="RawAliasSet_8h_source.html">RawAliasSet.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMRawAliasSet_8h_source.html#l00175">175</a> of file <a class="el" href="LLVMRawAliasSet_8h_source.html">LLVMRawAliasSet.h</a>.</p>
+
+<p class="reference">References <a class="el" href="LLVMRawAliasSet_8h_source.html#l00138">alias()</a>, <a class="el" href="namespacepsr.html#a8a982fbabe1c6d8e9f32085ef7073744">psr::isInReachableAllocationSitesTy()</a>, <a class="el" href="LLVMPointsToUtils_8h_source.html#l00026">psr::isInterestingPointer()</a>, and <a class="el" href="LLVMRawAliasSet_8h_source.html#l00194">isValid()</a>.</p>
 
 </div>
 </div>
-<a id="a6179166ce1315000cf705ed387d9b0d4" name="a6179166ce1315000cf705ed387d9b0d4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6179166ce1315000cf705ed387d9b0d4">&#9670;&#160;</a></span>operator-()</h2>
+<a id="a3656f58e299933f61ee8ea7ed552789d" name="a3656f58e299933f61ee8ea7ed552789d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3656f58e299933f61ee8ea7ed552789d">&#9670;&#160;</a></span>isInterProcedural()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<div class="memtemplate">
-template&lt;SmallIdType IdT&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classpsr_1_1LLVMRawAliasSet.html">LLVMRawAliasSet</a> <a class="el" href="classpsr_1_1LLVMRawAliasSet.html">psr::LLVMRawAliasSet</a>&lt; IdT &gt;::operator- </td>
+          <td class="memname">constexpr std::true_type psr::LLVMRawAliasSet::isInterProcedural </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="classpsr_1_1LLVMRawAliasSet.html">LLVMRawAliasSet</a>&lt; IdT &gt; &amp;&#160;</td>
-          <td class="paramname"><em>Other</em></td><td>)</td>
+          <td class="paramname"></td><td>)</td>
           <td> const</td>
         </tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="RawAliasSet_8h_source.html#l00108">108</a> of file <a class="el" href="RawAliasSet_8h_source.html">RawAliasSet.h</a>.</p>
-
-<p class="reference">References <a class="el" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">psr::Ret</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMRawAliasSet_8h_source.html#l00123">123</a> of file <a class="el" href="LLVMRawAliasSet_8h_source.html">LLVMRawAliasSet.h</a>.</p>
 
 </div>
 </div>
-<a id="a594dffc7727a2b56dc6e9fe85bd1dc96" name="a594dffc7727a2b56dc6e9fe85bd1dc96"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a594dffc7727a2b56dc6e9fe85bd1dc96">&#9670;&#160;</a></span>operator-=()</h2>
+<a id="ab02dd8d6c1123293bbb7aa191c726c33" name="ab02dd8d6c1123293bbb7aa191c726c33"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab02dd8d6c1123293bbb7aa191c726c33">&#9670;&#160;</a></span>isValid()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<div class="memtemplate">
-template&lt;SmallIdType IdT&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">void <a class="el" href="classpsr_1_1LLVMRawAliasSet.html">psr::LLVMRawAliasSet</a>&lt; IdT &gt;::operator-= </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="classpsr_1_1LLVMRawAliasSet.html">LLVMRawAliasSet</a>&lt; IdT &gt; &amp;&#160;</td>
-          <td class="paramname"><em>Other</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="RawAliasSet_8h_source.html#l00104">104</a> of file <a class="el" href="RawAliasSet_8h_source.html">RawAliasSet.h</a>.</p>
-
-</div>
-</div>
-<a id="a4b1812b8e2aaebe9732eed3601741795" name="a4b1812b8e2aaebe9732eed3601741795"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4b1812b8e2aaebe9732eed3601741795">&#9670;&#160;</a></span>operator==()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;SmallIdType IdT&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="classbool.html">bool</a> <a class="el" href="classpsr_1_1LLVMRawAliasSet.html">psr::LLVMRawAliasSet</a>&lt; IdT &gt;::operator== </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="classpsr_1_1LLVMRawAliasSet.html">LLVMRawAliasSet</a>&lt; IdT &gt; &amp;&#160;</td>
-          <td class="paramname"><em>Other</em></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="RawAliasSet_8h_source.html#l00128">128</a> of file <a class="el" href="RawAliasSet_8h_source.html">RawAliasSet.h</a>.</p>
-
-</div>
-</div>
-<a id="ac3a581c2030176f53662f9632838d3b4" name="ac3a581c2030176f53662f9632838d3b4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac3a581c2030176f53662f9632838d3b4">&#9670;&#160;</a></span>operator|=()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;SmallIdType IdT&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void <a class="el" href="classpsr_1_1LLVMRawAliasSet.html">psr::LLVMRawAliasSet</a>&lt; IdT &gt;::operator|= </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="classpsr_1_1LLVMRawAliasSet.html">LLVMRawAliasSet</a>&lt; IdT &gt; &amp;&#160;</td>
-          <td class="paramname"><em>Other</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="RawAliasSet_8h_source.html#l00102">102</a> of file <a class="el" href="RawAliasSet_8h_source.html">RawAliasSet.h</a>.</p>
-
-</div>
-</div>
-<a id="a58b96c4256507a9d9a0ebc1f425415f7" name="a58b96c4256507a9d9a0ebc1f425415f7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a58b96c4256507a9d9a0ebc1f425415f7">&#9670;&#160;</a></span>size()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;SmallIdType IdT&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="classsize__t.html">size_t</a> <a class="el" href="classpsr_1_1LLVMRawAliasSet.html">psr::LLVMRawAliasSet</a>&lt; IdT &gt;::size </td>
+          <td class="memname"><a class="el" href="classbool.html">bool</a> psr::LLVMRawAliasSet::isValid </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -704,77 +678,57 @@ template&lt;SmallIdType IdT&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="RawAliasSet_8h_source.html#l00115">115</a> of file <a class="el" href="RawAliasSet_8h_source.html">RawAliasSet.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMRawAliasSet_8h_source.html#l00194">194</a> of file <a class="el" href="LLVMRawAliasSet_8h_source.html">LLVMRawAliasSet.h</a>.</p>
+
+<p class="reference">References <a class="el" href="TypedVector_8h_source.html#l00059">psr::TypedVector&lt; IdT, ValueT, SmallSize &gt;::size()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="LLVMRawAliasSet_8h_source.html#l00138">alias()</a>, <a class="el" href="LLVMRawAliasSet_8h_source.html#l00143">foreachAliasOf()</a>, <a class="el" href="LLVMRawAliasSet_8h_source.html#l00149">getAliasSet()</a>, <a class="el" href="LLVMRawAliasSet_8h_source.html#l00165">getReachableAllocationSites()</a>, and <a class="el" href="LLVMRawAliasSet_8h_source.html#l00175">isInReachableAllocationSites()</a>.</p>
 
 </div>
 </div>
-<a id="a3f61bd25ad58834ddc7cd95e0f67e7ec" name="a3f61bd25ad58834ddc7cd95e0f67e7ec"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3f61bd25ad58834ddc7cd95e0f67e7ec">&#9670;&#160;</a></span>tryInsert()</h2>
+<a id="a6de0da1e25a378a46ca908a35e430c32" name="a6de0da1e25a378a46ca908a35e430c32"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6de0da1e25a378a46ca908a35e430c32">&#9670;&#160;</a></span>print()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<div class="memtemplate">
-template&lt;SmallIdType IdT&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classbool.html">bool</a> <a class="el" href="classpsr_1_1LLVMRawAliasSet.html">psr::LLVMRawAliasSet</a>&lt; IdT &gt;::tryInsert </td>
+          <td class="memname">void psr::LLVMRawAliasSet::print </td>
           <td>(</td>
-          <td class="paramtype">IdT&#160;</td>
-          <td class="paramname"><em>Id</em></td><td>)</td>
-          <td></td>
+          <td class="paramtype">llvm::raw_ostream &amp;&#160;</td>
+          <td class="paramname"><em>OS</em></td><td>)</td>
+          <td> const</td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="RawAliasSet_8h_source.html#l00082">82</a> of file <a class="el" href="RawAliasSet_8h_source.html">RawAliasSet.h</a>.</p>
-
 </div>
 </div>
-<a id="af8c2a6f38514cef05c8dcdcd944308bf" name="af8c2a6f38514cef05c8dcdcd944308bf"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af8c2a6f38514cef05c8dcdcd944308bf">&#9670;&#160;</a></span>tryMergeWith()</h2>
+<a id="a207660ecd138eacc89960e8395b91245" name="a207660ecd138eacc89960e8395b91245"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a207660ecd138eacc89960e8395b91245">&#9670;&#160;</a></span>printAsJson()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<div class="memtemplate">
-template&lt;SmallIdType IdT&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classbool.html">bool</a> <a class="el" href="classpsr_1_1LLVMRawAliasSet.html">psr::LLVMRawAliasSet</a>&lt; IdT &gt;::tryMergeWith </td>
+          <td class="memname">void psr::LLVMRawAliasSet::printAsJson </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="classpsr_1_1LLVMRawAliasSet.html">LLVMRawAliasSet</a>&lt; IdT &gt; &amp;&#160;</td>
-          <td class="paramname"><em>Other</em></td><td>)</td>
-          <td></td>
+          <td class="paramtype">llvm::raw_ostream &amp;&#160;</td>
+          <td class="paramname"><em>OS</em></td><td>)</td>
+          <td> const</td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="RawAliasSet_8h_source.html#l00122">122</a> of file <a class="el" href="RawAliasSet_8h_source.html">RawAliasSet.h</a>.</p>
 
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following file:<ul>
-<li>include/phasar/Pointer/<a class="el" href="RawAliasSet_8h_source.html">RawAliasSet.h</a></li>
+<li>include/phasar/PhasarLLVM/Pointer/<a class="el" href="LLVMRawAliasSet_8h_source.html">LLVMRawAliasSet.h</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Aug 19 2026 16:39:44 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Aug 20 2026 16:00:35 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

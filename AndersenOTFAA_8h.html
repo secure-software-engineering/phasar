@@ -94,17 +94,23 @@ $(function() {
 <code>#include &quot;<a class="el" href="LLVMUnionFindAA_8h_source.html">phasar/PhasarLLVM/Pointer/LLVMUnionFindAA.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="RawAliasSet_8h_source.html">phasar/Pointer/RawAliasSet.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="UnionFindAA_8h_source.html">phasar/Pointer/UnionFindAA.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="Macros_8h_source.html">phasar/Utils/Macros.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="MaybeUniquePtr_8h_source.html">phasar/Utils/MaybeUniquePtr.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="NonNullPtr_8h_source.html">phasar/Utils/NonNullPtr.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="Soundness_8h_source.html">phasar/Utils/Soundness.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="TypedVector_8h_source.html">phasar/Utils/TypedVector.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="ValueCompressor_8h_source.html">phasar/Utils/ValueCompressor.h</a>&quot;</code><br />
 <code>#include &quot;llvm/ADT/ArrayRef.h&quot;</code><br />
+<code>#include &lt;cstdint&gt;</code><br />
+<code>#include &lt;string&gt;</code><br />
+<code>#include &lt;vector&gt;</code><br />
 </div>
 <p><a href="AndersenOTFAA_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1ContextSensitivityOptions.html">psr::ContextSensitivityOptions</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1AndersenOTFResult.html">psr::AndersenOTFResult</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1AndersenOTFSolver.html">psr::AndersenOTFSolver</a></td></tr>
@@ -119,15 +125,15 @@ Namespaces</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:aa64b2f5831c46d3900c1b0676b6fe3b8" id="r_aa64b2f5831c46d3900c1b0676b6fe3b8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structpsr_1_1AndersenOTFResult.html">AndersenOTFResult</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#aa64b2f5831c46d3900c1b0676b6fe3b8">psr::computeAndersenOTFRaw</a> (const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;IRDB, llvm::ArrayRef&lt; const llvm::Function * &gt; <a class="el" href="namespacepsr.html#abee833e16ef749173730713d144c91b1">EntryPoints</a>, <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt; VC=nullptr, <a class="el" href="namespacepsr.html#ad4ab98da08f52ab38d81dd5206820318">Soundness</a> S=Soundness::Soundy)</td></tr>
-<tr class="separator:aa64b2f5831c46d3900c1b0676b6fe3b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6bdd30d621d7a04bf0bbee7d2ea7fdf6" id="r_a6bdd30d621d7a04bf0bbee7d2ea7fdf6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structpsr_1_1LLVMUnionFindAliasIterator.html">LLVMUnionFindAliasIterator</a>&lt; <a class="el" href="structpsr_1_1AndersenOTFResult.html">AndersenOTFResult</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a6bdd30d621d7a04bf0bbee7d2ea7fdf6">psr::computeAndersenOTF</a> (const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;IRDB, llvm::ArrayRef&lt; const llvm::Function * &gt; <a class="el" href="namespacepsr.html#abee833e16ef749173730713d144c91b1">EntryPoints</a>, <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt; VC=nullptr, <a class="el" href="namespacepsr.html#ad4ab98da08f52ab38d81dd5206820318">Soundness</a> S=Soundness::Soundy)</td></tr>
-<tr class="separator:a6bdd30d621d7a04bf0bbee7d2ea7fdf6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adc61286e489b0e689a1d8f24fb79f95c" id="r_adc61286e489b0e689a1d8f24fb79f95c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structpsr_1_1AndersenOTFResult.html">AndersenOTFResult</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#adc61286e489b0e689a1d8f24fb79f95c">psr::computeAndersenOTFRaw</a> (const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;IRDB, llvm::ArrayRef&lt; const llvm::Function * &gt; <a class="el" href="namespacepsr.html#abee833e16ef749173730713d144c91b1">EntryPoints</a>, <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt; VC=nullptr, <a class="el" href="namespacepsr.html#ad4ab98da08f52ab38d81dd5206820318">Soundness</a> S=Soundness::Soundy, <a class="el" href="structpsr_1_1ContextSensitivityOptions.html">ContextSensitivityOptions</a> CSOpts={})</td></tr>
+<tr class="separator:adc61286e489b0e689a1d8f24fb79f95c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac9f3790e00028114592ca1371a2e3e73" id="r_ac9f3790e00028114592ca1371a2e3e73"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structpsr_1_1LLVMRawAliasIterator.html">LLVMRawAliasIterator</a>&lt; <a class="el" href="structpsr_1_1AndersenOTFResult.html">AndersenOTFResult</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#ac9f3790e00028114592ca1371a2e3e73">psr::computeAndersenOTF</a> (const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;IRDB, llvm::ArrayRef&lt; const llvm::Function * &gt; <a class="el" href="namespacepsr.html#abee833e16ef749173730713d144c91b1">EntryPoints</a>, <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a>&lt; <a class="el" href="structpsr_1_1PAGVariable.html">PAGVariable</a> &gt; &gt; VC=nullptr, <a class="el" href="namespacepsr.html#ad4ab98da08f52ab38d81dd5206820318">Soundness</a> S=Soundness::Soundy, <a class="el" href="structpsr_1_1ContextSensitivityOptions.html">ContextSensitivityOptions</a> CSOpts={})</td></tr>
+<tr class="separator:ac9f3790e00028114592ca1371a2e3e73"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Aug 19 2026 16:39:43 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Aug 20 2026 16:00:34 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

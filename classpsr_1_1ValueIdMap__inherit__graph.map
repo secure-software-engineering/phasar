@@ -1,5 +1,5 @@
 <map id="psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;" name="psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;">
-<area shape="rect" id="Node000001" title="A dense, partially&#45;populated map keyed by a sequential integer&#45;like id." alt="" coords="19,5,185,45"/>
-<area shape="rect" id="Node000002" href="$classpsr_1_1ValueIdMap.html" title=" " alt="" coords="5,123,199,177"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="105,59,105,122,99,122,99,59"/>
+<area shape="rect" id="Node000001" title="A dense, partially&#45;populated map keyed by a sequential integer&#45;like id." alt="" coords="38,5,203,45"/>
+<area shape="rect" id="Node000002" href="$classpsr_1_1ValueIdMap.html" title=" " alt="" coords="5,123,236,163"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="123,59,123,122,118,122,118,59"/>
 </map>

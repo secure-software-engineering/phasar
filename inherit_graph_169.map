@@ -1,7 +1,9 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" title=" " alt="" coords="5,31,171,56"/>
-<area shape="rect" id="Node000001" href="$structpsr_1_1SCCId.html" title=" " alt="" coords="227,5,413,31"/>
-<area shape="poly" id="edge261_Node000000_Node000001" title=" " alt="" coords="184,30,227,25,228,31,185,35"/>
-<area shape="rect" id="Node000002" href="$structpsr_1_1SCCId.html" title="The Id of a strongly&#45;connected component in a graph." alt="" coords="219,55,421,80"/>
-<area shape="poly" id="edge262_Node000000_Node000002" title=" " alt="" coords="185,51,219,54,218,60,184,56"/>
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,49,196,89"/>
+<area shape="rect" id="Node000001" href="$classpsr_1_1LLVMLocalRawAliasIteratorMixin.html" title=" " alt="" coords="244,5,493,60"/>
+<area shape="poly" id="edge244_Node000000_Node000001" title=" " alt="" coords="209,51,243,47,244,52,210,57"/>
+<area shape="rect" id="Node000003" href="$classpsr_1_1LLVMLocalRawAliasIteratorMixin.html" title=" " alt="" coords="255,85,482,125"/>
+<area shape="poly" id="edge246_Node000000_Node000003" title=" " alt="" coords="210,81,256,87,255,92,210,86"/>
+<area shape="rect" id="Node000002" href="$classpsr_1_1LLVMLocalRawAliasIterator.html" title=" " alt="" coords="541,13,768,53"/>
+<area shape="poly" id="edge245_Node000001_Node000002" title=" " alt="" coords="507,30,541,30,541,35,507,35"/>
 </map>

@@ -101,8 +101,8 @@ Inheritance diagram for psr::MaybeUniquePtr&lt; T, RequireAlignment &gt;:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a1ce30264a9d68bcb9a9ff8d131016f87" id="r_a1ce30264a9d68bcb9a9ff8d131016f87"><td class="memItemLeft" align="right" valign="top">constexpr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#a1ce30264a9d68bcb9a9ff8d131016f87">MaybeUniquePtr</a> () noexcept=default</td></tr>
 <tr class="separator:a1ce30264a9d68bcb9a9ff8d131016f87"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6b551b19d5cea248a57b5f731fa33007" id="r_a6b551b19d5cea248a57b5f731fa33007"><td class="memItemLeft" align="right" valign="top">constexpr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#a6b551b19d5cea248a57b5f731fa33007">MaybeUniquePtr</a> (T *Pointer, <a class="el" href="classbool.html">bool</a> Owns=false) noexcept</td></tr>
-<tr class="separator:a6b551b19d5cea248a57b5f731fa33007"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af7c66489d999acb6b2dd355875353ace" id="r_af7c66489d999acb6b2dd355875353ace"><td class="memItemLeft" align="right" valign="top">constexpr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#af7c66489d999acb6b2dd355875353ace">MaybeUniquePtr</a> (T *Pointer <a class="el" href="Macros_8h.html#a40a2c0af46b8c6ff86d04f8401348f46">PSR_LIFETIMEBOUND</a>, <a class="el" href="classbool.html">bool</a> Owns=false) noexcept</td></tr>
+<tr class="separator:af7c66489d999acb6b2dd355875353ace"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8823d6ad7c221496372cbf0dee84c450" id="r_a8823d6ad7c221496372cbf0dee84c450"><td class="memItemLeft" align="right" valign="top">constexpr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#a8823d6ad7c221496372cbf0dee84c450">MaybeUniquePtr</a> (std::unique_ptr&lt; T &gt; &amp;&amp;Owner) noexcept</td></tr>
 <tr class="separator:a8823d6ad7c221496372cbf0dee84c450"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af3e74a7e613ef2b022e9c3b529203035" id="r_af3e74a7e613ef2b022e9c3b529203035"><td class="memTemplParams" colspan="2">template&lt;typename TT &gt; <br />
@@ -181,7 +181,7 @@ class psr::MaybeUniquePtr&lt; T, RequireAlignment &gt;</div><p>A smart-pointer, 
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00062">62</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00064">64</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a1ce30264a9d68bcb9a9ff8d131016f87" name="a1ce30264a9d68bcb9a9ff8d131016f87"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a1ce30264a9d68bcb9a9ff8d131016f87">&#9670;&#160;</a></span>MaybeUniquePtr() <span class="overload">[1/7]</span></h2>
@@ -210,8 +210,8 @@ template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAli
 
 </div>
 </div>
-<a id="a6b551b19d5cea248a57b5f731fa33007" name="a6b551b19d5cea248a57b5f731fa33007"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6b551b19d5cea248a57b5f731fa33007">&#9670;&#160;</a></span>MaybeUniquePtr() <span class="overload">[2/7]</span></h2>
+<a id="af7c66489d999acb6b2dd355875353ace" name="af7c66489d999acb6b2dd355875353ace"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af7c66489d999acb6b2dd355875353ace">&#9670;&#160;</a></span>MaybeUniquePtr() <span class="overload">[2/7]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -224,8 +224,8 @@ template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAli
         <tr>
           <td class="memname">constexpr <a class="el" href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a>&lt; T, RequireAlignment &gt;::MaybeUniquePtr </td>
           <td>(</td>
-          <td class="paramtype">T *&#160;</td>
-          <td class="paramname"><em>Pointer</em>, </td>
+          <td class="paramtype">T *Pointer&#160;</td>
+          <td class="paramname"><em>PSR_LIFETIMEBOUND</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -246,7 +246,7 @@ template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAli
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00071">71</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00073">73</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
 </div>
 </div>
@@ -276,7 +276,7 @@ template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAli
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00075">75</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00078">78</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
 </div>
 </div>
@@ -309,7 +309,7 @@ requires (!std::is_same_v&lt;T, TT&gt; &amp;&amp; std::is_convertible_v&lt;TT *,
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00080">80</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00083">83</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
 </div>
 </div>
@@ -339,7 +339,7 @@ template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAli
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00083">83</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00086">86</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
 </div>
 </div>
@@ -369,7 +369,7 @@ template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAli
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00088">88</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00091">91</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
 </div>
 </div>
@@ -426,7 +426,7 @@ template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAli
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00133">133</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00136">136</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
 </div>
 </div>
@@ -456,9 +456,9 @@ template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAli
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00140">140</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00143">143</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="LLVMUnionFindAA_8h_source.html#l00418">psr::computeUnionFindAA()</a>, <a class="el" href="LLVMProjectIRDB_8h_source.html#l00115">psr::LLVMProjectIRDB::getModule()</a>, and <a class="el" href="LLVMProjectIRDB_8h_source.html#l00112">psr::LLVMProjectIRDB::getModule()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="LLVMProjectIRDB_8h_source.html#l00115">psr::LLVMProjectIRDB::getModule()</a>, and <a class="el" href="LLVMProjectIRDB_8h_source.html#l00112">psr::LLVMProjectIRDB::getModule()</a>.</p>
 
 </div>
 </div>
@@ -487,7 +487,7 @@ template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAli
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00203">203</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00206">206</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
 </div>
 </div>
@@ -516,7 +516,7 @@ template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAli
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00144">144</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00147">147</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
 </div>
 </div>
@@ -545,7 +545,7 @@ template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAli
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00142">142</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00145">145</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
 </div>
 </div>
@@ -603,7 +603,7 @@ template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAli
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00105">105</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00108">108</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
 </div>
 </div>
@@ -633,9 +633,9 @@ template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAli
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00110">110</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00113">113</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
-<p class="reference">References <a class="el" href="MaybeUniquePtr_8h_source.html#l00149">psr::MaybeUniquePtr&lt; T, RequireAlignment &gt;::release()</a>.</p>
+<p class="reference">References <a class="el" href="MaybeUniquePtr_8h_source.html#l00152">psr::MaybeUniquePtr&lt; T, RequireAlignment &gt;::release()</a>.</p>
 
 </div>
 </div>
@@ -668,9 +668,9 @@ requires (!std::is_same_v&lt;T, TT&gt; &amp;&amp; std::is_convertible_v&lt;TT *,
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00121">121</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00124">124</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
-<p class="reference">References <a class="el" href="MaybeUniquePtr_8h_source.html#l00149">psr::MaybeUniquePtr&lt; T, RequireAlignment &gt;::release()</a>.</p>
+<p class="reference">References <a class="el" href="MaybeUniquePtr_8h_source.html#l00152">psr::MaybeUniquePtr&lt; T, RequireAlignment &gt;::release()</a>.</p>
 
 </div>
 </div>
@@ -699,7 +699,7 @@ template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAli
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00171">171</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00174">174</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
 </div>
 </div>
@@ -728,9 +728,9 @@ template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAli
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00149">149</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00152">152</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="MaybeUniquePtr_8h_source.html#l00110">psr::MaybeUniquePtr&lt; T, RequireAlignment &gt;::operator=()</a>, and <a class="el" href="MaybeUniquePtr_8h_source.html#l00121">psr::MaybeUniquePtr&lt; T, RequireAlignment &gt;::operator=()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="MaybeUniquePtr_8h_source.html#l00113">psr::MaybeUniquePtr&lt; T, RequireAlignment &gt;::operator=()</a>, and <a class="el" href="MaybeUniquePtr_8h_source.html#l00124">psr::MaybeUniquePtr&lt; T, RequireAlignment &gt;::operator=()</a>.</p>
 
 </div>
 </div>
@@ -759,7 +759,7 @@ template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAli
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00154">154</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00157">157</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
 </div>
 </div>
@@ -791,7 +791,7 @@ template&lt;typename TT &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00162">162</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00165">165</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
 </div>
 </div>
@@ -823,7 +823,7 @@ template&lt;typename TT &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00167">167</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00170">170</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
 </div>
 </div>
@@ -853,7 +853,7 @@ template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAli
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00096">96</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00099">99</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
 </div>
 </div>
@@ -882,7 +882,7 @@ template&lt;typename U , <a class="el" href="classbool.html">bool</a> Align&gt; 
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00064">64</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00066">66</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
 </div>
 </div>
@@ -922,7 +922,7 @@ template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAli
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00180">180</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00183">183</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
 </div>
 </div>
@@ -962,7 +962,7 @@ template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAli
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00189">189</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00192">192</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
 </div>
 </div>
@@ -1002,7 +1002,7 @@ template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAli
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00198">198</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00201">201</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
 </div>
 </div>
@@ -1042,7 +1042,7 @@ template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAli
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00176">176</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00179">179</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
 </div>
 </div>
@@ -1082,7 +1082,7 @@ template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAli
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00185">185</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00188">188</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
 </div>
 </div>
@@ -1122,7 +1122,7 @@ template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAli
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00194">194</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00197">197</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
 </div>
 </div>
@@ -1162,7 +1162,7 @@ template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAli
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00100">100</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00103">103</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
 </div>
 </div>
@@ -1172,7 +1172,7 @@ template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAli
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Aug 19 2026 16:39:44 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Aug 20 2026 16:00:35 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

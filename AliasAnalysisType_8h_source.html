@@ -110,16 +110,30 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>};</div>
 </div>
 <div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span> </div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno"><a class="line" href="namespacepsr.html#a2878628a5d57ead74de5afad8d56af14">   19</a></span>std::string <a class="code hl_function" href="namespacepsr.html#a85580458254c5f40fda2fcf82f26affe">toString</a>(<a class="code hl_enumeration" href="namespacepsr.html#afadf03970cb93e1afc369c320209ae7c">AliasAnalysisType</a> PA);</div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span> </div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno"><a class="line" href="namespacepsr.html#a67f9450c8286b53bca8a7f4fea6424f2">   21</a></span><a class="code hl_enumeration" href="namespacepsr.html#afadf03970cb93e1afc369c320209ae7c">AliasAnalysisType</a> <a class="code hl_function" href="namespacepsr.html#a67f9450c8286b53bca8a7f4fea6424f2">toAliasAnalysisType</a>(llvm::StringRef S);</div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span> </div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno"><a class="line" href="namespacepsr.html#a9ac21bdde8df064c17b1afd19f5efb31">   23</a></span>llvm::raw_ostream &amp;<a class="code hl_function" href="namespacepsr.html#aaf51d0e816794e17404d95f3c3f773ea">operator&lt;&lt;</a>(llvm::raw_ostream &amp;OS, <a class="code hl_enumeration" href="namespacepsr.html#afadf03970cb93e1afc369c320209ae7c">AliasAnalysisType</a> PA);</div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>} <span class="comment">// namespace psr</span></div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span> </div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="preprocessor">#endif </span><span class="comment">// PHASAR_POINTER_ALIASANALYSISTYPE_H</span></div>
+<div class="foldopen" id="foldopen00019" data-start="{" data-end="}">
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno"><a class="line" href="namespacepsr.html#a49666bdf7bd34568403fac64c991564c">   19</a></span>[[nodiscard]] <span class="keyword">constexpr</span> <span class="keywordtype">bool</span> <a class="code hl_function" href="namespacepsr.html#a49666bdf7bd34568403fac64c991564c">isAndersenOTFAA</a>(<a class="code hl_enumeration" href="namespacepsr.html#afadf03970cb93e1afc369c320209ae7c">AliasAnalysisType</a> AATy) <span class="keyword">noexcept</span> {</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>  <span class="keywordflow">switch</span> (AATy) {</div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>  <span class="keywordflow">case</span> AliasAnalysisType::AndersenOTF:</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>  <span class="keywordflow">case</span> AliasAnalysisType::AndersenOTFCtx:</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>  <span class="keywordflow">case</span> AliasAnalysisType::AndersenOTFDynCtx:</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>    <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>  <span class="keywordflow">default</span>:</div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>    <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>  }</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>}</div>
+</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span> </div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno"><a class="line" href="namespacepsr.html#a2878628a5d57ead74de5afad8d56af14">   30</a></span>std::string <a class="code hl_function" href="namespacepsr.html#a85580458254c5f40fda2fcf82f26affe">toString</a>(<a class="code hl_enumeration" href="namespacepsr.html#afadf03970cb93e1afc369c320209ae7c">AliasAnalysisType</a> PA);</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span> </div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno"><a class="line" href="namespacepsr.html#a67f9450c8286b53bca8a7f4fea6424f2">   32</a></span><a class="code hl_enumeration" href="namespacepsr.html#afadf03970cb93e1afc369c320209ae7c">AliasAnalysisType</a> <a class="code hl_function" href="namespacepsr.html#a67f9450c8286b53bca8a7f4fea6424f2">toAliasAnalysisType</a>(llvm::StringRef S);</div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span> </div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno"><a class="line" href="namespacepsr.html#a9ac21bdde8df064c17b1afd19f5efb31">   34</a></span>llvm::raw_ostream &amp;<a class="code hl_function" href="namespacepsr.html#aaf51d0e816794e17404d95f3c3f773ea">operator&lt;&lt;</a>(llvm::raw_ostream &amp;OS, <a class="code hl_enumeration" href="namespacepsr.html#afadf03970cb93e1afc369c320209ae7c">AliasAnalysisType</a> PA);</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>} <span class="comment">// namespace psr</span></div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span> </div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span><span class="preprocessor">#endif </span><span class="comment">// PHASAR_POINTER_ALIASANALYSISTYPE_H</span></div>
 <div class="ttc" id="aAliasAnalysisType_8def_html"><div class="ttname"><a href="AliasAnalysisType_8def.html">AliasAnalysisType.def</a></div></div>
 <div class="ttc" id="anamespacepsr_html"><div class="ttname"><a href="namespacepsr.html">psr</a></div><div class="ttdef"><b>Definition</b> <a href="AnalysisSetup_8h_source.html#l00013">AnalysisSetup.h:13</a></div></div>
+<div class="ttc" id="anamespacepsr_html_a49666bdf7bd34568403fac64c991564c"><div class="ttname"><a href="namespacepsr.html#a49666bdf7bd34568403fac64c991564c">psr::isAndersenOTFAA</a></div><div class="ttdeci">constexpr bool isAndersenOTFAA(AliasAnalysisType AATy) noexcept</div><div class="ttdef"><b>Definition</b> <a href="AliasAnalysisType_8h_source.html#l00019">AliasAnalysisType.h:19</a></div></div>
 <div class="ttc" id="anamespacepsr_html_a67f9450c8286b53bca8a7f4fea6424f2"><div class="ttname"><a href="namespacepsr.html#a67f9450c8286b53bca8a7f4fea6424f2">psr::toAliasAnalysisType</a></div><div class="ttdeci">AliasAnalysisType toAliasAnalysisType(llvm::StringRef S)</div></div>
 <div class="ttc" id="anamespacepsr_html_a76428812da89e213e232a0a8924d7647a4bbb8f967da6d1a610596d7257179c2b"><div class="ttname"><a href="namespacepsr.html#a76428812da89e213e232a0a8924d7647a4bbb8f967da6d1a610596d7257179c2b">psr::CallGraphAnalysisType::Invalid</a></div><div class="ttdeci">@ Invalid</div></div>
 <div class="ttc" id="anamespacepsr_html_a85580458254c5f40fda2fcf82f26affe"><div class="ttname"><a href="namespacepsr.html#a85580458254c5f40fda2fcf82f26affe">psr::toString</a></div><div class="ttdeci">std::string toString(const AnalysisStrategy &amp;S)</div></div>
@@ -128,7 +142,7 @@ $(document).ready(function() { init_codefold(0); });
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Aug 19 2026 16:39:43 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Aug 20 2026 16:00:34 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

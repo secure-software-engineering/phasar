@@ -109,23 +109,25 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="preprocessor">#include &quot;<a class="code" href="LLVMAliasInfo_8h.html">phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h</a>&quot;</span></div>
 <div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="preprocessor">#include &quot;<a class="code" href="LLVMAliasSet_8h.html">phasar/PhasarLLVM/Pointer/LLVMAliasSet.h</a>&quot;</span></div>
 <div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="preprocessor">#include &quot;<a class="code" href="LLVMGlobalInitCache_8h.html">phasar/PhasarLLVM/Pointer/LLVMGlobalInitCache.h</a>&quot;</span></div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="preprocessor">#include &quot;<a class="code" href="LLVMPointsToInfo_8h.html">phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h</a>&quot;</span></div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="preprocessor">#include &quot;<a class="code" href="LLVMPointsToUtils_8h.html">phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h</a>&quot;</span></div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="preprocessor">#include &quot;<a class="code" href="LLVMUnionFindAA_8h.html">phasar/PhasarLLVM/Pointer/LLVMUnionFindAA.h</a>&quot;</span></div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#include &quot;<a class="code" href="LLVMUnionFindAliasSet_8h.html">phasar/PhasarLLVM/Pointer/LLVMUnionFindAliasSet.h</a>&quot;</span></div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="preprocessor">#include &quot;<a class="code" href="MemSSAUtils_8h.html">phasar/PhasarLLVM/Pointer/MemSSAUtils.h</a>&quot;</span></div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span> </div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="preprocessor">#ifdef PHASAR_USE_SVF</span></div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span><span class="preprocessor">#include &quot;<a class="code" href="SVFPointsToSet_8h.html">phasar/PhasarLLVM/Pointer/SVF/SVFPointsToSet.h</a>&quot;</span></div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span> </div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span><span class="preprocessor">#endif </span><span class="comment">// PHASAR_PHASARLLVM_POINTER_H</span></div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="preprocessor">#include &quot;<a class="code" href="LLVMPointerSemantics_8h.html">phasar/PhasarLLVM/Pointer/LLVMPointerSemantics.h</a>&quot;</span></div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="preprocessor">#include &quot;<a class="code" href="LLVMPointsToInfo_8h.html">phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h</a>&quot;</span></div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="preprocessor">#include &quot;<a class="code" href="LLVMPointsToUtils_8h.html">phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h</a>&quot;</span></div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#include &quot;<a class="code" href="LLVMUnionFindAA_8h.html">phasar/PhasarLLVM/Pointer/LLVMUnionFindAA.h</a>&quot;</span></div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="preprocessor">#include &quot;<a class="code" href="LLVMUnionFindAliasSet_8h.html">phasar/PhasarLLVM/Pointer/LLVMUnionFindAliasSet.h</a>&quot;</span></div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="preprocessor">#include &quot;<a class="code" href="MemSSAUtils_8h.html">phasar/PhasarLLVM/Pointer/MemSSAUtils.h</a>&quot;</span></div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span> </div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span><span class="preprocessor">#ifdef PHASAR_USE_SVF</span></div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span><span class="preprocessor">#include &quot;<a class="code" href="SVFPointsToSet_8h.html">phasar/PhasarLLVM/Pointer/SVF/SVFPointsToSet.h</a>&quot;</span></div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span> </div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span><span class="preprocessor">#endif </span><span class="comment">// PHASAR_PHASARLLVM_POINTER_H</span></div>
 <div class="ttc" id="aAliasAnalysisView_8h_html"><div class="ttname"><a href="AliasAnalysisView_8h.html">AliasAnalysisView.h</a></div></div>
 <div class="ttc" id="aAndersenOTFAA_8h_html"><div class="ttname"><a href="AndersenOTFAA_8h.html">AndersenOTFAA.h</a></div></div>
 <div class="ttc" id="aFilteredLLVMAliasSet_8h_html"><div class="ttname"><a href="FilteredLLVMAliasSet_8h.html">FilteredLLVMAliasSet.h</a></div></div>
 <div class="ttc" id="aLLVMAliasInfo_8h_html"><div class="ttname"><a href="LLVMAliasInfo_8h.html">LLVMAliasInfo.h</a></div></div>
 <div class="ttc" id="aLLVMAliasSet_8h_html"><div class="ttname"><a href="LLVMAliasSet_8h.html">LLVMAliasSet.h</a></div></div>
 <div class="ttc" id="aLLVMGlobalInitCache_8h_html"><div class="ttname"><a href="LLVMGlobalInitCache_8h.html">LLVMGlobalInitCache.h</a></div></div>
+<div class="ttc" id="aLLVMPointerSemantics_8h_html"><div class="ttname"><a href="LLVMPointerSemantics_8h.html">LLVMPointerSemantics.h</a></div></div>
 <div class="ttc" id="aLLVMPointsToInfo_8h_html"><div class="ttname"><a href="LLVMPointsToInfo_8h.html">LLVMPointsToInfo.h</a></div></div>
 <div class="ttc" id="aLLVMPointsToUtils_8h_html"><div class="ttname"><a href="LLVMPointsToUtils_8h.html">LLVMPointsToUtils.h</a></div></div>
 <div class="ttc" id="aLLVMUnionFindAA_8h_html"><div class="ttname"><a href="LLVMUnionFindAA_8h.html">LLVMUnionFindAA.h</a></div></div>
@@ -135,7 +137,7 @@ $(document).ready(function() { init_codefold(0); });
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Aug 19 2026 16:39:43 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Aug 20 2026 16:00:34 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

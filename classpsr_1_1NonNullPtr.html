@@ -101,12 +101,12 @@ Inheritance diagram for psr::NonNullPtr&lt; T &gt;:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a40a26499af2ab91c205bae3baff1383c" id="r_a40a26499af2ab91c205bae3baff1383c"><td class="memItemLeft" align="right" valign="top">constexpr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1NonNullPtr.html#a40a26499af2ab91c205bae3baff1383c">NonNullPtr</a> (std::nullptr_t)=delete</td></tr>
 <tr class="separator:a40a26499af2ab91c205bae3baff1383c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a84531ca0d449d89f0aa523dfc971f533" id="r_a84531ca0d449d89f0aa523dfc971f533"><td class="memItemLeft" align="right" valign="top">LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1NonNullPtr.html#a84531ca0d449d89f0aa523dfc971f533">NonNullPtr</a> (T *Ptr) noexcept</td></tr>
-<tr class="separator:a84531ca0d449d89f0aa523dfc971f533"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4fed3bbe9b6757ed152b45e6e961f35f" id="r_a4fed3bbe9b6757ed152b45e6e961f35f"><td class="memItemLeft" align="right" valign="top">LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1NonNullPtr.html#a4fed3bbe9b6757ed152b45e6e961f35f">NonNullPtr</a> (std::reference_wrapper&lt; T &gt; RW) noexcept</td></tr>
-<tr class="separator:a4fed3bbe9b6757ed152b45e6e961f35f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1a12067414718eaeb2c346fc649c4a0f" id="r_a1a12067414718eaeb2c346fc649c4a0f"><td class="memItemLeft" align="right" valign="top">LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1NonNullPtr.html#a1a12067414718eaeb2c346fc649c4a0f">NonNullPtr</a> (T &amp;Ref) noexcept</td></tr>
-<tr class="separator:a1a12067414718eaeb2c346fc649c4a0f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a89f3640f294583afba5178aec2af097f" id="r_a89f3640f294583afba5178aec2af097f"><td class="memItemLeft" align="right" valign="top">LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1NonNullPtr.html#a89f3640f294583afba5178aec2af097f">NonNullPtr</a> (T *Ptr <a class="el" href="Macros_8h.html#a40a2c0af46b8c6ff86d04f8401348f46">PSR_LIFETIMEBOUND</a>) noexcept</td></tr>
+<tr class="separator:a89f3640f294583afba5178aec2af097f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac2e00ae000e262299a9dd671b2eb1250" id="r_ac2e00ae000e262299a9dd671b2eb1250"><td class="memItemLeft" align="right" valign="top">LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1NonNullPtr.html#ac2e00ae000e262299a9dd671b2eb1250">NonNullPtr</a> (std::reference_wrapper&lt; T &gt; RW <a class="el" href="Macros_8h.html#a40a2c0af46b8c6ff86d04f8401348f46">PSR_LIFETIMEBOUND</a>) noexcept</td></tr>
+<tr class="separator:ac2e00ae000e262299a9dd671b2eb1250"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aea6f27b834d893c032409956b7d40ed1" id="r_aea6f27b834d893c032409956b7d40ed1"><td class="memItemLeft" align="right" valign="top">LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1NonNullPtr.html#aea6f27b834d893c032409956b7d40ed1">NonNullPtr</a> (T &amp;Ref <a class="el" href="Macros_8h.html#a40a2c0af46b8c6ff86d04f8401348f46">PSR_LIFETIMEBOUND</a>) noexcept</td></tr>
+<tr class="separator:aea6f27b834d893c032409956b7d40ed1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4f0399e1ce2bbc053beb559a395a4aaf" id="r_a4f0399e1ce2bbc053beb559a395a4aaf"><td class="memTemplParams" colspan="2">template&lt;typename U &gt; <br />
 requires (!std::same_as&lt;U, T&gt; &amp;&amp; std::convertible_to&lt;U *, T *&gt;)</td></tr>
 <tr class="memitem:a4f0399e1ce2bbc053beb559a395a4aaf"><td class="memTemplItemLeft" align="right" valign="top">LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1NonNullPtr.html#a4f0399e1ce2bbc053beb559a395a4aaf">NonNullPtr</a> (<a class="el" href="classpsr_1_1NonNullPtr.html">NonNullPtr</a>&lt; U &gt; Other) noexcept</td></tr>
@@ -134,7 +134,7 @@ Friends</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><div class="compoundTemplParams">template&lt;typename T&gt;<br />
 class psr::NonNullPtr&lt; T &gt;</div>
-<p class="definition">Definition at line <a class="el" href="NonNullPtr_8h_source.html#l00020">20</a> of file <a class="el" href="NonNullPtr_8h_source.html">NonNullPtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="NonNullPtr_8h_source.html#l00021">21</a> of file <a class="el" href="NonNullPtr_8h_source.html">NonNullPtr.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a40a26499af2ab91c205bae3baff1383c" name="a40a26499af2ab91c205bae3baff1383c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a40a26499af2ab91c205bae3baff1383c">&#9670;&#160;</a></span>NonNullPtr() <span class="overload">[1/5]</span></h2>
@@ -164,8 +164,8 @@ template&lt;typename T &gt; </div>
 
 </div>
 </div>
-<a id="a84531ca0d449d89f0aa523dfc971f533" name="a84531ca0d449d89f0aa523dfc971f533"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a84531ca0d449d89f0aa523dfc971f533">&#9670;&#160;</a></span>NonNullPtr() <span class="overload">[2/5]</span></h2>
+<a id="a89f3640f294583afba5178aec2af097f" name="a89f3640f294583afba5178aec2af097f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a89f3640f294583afba5178aec2af097f">&#9670;&#160;</a></span>NonNullPtr() <span class="overload">[2/5]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -178,8 +178,8 @@ template&lt;typename T &gt; </div>
         <tr>
           <td class="memname">LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr <a class="el" href="classpsr_1_1NonNullPtr.html">psr::NonNullPtr</a>&lt; T &gt;::NonNullPtr </td>
           <td>(</td>
-          <td class="paramtype">T *&#160;</td>
-          <td class="paramname"><em>Ptr</em></td><td>)</td>
+          <td class="paramtype">T *Ptr&#160;</td>
+          <td class="paramname"><em>PSR_LIFETIMEBOUND</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -190,12 +190,12 @@ template&lt;typename T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="NonNullPtr_8h_source.html#l00026">26</a> of file <a class="el" href="NonNullPtr_8h_source.html">NonNullPtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="NonNullPtr_8h_source.html#l00027">27</a> of file <a class="el" href="NonNullPtr_8h_source.html">NonNullPtr.h</a>.</p>
 
 </div>
 </div>
-<a id="a4fed3bbe9b6757ed152b45e6e961f35f" name="a4fed3bbe9b6757ed152b45e6e961f35f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4fed3bbe9b6757ed152b45e6e961f35f">&#9670;&#160;</a></span>NonNullPtr() <span class="overload">[3/5]</span></h2>
+<a id="ac2e00ae000e262299a9dd671b2eb1250" name="ac2e00ae000e262299a9dd671b2eb1250"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac2e00ae000e262299a9dd671b2eb1250">&#9670;&#160;</a></span>NonNullPtr() <span class="overload">[3/5]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -208,8 +208,8 @@ template&lt;typename T &gt; </div>
         <tr>
           <td class="memname">LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr <a class="el" href="classpsr_1_1NonNullPtr.html">psr::NonNullPtr</a>&lt; T &gt;::NonNullPtr </td>
           <td>(</td>
-          <td class="paramtype">std::reference_wrapper&lt; T &gt;&#160;</td>
-          <td class="paramname"><em>RW</em></td><td>)</td>
+          <td class="paramtype">std::reference_wrapper&lt; T &gt; RW&#160;</td>
+          <td class="paramname"><em>PSR_LIFETIMEBOUND</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -220,12 +220,12 @@ template&lt;typename T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="NonNullPtr_8h_source.html#l00029">29</a> of file <a class="el" href="NonNullPtr_8h_source.html">NonNullPtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="NonNullPtr_8h_source.html#l00031">31</a> of file <a class="el" href="NonNullPtr_8h_source.html">NonNullPtr.h</a>.</p>
 
 </div>
 </div>
-<a id="a1a12067414718eaeb2c346fc649c4a0f" name="a1a12067414718eaeb2c346fc649c4a0f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1a12067414718eaeb2c346fc649c4a0f">&#9670;&#160;</a></span>NonNullPtr() <span class="overload">[4/5]</span></h2>
+<a id="aea6f27b834d893c032409956b7d40ed1" name="aea6f27b834d893c032409956b7d40ed1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aea6f27b834d893c032409956b7d40ed1">&#9670;&#160;</a></span>NonNullPtr() <span class="overload">[4/5]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -238,8 +238,8 @@ template&lt;typename T &gt; </div>
         <tr>
           <td class="memname">LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr <a class="el" href="classpsr_1_1NonNullPtr.html">psr::NonNullPtr</a>&lt; T &gt;::NonNullPtr </td>
           <td>(</td>
-          <td class="paramtype">T &amp;&#160;</td>
-          <td class="paramname"><em>Ref</em></td><td>)</td>
+          <td class="paramtype">T &amp;Ref&#160;</td>
+          <td class="paramname"><em>PSR_LIFETIMEBOUND</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -250,7 +250,7 @@ template&lt;typename T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="NonNullPtr_8h_source.html#l00033">33</a> of file <a class="el" href="NonNullPtr_8h_source.html">NonNullPtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="NonNullPtr_8h_source.html#l00035">35</a> of file <a class="el" href="NonNullPtr_8h_source.html">NonNullPtr.h</a>.</p>
 
 </div>
 </div>
@@ -283,7 +283,7 @@ requires (!std::same_as&lt;U, T&gt; &amp;&amp; std::convertible_to&lt;U *, T *&g
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="NonNullPtr_8h_source.html#l00038">38</a> of file <a class="el" href="NonNullPtr_8h_source.html">NonNullPtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="NonNullPtr_8h_source.html#l00041">41</a> of file <a class="el" href="NonNullPtr_8h_source.html">NonNullPtr.h</a>.</p>
 
 </div>
 </div>
@@ -313,9 +313,9 @@ template&lt;typename T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="NonNullPtr_8h_source.html#l00044">44</a> of file <a class="el" href="NonNullPtr_8h_source.html">NonNullPtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="NonNullPtr_8h_source.html#l00047">47</a> of file <a class="el" href="NonNullPtr_8h_source.html">NonNullPtr.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="NonNullPtr_8h_source.html#l00060">psr::NonNullPtr&lt; T &gt;::operator==()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="NonNullPtr_8h_source.html#l00063">psr::NonNullPtr&lt; T &gt;::operator==()</a>.</p>
 
 </div>
 </div>
@@ -344,7 +344,7 @@ template&lt;typename T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="NonNullPtr_8h_source.html#l00055">55</a> of file <a class="el" href="NonNullPtr_8h_source.html">NonNullPtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="NonNullPtr_8h_source.html#l00058">58</a> of file <a class="el" href="NonNullPtr_8h_source.html">NonNullPtr.h</a>.</p>
 
 </div>
 </div>
@@ -373,7 +373,7 @@ template&lt;typename T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="NonNullPtr_8h_source.html#l00050">50</a> of file <a class="el" href="NonNullPtr_8h_source.html">NonNullPtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="NonNullPtr_8h_source.html#l00053">53</a> of file <a class="el" href="NonNullPtr_8h_source.html">NonNullPtr.h</a>.</p>
 
 </div>
 </div>
@@ -403,7 +403,7 @@ template&lt;typename T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="NonNullPtr_8h_source.html#l00064">64</a> of file <a class="el" href="NonNullPtr_8h_source.html">NonNullPtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="NonNullPtr_8h_source.html#l00067">67</a> of file <a class="el" href="NonNullPtr_8h_source.html">NonNullPtr.h</a>.</p>
 
 </div>
 </div>
@@ -433,9 +433,9 @@ template&lt;typename T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="NonNullPtr_8h_source.html#l00060">60</a> of file <a class="el" href="NonNullPtr_8h_source.html">NonNullPtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="NonNullPtr_8h_source.html#l00063">63</a> of file <a class="el" href="NonNullPtr_8h_source.html">NonNullPtr.h</a>.</p>
 
-<p class="reference">References <a class="el" href="NonNullPtr_8h_source.html#l00044">psr::NonNullPtr&lt; T &gt;::get()</a>.</p>
+<p class="reference">References <a class="el" href="NonNullPtr_8h_source.html#l00047">psr::NonNullPtr&lt; T &gt;::get()</a>.</p>
 
 </div>
 </div>
@@ -504,7 +504,7 @@ template&lt;typename T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="NonNullPtr_8h_source.html#l00070">70</a> of file <a class="el" href="NonNullPtr_8h_source.html">NonNullPtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="NonNullPtr_8h_source.html#l00073">73</a> of file <a class="el" href="NonNullPtr_8h_source.html">NonNullPtr.h</a>.</p>
 
 </div>
 </div>
@@ -544,7 +544,7 @@ template&lt;typename T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="NonNullPtr_8h_source.html#l00073">73</a> of file <a class="el" href="NonNullPtr_8h_source.html">NonNullPtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="NonNullPtr_8h_source.html#l00076">76</a> of file <a class="el" href="NonNullPtr_8h_source.html">NonNullPtr.h</a>.</p>
 
 </div>
 </div>
@@ -554,7 +554,7 @@ template&lt;typename T &gt; </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Aug 19 2026 16:39:44 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Aug 20 2026 16:00:35 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

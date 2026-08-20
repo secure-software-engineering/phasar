@@ -9,7 +9,7 @@ var searchData=
   ['variables_6',['variables',['../structpsr_1_1LLVMPathConstraints_1_1ConstraintAndVariables.html#afc6731a2cb8b08cd3d86590c8c03d211',1,'psr::LLVMPathConstraints::ConstraintAndVariables::Variables'],['../structpsr_1_1TaintConfigData.html#a5e7b7463a7efd3e0c75620b562e36b3e',1,'psr::TaintConfigData::Variables']]],
   ['variabletovalue_7',['variabletovalue',['../structpsr_1_1IDEGeneralizedLCA_1_1LCAResult.html#abe6f3d1b3b32d5f5d54a7f7a9dd387b2',1,'psr::IDEGeneralizedLCA::LCAResult::VariableToValue'],['../structpsr_1_1IDELinearConstantAnalysis_1_1LCAResult.html#a2b6c0acec1640c4c3cce9c1ac527ecde',1,'psr::IDELinearConstantAnalysis::LCAResult::VariableToValue']]],
   ['variant_5fidx_8',['variant_idx',['../namespacepsr.html#a7441705fb5051f9f8c2b934f3307cac2',1,'psr']]],
-  ['vc_9',['VC',['../structpsr_1_1LLVMUnionFindAliasIterator.html#a3ca641334e02f6227c2813c3161db341',1,'psr::LLVMUnionFindAliasIterator']]],
+  ['vc_9',['VC',['../structpsr_1_1LLVMRawAliasIterator.html#a28c5342dfd694642fff01ec686366cc3',1,'psr::LLVMRawAliasIterator']]],
   ['version_10',['Version',['../structpsr_1_1monoifds_1_1DataFlowEnvironment.html#ab876e4ec3fcebe528d15235c641c01f8',1,'psr::monoifds::DataFlowEnvironment']]],
   ['vertextypes_11',['VertexTypes',['../structpsr_1_1DIBasedTypeHierarchyData.html#aa80d10a2256667c0b4b250e9d91bfeb4',1,'psr::DIBasedTypeHierarchyData']]],
   ['vft_12',['VFT',['../structpsr_1_1LLVMVFTableData.html#a976f05aa597f8b13649f76896afdc3db',1,'psr::LLVMVFTableData']]],

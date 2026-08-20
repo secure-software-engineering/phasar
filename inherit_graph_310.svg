@@ -11,9 +11,9 @@
 <!-- Node0 -->
 <g id="Node000000" class="node">
 <title>Node0</title>
-<g id="a_Node000000"><a xlink:href="classpsr_1_1LLVMMapKeyCompressor.html" target="_top" xlink:title=" ">
+<g id="a_Node000000"><a xlink:href="classpsr_1_1LLVMBasePointerAliasSet.html" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="161,-19 0,-19 0,0 161,0 161,-19"/>
-<text text-anchor="middle" x="80.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">psr::LLVMMapKeyCompressor</text>
+<text text-anchor="middle" x="80.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">psr::LLVMBasePointerAliasSet</text>
 </a>
 </g>
 </g>
