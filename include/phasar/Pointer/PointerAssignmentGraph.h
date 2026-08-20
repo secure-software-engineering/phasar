@@ -328,9 +328,9 @@ public:
     VT->OnAddEdge(Ctx, From, To, E, AtInstruction);
   }
 
-  /// Called by buildPAG() for every (unique) node that should be added to the
-  /// PAG, *excluding* nodes that have already been registered in the used
-  /// ValueCompressor before buildPAG() was called.
+  /// Called by buildPAG() once per (unique) PAG node, with ascending VIds
+  /// starting at zero. Nodes already present in a pre-populated
+  /// ValueCompressor are reported first, before the PAG is traversed.
   ///
   /// \param Variable The IR-specific variable/value for which the new node
   /// has been created.

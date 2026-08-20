@@ -21,6 +21,9 @@ set(lca_files
   andersen_otf_fnptr_table_dynamic_index.c
   andersen_otf_fnptr_table_indirect_value.c
   andersen_otf_fnptr_table_memcpy.c
+  andersen_otf_aggregate_ret.c
+  andersen_otf_atomics.c
+  pointer_punning_01.c
   global_01.cpp
   inter_dynamic_01.cpp
   inter_dynamic_02.cpp
@@ -48,6 +51,9 @@ set(lca_files
   context_14_0.c
   context_14_1.c
   context_14_2.c
+  context_15.c
+  context_16.c
+  context_17.c
   indirection_01.c
   indirection_02.c
   indirection_03.c
@@ -60,6 +66,8 @@ set(lca_files
   indirection_10.cpp
   memssa_kill_01.c
   memssa_branch_01.c
+  memssa_constexpr_def.c
+  loop_carried_load.c
 )
 
 set(lca_files_mem2reg
@@ -67,6 +75,10 @@ set(lca_files_mem2reg
   andersen_otf_fp.c
   andersen_otf_libc.c
   andersen_otf_struct_vtable.c
+  andersen_otf_poison_scc.c
+  andersen_otf_loop_gep.c
+  andersen_otf_stranded_pending.c
+  loop_carried_load.c
   basic_01.c
   basic_02.c
   basic_03.c

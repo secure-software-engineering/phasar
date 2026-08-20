@@ -10,11 +10,14 @@
  *****************************************************************************/
 
 #include "phasar/Pointer/AliasResult.h"
+#include "phasar/Utils/TypeTraits.h"
+#include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/Twine.h"
 #include "llvm/Support/FileSystem.h"
+#include "llvm/Support/WithColor.h"
 
 #include "QueryLocation.h"
 
@@ -51,9 +54,10 @@ void findAllQueryLocations(
                                         const QueryLocation &QueryLoc);
 
 template <typename CheckFn>
-std::enable_if_t<std::is_invocable_r_v<bool, CheckFn, llvm::StringRef>>
-checkDir(const llvm::Twine &DirName,
-         llvm::SmallVectorImpl<std::string> &Failures, CheckFn Check) {
+size_t checkDir(const llvm::Twine &DirName,
+                llvm::SmallVectorImpl<std::string> &Failures, CheckFn Check)
+  requires(std::is_invocable_r_v<bool, CheckFn, llvm::StringRef>)
+{
   std::error_code EC;
   llvm::sys::fs::recursive_directory_iterator It(DirName, EC, false);
   llvm::sys::fs::recursive_directory_iterator End;
@@ -76,10 +80,24 @@ checkDir(const llvm::Twine &DirName,
     }
   }
 
-  llvm::outs() << "Analyzed " << NumTests << " Benchmark files\n";
-
   if (EC) {
-    llvm::errs() << "[ERROR]: " << EC.message() << '\n';
+    llvm::WithColor::error() << EC.message() << '\n';
   }
+
+  return NumTests;
+}
+
+template <typename CheckFn>
+void checkDirs(is_iterable_over_v<llvm::StringRef> auto &&DirNames,
+               llvm::SmallVectorImpl<std::string> &Failures, CheckFn Check)
+  requires(std::is_invocable_r_v<bool, CheckFn, llvm::StringRef>)
+{
+
+  size_t NumTests = 0;
+  for (const auto &Path : DirNames) {
+    NumTests += checkDir(Path, Failures, copyOrRef(Check));
+  }
+
+  llvm::outs() << "Analyzed " << NumTests << " Benchmark files\n";
 }
 } // namespace psr::ptaben

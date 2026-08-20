@@ -10,6 +10,8 @@
 #ifndef PHASAR_UTILS_MAYBEUNIQUEPTR_H_
 #define PHASAR_UTILS_MAYBEUNIQUEPTR_H_
 
+#include "phasar/Utils/Macros.h"
+
 #include "llvm/ADT/PointerIntPair.h"
 #include "llvm/Support/PointerLikeTypeTraits.h"
 
@@ -68,7 +70,8 @@ class [[clang::trivial_abi]] MaybeUniquePtr
 public:
   constexpr MaybeUniquePtr() noexcept = default;
 
-  constexpr MaybeUniquePtr(T *Pointer, bool Owns = false) noexcept
+  constexpr MaybeUniquePtr(T *Pointer PSR_LIFETIMEBOUND,
+                           bool Owns = false) noexcept
       : detail::MaybeUniquePtrBase<T, RequireAlignment>(Pointer,
                                                         Owns && Pointer) {}
 

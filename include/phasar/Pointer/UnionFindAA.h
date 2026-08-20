@@ -12,6 +12,7 @@
 #include "phasar/ControlFlow/CallGraph.h"
 #include "phasar/Pointer/CallingContextConstructor.h"
 #include "phasar/Pointer/PointerAssignmentGraph.h"
+#include "phasar/Pointer/RawAAResult.h"
 #include "phasar/Pointer/RawAliasSet.h"
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/IotaIterator.h"
@@ -33,51 +34,19 @@
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/Support/ErrorHandling.h"
 
+#include <cassert>
 #include <concepts>
 #include <functional>
 #include <type_traits>
 
 namespace psr {
 
-/// Base interface for results of a union-find alias-analysis.
+/// For backwards-compatibility only
 template <typename T>
-concept UnionFindAAResult = requires(const T &Result, ValueId Var) {
-  { T::isCached() } noexcept -> std::convertible_to<bool>;
-  { Result.getRawAliasSet(Var) } -> std::convertible_to<RawAliasSet<ValueId>>;
-  { Result.mayAlias(Var, Var) } -> std::convertible_to<bool>;
-  { Result.size() } noexcept -> std::convertible_to<size_t>;
-};
+concept UnionFindAAResult = RawAAResult<T>;
 
-/// The intersection of two (different) independent union-find alias-analysis
-/// results.
-/// Use this to achieve better precision than feasible with a single analysis.
-template <UnionFindAAResult FirstT, UnionFindAAResult SecondT>
-struct UnionFindAAResultIntersection {
-  [[nodiscard]] static constexpr bool isCached() noexcept {
-    // The set-intersection is not cached
-    return false;
-  }
-
-  [[nodiscard]] constexpr size_t size() const noexcept {
-    assert(
-        First.size() == Second.size() &&
-        "Only alias-results on the same ValueCompressor should be intersected");
-    return First.size();
-  }
-
-  [[nodiscard]] RawAliasSet<ValueId> getRawAliasSet(ValueId Var) const {
-    auto ResultSet = First.getRawAliasSet(Var);
-    ResultSet &= Second.getRawAliasSet(Var);
-    return ResultSet;
-  }
-
-  [[nodiscard]] constexpr bool mayAlias(ValueId Var1, ValueId Var2) const {
-    return First.mayAlias(Var1, Var2) && Second.mayAlias(Var1, Var2);
-  }
-
-  [[no_unique_address]] FirstT First;
-  [[no_unique_address]] SecondT Second;
-};
+template <RawAAResult FirstT, RawAAResult SecondT>
+using UnionFindAAResultIntersection = RawAAResultIntersection<FirstT, SecondT>;
 
 /// Specialization of \c PBStrategyCombinator for two union-find analyses whose
 /// results should be intersected for better precision.  Both analyses must
@@ -97,9 +66,9 @@ struct UnionFindAACombinator
                                                    PSR_FWD(Second)} {}
 
   template <std::predicate<ValueId> FilterFn = TrueFn>
-  [[nodiscard]] UnionFindAAResult auto
+  [[nodiscard]] RawAAResult auto
   consumeAAResults(size_t NumVars, FilterFn ShouldInclude = {}) && {
-    return UnionFindAAResultIntersection{
+    return RawAAResultIntersection{
         std::move(this->First).consumeAAResults(NumVars, ShouldInclude),
         std::move(this->Second)
             .consumeAAResults(NumVars, std::move(ShouldInclude)),
@@ -111,7 +80,7 @@ template <typename FirstT, typename SecondT>
 UnionFindAACombinator(FirstT, SecondT)
     -> UnionFindAACombinator<FirstT, SecondT>;
 
-/// Lazy cache that wraps any \c UnionFindAAResult and memoises
+/// Lazy cache that wraps any \c RawAAResult and memoises
 /// \c getRawAliasSet() results in a \c ValueIdMap.
 ///
 /// Not thread-safe. Each unique \p ValueId is computed at most once on first
@@ -122,7 +91,7 @@ UnionFindAACombinator(FirstT, SecondT)
 ///   \c mayAlias() is forwarded directly to the underlying result without
 ///   materializing a set, which can be faster for analyses whose
 ///   \c mayAlias() implementation is already O(1).
-template <UnionFindAAResult AAResT, bool ShouldCacheMayAlias = true>
+template <RawAAResult AAResT, bool ShouldCacheMayAlias = true>
 class CachedUnionFindAAResult {
 public:
   explicit CachedUnionFindAAResult(AAResT &&AARes) : AARes(std::move(AARes)) {
@@ -157,7 +126,7 @@ private:
 
 /// Implements the AliasIterator interface on union-find alias-analysis results.
 template <typename AAResT, typename Var2IdMapper, typename Id2VarMapper>
-  requires UnionFindAAResult<std::remove_cvref_t<AAResT>>
+  requires RawAAResult<std::remove_cvref_t<AAResT>>
 struct UnionFindAliasIterator {
   [[no_unique_address]] AAResT AARes;
   [[no_unique_address]] Var2IdMapper Var2Id;
@@ -343,8 +312,8 @@ public:
   using db_t = typename AnalysisDomainT::db_t;
 
   constexpr CallingContextSensUnionFindAA(
-      NonNullPtr<const CallGraph<n_t, f_t>> CG,
-      NonNullPtr<const db_t> IRDB) noexcept
+      NonNullPtr<const CallGraph<n_t, f_t>> CG PSR_LIFETIMEBOUND,
+      NonNullPtr<const db_t> IRDB PSR_LIFETIMEBOUND) noexcept
       : CG(CG), IRDB(IRDB) {}
 
   void onAddEdge(ValueId From, ValueId To, pag::Edge E,
@@ -386,6 +355,7 @@ public:
   }
 
   void onAddValue(ByConstRef<v_t> Var, ValueId VId) {
+    assert(size_t(VId) == Var2Obj.size() && "Expect ascending VIds");
     Var2Obj.emplace_back();
     if (const auto &Fun = getFunction(Var)) {
       CC.visitAllCallingContexts(
@@ -548,6 +518,7 @@ public:
   }
 
   void onAddValue(ByConstRef<v_t> /*Var*/, ValueId VId) {
+    assert(size_t(VId) == Var2Obj.size() && "Expect ascending VIds");
     auto Obj = Obj2Var.size();
     Base.AliasSets.grow(Obj + K);
     Var2Obj.emplace_back(generate_tag, [Obj](IndDepth Depth) {

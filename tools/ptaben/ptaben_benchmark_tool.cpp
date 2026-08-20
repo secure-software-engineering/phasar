@@ -48,10 +48,15 @@ static cl::OptionCategory PTABenCat("PTABen Benchmark Tool");
 static cl::SubCommand
     CheckFileCmd("check-file", "Check a single file instead of a directory");
 
-static cl::opt<std::string> IRPath(cl::Positional, cl::Required,
-                                   cl::desc("ptaben-ir-directory"),
-                                   cl::cat(PTABenCat),
-                                   cl::sub(cl::SubCommand::getAll()));
+static cl::list<std::string> IRPaths(cl::Positional, cl::OneOrMore,
+                                     cl::desc("ptaben-ir-directory"),
+                                     cl::cat(PTABenCat),
+                                     cl::sub(cl::SubCommand::getTopLevel()));
+
+static cl::opt<std::string> IRFilePath(cl::Positional, cl::Required,
+                                       cl::desc("ptaben-ir-file"),
+                                       cl::cat(PTABenCat),
+                                       cl::sub(CheckFileCmd));
 static cl::opt<std::string>
     QueryTablePath("queries-table",
                    cl::desc("The Output-Path to the queries table"),
@@ -71,6 +76,8 @@ ufaaTypeFromSupported(SupportedAnalysisTypes AT) {
   case SupportedAnalysisTypes::CFLAnders:
   case SupportedAnalysisTypes::CFLSteens:
   case SupportedAnalysisTypes::AndersOTF:
+  case SupportedAnalysisTypes::AndersOTFCtxDyn:
+  case SupportedAnalysisTypes::AndersOTFCtxAll:
     llvm::report_fatal_error("Not a union-find analysis");
   case SupportedAnalysisTypes::UFAACtx:
     return psr::UnionFindAliasAnalysisType::CtxSens;
@@ -96,7 +103,7 @@ checkLLVMQueryLoc(psr::LLVMAliasInfoRef ComputedAliasResult,
 
 template <typename AAResT>
 static psr::AliasResult
-checkLLVMQueryLoc(psr::LLVMUnionFindAliasIterator<AAResT> &ComputedAliasResult,
+checkLLVMQueryLoc(psr::LLVMRawAliasIterator<AAResT> &ComputedAliasResult,
                   const llvm::Instruction *QueryInst) {
   const auto *Ptr1 = QueryInst->getOperand(0);
   const auto *Ptr2 = QueryInst->getOperand(1);
@@ -148,11 +155,14 @@ static void performUnionFindAliasAnalysis(
 static void
 performAndersenOTFAA(psr::LLVMProjectIRDB &IRDB,
                      llvm::ArrayRef<psr::ptaben::QueryLocation> QueryLocs,
-                     auto &&RC) {
+                     auto &&RC, psr::ContextSensitivityOptions::Mode CtxMode) {
   auto EntryFunctions =
       getEntryFunctions(IRDB, psr::getDefaultEntryPoints(IRDB));
   auto VC = psr::ValueCompressor<psr::PAGVariable>();
-  auto AARes = psr::computeAndersenOTF(IRDB, EntryFunctions, &VC);
+  psr::ContextSensitivityOptions CSOpts;
+  CSOpts.SelectionMode = CtxMode;
+  auto AARes = psr::computeAndersenOTF(
+      IRDB, EntryFunctions, &VC, psr::Soundness::Soundy, std::move(CSOpts));
 
   for (const auto &Loc : QueryLocs) {
     auto Res = checkLLVMQueryLoc(AARes, Loc.Inst);
@@ -178,7 +188,14 @@ performAnalysis(psr::LLVMProjectIRDB &IRDB,
     return performUnionFindAliasAnalysis(IRDB, BaseCG, QueryLocs, PSR_FWD(RC),
                                          ufaaTypeFromSupported(AType));
   case SupportedAnalysisTypes::AndersOTF:
-    return performAndersenOTFAA(IRDB, QueryLocs, PSR_FWD(RC));
+    return performAndersenOTFAA(IRDB, QueryLocs, PSR_FWD(RC),
+                                psr::ContextSensitivityOptions::Mode::Off);
+  case SupportedAnalysisTypes::AndersOTFCtxDyn:
+    return performAndersenOTFAA(IRDB, QueryLocs, PSR_FWD(RC),
+                                psr::ContextSensitivityOptions::Mode::Dynamic);
+  case SupportedAnalysisTypes::AndersOTFCtxAll:
+    return performAndersenOTFAA(IRDB, QueryLocs, PSR_FWD(RC),
+                                psr::ContextSensitivityOptions::Mode::All);
   }
 }
 
@@ -191,9 +208,9 @@ static auto openFileOrExit(llvm::StringRef Filepath) {
 }
 
 static int checkSingleFile() {
-  llvm::WithColor::note() << "Analyzing " << IRPath << '\n';
+  llvm::WithColor::note() << "Analyzing " << IRFilePath << '\n';
 
-  auto IRDB = psr::LLVMProjectIRDB::loadOrExit(IRPath);
+  auto IRDB = psr::LLVMProjectIRDB::loadOrExit(IRFilePath);
   auto *Mod = IRDB.getModule();
   assert(Mod != nullptr);
   llvm::SmallVector<psr::ptaben::QueryLocation, 4> QueryLocs;
@@ -293,7 +310,8 @@ static int performCompleteExperiment() {
                 }};
 
   llvm::SmallVector<std::string, 4> Failures;
-  psr::ptaben::checkDir(IRPath, Failures, [&](llvm::StringRef FileName) {
+
+  psr::ptaben::checkDirs(IRPaths, Failures, [&](llvm::StringRef FileName) {
     llvm::WithColor::note() << "Analyzing " << FileName << '\n';
 
     auto IRDB = psr::LLVMProjectIRDB::loadOrExit(FileName);
@@ -325,6 +343,7 @@ static int performCompleteExperiment() {
 
     return true;
   });
+
   return 0;
 }
 

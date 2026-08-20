@@ -4,16 +4,23 @@
 #include "phasar/DataFlow/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/ControlFlow/EntryFunctionUtils.h"
 #include "phasar/PhasarLLVM/ControlFlow/FunctionCompressor.h"
+#include "phasar/PhasarLLVM/ControlFlow/GlobalCtorsDtorsModel.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCallGraphBuilder.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/RTAResolver.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/Pointer/AndersenOTFAA.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSetData.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointerAssignmentGraph.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMRawAliasSet.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMUnionFindAliasSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/UsedGlobals.h"
 #include "phasar/Pointer/AliasAnalysisType.h"
+#include "phasar/Utils/AnalysisProperties.h"
+#include "phasar/Utils/ValueCompressor.h"
 
 #include <memory>
 #include <string>
@@ -88,6 +95,11 @@ LLVMProjectIRDB &HelperAnalyses::getProjectIRDB() {
   if (!IRDB) {
     IRDB = std::make_unique<LLVMProjectIRDB>(IRFile);
   }
+  if (AutoGlobalSupport) {
+    AutoGlobalSupport = false;
+    GlobalCtorsDtorsModel::buildModel(*IRDB, EntryPoints);
+    EntryPoints = {GlobalCtorsDtorsModel::ModelName.str()};
+  }
   return *IRDB;
 }
 
@@ -107,6 +119,30 @@ LLVMAliasInfoRef HelperAnalyses::getAliasInfo() {
               .AType = UFAATy,
               .ALocality = LLVMUnionFindAliasSet::AnalysisLocality::Global,
           });
+    } else if (isAndersenOTFAA(PTATy)) {
+      auto &IRDB = getProjectIRDB();
+      auto VC = std::make_unique<ValueCompressor<PAGVariable>>();
+      auto AARes = computeAndersenOTFRaw(
+          IRDB, getEntryFunctions(IRDB, EntryPoints), VC.get(), SoundnessLevel,
+          {.SelectionMode = [PTATy{PTATy}] {
+            if (PTATy == AliasAnalysisType::AndersenOTFCtx) {
+              return ContextSensitivityOptions::Mode::All;
+            }
+            if (PTATy == AliasAnalysisType::AndersenOTFDynCtx) {
+              return ContextSensitivityOptions::Mode::Dynamic;
+            }
+            return ContextSensitivityOptions::Mode::Off;
+          }()});
+
+      if (!ICF) {
+        ICF = std::make_unique<LLVMBasedICFG>(std::move(AARes.CG), &IRDB);
+      }
+
+      PT = std::make_unique<LLVMRawAliasSet>(
+          std::move(AARes), std::move(VC),
+          PTATy != AliasAnalysisType::AndersenOTF
+              ? AnalysisProperties::ContextSensitive
+              : AnalysisProperties::None);
     } else {
       PT = std::make_unique<LLVMAliasSet>(&getProjectIRDB(), AllowLazyPTS,
                                           PTATy);
@@ -127,10 +163,15 @@ LLVMBasedICFG &HelperAnalyses::getICFG() {
     if (PrecomputedCG.has_value()) {
       ICF = std::make_unique<LLVMBasedICFG>(&getProjectIRDB(), *PrecomputedCG);
     } else {
-      ICF = std::make_unique<LLVMBasedICFG>(
-          &getProjectIRDB(), CGTy, std::move(EntryPoints), &getTypeHierarchy(),
-          needsAliasInfo(CGTy) ? getAliasInfo() : nullptr, SoundnessLevel,
-          AutoGlobalSupport);
+
+      LLVMAliasInfoRef AI = needsAliasInfo(CGTy) ? getAliasInfo() : nullptr;
+      // getAliasInfo() may compute the call-graph already (e.g., AndersenOTFAA)
+      if (!ICF) {
+        // Note: AutoGlobals already handled in getProjectIRDB()
+        ICF = std::make_unique<LLVMBasedICFG>(
+            &getProjectIRDB(), CGTy, EntryPoints, &getTypeHierarchy(), AI,
+            SoundnessLevel, /*IncludeGlobals*/ false);
+      }
     }
   }
 
