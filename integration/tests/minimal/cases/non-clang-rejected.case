@@ -1,0 +1,4 @@
+description             = a non-clang compiler is rejected
+cmake_additional_arg    = -DCMAKE_C_COMPILER=gcc
+expect_message_content  = is not clang
+expect_message_level    = error

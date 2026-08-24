@@ -1,0 +1,6 @@
+# ccache and friends live in CMAKE_<LANG>_COMPILER_LAUNCHER; the toolchain must
+# not claim that variable. The launcher here appends a define the source requires,
+# so dropping it breaks the build instead of going unnoticed.
+description             = a launcher set by the project survives
+cmake_additional_arg    = -DCMAKE_C_COMPILER_LAUNCHER=@HERE@/fixtures/launcher-marker.sh
+expect_module_function  = @main

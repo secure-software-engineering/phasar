@@ -1,0 +1,2 @@
+# Exclude only the test projects' build directories, not anything named build.
+tests/*/build/

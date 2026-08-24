@@ -1,0 +1,7 @@
+# No clang 23 in our test images, so this is only testable as a stub.
+description             = a clang newer than phasar-cli warns
+stubbed_clang           = clang-23=23
+cmake_additional_arg    = -DPHASAR_IR_LLVM_VERSION=22
+cmake_additional_arg    = -DPHASAR_IR_CLANG_VERSIONS=23
+expect_message_content  = is newer than
+expect_message_level    = warning

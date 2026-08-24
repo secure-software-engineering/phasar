@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.21)
+project(unextractable C)
+add_library(iface INTERFACE)
+add_custom_target(docs COMMAND ${CMAKE_COMMAND} -E true)
+add_executable(app main.c)
+target_link_libraries(app PRIVATE iface)

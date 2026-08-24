@@ -1,0 +1,4 @@
+description             = a chainloaded toolchain is loaded first
+cmake_additional_arg    = -DPHASAR_IR_CHAINLOAD_TOOLCHAIN_FILE=@HERE@/fixtures/chainload-probe.cmake
+expect_message_content  = CHAINLOAD PROBE
+expect_message_level    = status

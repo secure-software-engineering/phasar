@@ -1,0 +1,4 @@
+description             = an unknown target is reported
+cmake_additional_arg    = -DPHASAR_IR_TARGET=does_not_exist
+expect_message_content  = is not a target
+expect_message_level    = error

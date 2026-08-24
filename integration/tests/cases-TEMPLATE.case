@@ -1,0 +1,44 @@
+# Template for a test case. Copy it into <project>/cases/<name>.case and delete
+# what you do not need. Discovery ignores this file.
+#
+# A case declares what must hold; the driver derives what to run from that.
+# Surrounding whitespace is trimmed, the rest of the value is taken verbatim — so
+# no quoting is needed and no separator is guessed. Only whole lines starting with
+# # are comments; a # inside a value stays part of it. Repeat a key to give it
+# several values.
+#
+# Placeholders, expanded in every value:
+#   @HERE@     this tests/ directory
+#   @CLANG@    the clang found on this host, e.g. clang-20
+#   @CLANGXX@  the matching clang++
+#   @MAJOR@    its major version, e.g. 20
+#   @STUBS@    the directory holding this case's stubbed compilers
+
+# Required. One sentence, shown in the report.
+description             = what this case proves
+
+# Optional. Extra cmake arguments, one per line.
+#cmake_additional_arg    = -DPHASAR_IR_TARGET=my_target
+
+# Optional. Default is Ninja. Multi-config generators need cmake_configuration.
+#cmake_generator         = Ninja Multi-Config
+#cmake_configuration     = Debug
+#cmake_configuration     = Release
+
+# Optional. Fake compilers put on PATH as <name>=<reported major version>. Only
+# for compilers we cannot install: one that is not available in our test images,
+# or a binary whose name and reported version disagree. Installable host shapes
+# belong in an image, not here.
+#stubbed_clang           = clang-23=23
+
+# Assertions. At least one of expect_module_function, expect_message_content or
+# expect_selected_clang is required — forbid_module_function alone would pass on
+# a module that contains nothing.
+#expect_module_function  = @main
+#forbid_module_function  = @some_symbol
+#expect_selected_clang   = clang-22
+
+# A diagnostic assertion needs both fields. error means configuring must abort,
+# warning and status mean it must succeed.
+#expect_message_content  = several executables
+#expect_message_level    = error

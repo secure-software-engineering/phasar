@@ -1,0 +1,3 @@
+description             = C++ is compiled through wllvm++
+expect_module_function  = @main
+expect_module_function  = @_ZNK6Widget5valueEv

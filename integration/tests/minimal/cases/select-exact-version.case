@@ -1,0 +1,6 @@
+description             = exact version wins over an older one
+stubbed_clang           = clang-20=20
+stubbed_clang           = clang-22=22
+cmake_additional_arg    = -DPHASAR_IR_LLVM_VERSION=22
+cmake_additional_arg    = -DPHASAR_IR_CLANG_VERSIONS=20;22
+expect_selected_clang   = clang-22

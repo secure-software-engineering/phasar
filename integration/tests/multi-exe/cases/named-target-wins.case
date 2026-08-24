@@ -1,0 +1,4 @@
+description             = named target wins over the other executable
+cmake_additional_arg    = -DPHASAR_IR_TARGET=tool_b
+expect_module_function  = @only_in_b
+forbid_module_function  = @only_in_a

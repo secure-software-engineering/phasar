@@ -1,0 +1,9 @@
+# Both sides are stubbed, so the case does not depend on which clang the host
+# happens to have and both versions in the message are asserted.
+description             = mismatched clang and clang++ versions are rejected
+stubbed_clang           = clang-18=18
+stubbed_clang           = clang++-14=14
+cmake_additional_arg    = -DCMAKE_C_COMPILER=@STUBS@/clang-18
+cmake_additional_arg    = -DCMAKE_CXX_COMPILER=@STUBS@/clang++-14
+expect_message_content  = clang 18 and clang++ 14 differ
+expect_message_level    = error

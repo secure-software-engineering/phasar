@@ -1,0 +1,8 @@
+# A C++-only project has no CMAKE_C_COMPILER to go by, so the C++ one must be
+# consulted. Asserting only that it builds would pass even if the toolchain
+# ignored it and found a clang by itself.
+description             = a C++-only project selects clang via CMAKE_CXX_COMPILER
+cmake_additional_arg    = -DCMAKE_CXX_COMPILER=@CLANGXX@
+expect_selected_clang   = @CLANGXX@
+expect_module_function  = @main
+expect_module_function  = @_ZNK6Widget5valueEv

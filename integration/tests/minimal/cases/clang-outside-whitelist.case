@@ -1,0 +1,6 @@
+# 15 is below the accepted range, so it never matches the detected clang.
+description             = an explicitly chosen clang outside the whitelist is rejected
+cmake_additional_arg    = -DCMAKE_C_COMPILER=@CLANG@
+cmake_additional_arg    = -DPHASAR_IR_CLANG_VERSIONS=15
+expect_message_content  = clang @MAJOR@ not in PHASAR_IR_CLANG_VERSIONS
+expect_message_level    = error

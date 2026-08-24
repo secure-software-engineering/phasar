@@ -1,0 +1,6 @@
+description             = older is preferred over newer
+stubbed_clang           = clang-18=18
+stubbed_clang           = clang-22=22
+cmake_additional_arg    = -DPHASAR_IR_LLVM_VERSION=20
+cmake_additional_arg    = -DPHASAR_IR_CLANG_VERSIONS=18;22
+expect_selected_clang   = clang-18

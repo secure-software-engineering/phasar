@@ -1,0 +1,7 @@
+# Proves the toolchain trusts --version, not the file name.
+description             = a lying file name is rejected
+stubbed_clang           = clang-22=14
+stubbed_clang           = clang-18=18
+cmake_additional_arg    = -DPHASAR_IR_LLVM_VERSION=22
+cmake_additional_arg    = -DPHASAR_IR_CLANG_VERSIONS=18;22
+expect_selected_clang   = clang-18

@@ -1,0 +1,4 @@
+description             = static archive is extracted with -b
+cmake_additional_arg    = -DPHASAR_IR_TARGET=mylib
+expect_module_function  = @alpha_fn
+expect_module_function  = @beta_fn

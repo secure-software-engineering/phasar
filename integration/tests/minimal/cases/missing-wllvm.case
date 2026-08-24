@@ -1,0 +1,4 @@
+description             = a missing wllvm names the directory
+cmake_additional_arg    = -DPHASAR_IR_WLLVM_BIN_DIR=/nonexistent
+expect_message_content  = no wllvm in /nonexistent
+expect_message_level    = error

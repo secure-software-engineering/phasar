@@ -1,0 +1,7 @@
+# Without the configuration in the module path the second build overwrites the
+# first, and you analyse Release believing it is Debug.
+description             = each configuration gets its own module
+cmake_generator         = Ninja Multi-Config
+cmake_configuration     = Debug
+cmake_configuration     = Release
+expect_module_function  = @main

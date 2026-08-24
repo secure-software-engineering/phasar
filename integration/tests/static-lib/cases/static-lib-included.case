@@ -1,0 +1,3 @@
+description             = static library is linked into the module
+expect_module_function  = @main
+expect_module_function  = @util_flag

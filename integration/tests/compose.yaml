@@ -1,0 +1,103 @@
+# Integration tests for PhasarToolchain.cmake.
+#
+#   docker compose up --attach-dependencies tests
+#
+# Run from this directory (integration/tests). `tests` is a gate that depends on
+# every environment, so this one command runs them all — in sequence, because they
+# share the mounted workspace. A failing environment stops the chain.
+#
+# --attach-dependencies is what shows their output; without it you get an exit code
+# and nothing to read.
+#
+# The workspace is bind-mounted, so the produced modules stay readable on the host
+# under <project>/build/<case>/phasar-ir/. The container adopts the owner of that
+# mount, so nothing has to be configured and nothing ends up owned by root.
+services:
+  tests-clang22:
+    image: phasar-integration-tests:clang22
+    build: &test_image
+      context: ..
+      dockerfile: tests/Dockerfile
+      # Reuses the project's own InstallAptDependencies.sh instead of setting up
+      # the LLVM package source a second time.
+      additional_contexts:
+        phasar_utils: ../../utils
+      args:
+        llvm_version: "22"
+        wllvm_version: "1.3.1"
+        cmake_version: "3.28.4"
+    init: true
+    environment:
+      # Set to a substring of <project>/<case> to run only matching cases.
+      PHASAR_TEST_CASE: "${PHASAR_TEST_CASE:-}"
+    volumes:
+      - ..:/work
+
+  tests-clang20:
+    image: phasar-integration-tests:clang20
+    build:
+      <<: *test_image
+      args:
+        llvm_version: "20"
+        wllvm_version: "1.3.1"
+        cmake_version: "3.28.4"
+    init: true
+    environment:
+      PHASAR_TEST_CASE: "${PHASAR_TEST_CASE:-}"
+    volumes:
+      - ..:/work
+    depends_on:
+      tests-clang22:
+        condition: service_completed_successfully
+
+  # The oldest clang the toolchain accepts. C++20 modules are excluded: CMake's
+  # module map is not understood by clang 16 ("module not found"), while clang 20
+  # and 22 build it. The exact boundary between 17 and 20 is untested.
+  tests-clang16:
+    image: phasar-integration-tests:clang16
+    build:
+      <<: *test_image
+      args:
+        llvm_version: "16"
+        wllvm_version: "1.3.1"
+        cmake_version: "3.28.4"
+    init: true
+    environment:
+      PHASAR_TEST_CASE: "${PHASAR_TEST_CASE:-}"
+      PHASAR_TEST_SKIP: "modules/"
+    volumes:
+      - ..:/work
+    depends_on:
+      tests-clang20:
+        condition: service_completed_successfully
+
+  # The lowest CMake the toolchain accepts. Runs everything except the module case,
+  # which needs 3.28.
+  tests-cmake-floor:
+    image: phasar-integration-tests:cmake-floor
+    build:
+      <<: *test_image
+      args:
+        llvm_version: "22"
+        wllvm_version: "1.3.1"
+        cmake_version: "3.21.4"
+        cmake_sha256_wheel: "e0db55681ed10b7175f7fd8e8f31ab18bc299bf534cc8fd31917bb2ffd3596ce"
+        cmake_sha256_sdist: "30fa5ed8a5ad66dcd263adb87f3ce3dc2d0ec0ac3958f5becff577e4b62cd065"
+    init: true
+    environment:
+      PHASAR_TEST_CASE: "${PHASAR_TEST_CASE:-}"
+      PHASAR_TEST_SKIP: "modules/"
+    volumes:
+      - ..:/work
+    depends_on:
+      tests-clang16:
+        condition: service_completed_successfully
+
+  # The entry point. Every environment is chained ahead of it, so `up tests` runs
+  # all of them and a failure cannot slip past.
+  tests:
+    image: phasar-integration-tests:clang22
+    entrypoint: ["true"]
+    depends_on:
+      tests-cmake-floor:
+        condition: service_completed_successfully

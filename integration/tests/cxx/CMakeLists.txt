@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.21)
+project(cxx_project CXX)
+add_subdirectory(lib)
+add_executable(app main.cpp)
+target_link_libraries(app PRIVATE widget)

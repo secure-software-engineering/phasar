@@ -1,0 +1,15 @@
+# C++20 modules make CMake run clang-scan-deps, whose path it derives from the
+# compiler directory — next to a generated wrapper there is nothing to find, so
+# the toolchain has to supply it. The project's CMakeLists fails outright if it
+# did not.
+#
+# The forbidden symbol documents a known gap, not a wish: wllvm decides what is a
+# source by extension and does not list .cppm, so the module unit's code is absent.
+# Adding cppm|ixx|cxxm|ccm to that regex was verified to fix it — so when this case
+# turns red, the gap is closed and this file plus the docs need updating.
+description             = a C++20 module project builds, and its module units are reported as missing
+cmake_generator         = Ninja
+expect_message_content  = module units, whose code will be missing
+expect_message_level    = warning
+expect_module_function  = @main
+forbid_module_function  = @_ZW8greeting14greeting_valuev

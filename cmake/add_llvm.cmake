@@ -1,7 +1,32 @@
 macro(add_llvm)
 
   if (NOT PHASAR_IN_TREE)
-    # Only search for LLVM if we build out of tree
+    # Only search for LLVM if we build out of tree.
+    #
+    # LLVM's config package matches the requested major AND minor version
+    # exactly, and CMake fills a missing minor with 0. A bare "20" therefore asks
+    # for 20.0 and is rejected by an installed 20.1.x — and since LLVM 19 the
+    # releases carry a non-zero minor. find_package lists the rejected
+    # candidates but never explains the scheme, so check for that case first:
+    # ask quietly for what was requested, and if only the ".1" spelling works,
+    # say so instead of letting the plain "not found" stand.
+    if(NOT PHASAR_LLVM_VERSION MATCHES "\\.")
+      find_package(LLVM ${PHASAR_LLVM_VERSION} QUIET CONFIG)
+      if(NOT LLVM_FOUND)
+        find_package(LLVM ${PHASAR_LLVM_VERSION}.1 QUIET CONFIG)
+        if(LLVM_FOUND)
+          message(FATAL_ERROR
+            "PHASAR_LLVM_VERSION\n"
+            "What: LLVM ${PHASAR_LLVM_VERSION} was not accepted, but "
+            "${LLVM_PACKAGE_VERSION} is installed\n"
+            "Why: LLVM's config package matches major and minor exactly, and "
+            "CMake reads \"${PHASAR_LLVM_VERSION}\" as "
+            "${PHASAR_LLVM_VERSION}.0\n"
+            "Fix: use -DPHASAR_LLVM_VERSION=${PHASAR_LLVM_VERSION}.1")
+        endif()
+      endif()
+    endif()
+
     find_package(LLVM ${PHASAR_LLVM_VERSION} REQUIRED CONFIG)
     find_library(LLVM_LIBRARY NAMES LLVM PATHS ${LLVM_LIBRARY_DIRS} NO_DEFAULT_PATH)
 

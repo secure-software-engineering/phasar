@@ -1,0 +1,4 @@
+# The wrappers must be named after the real drivers, or CMake's derivation of the
+# LLVM binutils breaks — the project itself refuses to configure if it did.
+description             = CMake derives the LLVM binutils, not the GNU ones
+expect_module_function  = @main

@@ -1,0 +1,4 @@
+# A shared library is its own link unit; asserting only presence would pass here.
+description             = shared library is a separate link unit
+expect_module_function  = @main
+forbid_module_function  = @dynutil_flag

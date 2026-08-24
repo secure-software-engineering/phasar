@@ -1,0 +1,3 @@
+description             = several executables need an explicit target
+expect_message_content  = several executables
+expect_message_level    = error

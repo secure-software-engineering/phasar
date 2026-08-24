@@ -1,0 +1,10 @@
+# The other direction: C older than C++. Needs the whitelist widened, because 14
+# is below the accepted range and would otherwise be rejected for that instead.
+description             = a C compiler older than the C++ one is rejected too
+stubbed_clang           = clang-14=14
+stubbed_clang           = clang++-18=18
+cmake_additional_arg    = -DCMAKE_C_COMPILER=@STUBS@/clang-14
+cmake_additional_arg    = -DCMAKE_CXX_COMPILER=@STUBS@/clang++-18
+cmake_additional_arg    = -DPHASAR_IR_CLANG_VERSIONS=14;18
+expect_message_content  = clang 14 and clang++ 18 differ
+expect_message_level    = error

@@ -1,0 +1,4 @@
+description             = an INTERFACE target cannot be extracted
+cmake_additional_arg    = -DPHASAR_IR_TARGET=iface
+expect_message_content  = nothing to extract
+expect_message_level    = error

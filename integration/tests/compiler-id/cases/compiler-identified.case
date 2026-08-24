@@ -1,0 +1,3 @@
+description             = CMake identifies the compiler and knows its features
+expect_module_function  = @main
+expect_module_function  = @_Z8describev

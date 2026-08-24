@@ -1,0 +1,6 @@
+description             = nothing acceptable lists candidates
+stubbed_clang           = clang-19=14
+cmake_additional_arg    = -DPHASAR_IR_LLVM_VERSION=19
+cmake_additional_arg    = -DPHASAR_IR_CLANG_VERSIONS=19
+expect_message_content  = no clang in PHASAR_IR_CLANG_VERSIONS
+expect_message_level    = error
