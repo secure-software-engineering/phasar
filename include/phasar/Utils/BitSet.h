@@ -24,6 +24,7 @@
 #include <iterator>
 #include <optional>
 #include <type_traits>
+#include <utility>
 
 namespace psr {
 
@@ -98,6 +99,19 @@ public:
   explicit BitSet(size_t InitialCapacity) : Bits(InitialCapacity) {}
   explicit BitSet(size_t InitialCapacity, bool InitialValue)
       : Bits(InitialCapacity, InitialValue) {}
+
+  // Moved-from llvm::BitVector is not empty. ValueIdMap requires this in its
+  // dtor.
+  BitSet(BitSet &&Other) noexcept : Bits(std::exchange(Other.Bits, {})) {}
+  BitSet &operator=(BitSet &&Other) noexcept {
+    std::swap(Bits, Other.Bits);
+    return *this;
+  }
+
+  BitSet(const BitSet &) = default;
+  BitSet &operator=(const BitSet &) = default;
+
+  ~BitSet() = default;
 
   void reserve(size_t Cap) {
     if (Bits.size() < Cap) {
