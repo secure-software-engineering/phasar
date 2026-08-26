@@ -268,11 +268,9 @@ public:
     std::ranges::sort(base());
   }
 
-  LLVM_ATTRIBUTE_ALWAYS_INLINE void foreach (
+  LLVM_ATTRIBUTE_ALWAYS_INLINE auto foreach (
       std::invocable<const T &> auto Handler) const {
-    for (const auto &Elem : base()) {
-      std::invoke(Handler, Elem);
-    }
+    return psr::foreachInRange(base(), std::move(Handler));
   }
 
   [[nodiscard]] friend auto hash_value(const SmallArraySet &Set) noexcept {

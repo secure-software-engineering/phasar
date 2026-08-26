@@ -11,13 +11,17 @@
 #define PHASAR_UTILS_UTILITIES_H_
 
 #include "phasar/Utils/ByRef.h"
+#include "phasar/Utils/Macros.h"
 #include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/Support/Compiler.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include <algorithm>
+#include <concepts>
 #include <functional>
+#include <iterator>
 #include <optional>
 #include <set>
 #include <source_location>
@@ -360,6 +364,40 @@ template <typename T>
   }
 
   return {std::move(First), std::move(Second)};
+}
+
+template <typename FnT, typename... ArgsT>
+  requires(std::invocable<FnT, ArgsT...>)
+[[nodiscard]] constexpr auto invokeControlFlow(
+    FnT &&Fn,
+    ArgsT &&...Args) noexcept(std::is_nothrow_invocable_v<FnT, ArgsT...>) {
+  using ResultT = std::invoke_result_t<FnT, ArgsT...>;
+  if constexpr (std::is_void_v<ResultT>) {
+    std::invoke(PSR_FWD(Fn), PSR_FWD(Args)...);
+    return std::bool_constant<true>{};
+  } else {
+    static_assert(std::convertible_to<ResultT, bool>);
+    return std::invoke(PSR_FWD(Fn), PSR_FWD(Args)...);
+  }
+}
+
+template <typename FnT, typename RangeT>
+constexpr auto foreachInRange(RangeT &&Range, FnT &&Fn) {
+  using std::begin;
+  using ElemT = decltype(*begin(Range));
+  using ResultT = std::invoke_result_t<FnT, ElemT>;
+  if constexpr (std::is_void_v<ResultT>) {
+    using std::end;
+    std::for_each(begin(Range), end(Range), copyOrRef(Fn));
+    return std::bool_constant<true>{};
+  } else {
+    for (auto &&Elem : PSR_FWD(Range)) {
+      if (!std::invoke(Fn, PSR_FWD(Elem))) {
+        return false;
+      }
+    }
+    return true;
+  }
 }
 
 } // namespace psr

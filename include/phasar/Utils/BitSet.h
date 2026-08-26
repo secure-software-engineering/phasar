@@ -11,6 +11,7 @@
 #define PHASAR_UTILS_BITSET_H
 
 #include "phasar/Utils/TypeTraits.h"
+#include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallBitVector.h"
@@ -220,7 +221,7 @@ public:
   ///
   /// This is likely faster than using iterators.
   template <std::invocable<IdT> HandlerFn>
-  void foreach (HandlerFn Handler) const
+  bool foreach (HandlerFn Handler) const
       noexcept(std::is_nothrow_invocable_v<HandlerFn &, IdT>) {
     uintptr_t Store{};
     auto Words = getWords(Bits, Store);
@@ -229,11 +230,14 @@ public:
       while (W) {
         auto Curr = std::countr_zero(W) + Offset;
         W &= W - 1;
-        std::invoke(Handler, IdT(Curr));
+        if (!invokeControlFlow(Handler, IdT(Curr))) {
+          return false;
+        }
       }
 
       Offset += sizeof(W) * CHAR_BIT;
     }
+    return true;
   }
 
   /// Same as mergeWith()

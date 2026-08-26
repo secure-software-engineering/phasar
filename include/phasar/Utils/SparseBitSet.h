@@ -37,19 +37,13 @@ public:
   }
 
   template <std::invocable<IdT> HandlerFn>
-  LLVM_ATTRIBUTE_ALWAYS_INLINE void foreach (HandlerFn Handler) const {
-    return Bits.iterate(
-        [](uint32_t Id, void *HandlerPtr) {
+  LLVM_ATTRIBUTE_ALWAYS_INLINE bool foreach (HandlerFn Handler) const {
+    // Unfortunately, Bits.iterate() returns void...
+    return roaring::api::roaring_iterate(
+        &Bits.roaring,
+        [](uint32_t Id, void *HandlerPtr) -> bool {
           auto &Handler = *(HandlerFn *)HandlerPtr;
-          if constexpr (std::convertible_to<
-                            std::invoke_result_t<HandlerFn &, IdT>, bool>) {
-            if (!std::invoke(Handler, IdT(Id))) {
-              return false;
-            }
-          } else {
-            std::invoke(Handler, IdT(Id));
-          }
-          return true;
+          return invokeControlFlow(Handler, IdT(Id));
         },
         &Handler);
   }
