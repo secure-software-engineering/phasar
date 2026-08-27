@@ -167,7 +167,7 @@ public:
   }
 
   IdT insertDummy(std::convertible_to<T> auto &&Elem) {
-    auto Ret = Id(FromInt.size());
+    auto Ret = IdT(FromInt.size());
     FromInt.emplace_back(PSR_FWD(Elem));
     return Ret;
   }

@@ -186,22 +186,6 @@ auto detail::LLVMBasedCFGImpl<Derived>::getExitPointsOfImpl(f_t Fun) const
 }
 
 template <typename Derived>
-bool detail::LLVMBasedCFGImpl<Derived>::isStartPointImpl(
-    n_t Inst) const noexcept {
-  auto FirstInst = &Inst->getFunction()->front().front();
-  if (Inst == FirstInst) {
-    return true;
-  }
-#if LLVM_VERSION_MAJOR <= 18
-  if (llvm::isa<llvm::DbgInfoIntrinsic>(FirstInst)) {
-    FirstInst = FirstInst->getNextNonDebugInstruction(false);
-  }
-#endif
-
-  return Inst == FirstInst;
-}
-
-template <typename Derived>
 bool detail::LLVMBasedCFGImpl<Derived>::isFieldLoadImpl(
     n_t Inst) const noexcept {
   if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Inst)) {

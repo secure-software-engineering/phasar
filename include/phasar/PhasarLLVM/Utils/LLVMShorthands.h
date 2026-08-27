@@ -26,6 +26,7 @@
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/BinaryFormat/Dwarf.h"
 #include "llvm/IR/Argument.h"
+#include "llvm/IR/CFG.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/GlobalObject.h"
@@ -66,14 +67,15 @@ class LLVMProjectIRDB;
  * @return True, if given LLVM Type is a struct like this %TSi = type <{ i64 }>.
  * False, otherwise.
  */
-bool isIntegerLikeType(const llvm::Type *T) noexcept;
+[[nodiscard]] bool isIntegerLikeType(const llvm::Type *T) noexcept;
 
 /**
  * @brief Checks if the given LLVM Value is either a alloca instruction or a
  * heap allocation function, e.g. new, new[], malloc, realloc or calloc.
  */
-bool isAllocaInstOrHeapAllocaFunction(const llvm::Value *V) noexcept;
-bool isHeapAllocatingFunction(const llvm::Function *F) noexcept;
+[[nodiscard]] bool
+isAllocaInstOrHeapAllocaFunction(const llvm::Value *V) noexcept;
+[[nodiscard]] bool isHeapAllocatingFunction(const llvm::Function *F) noexcept;
 
 /// Returns true if the provided function and the function type are both not
 /// null and have the same number of parameters and the same return type. If the
@@ -101,7 +103,8 @@ LLVM_DEPRECATED("With opaque pointers, this function is not very useful. Use "
 bool matchesSignature(const llvm::FunctionType *FType1,
                       const llvm::FunctionType *FType2);
 
-llvm::ModuleSlotTracker &getModuleSlotTrackerFor(const llvm::Value *V);
+[[nodiscard]] llvm::ModuleSlotTracker &
+getModuleSlotTrackerFor(const llvm::Value *V);
 
 /**
  * @brief Returns a string representation of a LLVM Value.
@@ -119,7 +122,7 @@ llvm::ModuleSlotTracker &getModuleSlotTrackerFor(const llvm::Value *V);
  * @brief Same as llvmIRToString() but tries to shorten the
  *        resulting string
  */
-std::string llvmIRToShortString(const llvm::Value *V);
+[[nodiscard]] std::string llvmIRToShortString(const llvm::Value *V);
 
 /**
  * @brief Returns a string-representation of a LLVM type.
@@ -230,7 +233,7 @@ const llvm::Instruction *getNthTermInstruction(const llvm::Function *F,
 const llvm::StoreInst *getNthStoreInstruction(const llvm::Function *F,
                                               unsigned StoNo);
 
-llvm::SmallVector<const llvm::Instruction *, 2>
+[[nodiscard]] llvm::SmallVector<const llvm::Instruction *, 2>
 getAllExitPoints(const llvm::Function *F, bool IncludeResume = true);
 void appendAllExitPoints(
     const llvm::Function *F,
@@ -273,13 +276,14 @@ std::size_t computeModuleHash(const llvm::Module *M);
  * @brief True, iff V is the compiler-generated guard variable for the
  * thread-safe initialization of function-local static variables.
  */
-bool isGuardVariable(const llvm::Value *V);
+[[nodiscard]] bool isGuardVariable(const llvm::Value *V);
 
 /**
  * @brief True, iff V is the compiler-generated branch that leads to the lazy
  * initialization of a function-local static variable.
  */
-bool isStaticVariableLazyInitializationBranch(const llvm::BranchInst *Inst);
+[[nodiscard]] bool
+isStaticVariableLazyInitializationBranch(const llvm::BranchInst *Inst);
 
 [[nodiscard]] inline bool
 definitelyContainsNoPointerFast(const llvm::Type *Ty) noexcept {
@@ -370,7 +374,7 @@ void forEachPointerOperand(const llvm::Value *V, HandlerT Handler) {
  */
 bool isVarAnnotationIntrinsic(const llvm::Function *F);
 
-inline const llvm::Function *getFunction(const llvm::Value *V) {
+[[nodiscard]] inline const llvm::Function *getFunction(const llvm::Value *V) {
   if (!V) {
     return nullptr;
   }
@@ -382,7 +386,8 @@ inline const llvm::Function *getFunction(const llvm::Value *V) {
   }
   return nullptr;
 }
-inline const llvm::Function *getFunction(const llvm::Instruction *Inst) {
+[[nodiscard]] inline const llvm::Function *
+getFunction(const llvm::Instruction *Inst) {
   if (!Inst) {
     return nullptr;
   }
@@ -390,9 +395,19 @@ inline const llvm::Function *getFunction(const llvm::Instruction *Inst) {
   return Inst->getFunction();
 }
 
-const llvm::DIType *stripMemberAndTypedef(const llvm::DIType *Ty);
+[[nodiscard]] inline bool isStartInst(const llvm::Instruction *Inst) {
+  return
+#if LLVM_VERSION_MAJOR <= 18
+      !Inst->getPrevNonDebugInstruction()
+#else
+      !Inst->getPrevNode()
+#endif
+      && llvm::pred_empty(Inst->getParent());
+}
 
-inline bool isPointerTy(const llvm::DIType *Ty) {
+[[nodiscard]] const llvm::DIType *stripMemberAndTypedef(const llvm::DIType *Ty);
+
+[[nodiscard]] inline bool isPointerTy(const llvm::DIType *Ty) {
   if (const auto *DerivedTy =
           llvm::dyn_cast<llvm::DIDerivedType>(stripMemberAndTypedef(Ty))) {
     return DerivedTy->getTag() == llvm::dwarf::DW_TAG_pointer_type ||

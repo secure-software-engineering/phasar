@@ -11,9 +11,13 @@
 
 #include "phasar/PhasarLLVM/ControlFlow/SparseLLVMBasedCFGProvider.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
+#include "llvm/IR/CFG.h"
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instruction.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/IR/IntrinsicInst.h"
 #include "llvm/IR/Value.h"
 
 namespace psr {
@@ -37,12 +41,24 @@ public:
                                            LLVMAliasInfoRef AI);
 
 private:
+  [[nodiscard]] static bool isNoopIntrinsic(n_t Inst) {
+    // isAssumeLikeIntrinsic() alone is not enough: llvm.objectsize and
+    // llvm.ptr_annotation derive their result from a pointer operand
+    const auto *II = llvm::dyn_cast<llvm::IntrinsicInst>(Inst);
+    return II && II->isAssumeLikeIntrinsic() && II->getType()->isVoidTy();
+  }
+
+  [[nodiscard]] static bool isExitInst(n_t Inst) {
+    return llvm::isa<llvm::ReturnInst, llvm::ResumeInst, llvm::UnreachableInst>(
+        Inst);
+  }
+
   [[nodiscard]] static n_t advanceToNextUserImpl(n_t Succ, v_t Fact,
                                                  LLVMAliasInfoRef AI) {
-    if (Succ == Fact || !Succ->getPrevNode() || !Succ->getNextNode()) {
+    if (Succ == Fact || isExitInst(Succ) || isStartInst(Succ)) {
       return Succ;
     }
-    if (llvm::isa<llvm::CallBase>(Succ)) {
+    if (llvm::isa<llvm::CallBase>(Succ) && !isNoopIntrinsic(Succ)) {
       if (llvm::isa<llvm::GlobalValue>(Fact)) {
         return Succ;
       }

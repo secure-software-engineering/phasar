@@ -154,9 +154,10 @@ public:
           }
         }();
         for (const auto &Succ : RetSites) {
-          const auto FctSucc = factSucc(Succ, Fct);
+          // Note: No sparsification here, because getPopRules() needs the
+          // predecessor of Succ
           for (const auto &EntrySE : EntrySEs) {
-            Outs.emplace_back(Fct, FctSucc, EntrySE, W);
+            Outs.emplace_back(Fct, Succ, EntrySE, W);
           }
         }
       }
@@ -240,13 +241,15 @@ public:
     return Outs;
   }
 
-  [[nodiscard]] constexpr auto &problem() const noexcept { return *Problem; }
+  [[nodiscard]] constexpr auto &problem() const noexcept {
+    return Problem.ideProblem();
+  }
 
 private:
   [[nodiscard]] auto factSucc(stack_element_type Succ,
                               ByConstRef<control_location_type> CL) {
     if constexpr (has_advanceToNextUser_v<ICFGTy, control_location_type>) {
-      return ICF->advancetoNextUser(Succ, CL);
+      return ICF->advanceToNextUser(Succ, CL);
     } else {
       return Succ;
     }

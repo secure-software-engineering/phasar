@@ -115,14 +115,11 @@ struct PSR_PREFERRED_NAME(IFDSSolverConfigWithStatsAndGC) WithGCMode : Base {
   static constexpr JumpFunctionGCMode EnableJumpFunctionGC = GCMode;
 };
 
-template <typename ProblemTy>
-struct DefaultIDESolverConfig : IDESolverConfig {};
+template <IFDSProblem ProblemTy>
+struct DefaultIDESolverConfig : IFDSSolverConfig {};
 
-template <typename ProblemTy>
-  requires std::is_base_of_v<
-      IFDSTabulationProblem<typename ProblemTy::ProblemAnalysisDomain>,
-      ProblemTy>
-struct DefaultIDESolverConfig<ProblemTy> : IFDSSolverConfig {};
+template <IDEProblem ProblemTy>
+struct DefaultIDESolverConfig<ProblemTy> : IDESolverConfig {};
 
 } // namespace psr
 
