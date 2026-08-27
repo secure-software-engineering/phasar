@@ -18,7 +18,9 @@ namespace psr {
 
 template <typename T>
 concept CanEfficientlyPassByValue =
-    sizeof(T) <= 2 * sizeof(void *) && std::is_trivially_copyable_v<T>;
+    std::is_reference_v<T> || (sizeof(T) <= 2 * sizeof(void *) &&
+                               std::is_trivially_copy_constructible_v<T> &&
+                               std::is_trivially_destructible_v<T>);
 
 template <typename T>
 using ByConstRef =
