@@ -42,7 +42,8 @@ struct MemSSABundle {
 /// Returns true if a LiveOnEntry def is reachable (value may come from outside
 /// the function). In that case, ReachingDefs may be incompletely populated.
 [[nodiscard]] bool collectReachingDefs(
-    llvm::MemoryAccess *MA, const llvm::MemorySSA &MSSA,
+    llvm::MemoryAccess *MA, llvm::MemorySSA &MSSA,
+    const llvm::MemoryLocation &Loc,
     llvm::SmallPtrSetImpl<const llvm::StoreInst *> &ReachingDefs,
     llvm::SmallPtrSetImpl<llvm::MemoryAccess *> &Visited);
 

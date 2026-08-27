@@ -33,7 +33,8 @@ MemSSABundle::MemSSABundle(llvm::Function &F,
 }
 
 bool psr::collectReachingDefs(
-    llvm::MemoryAccess *MA, const llvm::MemorySSA &MSSA,
+    llvm::MemoryAccess *MA, llvm::MemorySSA &MSSA,
+    const llvm::MemoryLocation &Loc,
     llvm::SmallPtrSetImpl<const llvm::StoreInst *> &ReachingDefs,
     llvm::SmallPtrSetImpl<llvm::MemoryAccess *> &Visited) {
   if (!Visited.insert(MA).second) {
@@ -53,9 +54,15 @@ bool psr::collectReachingDefs(
   }
   if (auto *Phi = llvm::dyn_cast<llvm::MemoryPhi>(MA)) {
     for (const auto &Inc : Phi->incoming_values()) {
-      bool LOE = collectReachingDefs(llvm::cast<llvm::MemoryAccess>(Inc.get()),
-                                     MSSA, ReachingDefs, Visited);
-      if (LOE) {
+      auto *IncMA = llvm::cast<llvm::MemoryAccess>(Inc.get());
+      // The def that immediately precedes the phi on this path need not
+      // clobber Loc at all, so ask the walker again instead of taking it.
+      // Without this, an unrelated store shadows the actual definition.
+      if (llvm::isa<llvm::MemoryUseOrDef>(IncMA) &&
+          !MSSA.isLiveOnEntryDef(IncMA)) {
+        IncMA = MSSA.getWalker()->getClobberingMemoryAccess(IncMA, Loc);
+      }
+      if (collectReachingDefs(IncMA, MSSA, Loc, ReachingDefs, Visited)) {
         return true;
       }
     }
@@ -69,7 +76,8 @@ bool psr::collectReachingDefs(
   if (auto *Access = MSSA.getMemoryAccess(Load)) {
     auto *Clobber = MSSA.getWalker()->getClobberingMemoryAccess(Access);
     llvm::SmallPtrSet<llvm::MemoryAccess *, 8> Visited;
-    return collectReachingDefs(Clobber, MSSA, ReachingDefs, Visited);
+    return collectReachingDefs(Clobber, MSSA, llvm::MemoryLocation::get(Load),
+                               ReachingDefs, Visited);
   }
 
   return true;
