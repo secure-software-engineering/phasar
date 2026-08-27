@@ -135,20 +135,21 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span><span class="comment">/// reaching definitions into ReachingDefs.</span></div>
 <div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span><span class="comment">/// Returns true if a LiveOnEntry def is reachable (value may come from outside</span></div>
 <div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span><span class="comment">/// the function). In that case, ReachingDefs may be incompletely populated.</span></div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno"><a class="line" href="namespacepsr.html#a545d377ac4572445bcbe32b639feeb05">   44</a></span><span class="comment"></span>[[nodiscard]] <span class="keywordtype">bool</span> <a class="code hl_function" href="namespacepsr.html#a545d377ac4572445bcbe32b639feeb05">collectReachingDefs</a>(</div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>    llvm::MemoryAccess *MA, <span class="keyword">const</span> llvm::MemorySSA &amp;MSSA,</div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>    llvm::SmallPtrSetImpl&lt;const llvm::StoreInst *&gt; &amp;ReachingDefs,</div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>    llvm::SmallPtrSetImpl&lt;llvm::MemoryAccess *&gt; &amp;Visited);</div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span><span class="comment"></span> </div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span><span class="comment">/// Collects all store instructions that may define the value loaded from the</span></div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span><span class="comment">/// given load. Forwards to the above collectReachingDefs overload.</span></div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno"><a class="line" href="namespacepsr.html#a78e5337125082f13b7fe8a876c109a6c">   51</a></span><span class="comment"></span>[[nodiscard]] <span class="keywordtype">bool</span> <a class="code hl_function" href="namespacepsr.html#a545d377ac4572445bcbe32b639feeb05">collectReachingDefs</a>(</div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>    <span class="keyword">const</span> llvm::LoadInst *Load, llvm::MemorySSA &amp;MSSA,</div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>    llvm::SmallPtrSetImpl&lt;const llvm::StoreInst *&gt; &amp;ReachingDefs);</div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span> </div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>} <span class="comment">// namespace psr</span></div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno"><a class="line" href="namespacepsr.html#a33ad12496bfc14452fc1fb3fa92ee6d0">   44</a></span><span class="comment"></span>[[nodiscard]] <span class="keywordtype">bool</span> <a class="code hl_function" href="namespacepsr.html#a33ad12496bfc14452fc1fb3fa92ee6d0">collectReachingDefs</a>(</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>    llvm::MemoryAccess *MA, llvm::MemorySSA &amp;MSSA,</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>    <span class="keyword">const</span> llvm::MemoryLocation &amp;Loc,</div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>    llvm::SmallPtrSetImpl&lt;const llvm::StoreInst *&gt; &amp;ReachingDefs,</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>    llvm::SmallPtrSetImpl&lt;llvm::MemoryAccess *&gt; &amp;Visited);</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span><span class="comment"></span> </div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span><span class="comment">/// Collects all store instructions that may define the value loaded from the</span></div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span><span class="comment">/// given load. Forwards to the above collectReachingDefs overload.</span></div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno"><a class="line" href="namespacepsr.html#a78e5337125082f13b7fe8a876c109a6c">   52</a></span><span class="comment"></span>[[nodiscard]] <span class="keywordtype">bool</span> <a class="code hl_function" href="namespacepsr.html#a33ad12496bfc14452fc1fb3fa92ee6d0">collectReachingDefs</a>(</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>    <span class="keyword">const</span> llvm::LoadInst *Load, llvm::MemorySSA &amp;MSSA,</div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>    llvm::SmallPtrSetImpl&lt;const llvm::StoreInst *&gt; &amp;ReachingDefs);</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span> </div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>} <span class="comment">// namespace psr</span></div>
 <div class="ttc" id="anamespacepsr_html"><div class="ttname"><a href="namespacepsr.html">psr</a></div><div class="ttdef"><b>Definition</b> <a href="AnalysisSetup_8h_source.html#l00013">AnalysisSetup.h:13</a></div></div>
-<div class="ttc" id="anamespacepsr_html_a545d377ac4572445bcbe32b639feeb05"><div class="ttname"><a href="namespacepsr.html#a545d377ac4572445bcbe32b639feeb05">psr::collectReachingDefs</a></div><div class="ttdeci">bool collectReachingDefs(llvm::MemoryAccess *MA, const llvm::MemorySSA &amp;MSSA, llvm::SmallPtrSetImpl&lt; const llvm::StoreInst * &gt; &amp;ReachingDefs, llvm::SmallPtrSetImpl&lt; llvm::MemoryAccess * &gt; &amp;Visited)</div></div>
+<div class="ttc" id="anamespacepsr_html_a33ad12496bfc14452fc1fb3fa92ee6d0"><div class="ttname"><a href="namespacepsr.html#a33ad12496bfc14452fc1fb3fa92ee6d0">psr::collectReachingDefs</a></div><div class="ttdeci">bool collectReachingDefs(llvm::MemoryAccess *MA, llvm::MemorySSA &amp;MSSA, const llvm::MemoryLocation &amp;Loc, llvm::SmallPtrSetImpl&lt; const llvm::StoreInst * &gt; &amp;ReachingDefs, llvm::SmallPtrSetImpl&lt; llvm::MemoryAccess * &gt; &amp;Visited)</div></div>
 <div class="ttc" id="astructpsr_1_1MemSSABundle_html"><div class="ttname"><a href="structpsr_1_1MemSSABundle.html">psr::MemSSABundle</a></div><div class="ttdef"><b>Definition</b> <a href="MemSSAUtils_8h_source.html#l00028">MemSSAUtils.h:28</a></div></div>
 <div class="ttc" id="astructpsr_1_1MemSSABundle_html_a2561bc8796613f471ab3f819d6717a88"><div class="ttname"><a href="structpsr_1_1MemSSABundle.html#a2561bc8796613f471ab3f819d6717a88">psr::MemSSABundle::SNA</a></div><div class="ttdeci">llvm::ScopedNoAliasAAResult SNA</div><div class="ttdef"><b>Definition</b> <a href="MemSSAUtils_8h_source.html#l00032">MemSSAUtils.h:32</a></div></div>
 <div class="ttc" id="astructpsr_1_1MemSSABundle_html_a4d47d9747a4c23513b746cb3a742ae45"><div class="ttname"><a href="structpsr_1_1MemSSABundle.html#a4d47d9747a4c23513b746cb3a742ae45">psr::MemSSABundle::MemSSABundle</a></div><div class="ttdeci">MemSSABundle(llvm::Function &amp;F, const llvm::TargetLibraryInfo *TLI)</div></div>
@@ -161,7 +162,7 @@ $(document).ready(function() { init_codefold(0); });
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Aug 20 2026 16:52:21 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Aug 27 2026 18:17:24 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

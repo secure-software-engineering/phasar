@@ -1,7 +1,11 @@
 <map id="psr::FilteredLLVMAliasSet" name="psr::FilteredLLVMAliasSet">
-<area shape="rect" id="Node000001" title=" " alt="" coords="137,79,324,104"/>
-<area shape="rect" id="Node000002" href="$classpsr_1_1FilteredLLVMAliasIterator.html" title=" " alt="" coords="5,5,219,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="144,35,213,76,210,81,142,40"/>
-<area shape="rect" id="Node000003" href="$classpsr_1_1CachedLLVMAliasIterator.html" title="A wrapper over a LLVMAliasIteratorRef that adds caching to make it conform to the LLVMAliasInfoRef in..." alt="" coords="243,5,455,31"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="320,40,251,81,249,76,317,35"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="35,272,221,297"/>
+<area shape="rect" id="Node000002" href="$classpsr_1_1FilteredLLVMAliasIterator.html" title=" " alt="" coords="5,197,219,223"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="120,236,128,271,123,272,115,237"/>
+<area shape="rect" id="Node000003" href="$classpsr_1_1CachedLLVMAliasIterator.html" title="A wrapper over a LLVMAliasIteratorRef that adds caching to make it conform to the LLVMAliasInfoRef in..." alt="" coords="243,197,455,223"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="302,229,164,275,162,269,301,224"/>
+<area shape="rect" id="Node000004" href="$classpsr_1_1AnalysisPropertiesMixin.html" title=" " alt="" coords="242,108,457,148"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="352,162,352,197,347,197,347,162"/>
+<area shape="rect" id="Node000005" href="$classpsr_1_1AnalysisPropertiesMixin.html" title=" " alt="" coords="246,5,453,45"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="352,59,352,108,347,108,347,59"/>
 </map>

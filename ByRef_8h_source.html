@@ -110,26 +110,28 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span> </div>
 <div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
 <div class="line"><a id="l00020" name="l00020"></a><span class="lineno"><a class="line" href="conceptpsr_1_1CanEfficientlyPassByValue.html">   20</a></span><span class="keyword">concept </span><a class="code hl_concept" href="conceptpsr_1_1CanEfficientlyPassByValue.html">CanEfficientlyPassByValue</a> =</div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>    <span class="keyword">sizeof</span>(T) &lt;= 2 * <span class="keyword">sizeof</span>(<span class="keywordtype">void</span> *) &amp;&amp; std::is_trivially_copyable_v&lt;T&gt;;</div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span> </div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno"><a class="line" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">   24</a></span><span class="keyword">using </span><a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef</a> =</div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>    std::conditional_t&lt;CanEfficientlyPassByValue&lt;T&gt;, T, <span class="keyword">const</span> T &amp;&gt;;</div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno"><a class="line" href="namespacepsr.html#a01d888e7bc0e569683fd11bd14ff6924">   27</a></span><span class="keyword">using </span><a class="code hl_typedef" href="namespacepsr.html#a01d888e7bc0e569683fd11bd14ff6924">ByMoveRef</a> = std::conditional_t&lt;CanEfficientlyPassByValue&lt;T&gt;, T, T &amp;&amp;&gt;;</div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span> </div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>} <span class="comment">// namespace psr</span></div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>    std::is_reference_v&lt;T&gt; || (<span class="keyword">sizeof</span>(T) &lt;= 2 * <span class="keyword">sizeof</span>(<span class="keywordtype">void</span> *) &amp;&amp;</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>                               std::is_trivially_copy_constructible_v&lt;T&gt; &amp;&amp;</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>                               std::is_trivially_destructible_v&lt;T&gt;);</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span> </div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno"><a class="line" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">   26</a></span><span class="keyword">using </span><a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef</a> =</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>    std::conditional_t&lt;CanEfficientlyPassByValue&lt;T&gt;, T, <span class="keyword">const</span> T &amp;&gt;;</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno"><a class="line" href="namespacepsr.html#a01d888e7bc0e569683fd11bd14ff6924">   29</a></span><span class="keyword">using </span><a class="code hl_typedef" href="namespacepsr.html#a01d888e7bc0e569683fd11bd14ff6924">ByMoveRef</a> = std::conditional_t&lt;CanEfficientlyPassByValue&lt;T&gt;, T, T &amp;&amp;&gt;;</div>
 <div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span> </div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span><span class="preprocessor">#endif </span><span class="comment">// PHASAR_UTILS_BYREF_H</span></div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>} <span class="comment">// namespace psr</span></div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span> </div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span><span class="preprocessor">#endif </span><span class="comment">// PHASAR_UTILS_BYREF_H</span></div>
 <div class="ttc" id="aMacros_8h_html"><div class="ttname"><a href="Macros_8h.html">Macros.h</a></div></div>
 <div class="ttc" id="aconceptpsr_1_1CanEfficientlyPassByValue_html"><div class="ttname"><a href="conceptpsr_1_1CanEfficientlyPassByValue.html">psr::CanEfficientlyPassByValue</a></div><div class="ttdef"><b>Definition</b> <a href="ByRef_8h_source.html#l00020">ByRef.h:20</a></div></div>
 <div class="ttc" id="anamespacepsr_html"><div class="ttname"><a href="namespacepsr.html">psr</a></div><div class="ttdef"><b>Definition</b> <a href="AnalysisSetup_8h_source.html#l00013">AnalysisSetup.h:13</a></div></div>
-<div class="ttc" id="anamespacepsr_html_a01d888e7bc0e569683fd11bd14ff6924"><div class="ttname"><a href="namespacepsr.html#a01d888e7bc0e569683fd11bd14ff6924">psr::ByMoveRef</a></div><div class="ttdeci">std::conditional_t&lt; CanEfficientlyPassByValue&lt; T &gt;, T, T &amp;&amp; &gt; ByMoveRef</div><div class="ttdef"><b>Definition</b> <a href="ByRef_8h_source.html#l00027">ByRef.h:27</a></div></div>
-<div class="ttc" id="anamespacepsr_html_ab1fa2b63d3a5ab4934961480f678afea"><div class="ttname"><a href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">psr::ByConstRef</a></div><div class="ttdeci">std::conditional_t&lt; CanEfficientlyPassByValue&lt; T &gt;, T, const T &amp; &gt; ByConstRef</div><div class="ttdef"><b>Definition</b> <a href="ByRef_8h_source.html#l00024">ByRef.h:25</a></div></div>
+<div class="ttc" id="anamespacepsr_html_a01d888e7bc0e569683fd11bd14ff6924"><div class="ttname"><a href="namespacepsr.html#a01d888e7bc0e569683fd11bd14ff6924">psr::ByMoveRef</a></div><div class="ttdeci">std::conditional_t&lt; CanEfficientlyPassByValue&lt; T &gt;, T, T &amp;&amp; &gt; ByMoveRef</div><div class="ttdef"><b>Definition</b> <a href="ByRef_8h_source.html#l00029">ByRef.h:29</a></div></div>
+<div class="ttc" id="anamespacepsr_html_ab1fa2b63d3a5ab4934961480f678afea"><div class="ttname"><a href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">psr::ByConstRef</a></div><div class="ttdeci">std::conditional_t&lt; CanEfficientlyPassByValue&lt; T &gt;, T, const T &amp; &gt; ByConstRef</div><div class="ttdef"><b>Definition</b> <a href="ByRef_8h_source.html#l00026">ByRef.h:27</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Aug 20 2026 16:52:21 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Aug 27 2026 18:17:24 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

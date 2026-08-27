@@ -388,101 +388,99 @@ $(document).ready(function() { init_codefold(0); });
 </div>
 <div class="line"><a id="l00270" name="l00270"></a><span class="lineno">  270</span> </div>
 <div class="foldopen" id="foldopen00271" data-start="{" data-end="}">
-<div class="line"><a id="l00271" name="l00271"></a><span class="lineno"><a class="line" href="classpsr_1_1SmallArraySet.html#a47a8909f7052849bc14755c4621a0d28">  271</a></span>  LLVM_ATTRIBUTE_ALWAYS_INLINE <span class="keywordtype">void</span> <span class="keywordflow">foreach</span> (</div>
+<div class="line"><a id="l00271" name="l00271"></a><span class="lineno"><a class="line" href="classpsr_1_1SmallArraySet.html#aaa92c1f53925d527a278ca43d88605af">  271</a></span>  LLVM_ATTRIBUTE_ALWAYS_INLINE <span class="keyword">auto</span> <span class="keywordflow">foreach</span> (</div>
 <div class="line"><a id="l00272" name="l00272"></a><span class="lineno">  272</span>      std::invocable&lt;const T &amp;&gt; <span class="keyword">auto</span> Handler) <span class="keyword">const</span> {</div>
-<div class="line"><a id="l00273" name="l00273"></a><span class="lineno">  273</span>    <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span> &amp;Elem : base()) {</div>
-<div class="line"><a id="l00274" name="l00274"></a><span class="lineno">  274</span>      std::invoke(Handler, Elem);</div>
-<div class="line"><a id="l00275" name="l00275"></a><span class="lineno">  275</span>    }</div>
-<div class="line"><a id="l00276" name="l00276"></a><span class="lineno">  276</span>  }</div>
+<div class="line"><a id="l00273" name="l00273"></a><span class="lineno">  273</span>    <span class="keywordflow">return</span> <a class="code hl_function" href="namespacepsr.html#a3c07387938de7859bc18326d0b65e4fa">psr::foreachInRange</a>(base(), std::move(Handler));</div>
+<div class="line"><a id="l00274" name="l00274"></a><span class="lineno">  274</span>  }</div>
 </div>
-<div class="line"><a id="l00277" name="l00277"></a><span class="lineno">  277</span> </div>
-<div class="foldopen" id="foldopen00278" data-start="{" data-end="};">
-<div class="line"><a id="l00278" name="l00278"></a><span class="lineno"><a class="line" href="classpsr_1_1SmallArraySet.html#a561b3eac74c6cfa201efa4c79f3fa262">  278</a></span>  [[nodiscard]] <span class="keyword">friend</span> <span class="keyword">auto</span> <a class="code hl_friend" href="classpsr_1_1SmallArraySet.html#a561b3eac74c6cfa201efa4c79f3fa262">hash_value</a>(<span class="keyword">const</span> <a class="code hl_class" href="classpsr_1_1SmallArraySet.html">SmallArraySet</a> &amp;Set) <span class="keyword">noexcept</span> {</div>
-<div class="line"><a id="l00279" name="l00279"></a><span class="lineno">  279</span>    <span class="keywordflow">if</span> (Set.size() &lt; <a class="code hl_variable" href="classpsr_1_1SmallArraySet.html#a8e3f0dfdd7bd66bdd96f2305cfee050e">LinearThreshold</a>) {</div>
-<div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span>      <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (std::is_trivially_copyable_v&lt;T&gt;) {</div>
-<div class="line"><a id="l00281" name="l00281"></a><span class="lineno">  281</span>        T Arr[<a class="code hl_variable" href="classpsr_1_1SmallArraySet.html#a8e3f0dfdd7bd66bdd96f2305cfee050e">LinearThreshold</a>]{};</div>
-<div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span>        memcpy(&amp;Arr, Set.data(), Set.size_in_bytes());</div>
-<div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span>        std::ranges::sort(Arr, Arr + Set.size());</div>
-<div class="line"><a id="l00284" name="l00284"></a><span class="lineno">  284</span>        <span class="keywordflow">return</span> llvm::hash_combine_range(Arr, Arr + Set.size());</div>
-<div class="line"><a id="l00285" name="l00285"></a><span class="lineno">  285</span>      } <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l00286" name="l00286"></a><span class="lineno">  286</span>        <span class="comment">// Some reduction that ignores the order</span></div>
-<div class="line"><a id="l00287" name="l00287"></a><span class="lineno">  287</span>        <span class="keywordflow">return</span> std::transform_reduce(Set.begin(), Set.end(), 37,</div>
-<div class="line"><a id="l00288" name="l00288"></a><span class="lineno">  288</span>                                     std::bit_xor&lt;&gt;{}, [](<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef&lt;T&gt;</a> Val) {</div>
-<div class="line"><a id="l00289" name="l00289"></a><span class="lineno">  289</span>                                       using llvm::hash_value;</div>
-<div class="line"><a id="l00290" name="l00290"></a><span class="lineno">  290</span>                                       return hash_value(Val);</div>
-<div class="line"><a id="l00291" name="l00291"></a><span class="lineno">  291</span>                                     });</div>
-<div class="line"><a id="l00292" name="l00292"></a><span class="lineno">  292</span>      }</div>
-<div class="line"><a id="l00293" name="l00293"></a><span class="lineno">  293</span>    } <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l00294" name="l00294"></a><span class="lineno">  294</span>      <span class="keywordflow">return</span> llvm::hash_combine_range(Set.begin(), Set.end());</div>
-<div class="line"><a id="l00295" name="l00295"></a><span class="lineno">  295</span>    }</div>
-<div class="line"><a id="l00296" name="l00296"></a><span class="lineno">  296</span>  }</div>
+<div class="line"><a id="l00275" name="l00275"></a><span class="lineno">  275</span> </div>
+<div class="foldopen" id="foldopen00276" data-start="{" data-end="};">
+<div class="line"><a id="l00276" name="l00276"></a><span class="lineno"><a class="line" href="classpsr_1_1SmallArraySet.html#a561b3eac74c6cfa201efa4c79f3fa262">  276</a></span>  [[nodiscard]] <span class="keyword">friend</span> <span class="keyword">auto</span> <a class="code hl_friend" href="classpsr_1_1SmallArraySet.html#a561b3eac74c6cfa201efa4c79f3fa262">hash_value</a>(<span class="keyword">const</span> <a class="code hl_class" href="classpsr_1_1SmallArraySet.html">SmallArraySet</a> &amp;Set) <span class="keyword">noexcept</span> {</div>
+<div class="line"><a id="l00277" name="l00277"></a><span class="lineno">  277</span>    <span class="keywordflow">if</span> (Set.size() &lt; <a class="code hl_variable" href="classpsr_1_1SmallArraySet.html#a8e3f0dfdd7bd66bdd96f2305cfee050e">LinearThreshold</a>) {</div>
+<div class="line"><a id="l00278" name="l00278"></a><span class="lineno">  278</span>      <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (std::is_trivially_copyable_v&lt;T&gt;) {</div>
+<div class="line"><a id="l00279" name="l00279"></a><span class="lineno">  279</span>        T Arr[<a class="code hl_variable" href="classpsr_1_1SmallArraySet.html#a8e3f0dfdd7bd66bdd96f2305cfee050e">LinearThreshold</a>]{};</div>
+<div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span>        memcpy(&amp;Arr, Set.data(), Set.size_in_bytes());</div>
+<div class="line"><a id="l00281" name="l00281"></a><span class="lineno">  281</span>        std::ranges::sort(Arr, Arr + Set.size());</div>
+<div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span>        <span class="keywordflow">return</span> llvm::hash_combine_range(Arr, Arr + Set.size());</div>
+<div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span>      } <span class="keywordflow">else</span> {</div>
+<div class="line"><a id="l00284" name="l00284"></a><span class="lineno">  284</span>        <span class="comment">// Some reduction that ignores the order</span></div>
+<div class="line"><a id="l00285" name="l00285"></a><span class="lineno">  285</span>        <span class="keywordflow">return</span> std::transform_reduce(Set.begin(), Set.end(), 37,</div>
+<div class="line"><a id="l00286" name="l00286"></a><span class="lineno">  286</span>                                     std::bit_xor&lt;&gt;{}, [](<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef&lt;T&gt;</a> Val) {</div>
+<div class="line"><a id="l00287" name="l00287"></a><span class="lineno">  287</span>                                       using llvm::hash_value;</div>
+<div class="line"><a id="l00288" name="l00288"></a><span class="lineno">  288</span>                                       return hash_value(Val);</div>
+<div class="line"><a id="l00289" name="l00289"></a><span class="lineno">  289</span>                                     });</div>
+<div class="line"><a id="l00290" name="l00290"></a><span class="lineno">  290</span>      }</div>
+<div class="line"><a id="l00291" name="l00291"></a><span class="lineno">  291</span>    } <span class="keywordflow">else</span> {</div>
+<div class="line"><a id="l00292" name="l00292"></a><span class="lineno">  292</span>      <span class="keywordflow">return</span> llvm::hash_combine_range(Set.begin(), Set.end());</div>
+<div class="line"><a id="l00293" name="l00293"></a><span class="lineno">  293</span>    }</div>
+<div class="line"><a id="l00294" name="l00294"></a><span class="lineno">  294</span>  }</div>
 </div>
-<div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span> </div>
-<div class="foldopen" id="foldopen00298" data-start="{" data-end="}">
-<div class="line"><a id="l00298" name="l00298"></a><span class="lineno"><a class="line" href="classpsr_1_1SmallArraySet.html#ad4aab9db460c06b2831b50442b0ccf39">  298</a></span>  [[nodiscard]] <span class="keywordtype">bool</span> <a class="code hl_function" href="classpsr_1_1SmallArraySet.html#ad4aab9db460c06b2831b50442b0ccf39">operator==</a>(<span class="keyword">const</span> <a class="code hl_class" href="classpsr_1_1SmallArraySet.html">SmallArraySet</a> &amp;Other) <span class="keyword">const</span> <span class="keyword">noexcept</span> {</div>
-<div class="line"><a id="l00299" name="l00299"></a><span class="lineno">  299</span>    <span class="keywordflow">if</span> (size() != Other.size()) {</div>
-<div class="line"><a id="l00300" name="l00300"></a><span class="lineno">  300</span>      <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00301" name="l00301"></a><span class="lineno">  301</span>    }</div>
-<div class="line"><a id="l00302" name="l00302"></a><span class="lineno">  302</span> </div>
-<div class="line"><a id="l00303" name="l00303"></a><span class="lineno">  303</span>    <span class="keywordflow">if</span> (size() &lt; <a class="code hl_variable" href="classpsr_1_1SmallArraySet.html#a8e3f0dfdd7bd66bdd96f2305cfee050e">LinearThreshold</a>) {</div>
-<div class="line"><a id="l00304" name="l00304"></a><span class="lineno">  304</span>      <span class="keywordflow">if</span> (<a class="code hl_friend" href="classpsr_1_1SmallArraySet.html#a561b3eac74c6cfa201efa4c79f3fa262">hash_value</a>(*<span class="keyword">this</span>) != <a class="code hl_friend" href="classpsr_1_1SmallArraySet.html#a561b3eac74c6cfa201efa4c79f3fa262">hash_value</a>(Other)) {</div>
-<div class="line"><a id="l00305" name="l00305"></a><span class="lineno">  305</span>        <span class="comment">// Some pre-check to avoid the quadratic loop.</span></div>
-<div class="line"><a id="l00306" name="l00306"></a><span class="lineno">  306</span>        <span class="comment">// XXX: Need to measure, whether this actually helps</span></div>
-<div class="line"><a id="l00307" name="l00307"></a><span class="lineno">  307</span>        <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00308" name="l00308"></a><span class="lineno">  308</span>      }</div>
-<div class="line"><a id="l00309" name="l00309"></a><span class="lineno">  309</span> </div>
-<div class="line"><a id="l00310" name="l00310"></a><span class="lineno">  310</span>      <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span> &amp;Val : Other) {</div>
-<div class="line"><a id="l00311" name="l00311"></a><span class="lineno">  311</span>        <span class="keywordflow">if</span> (!<a class="code hl_function" href="classpsr_1_1SmallArraySet.html#a8ee035277f158794a87ce84459913377">contains</a>(Val)) {</div>
-<div class="line"><a id="l00312" name="l00312"></a><span class="lineno">  312</span>          <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00313" name="l00313"></a><span class="lineno">  313</span>        }</div>
-<div class="line"><a id="l00314" name="l00314"></a><span class="lineno">  314</span>      }</div>
-<div class="line"><a id="l00315" name="l00315"></a><span class="lineno">  315</span>      <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00316" name="l00316"></a><span class="lineno">  316</span>    }</div>
-<div class="line"><a id="l00317" name="l00317"></a><span class="lineno">  317</span> </div>
-<div class="line"><a id="l00318" name="l00318"></a><span class="lineno">  318</span>    <span class="keywordflow">return</span> std::equal(begin(), end(), Other.begin());</div>
-<div class="line"><a id="l00319" name="l00319"></a><span class="lineno">  319</span>  }</div>
+<div class="line"><a id="l00295" name="l00295"></a><span class="lineno">  295</span> </div>
+<div class="foldopen" id="foldopen00296" data-start="{" data-end="}">
+<div class="line"><a id="l00296" name="l00296"></a><span class="lineno"><a class="line" href="classpsr_1_1SmallArraySet.html#ad4aab9db460c06b2831b50442b0ccf39">  296</a></span>  [[nodiscard]] <span class="keywordtype">bool</span> <a class="code hl_function" href="classpsr_1_1SmallArraySet.html#ad4aab9db460c06b2831b50442b0ccf39">operator==</a>(<span class="keyword">const</span> <a class="code hl_class" href="classpsr_1_1SmallArraySet.html">SmallArraySet</a> &amp;Other) <span class="keyword">const</span> <span class="keyword">noexcept</span> {</div>
+<div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span>    <span class="keywordflow">if</span> (size() != Other.size()) {</div>
+<div class="line"><a id="l00298" name="l00298"></a><span class="lineno">  298</span>      <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00299" name="l00299"></a><span class="lineno">  299</span>    }</div>
+<div class="line"><a id="l00300" name="l00300"></a><span class="lineno">  300</span> </div>
+<div class="line"><a id="l00301" name="l00301"></a><span class="lineno">  301</span>    <span class="keywordflow">if</span> (size() &lt; <a class="code hl_variable" href="classpsr_1_1SmallArraySet.html#a8e3f0dfdd7bd66bdd96f2305cfee050e">LinearThreshold</a>) {</div>
+<div class="line"><a id="l00302" name="l00302"></a><span class="lineno">  302</span>      <span class="keywordflow">if</span> (<a class="code hl_friend" href="classpsr_1_1SmallArraySet.html#a561b3eac74c6cfa201efa4c79f3fa262">hash_value</a>(*<span class="keyword">this</span>) != <a class="code hl_friend" href="classpsr_1_1SmallArraySet.html#a561b3eac74c6cfa201efa4c79f3fa262">hash_value</a>(Other)) {</div>
+<div class="line"><a id="l00303" name="l00303"></a><span class="lineno">  303</span>        <span class="comment">// Some pre-check to avoid the quadratic loop.</span></div>
+<div class="line"><a id="l00304" name="l00304"></a><span class="lineno">  304</span>        <span class="comment">// XXX: Need to measure, whether this actually helps</span></div>
+<div class="line"><a id="l00305" name="l00305"></a><span class="lineno">  305</span>        <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00306" name="l00306"></a><span class="lineno">  306</span>      }</div>
+<div class="line"><a id="l00307" name="l00307"></a><span class="lineno">  307</span> </div>
+<div class="line"><a id="l00308" name="l00308"></a><span class="lineno">  308</span>      <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span> &amp;Val : Other) {</div>
+<div class="line"><a id="l00309" name="l00309"></a><span class="lineno">  309</span>        <span class="keywordflow">if</span> (!<a class="code hl_function" href="classpsr_1_1SmallArraySet.html#a8ee035277f158794a87ce84459913377">contains</a>(Val)) {</div>
+<div class="line"><a id="l00310" name="l00310"></a><span class="lineno">  310</span>          <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00311" name="l00311"></a><span class="lineno">  311</span>        }</div>
+<div class="line"><a id="l00312" name="l00312"></a><span class="lineno">  312</span>      }</div>
+<div class="line"><a id="l00313" name="l00313"></a><span class="lineno">  313</span>      <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00314" name="l00314"></a><span class="lineno">  314</span>    }</div>
+<div class="line"><a id="l00315" name="l00315"></a><span class="lineno">  315</span> </div>
+<div class="line"><a id="l00316" name="l00316"></a><span class="lineno">  316</span>    <span class="keywordflow">return</span> std::equal(begin(), end(), Other.begin());</div>
+<div class="line"><a id="l00317" name="l00317"></a><span class="lineno">  317</span>  }</div>
 </div>
-<div class="line"><a id="l00320" name="l00320"></a><span class="lineno">  320</span> </div>
-<div class="line"><a id="l00321" name="l00321"></a><span class="lineno">  321</span><span class="keyword">private</span>:</div>
-<div class="line"><a id="l00322" name="l00322"></a><span class="lineno">  322</span>  <span class="keyword">explicit</span> <a class="code hl_function" href="classpsr_1_1SmallArraySet.html#adfb2c7fc2b18641791bafb7a90ea7703">SmallArraySet</a>(llvm::SmallVectorImpl&lt;T&gt; &amp;&amp;Elems,</div>
-<div class="line"><a id="l00323" name="l00323"></a><span class="lineno">  323</span>                         std::true_type <span class="comment">/*PreSortedAndUniqued*/</span>)</div>
-<div class="line"><a id="l00324" name="l00324"></a><span class="lineno">  324</span>      : <a class="code hl_namespace" href="namespacellvm.html">llvm</a>::SmallVector&lt;T, N&gt;(<a class="code hl_namespace" href="namespacestd.html">std</a>::move(Elems)) {}</div>
-<div class="line"><a id="l00325" name="l00325"></a><span class="lineno">  325</span> </div>
-<div class="line"><a id="l00326" name="l00326"></a><span class="lineno">  326</span>  <span class="keywordtype">bool</span> insertImpl(ByConstRef&lt;T&gt; Val) {</div>
-<div class="line"><a id="l00327" name="l00327"></a><span class="lineno">  327</span>    <span class="keyword">const</span> <span class="keyword">auto</span> It = std::ranges::lower_bound(base(), Val);</div>
-<div class="line"><a id="l00328" name="l00328"></a><span class="lineno">  328</span>    <span class="keywordflow">if</span> (It != this-&gt;end() &amp;&amp; *It == Val) {</div>
-<div class="line"><a id="l00329" name="l00329"></a><span class="lineno">  329</span>      <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00330" name="l00330"></a><span class="lineno">  330</span>    }</div>
-<div class="line"><a id="l00331" name="l00331"></a><span class="lineno">  331</span> </div>
-<div class="line"><a id="l00332" name="l00332"></a><span class="lineno">  332</span>    base().insert(It, Val);</div>
-<div class="line"><a id="l00333" name="l00333"></a><span class="lineno">  333</span>    <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00334" name="l00334"></a><span class="lineno">  334</span>  }</div>
-<div class="line"><a id="l00335" name="l00335"></a><span class="lineno">  335</span> </div>
-<div class="line"><a id="l00336" name="l00336"></a><span class="lineno">  336</span>  <span class="keywordtype">void</span> insertImpl(llvm::ArrayRef&lt;T&gt; OtherArr) {</div>
-<div class="line"><a id="l00337" name="l00337"></a><span class="lineno">  337</span>    <span class="keywordflow">if</span> (OtherArr.size() &lt; 3) {</div>
-<div class="line"><a id="l00338" name="l00338"></a><span class="lineno">  338</span>      <span class="comment">// For small sizes, it is probably better to insert the elements</span></div>
-<div class="line"><a id="l00339" name="l00339"></a><span class="lineno">  339</span>      <span class="comment">// one-by-one, instead of using std::sort.</span></div>
-<div class="line"><a id="l00340" name="l00340"></a><span class="lineno">  340</span>      <span class="comment">// TODO: Find good threshold</span></div>
-<div class="line"><a id="l00341" name="l00341"></a><span class="lineno">  341</span> </div>
-<div class="line"><a id="l00342" name="l00342"></a><span class="lineno">  342</span>      <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span> &amp;Val : OtherArr) {</div>
-<div class="line"><a id="l00343" name="l00343"></a><span class="lineno">  343</span>        <a class="code hl_function" href="classpsr_1_1SmallArraySet.html#aa698cdd401636a313ca29e09350c1c17">insert</a>(Val);</div>
-<div class="line"><a id="l00344" name="l00344"></a><span class="lineno">  344</span>      }</div>
-<div class="line"><a id="l00345" name="l00345"></a><span class="lineno">  345</span>      <span class="keywordflow">return</span>;</div>
-<div class="line"><a id="l00346" name="l00346"></a><span class="lineno">  346</span>    }</div>
-<div class="line"><a id="l00347" name="l00347"></a><span class="lineno">  347</span> </div>
-<div class="line"><a id="l00348" name="l00348"></a><span class="lineno">  348</span>    this-&gt;append(OtherArr.begin(), OtherArr.end());</div>
-<div class="line"><a id="l00349" name="l00349"></a><span class="lineno">  349</span>    <a class="code hl_function" href="namespacepsr.html#acc870d042db675df0fb1a67b2823dbb1">psr::sortUnique</a>(base());</div>
-<div class="line"><a id="l00350" name="l00350"></a><span class="lineno">  350</span>  }</div>
-<div class="line"><a id="l00351" name="l00351"></a><span class="lineno">  351</span> </div>
-<div class="line"><a id="l00352" name="l00352"></a><span class="lineno">  352</span>  [[nodiscard]] <span class="keyword">constexpr</span> <span class="keyword">auto</span> &amp;base() noexcept {</div>
-<div class="line"><a id="l00353" name="l00353"></a><span class="lineno">  353</span>    <span class="keywordflow">return</span> <span class="keyword">static_cast&lt;</span>llvm::SmallVectorImpl&lt;T&gt; &amp;<span class="keyword">&gt;</span>(*this);</div>
-<div class="line"><a id="l00354" name="l00354"></a><span class="lineno">  354</span>  }</div>
-<div class="line"><a id="l00355" name="l00355"></a><span class="lineno">  355</span>  [[nodiscard]] <span class="keyword">constexpr</span> <span class="keyword">const</span> <span class="keyword">auto</span> &amp;base() const noexcept {</div>
-<div class="line"><a id="l00356" name="l00356"></a><span class="lineno">  356</span>    <span class="keywordflow">return</span> <span class="keyword">static_cast&lt;</span><span class="keyword">const </span>llvm::SmallVectorImpl&lt;T&gt; &amp;<span class="keyword">&gt;</span>(*this);</div>
-<div class="line"><a id="l00357" name="l00357"></a><span class="lineno">  357</span>  }</div>
-<div class="line"><a id="l00358" name="l00358"></a><span class="lineno">  358</span>};</div>
+<div class="line"><a id="l00318" name="l00318"></a><span class="lineno">  318</span> </div>
+<div class="line"><a id="l00319" name="l00319"></a><span class="lineno">  319</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00320" name="l00320"></a><span class="lineno">  320</span>  <span class="keyword">explicit</span> <a class="code hl_function" href="classpsr_1_1SmallArraySet.html#adfb2c7fc2b18641791bafb7a90ea7703">SmallArraySet</a>(llvm::SmallVectorImpl&lt;T&gt; &amp;&amp;Elems,</div>
+<div class="line"><a id="l00321" name="l00321"></a><span class="lineno">  321</span>                         std::true_type <span class="comment">/*PreSortedAndUniqued*/</span>)</div>
+<div class="line"><a id="l00322" name="l00322"></a><span class="lineno">  322</span>      : <a class="code hl_namespace" href="namespacellvm.html">llvm</a>::SmallVector&lt;T, N&gt;(<a class="code hl_namespace" href="namespacestd.html">std</a>::move(Elems)) {}</div>
+<div class="line"><a id="l00323" name="l00323"></a><span class="lineno">  323</span> </div>
+<div class="line"><a id="l00324" name="l00324"></a><span class="lineno">  324</span>  <span class="keywordtype">bool</span> insertImpl(ByConstRef&lt;T&gt; Val) {</div>
+<div class="line"><a id="l00325" name="l00325"></a><span class="lineno">  325</span>    <span class="keyword">const</span> <span class="keyword">auto</span> It = std::ranges::lower_bound(base(), Val);</div>
+<div class="line"><a id="l00326" name="l00326"></a><span class="lineno">  326</span>    <span class="keywordflow">if</span> (It != this-&gt;end() &amp;&amp; *It == Val) {</div>
+<div class="line"><a id="l00327" name="l00327"></a><span class="lineno">  327</span>      <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00328" name="l00328"></a><span class="lineno">  328</span>    }</div>
+<div class="line"><a id="l00329" name="l00329"></a><span class="lineno">  329</span> </div>
+<div class="line"><a id="l00330" name="l00330"></a><span class="lineno">  330</span>    base().insert(It, Val);</div>
+<div class="line"><a id="l00331" name="l00331"></a><span class="lineno">  331</span>    <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00332" name="l00332"></a><span class="lineno">  332</span>  }</div>
+<div class="line"><a id="l00333" name="l00333"></a><span class="lineno">  333</span> </div>
+<div class="line"><a id="l00334" name="l00334"></a><span class="lineno">  334</span>  <span class="keywordtype">void</span> insertImpl(llvm::ArrayRef&lt;T&gt; OtherArr) {</div>
+<div class="line"><a id="l00335" name="l00335"></a><span class="lineno">  335</span>    <span class="keywordflow">if</span> (OtherArr.size() &lt; 3) {</div>
+<div class="line"><a id="l00336" name="l00336"></a><span class="lineno">  336</span>      <span class="comment">// For small sizes, it is probably better to insert the elements</span></div>
+<div class="line"><a id="l00337" name="l00337"></a><span class="lineno">  337</span>      <span class="comment">// one-by-one, instead of using std::sort.</span></div>
+<div class="line"><a id="l00338" name="l00338"></a><span class="lineno">  338</span>      <span class="comment">// TODO: Find good threshold</span></div>
+<div class="line"><a id="l00339" name="l00339"></a><span class="lineno">  339</span> </div>
+<div class="line"><a id="l00340" name="l00340"></a><span class="lineno">  340</span>      <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span> &amp;Val : OtherArr) {</div>
+<div class="line"><a id="l00341" name="l00341"></a><span class="lineno">  341</span>        <a class="code hl_function" href="classpsr_1_1SmallArraySet.html#aa698cdd401636a313ca29e09350c1c17">insert</a>(Val);</div>
+<div class="line"><a id="l00342" name="l00342"></a><span class="lineno">  342</span>      }</div>
+<div class="line"><a id="l00343" name="l00343"></a><span class="lineno">  343</span>      <span class="keywordflow">return</span>;</div>
+<div class="line"><a id="l00344" name="l00344"></a><span class="lineno">  344</span>    }</div>
+<div class="line"><a id="l00345" name="l00345"></a><span class="lineno">  345</span> </div>
+<div class="line"><a id="l00346" name="l00346"></a><span class="lineno">  346</span>    this-&gt;append(OtherArr.begin(), OtherArr.end());</div>
+<div class="line"><a id="l00347" name="l00347"></a><span class="lineno">  347</span>    <a class="code hl_function" href="namespacepsr.html#acc870d042db675df0fb1a67b2823dbb1">psr::sortUnique</a>(base());</div>
+<div class="line"><a id="l00348" name="l00348"></a><span class="lineno">  348</span>  }</div>
+<div class="line"><a id="l00349" name="l00349"></a><span class="lineno">  349</span> </div>
+<div class="line"><a id="l00350" name="l00350"></a><span class="lineno">  350</span>  [[nodiscard]] <span class="keyword">constexpr</span> <span class="keyword">auto</span> &amp;base() noexcept {</div>
+<div class="line"><a id="l00351" name="l00351"></a><span class="lineno">  351</span>    <span class="keywordflow">return</span> <span class="keyword">static_cast&lt;</span>llvm::SmallVectorImpl&lt;T&gt; &amp;<span class="keyword">&gt;</span>(*this);</div>
+<div class="line"><a id="l00352" name="l00352"></a><span class="lineno">  352</span>  }</div>
+<div class="line"><a id="l00353" name="l00353"></a><span class="lineno">  353</span>  [[nodiscard]] <span class="keyword">constexpr</span> <span class="keyword">const</span> <span class="keyword">auto</span> &amp;base() const noexcept {</div>
+<div class="line"><a id="l00354" name="l00354"></a><span class="lineno">  354</span>    <span class="keywordflow">return</span> <span class="keyword">static_cast&lt;</span><span class="keyword">const </span>llvm::SmallVectorImpl&lt;T&gt; &amp;<span class="keyword">&gt;</span>(*this);</div>
+<div class="line"><a id="l00355" name="l00355"></a><span class="lineno">  355</span>  }</div>
+<div class="line"><a id="l00356" name="l00356"></a><span class="lineno">  356</span>};</div>
 </div>
-<div class="line"><a id="l00359" name="l00359"></a><span class="lineno">  359</span>} <span class="comment">// namespace psr</span></div>
+<div class="line"><a id="l00357" name="l00357"></a><span class="lineno">  357</span>} <span class="comment">// namespace psr</span></div>
 <div class="ttc" id="aByRef_8h_html"><div class="ttname"><a href="ByRef_8h.html">ByRef.h</a></div></div>
 <div class="ttc" id="aMacros_8h_html_a886bb5afef08c49ad3edb43f16df19b0"><div class="ttname"><a href="Macros_8h.html#a886bb5afef08c49ad3edb43f16df19b0">PSR_FWD</a></div><div class="ttdeci">#define PSR_FWD(...)</div><div class="ttdef"><b>Definition</b> <a href="Macros_8h_source.html#l00016">Macros.h:16</a></div></div>
 <div class="ttc" id="aUtilities_8h_html"><div class="ttname"><a href="Utilities_8h.html">Utilities.h</a></div></div>
@@ -490,7 +488,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="ttc" id="aclasspsr_1_1SmallArraySet_html_a2c109355129c1fab05067ee4943de2e7"><div class="ttname"><a href="classpsr_1_1SmallArraySet.html#a2c109355129c1fab05067ee4943de2e7">psr::SmallArraySet::sort</a></div><div class="ttdeci">void sort()</div><div class="ttdef"><b>Definition</b> <a href="SmallArraySet_8h_source.html#l00262">SmallArraySet.h:262</a></div></div>
 <div class="ttc" id="aclasspsr_1_1SmallArraySet_html_a336209fbc267d42daae23422ed14d253"><div class="ttname"><a href="classpsr_1_1SmallArraySet.html#a336209fbc267d42daae23422ed14d253">psr::SmallArraySet::intersectWith</a></div><div class="ttdeci">bool intersectWith(const SmallArraySet &amp;Other)</div><div class="ttdef"><b>Definition</b> <a href="SmallArraySet_8h_source.html#l00208">SmallArraySet.h:208</a></div></div>
 <div class="ttc" id="aclasspsr_1_1SmallArraySet_html_a498d7db7e4a60bedfd1b30e9b9b7e8f4"><div class="ttname"><a href="classpsr_1_1SmallArraySet.html#a498d7db7e4a60bedfd1b30e9b9b7e8f4">psr::SmallArraySet::SmallArraySet</a></div><div class="ttdeci">SmallArraySet(const SmallArraySet &amp;)=default</div></div>
-<div class="ttc" id="aclasspsr_1_1SmallArraySet_html_a561b3eac74c6cfa201efa4c79f3fa262"><div class="ttname"><a href="classpsr_1_1SmallArraySet.html#a561b3eac74c6cfa201efa4c79f3fa262">psr::SmallArraySet::hash_value</a></div><div class="ttdeci">friend auto hash_value(const SmallArraySet &amp;Set) noexcept</div><div class="ttdef"><b>Definition</b> <a href="SmallArraySet_8h_source.html#l00278">SmallArraySet.h:278</a></div></div>
+<div class="ttc" id="aclasspsr_1_1SmallArraySet_html_a561b3eac74c6cfa201efa4c79f3fa262"><div class="ttname"><a href="classpsr_1_1SmallArraySet.html#a561b3eac74c6cfa201efa4c79f3fa262">psr::SmallArraySet::hash_value</a></div><div class="ttdeci">friend auto hash_value(const SmallArraySet &amp;Set) noexcept</div><div class="ttdef"><b>Definition</b> <a href="SmallArraySet_8h_source.html#l00276">SmallArraySet.h:276</a></div></div>
 <div class="ttc" id="aclasspsr_1_1SmallArraySet_html_a6358436c6e80fcbad23c07d05b87f578"><div class="ttname"><a href="classpsr_1_1SmallArraySet.html#a6358436c6e80fcbad23c07d05b87f578">psr::SmallArraySet::SmallArraySet</a></div><div class="ttdeci">SmallArraySet(SmallArraySet &amp;&amp;) noexcept=default</div></div>
 <div class="ttc" id="aclasspsr_1_1SmallArraySet_html_a7ac650f5e8b23916f6ff4e93af8eb4cb"><div class="ttname"><a href="classpsr_1_1SmallArraySet.html#a7ac650f5e8b23916f6ff4e93af8eb4cb">psr::SmallArraySet::insert</a></div><div class="ttdeci">void insert(const SmallArraySet &amp;Other)</div><div class="ttdef"><b>Definition</b> <a href="SmallArraySet_8h_source.html#l00136">SmallArraySet.h:136</a></div></div>
 <div class="ttc" id="aclasspsr_1_1SmallArraySet_html_a7f2707aebea506645121a55fc9d485ed"><div class="ttname"><a href="classpsr_1_1SmallArraySet.html#a7f2707aebea506645121a55fc9d485ed">psr::SmallArraySet::setIntersection</a></div><div class="ttdeci">SmallArraySet setIntersection(const SmallArraySet &amp;Other) const</div><div class="ttdef"><b>Definition</b> <a href="SmallArraySet_8h_source.html#l00232">SmallArraySet.h:232</a></div></div>
@@ -502,19 +500,20 @@ $(document).ready(function() { init_codefold(0); });
 <div class="ttc" id="aclasspsr_1_1SmallArraySet_html_ac8d8f8a71156e840708d96248d322fe8"><div class="ttname"><a href="classpsr_1_1SmallArraySet.html#ac8d8f8a71156e840708d96248d322fe8">psr::SmallArraySet::insertAll</a></div><div class="ttdeci">void insertAll(auto &amp;&amp;Range)</div><div class="ttdef"><b>Definition</b> <a href="SmallArraySet_8h_source.html#l00168">SmallArraySet.h:168</a></div></div>
 <div class="ttc" id="aclasspsr_1_1SmallArraySet_html_ad1ec3636eb1f3199f444967ff7af6217"><div class="ttname"><a href="classpsr_1_1SmallArraySet.html#ad1ec3636eb1f3199f444967ff7af6217">psr::SmallArraySet::SmallArraySet</a></div><div class="ttdeci">SmallArraySet(llvm::ArrayRef&lt; T &gt; Elems)</div><div class="ttdef"><b>Definition</b> <a href="SmallArraySet_8h_source.html#l00059">SmallArraySet.h:59</a></div></div>
 <div class="ttc" id="aclasspsr_1_1SmallArraySet_html_ad26d3cff791e7d3432b148ddf5d850a4"><div class="ttname"><a href="classpsr_1_1SmallArraySet.html#ad26d3cff791e7d3432b148ddf5d850a4">psr::SmallArraySet::fromSortedUniqued</a></div><div class="ttdeci">static SmallArraySet fromSortedUniqued(llvm::SmallVectorImpl&lt; T &gt; &amp;&amp;Vec)</div><div class="ttdef"><b>Definition</b> <a href="SmallArraySet_8h_source.html#l00075">SmallArraySet.h:75</a></div></div>
-<div class="ttc" id="aclasspsr_1_1SmallArraySet_html_ad4aab9db460c06b2831b50442b0ccf39"><div class="ttname"><a href="classpsr_1_1SmallArraySet.html#ad4aab9db460c06b2831b50442b0ccf39">psr::SmallArraySet::operator==</a></div><div class="ttdeci">bool operator==(const SmallArraySet &amp;Other) const noexcept</div><div class="ttdef"><b>Definition</b> <a href="SmallArraySet_8h_source.html#l00298">SmallArraySet.h:298</a></div></div>
+<div class="ttc" id="aclasspsr_1_1SmallArraySet_html_ad4aab9db460c06b2831b50442b0ccf39"><div class="ttname"><a href="classpsr_1_1SmallArraySet.html#ad4aab9db460c06b2831b50442b0ccf39">psr::SmallArraySet::operator==</a></div><div class="ttdeci">bool operator==(const SmallArraySet &amp;Other) const noexcept</div><div class="ttdef"><b>Definition</b> <a href="SmallArraySet_8h_source.html#l00296">SmallArraySet.h:296</a></div></div>
 <div class="ttc" id="aclasspsr_1_1SmallArraySet_html_adfb2c7fc2b18641791bafb7a90ea7703"><div class="ttname"><a href="classpsr_1_1SmallArraySet.html#adfb2c7fc2b18641791bafb7a90ea7703">psr::SmallArraySet::SmallArraySet</a></div><div class="ttdeci">SmallArraySet() noexcept=default</div></div>
 <div class="ttc" id="aclasspsr_1_1SmallArraySet_html_afca95f7601cdd7d4cd86273a60a3a2a2"><div class="ttname"><a href="classpsr_1_1SmallArraySet.html#afca95f7601cdd7d4cd86273a60a3a2a2">psr::SmallArraySet::insertUnique</a></div><div class="ttdeci">void insertUnique(T Val)</div><div class="ttdef"><b>Definition</b> <a href="SmallArraySet_8h_source.html#l00127">SmallArraySet.h:127</a></div></div>
 <div class="ttc" id="anamespacellvm_html"><div class="ttname"><a href="namespacellvm.html">llvm</a></div><div class="ttdef"><b>Definition</b> <a href="Strategies_8h_source.html#l00018">Strategies.h:18</a></div></div>
 <div class="ttc" id="anamespacepsr_html"><div class="ttname"><a href="namespacepsr.html">psr</a></div><div class="ttdef"><b>Definition</b> <a href="AnalysisSetup_8h_source.html#l00013">AnalysisSetup.h:13</a></div></div>
+<div class="ttc" id="anamespacepsr_html_a3c07387938de7859bc18326d0b65e4fa"><div class="ttname"><a href="namespacepsr.html#a3c07387938de7859bc18326d0b65e4fa">psr::foreachInRange</a></div><div class="ttdeci">constexpr auto foreachInRange(RangeT &amp;&amp;Range, FnT &amp;&amp;Fn)</div><div class="ttdef"><b>Definition</b> <a href="Utilities_8h_source.html#l00386">Utilities.h:386</a></div></div>
 <div class="ttc" id="anamespacepsr_html_a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd"><div class="ttname"><a href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">psr::ESGEdgeKind::Ret</a></div><div class="ttdeci">@ Ret</div></div>
-<div class="ttc" id="anamespacepsr_html_ab1fa2b63d3a5ab4934961480f678afea"><div class="ttname"><a href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">psr::ByConstRef</a></div><div class="ttdeci">std::conditional_t&lt; CanEfficientlyPassByValue&lt; T &gt;, T, const T &amp; &gt; ByConstRef</div><div class="ttdef"><b>Definition</b> <a href="ByRef_8h_source.html#l00024">ByRef.h:25</a></div></div>
-<div class="ttc" id="anamespacepsr_html_acc870d042db675df0fb1a67b2823dbb1"><div class="ttname"><a href="namespacepsr.html#acc870d042db675df0fb1a67b2823dbb1">psr::sortUnique</a></div><div class="ttdeci">constexpr void sortUnique(auto &amp;Range, CompareFn Cmp={})</div><div class="ttdef"><b>Definition</b> <a href="Utilities_8h_source.html#l00348">Utilities.h:348</a></div></div>
+<div class="ttc" id="anamespacepsr_html_ab1fa2b63d3a5ab4934961480f678afea"><div class="ttname"><a href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">psr::ByConstRef</a></div><div class="ttdeci">std::conditional_t&lt; CanEfficientlyPassByValue&lt; T &gt;, T, const T &amp; &gt; ByConstRef</div><div class="ttdef"><b>Definition</b> <a href="ByRef_8h_source.html#l00026">ByRef.h:27</a></div></div>
+<div class="ttc" id="anamespacepsr_html_acc870d042db675df0fb1a67b2823dbb1"><div class="ttname"><a href="namespacepsr.html#acc870d042db675df0fb1a67b2823dbb1">psr::sortUnique</a></div><div class="ttdeci">constexpr void sortUnique(auto &amp;Range, CompareFn Cmp={})</div><div class="ttdef"><b>Definition</b> <a href="Utilities_8h_source.html#l00353">Utilities.h:353</a></div></div>
 <div class="ttc" id="anamespacestd_html"><div class="ttname"><a href="namespacestd.html">std</a></div><div class="ttdoc">STL namespace.</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Aug 20 2026 16:52:21 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Aug 27 2026 18:17:24 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

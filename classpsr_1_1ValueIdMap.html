@@ -229,6 +229,10 @@ requires std::is_constructible_v&lt;ValueT, const V &amp;&gt;</td></tr>
 <tr class="separator:a86a861165d0d9920f208cf3a6a9105a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1bc46a1de317a999381029585025c046" id="r_a1bc46a1de317a999381029585025c046"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="classpsr_1_1ValueIdMap.html#a82708304b23955e2ac2b06a86ec7df1b">const_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1ValueIdMap.html#a1bc46a1de317a999381029585025c046">cend</a> () const noexcept</td></tr>
 <tr class="separator:a1bc46a1de317a999381029585025c046"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3e05366a1755fa2e3ab1b09e9c0ec932" id="r_a3e05366a1755fa2e3ab1b09e9c0ec932"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1ValueIdMap.html#a3e05366a1755fa2e3ab1b09e9c0ec932">foreach</a> (std::invocable&lt; IdT, ValueT &amp; &gt; auto Handler)</td></tr>
+<tr class="separator:a3e05366a1755fa2e3ab1b09e9c0ec932"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8de3014fcf0a7204895cf069f6b924c9" id="r_a8de3014fcf0a7204895cf069f6b924c9"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1ValueIdMap.html#a8de3014fcf0a7204895cf069f6b924c9">foreach</a> (std::invocable&lt; IdT, const ValueT &amp; &gt; auto Handler) const</td></tr>
+<tr class="separator:a8de3014fcf0a7204895cf069f6b924c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="friends" name="friends"></a>
 Friends</h2></td></tr>
@@ -252,7 +256,7 @@ class psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;</div><p>A dense, partially
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00053">53</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00054">54</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 </div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="ad385d1d09f6386a9ea47c9b9183a8f6b" name="ad385d1d09f6386a9ea47c9b9183a8f6b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad385d1d09f6386a9ea47c9b9183a8f6b">&#9670;&#160;</a></span>allocator_type</h2>
@@ -268,7 +272,7 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00064">64</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00065">65</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
 </div>
 </div>
@@ -286,7 +290,7 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00130">130</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00131">131</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
 </div>
 </div>
@@ -304,7 +308,7 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00068">68</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00069">69</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
 </div>
 </div>
@@ -322,7 +326,7 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00066">66</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00067">67</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
 </div>
 </div>
@@ -340,7 +344,7 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00063">63</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00064">64</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
 </div>
 </div>
@@ -358,7 +362,7 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00129">129</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00130">130</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
 </div>
 </div>
@@ -376,7 +380,7 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00059">59</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00060">60</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
 </div>
 </div>
@@ -394,7 +398,7 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00060">60</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00061">61</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
 </div>
 </div>
@@ -412,7 +416,7 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00067">67</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00068">68</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
 </div>
 </div>
@@ -430,7 +434,7 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00065">65</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00066">66</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
 </div>
 </div>
@@ -448,7 +452,7 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00062">62</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00063">63</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
 </div>
 </div>
@@ -466,7 +470,7 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00061">61</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00062">62</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
 </div>
 </div>
@@ -528,7 +532,7 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
 
 <p>Constructs an empty map with the given allocator. </p>
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00139">139</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00140">140</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
 </div>
 </div>
@@ -569,7 +573,7 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
 </div><div class="memdoc">
 <p>Pre-allocates storage for <code>InitialCapacity</code> entries without constructing any values. </p>
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00145">145</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00146">146</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
 </div>
 </div>
@@ -613,7 +617,7 @@ requires std::is_constructible_v&lt;ValueT, const V &amp;&gt;</div>
 </div><div class="memdoc">
 <p>Constructs from an initializer list. <code>V</code> need not equal <code>ValueT</code>; any type constructible to <code>ValueT</code> is accepted, avoiding an intermediate copy (e.g. string literals when ValueT is std::string). Duplicate keys are silently dropped (first occurrence wins). </p>
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00159">159</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00160">160</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
 </div>
 </div>
@@ -662,7 +666,7 @@ template&lt;typename InputIt &gt; </div>
 </div><div class="memdoc">
 <p>Constructs from an iterator range <code></code>[First, Last). Duplicate keys are silently dropped (first occurrence wins). </p>
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00166">166</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00167">167</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
 </div>
 </div>
@@ -693,7 +697,7 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
 </div><div class="memdoc">
 <p>Copy constructor. The allocator is obtained via allocator_traits::select_on_container_copy_construction. </p>
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00181">181</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00182">182</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
 </div>
 </div>
@@ -735,7 +739,7 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
 
 <p>Copy constructor with explicit allocator. </p>
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00186">186</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00187">187</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
 </div>
 </div>
@@ -767,7 +771,7 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
 
 <p>Move constructor. The allocator is move-constructed from <code>Other</code>. </p>
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00204">204</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00205">205</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
 </div>
 </div>
@@ -809,7 +813,7 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
 <p>Move constructor with explicit allocator.</p>
 <p>If the supplied allocator compares equal to Other's allocator the storage is stolen in O(1); otherwise each live element is move-constructed individually using the supplied allocator. </p>
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00214">214</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00215">215</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
 </div>
 </div>
@@ -838,9 +842,9 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00299">299</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00300">300</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
-<p class="reference">References <a class="el" href="ValueIdMap_8h_source.html#l00455">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::clear()</a>.</p>
+<p class="reference">References <a class="el" href="ValueIdMap_8h_source.html#l00456">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::clear()</a>.</p>
 
 </div>
 </div>
@@ -877,9 +881,9 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00384">384</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00385">385</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
-<p class="reference">References <a class="el" href="ValueIdMap_8h_source.html#l00368">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::contains()</a>.</p>
+<p class="reference">References <a class="el" href="ValueIdMap_8h_source.html#l00369">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::contains()</a>.</p>
 
 </div>
 </div>
@@ -909,9 +913,9 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00390">390</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00391">391</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
-<p class="reference">References <a class="el" href="ValueIdMap_8h_source.html#l00368">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::contains()</a>.</p>
+<p class="reference">References <a class="el" href="ValueIdMap_8h_source.html#l00369">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::contains()</a>.</p>
 
 </div>
 </div>
@@ -940,7 +944,7 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00470">470</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00471">471</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
 </div>
 </div>
@@ -969,9 +973,9 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00464">464</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00465">465</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="ValueIdMap_8h_source.html#l00476">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::cbegin()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="ValueIdMap_8h_source.html#l00477">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::cbegin()</a>.</p>
 
 </div>
 </div>
@@ -1000,9 +1004,9 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00476">476</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00477">477</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
-<p class="reference">References <a class="el" href="ValueIdMap_8h_source.html#l00464">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::begin()</a>.</p>
+<p class="reference">References <a class="el" href="ValueIdMap_8h_source.html#l00465">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::begin()</a>.</p>
 
 </div>
 </div>
@@ -1031,9 +1035,9 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00479">479</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00480">480</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
-<p class="reference">References <a class="el" href="ValueIdMap_8h_source.html#l00467">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::end()</a>.</p>
+<p class="reference">References <a class="el" href="ValueIdMap_8h_source.html#l00468">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::end()</a>.</p>
 
 </div>
 </div>
@@ -1064,9 +1068,9 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
 
 <p>Destroys all present entries without releasing the allocated storage. </p>
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00455">455</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00456">456</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="ValueIdMap_8h_source.html#l00236">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::operator=()</a>, <a class="el" href="ValueIdMap_8h_source.html#l00259">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::operator=()</a>, <a class="el" href="ValueIdMap_8h_source.html#l00270">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::operator=()</a>, and <a class="el" href="ValueIdMap_8h_source.html#l00299">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::~ValueIdMap()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="ValueIdMap_8h_source.html#l00237">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::operator=()</a>, <a class="el" href="ValueIdMap_8h_source.html#l00260">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::operator=()</a>, <a class="el" href="ValueIdMap_8h_source.html#l00271">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::operator=()</a>, and <a class="el" href="ValueIdMap_8h_source.html#l00300">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::~ValueIdMap()</a>.</p>
 
 </div>
 </div>
@@ -1096,9 +1100,9 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00368">368</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00369">369</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="ValueIdMap_8h_source.html#l00384">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::at()</a>, <a class="el" href="ValueIdMap_8h_source.html#l00390">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::at()</a>, <a class="el" href="ValueIdMap_8h_source.html#l00371">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::count()</a>, <a class="el" href="ValueIdMap_8h_source.html#l00378">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::find()</a>, and <a class="el" href="ValueIdMap_8h_source.html#l00375">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::find()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="ValueIdMap_8h_source.html#l00385">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::at()</a>, <a class="el" href="ValueIdMap_8h_source.html#l00391">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::at()</a>, <a class="el" href="ValueIdMap_8h_source.html#l00372">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::count()</a>, <a class="el" href="ValueIdMap_8h_source.html#l00379">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::find()</a>, and <a class="el" href="ValueIdMap_8h_source.html#l00376">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::find()</a>.</p>
 
 </div>
 </div>
@@ -1128,9 +1132,9 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00371">371</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00372">372</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
-<p class="reference">References <a class="el" href="ValueIdMap_8h_source.html#l00368">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::contains()</a>.</p>
+<p class="reference">References <a class="el" href="ValueIdMap_8h_source.html#l00369">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::contains()</a>.</p>
 
 </div>
 </div>
@@ -1159,7 +1163,7 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00356">356</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00357">357</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
 </div>
 </div>
@@ -1188,7 +1192,7 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00473">473</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00474">474</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
 </div>
 </div>
@@ -1217,9 +1221,9 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00467">467</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00468">468</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="ValueIdMap_8h_source.html#l00479">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::cend()</a>, <a class="el" href="ValueIdMap_8h_source.html#l00378">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::find()</a>, and <a class="el" href="ValueIdMap_8h_source.html#l00375">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::find()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="ValueIdMap_8h_source.html#l00480">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::cend()</a>, <a class="el" href="ValueIdMap_8h_source.html#l00379">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::find()</a>, and <a class="el" href="ValueIdMap_8h_source.html#l00376">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::find()</a>.</p>
 
 </div>
 </div>
@@ -1250,7 +1254,7 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
 </div><div class="memdoc">
 <p>Removes the entry pointed to by <code>It</code> and returns an iterator to the next entry. </p>
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00446">446</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00447">447</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
 </div>
 </div>
@@ -1282,7 +1286,7 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
 
 <p>Removes the entry for <code>Key</code>. Returns true if an entry was present. </p>
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00436">436</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00437">437</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
 </div>
 </div>
@@ -1312,9 +1316,9 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00378">378</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00379">379</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
-<p class="reference">References <a class="el" href="ValueIdMap_8h_source.html#l00368">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::contains()</a>, and <a class="el" href="ValueIdMap_8h_source.html#l00467">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::end()</a>.</p>
+<p class="reference">References <a class="el" href="ValueIdMap_8h_source.html#l00369">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::contains()</a>, and <a class="el" href="ValueIdMap_8h_source.html#l00468">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::end()</a>.</p>
 
 </div>
 </div>
@@ -1344,9 +1348,69 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00375">375</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00376">376</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
-<p class="reference">References <a class="el" href="ValueIdMap_8h_source.html#l00368">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::contains()</a>, and <a class="el" href="ValueIdMap_8h_source.html#l00467">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::end()</a>.</p>
+<p class="reference">References <a class="el" href="ValueIdMap_8h_source.html#l00369">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::contains()</a>, and <a class="el" href="ValueIdMap_8h_source.html#l00468">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::end()</a>.</p>
+
+</div>
+</div>
+<a id="a8de3014fcf0a7204895cf069f6b924c9" name="a8de3014fcf0a7204895cf069f6b924c9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8de3014fcf0a7204895cf069f6b924c9">&#9670;&#160;</a></span>foreach() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::allocator&lt;ValueT&gt;&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto <a class="el" href="classpsr_1_1ValueIdMap.html">psr::ValueIdMap</a>&lt; IdT, ValueT, Allocator &gt;::foreach </td>
+          <td>(</td>
+          <td class="paramtype">std::invocable&lt; IdT, const ValueT &amp; &gt; auto&#160;</td>
+          <td class="paramname"><em>Handler</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00485">485</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+
+</div>
+</div>
+<a id="a3e05366a1755fa2e3ab1b09e9c0ec932" name="a3e05366a1755fa2e3ab1b09e9c0ec932"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3e05366a1755fa2e3ab1b09e9c0ec932">&#9670;&#160;</a></span>foreach() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::allocator&lt;ValueT&gt;&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto <a class="el" href="classpsr_1_1ValueIdMap.html">psr::ValueIdMap</a>&lt; IdT, ValueT, Allocator &gt;::foreach </td>
+          <td>(</td>
+          <td class="paramtype">std::invocable&lt; IdT, ValueT &amp; &gt; auto&#160;</td>
+          <td class="paramname"><em>Handler</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00482">482</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
 </div>
 </div>
@@ -1377,7 +1441,7 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
 
 <p>Returns the allocator associated with this container. </p>
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00306">306</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00307">307</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
 </div>
 </div>
@@ -1407,9 +1471,9 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00420">420</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00421">421</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
-<p class="reference">References <a class="el" href="ValueIdMap_8h_source.html#l00409">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::try_emplace()</a>.</p>
+<p class="reference">References <a class="el" href="ValueIdMap_8h_source.html#l00410">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::try_emplace()</a>.</p>
 
 </div>
 </div>
@@ -1453,9 +1517,9 @@ template&lt;typename M &gt; </div>
 
 <p>Inserts or replaces the entry for <code>Key</code> with <code>Obj</code>. </p>
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00427">427</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00428">428</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
-<p class="reference">References <a class="el" href="ValueIdMap_8h_source.html#l00409">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::try_emplace()</a>.</p>
+<p class="reference">References <a class="el" href="ValueIdMap_8h_source.html#l00410">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::try_emplace()</a>.</p>
 
 </div>
 </div>
@@ -1485,7 +1549,7 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
 </div><div class="memdoc">
 <p>Returns the maximum number of elements the container can hold. Capped at INT_MAX because llvm::BitVector (which backs <a class="el" href="classpsr_1_1BitSet.html" title="A set-type that can compactly store sets of sequential integer-like types.">BitSet</a>) uses an int-sized bit count internally. </p>
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00361">361</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00362">362</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
 </div>
 </div>
@@ -1516,9 +1580,9 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
 </div><div class="memdoc">
 <p>Copy assignment. Propagates the allocator when allocator_traits::propagate_on_container_copy_assignment is true. </p>
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00236">236</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00237">237</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
-<p class="reference">References <a class="el" href="ValueIdMap_8h_source.html#l00455">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::clear()</a>.</p>
+<p class="reference">References <a class="el" href="ValueIdMap_8h_source.html#l00456">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::clear()</a>.</p>
 
 </div>
 </div>
@@ -1552,9 +1616,9 @@ requires std::is_constructible_v&lt;ValueT, const V &amp;&gt;</div>
 </div><div class="memdoc">
 <p>Replaces the contents with those of <code>Init</code>. Duplicate keys are silently dropped (first occurrence wins). </p>
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00259">259</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00260">260</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
-<p class="reference">References <a class="el" href="ValueIdMap_8h_source.html#l00455">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::clear()</a>, <a class="el" href="ValueIdMap_8h_source.html#l00347">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::reserve()</a>, and <a class="el" href="ValueIdMap_8h_source.html#l00409">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::try_emplace()</a>.</p>
+<p class="reference">References <a class="el" href="ValueIdMap_8h_source.html#l00456">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::clear()</a>, <a class="el" href="ValueIdMap_8h_source.html#l00348">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::reserve()</a>, and <a class="el" href="ValueIdMap_8h_source.html#l00410">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::try_emplace()</a>.</p>
 
 </div>
 </div>
@@ -1585,9 +1649,9 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
 </div><div class="memdoc">
 <p>Move assignment. Propagates the allocator when allocator_traits::propagate_on_container_move_assignment is true. </p>
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00270">270</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00271">271</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
-<p class="reference">References <a class="el" href="ValueIdMap_8h_source.html#l00455">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::clear()</a>.</p>
+<p class="reference">References <a class="el" href="ValueIdMap_8h_source.html#l00456">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::clear()</a>.</p>
 
 </div>
 </div>
@@ -1618,9 +1682,9 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
 </div><div class="memdoc">
 <p>Returns a reference to the value for <code>Key</code>, default-constructing it if absent (same semantics as std::unordered_map::operator[]). </p>
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00401">401</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00402">402</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
-<p class="reference">References <a class="el" href="ValueIdMap_8h_source.html#l00409">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::try_emplace()</a>.</p>
+<p class="reference">References <a class="el" href="ValueIdMap_8h_source.html#l00410">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::try_emplace()</a>.</p>
 
 </div>
 </div>
@@ -1652,9 +1716,9 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
 
 <p>Ensures storage for at least <code>N</code> entries without constructing any values. </p>
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00347">347</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00348">348</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="ValueIdMap_8h_source.html#l00259">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::operator=()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="ValueIdMap_8h_source.html#l00260">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::operator=()</a>.</p>
 
 </div>
 </div>
@@ -1685,7 +1749,7 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
 
 <p>Returns the number of entries currently present. </p>
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00355">355</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00356">356</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
 </div>
 </div>
@@ -1716,7 +1780,7 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
 </div><div class="memdoc">
 <p>Swap. Propagates allocators when allocator_traits::propagate_on_container_swap is true; otherwise the behaviour is undefined if the two allocators are not equal (per the AllocatorAwareContainer requirement). </p>
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00314">314</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00315">315</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
 </div>
 </div>
@@ -1759,11 +1823,11 @@ template&lt;typename... ArgsT&gt; </div>
 </div><div class="memdoc">
 <p>Constructs a value from <code>Args</code> for <code>Key</code> if not already present. Returns {iterator-to-entry, true} on insertion and {iterator-to-existing-entry, false} otherwise. </p>
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00409">409</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00410">410</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
 <p class="reference">References <a class="el" href="Macros_8h_source.html#l00016">PSR_FWD</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="ValueIdMap_8h_source.html#l00420">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::insert()</a>, <a class="el" href="ValueIdMap_8h_source.html#l00427">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::insert_or_assign()</a>, <a class="el" href="ValueIdMap_8h_source.html#l00259">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::operator=()</a>, and <a class="el" href="ValueIdMap_8h_source.html#l00401">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::operator[]()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="ValueIdMap_8h_source.html#l00421">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::insert()</a>, <a class="el" href="ValueIdMap_8h_source.html#l00428">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::insert_or_assign()</a>, <a class="el" href="ValueIdMap_8h_source.html#l00260">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::operator=()</a>, and <a class="el" href="ValueIdMap_8h_source.html#l00402">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::operator[]()</a>.</p>
 
 </div>
 </div>
@@ -1804,7 +1868,7 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00330">330</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00331">331</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
 </div>
 </div>
@@ -1844,7 +1908,7 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00325">325</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00326">326</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
 </div>
 </div>
@@ -1854,7 +1918,7 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Aug 20 2026 16:52:22 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Aug 27 2026 18:17:25 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

@@ -255,126 +255,131 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span>          }</div>
 <div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span>        }();</div>
 <div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span>        <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span> &amp;Succ : RetSites) {</div>
-<div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span>          <span class="keyword">const</span> <span class="keyword">auto</span> FctSucc = factSucc(Succ, Fct);</div>
-<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>          <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span> &amp;EntrySE : EntrySEs) {</div>
-<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span>            Outs.emplace_back(Fct, FctSucc, EntrySE, W);</div>
-<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span>          }</div>
-<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>        }</div>
-<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span>      }</div>
-<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>    }</div>
-<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span> </div>
-<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span>    <span class="keywordflow">return</span> Outs;</div>
-<div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span>  }</div>
+<div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span>          <span class="comment">// Note: No sparsification here, because getPopRules() needs the</span></div>
+<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>          <span class="comment">// predecessor of Succ</span></div>
+<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span>          <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span> &amp;EntrySE : EntrySEs) {</div>
+<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span>            Outs.emplace_back(Fct, Succ, EntrySE, W);</div>
+<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>          }</div>
+<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span>        }</div>
+<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>      }</div>
+<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span>    }</div>
+<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span> </div>
+<div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span>    <span class="keywordflow">return</span> Outs;</div>
+<div class="line"><a id="l00167" name="l00167"></a><span class="lineno">  167</span>  }</div>
 </div>
-<div class="line"><a id="l00167" name="l00167"></a><span class="lineno">  167</span> </div>
-<div class="foldopen" id="foldopen00168" data-start="{" data-end="}">
-<div class="line"><a id="l00168" name="l00168"></a><span class="lineno"><a class="line" href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html#ad8a3f43a69b3f24010d32ff90d4aec09">  168</a></span>  [[nodiscard]] <span class="keywordtype">bool</span> <a class="code hl_function" href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html#ad8a3f43a69b3f24010d32ff90d4aec09">hasPopRules</a>(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef&lt;control_location_type&gt;</a> <span class="comment">/*CL*/</span>,</div>
-<div class="line"><a id="l00169" name="l00169"></a><span class="lineno">  169</span>                                 <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef&lt;stack_element_type&gt;</a> SE) {</div>
-<div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span>    <span class="comment">// TODO: Be more precise here, filtering for facts CL that we actually need</span></div>
-<div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span>    <span class="comment">// in the summary.</span></div>
-<div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span>    <span class="keywordflow">return</span> ICF-&gt;isExitInst(SE);</div>
-<div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span>  }</div>
+<div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span> </div>
+<div class="foldopen" id="foldopen00169" data-start="{" data-end="}">
+<div class="line"><a id="l00169" name="l00169"></a><span class="lineno"><a class="line" href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html#ad8a3f43a69b3f24010d32ff90d4aec09">  169</a></span>  [[nodiscard]] <span class="keywordtype">bool</span> <a class="code hl_function" href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html#ad8a3f43a69b3f24010d32ff90d4aec09">hasPopRules</a>(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef&lt;control_location_type&gt;</a> <span class="comment">/*CL*/</span>,</div>
+<div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span>                                 <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef&lt;stack_element_type&gt;</a> SE) {</div>
+<div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span>    <span class="comment">// TODO: Be more precise here, filtering for facts CL that we actually need</span></div>
+<div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span>    <span class="comment">// in the summary.</span></div>
+<div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span>    <span class="keywordflow">return</span> ICF-&gt;isExitInst(SE);</div>
+<div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span>  }</div>
 </div>
-<div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span> </div>
-<div class="foldopen" id="foldopen00175" data-start="{" data-end="}">
-<div class="line"><a id="l00175" name="l00175"></a><span class="lineno"><a class="line" href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html#ab965f0ffc0868b097c293603615223ab">  175</a></span>  [[nodiscard]] <span class="keyword">auto</span> <a class="code hl_function" href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html#ab965f0ffc0868b097c293603615223ab">getPopRules</a>(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef&lt;control_location_type&gt;</a> CL,</div>
-<div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span>                                 <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef&lt;stack_element_type&gt;</a> ExitSE,</div>
-<div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span>                                 <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef&lt;stack_element_type&gt;</a> RetSiteSE,</div>
-<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span>                                 <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef&lt;stack_element_type&gt;</a> <span class="comment">/*EntrySE*/</span></div>
-<div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span>  ) {</div>
-<div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span>    llvm::SmallVector&lt;std::tuple&lt;control_location_type, weight_type&gt;&gt; Outs;</div>
-<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span> </div>
-<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span>    <a class="code hl_define" href="Logger_8h.html#a8efff89a9003938cc18d81f0df19f494">PHASAR_LOG_LEVEL_CAT</a>(DEBUG, <a class="code hl_variable" href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html#a718334e3706e3aebd2e8ce063ecebc7b">LogCategory</a>,</div>
-<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span>                         <span class="stringliteral">&quot;[getPopRules]: CL=&quot;</span></div>
-<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>                             &lt;&lt; <a class="code hl_function" href="namespacepsr.html#a5462787d6bd41739c36e66d99f2aee6a">DToString</a>(CL)</div>
-<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>                             &lt;&lt; <span class="stringliteral">&quot;; ExitSE=&quot;</span> &lt;&lt; <a class="code hl_function" href="namespacepsr.html#a8d0886fed3b61a4324c1c8d5d156bf03">NToString</a>(ExitSE)</div>
-<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>                             &lt;&lt; <span class="stringliteral">&quot;; RetSiteSE=&quot;</span> &lt;&lt; <a class="code hl_function" href="namespacepsr.html#a8d0886fed3b61a4324c1c8d5d156bf03">NToString</a>(RetSiteSE));</div>
-<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span> </div>
-<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>    <span class="keyword">auto</span> DestFun = ICF-&gt;getFunctionOf(ExitSE);</div>
-<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span> </div>
-<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>    <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span> &amp;CS : ICF-&gt;getPredsOf(RetSiteSE)) {</div>
-<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>      <span class="keywordflow">if</span> (!ICF-&gt;isCallSite(CS)) {</div>
-<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>        <span class="keywordflow">continue</span>;</div>
-<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>      }</div>
-<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span> </div>
-<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span>      <span class="keyword">auto</span> Facts = FECache.getRetFlowFunction(CS, DestFun, ExitSE, RetSiteSE)</div>
-<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>                       -&gt;computeTargets(CL);</div>
-<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span>      <span class="keywordflow">for</span> (<span class="keyword">auto</span> &amp;Fct : Facts) {</div>
-<div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span>        <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (ComputeWeights) {</div>
-<div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span>          <span class="keyword">auto</span> W = FECache.getReturnEdgeFunction(CS, DestFun, ExitSE, CL,</div>
-<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span>                                                 RetSiteSE, Fct);</div>
-<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span>          Outs.emplace_back(std::move(Fct), std::move(W));</div>
-<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span>        } <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span>          Outs.emplace_back(std::move(Fct), <a class="code hl_typedef" href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html#ac431c9ad4bb182ceac0968a108d96707">weight_type</a>{});</div>
-<div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span>        }</div>
-<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span>      }</div>
-<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span>    }</div>
-<div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span> </div>
-<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>    <span class="keywordflow">return</span> Outs;</div>
-<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>  }</div>
+<div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span> </div>
+<div class="foldopen" id="foldopen00176" data-start="{" data-end="}">
+<div class="line"><a id="l00176" name="l00176"></a><span class="lineno"><a class="line" href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html#ab965f0ffc0868b097c293603615223ab">  176</a></span>  [[nodiscard]] <span class="keyword">auto</span> <a class="code hl_function" href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html#ab965f0ffc0868b097c293603615223ab">getPopRules</a>(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef&lt;control_location_type&gt;</a> CL,</div>
+<div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span>                                 <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef&lt;stack_element_type&gt;</a> ExitSE,</div>
+<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span>                                 <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef&lt;stack_element_type&gt;</a> RetSiteSE,</div>
+<div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span>                                 <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef&lt;stack_element_type&gt;</a> <span class="comment">/*EntrySE*/</span></div>
+<div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span>  ) {</div>
+<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span>    llvm::SmallVector&lt;std::tuple&lt;control_location_type, weight_type&gt;&gt; Outs;</div>
+<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span> </div>
+<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span>    <a class="code hl_define" href="Logger_8h.html#a8efff89a9003938cc18d81f0df19f494">PHASAR_LOG_LEVEL_CAT</a>(DEBUG, <a class="code hl_variable" href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html#a718334e3706e3aebd2e8ce063ecebc7b">LogCategory</a>,</div>
+<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>                         <span class="stringliteral">&quot;[getPopRules]: CL=&quot;</span></div>
+<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>                             &lt;&lt; <a class="code hl_function" href="namespacepsr.html#a5462787d6bd41739c36e66d99f2aee6a">DToString</a>(CL)</div>
+<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>                             &lt;&lt; <span class="stringliteral">&quot;; ExitSE=&quot;</span> &lt;&lt; <a class="code hl_function" href="namespacepsr.html#a8d0886fed3b61a4324c1c8d5d156bf03">NToString</a>(ExitSE)</div>
+<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>                             &lt;&lt; <span class="stringliteral">&quot;; RetSiteSE=&quot;</span> &lt;&lt; <a class="code hl_function" href="namespacepsr.html#a8d0886fed3b61a4324c1c8d5d156bf03">NToString</a>(RetSiteSE));</div>
+<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span> </div>
+<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>    <span class="keyword">auto</span> DestFun = ICF-&gt;getFunctionOf(ExitSE);</div>
+<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span> </div>
+<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>    <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span> &amp;CS : ICF-&gt;getPredsOf(RetSiteSE)) {</div>
+<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>      <span class="keywordflow">if</span> (!ICF-&gt;isCallSite(CS)) {</div>
+<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>        <span class="keywordflow">continue</span>;</div>
+<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span>      }</div>
+<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span> </div>
+<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>      <span class="keyword">auto</span> Facts = FECache.getRetFlowFunction(CS, DestFun, ExitSE, RetSiteSE)</div>
+<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span>                       -&gt;computeTargets(CL);</div>
+<div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span>      <span class="keywordflow">for</span> (<span class="keyword">auto</span> &amp;Fct : Facts) {</div>
+<div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span>        <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (ComputeWeights) {</div>
+<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span>          <span class="keyword">auto</span> W = FECache.getReturnEdgeFunction(CS, DestFun, ExitSE, CL,</div>
+<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span>                                                 RetSiteSE, Fct);</div>
+<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span>          Outs.emplace_back(std::move(Fct), std::move(W));</div>
+<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span>        } <span class="keywordflow">else</span> {</div>
+<div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span>          Outs.emplace_back(std::move(Fct), <a class="code hl_typedef" href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html#ac431c9ad4bb182ceac0968a108d96707">weight_type</a>{});</div>
+<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span>        }</div>
+<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span>      }</div>
+<div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span>    }</div>
+<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span> </div>
+<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>    <span class="keywordflow">return</span> Outs;</div>
+<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>  }</div>
 </div>
-<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span> </div>
-<div class="foldopen" id="foldopen00211" data-start="{" data-end="}">
-<div class="line"><a id="l00211" name="l00211"></a><span class="lineno"><a class="line" href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html#a116d01c99ee93b1a8350134142efae83">  211</a></span>  [[nodiscard]] <span class="keyword">auto</span> <a class="code hl_function" href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html#a116d01c99ee93b1a8350134142efae83">initialSeeds</a>() {</div>
-<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span>    llvm::SmallVector&lt;</div>
-<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>        std::tuple&lt;control_location_type, stack_element_type, weight_type&gt;&gt;</div>
-<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>        Outs;</div>
-<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span> </div>
-<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span>    <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span> &amp;[Inst, Facts] : Problem.<a class="code hl_function" href="classpsr_1_1IFDSProblemWrapper.html#a10b9f4f5bc8926b3ce297986dd99ad57">initialSeeds</a>().getSeeds()) {</div>
-<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span>      <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span> &amp;[Fact, Val] : Facts) {</div>
-<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span>        <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (ComputeWeights) {</div>
-<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span>          <span class="keyword">using </span>l_t = <span class="keyword">typename</span> ProblemT::l_t;</div>
-<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span>          <span class="keywordflow">if</span> (Val == Problem.<a class="code hl_function" href="classpsr_1_1IfdsToIdeProblemAdapter.html#a2206e34d5e0833f2c30840137d569804">topElement</a>()) {</div>
-<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>            <span class="keywordflow">continue</span>;</div>
-<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span>          }</div>
-<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span>          <span class="keywordflow">if</span> (Val == Problem.<a class="code hl_function" href="classpsr_1_1IfdsToIdeProblemAdapter.html#a3f6ae7153f028185b5ab6d8a22cd1e14">bottomElement</a>()) {</div>
-<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span>            <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (<a class="code hl_concept" href="conceptpsr_1_1HasJoinLatticeTraits.html">HasJoinLatticeTraits&lt;l_t&gt;</a>) {</div>
-<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>              Outs.emplace_back(Fact, Inst, <a class="code hl_struct" href="structpsr_1_1AllBottom.html">AllBottom&lt;l_t&gt;</a>{});</div>
-<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span>            } <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span>              Outs.emplace_back(Fact, Inst, <a class="code hl_struct" href="structpsr_1_1AllBottom.html">AllBottom&lt;l_t&gt;</a>{Val});</div>
-<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span>            }</div>
-<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span>          } <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span>            Outs.emplace_back(</div>
-<div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span>                Fact, Inst,</div>
-<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span>                <a class="code hl_struct" href="structpsr_1_1ConstantEdgeFunction.html">ConstantEdgeFunction&lt;l_t&gt;</a>{<a class="code hl_function" href="structpsr_1_1NonTopBotValue.html#a0db27d50e7087023e99c24c1b9adfbd5">NonTopBotValue&lt;l_t&gt;::unwrap</a>(Val)});</div>
-<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>          }</div>
-<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>        } <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>          Outs.emplace_back(Fact, Inst, <a class="code hl_typedef" href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html#ac431c9ad4bb182ceac0968a108d96707">weight_type</a>{});</div>
-<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>        }</div>
-<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>      }</div>
-<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>    }</div>
-<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span> </div>
-<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>    <span class="keywordflow">return</span> Outs;</div>
-<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>  }</div>
+<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span> </div>
+<div class="foldopen" id="foldopen00212" data-start="{" data-end="}">
+<div class="line"><a id="l00212" name="l00212"></a><span class="lineno"><a class="line" href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html#a116d01c99ee93b1a8350134142efae83">  212</a></span>  [[nodiscard]] <span class="keyword">auto</span> <a class="code hl_function" href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html#a116d01c99ee93b1a8350134142efae83">initialSeeds</a>() {</div>
+<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>    llvm::SmallVector&lt;</div>
+<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>        std::tuple&lt;control_location_type, stack_element_type, weight_type&gt;&gt;</div>
+<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span>        Outs;</div>
+<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span> </div>
+<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span>    <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span> &amp;[Inst, Facts] : Problem.<a class="code hl_function" href="classpsr_1_1IFDSProblemWrapper.html#a10b9f4f5bc8926b3ce297986dd99ad57">initialSeeds</a>().getSeeds()) {</div>
+<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span>      <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span> &amp;[Fact, Val] : Facts) {</div>
+<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span>        <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (ComputeWeights) {</div>
+<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span>          <span class="keyword">using </span>l_t = <span class="keyword">typename</span> ProblemT::l_t;</div>
+<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>          <span class="keywordflow">if</span> (Val == Problem.<a class="code hl_function" href="classpsr_1_1IfdsToIdeProblemAdapter.html#a2206e34d5e0833f2c30840137d569804">topElement</a>()) {</div>
+<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span>            <span class="keywordflow">continue</span>;</div>
+<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span>          }</div>
+<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span>          <span class="keywordflow">if</span> (Val == Problem.<a class="code hl_function" href="classpsr_1_1IfdsToIdeProblemAdapter.html#a3f6ae7153f028185b5ab6d8a22cd1e14">bottomElement</a>()) {</div>
+<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>            <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (<a class="code hl_concept" href="conceptpsr_1_1HasJoinLatticeTraits.html">HasJoinLatticeTraits&lt;l_t&gt;</a>) {</div>
+<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span>              Outs.emplace_back(Fact, Inst, <a class="code hl_struct" href="structpsr_1_1AllBottom.html">AllBottom&lt;l_t&gt;</a>{});</div>
+<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span>            } <span class="keywordflow">else</span> {</div>
+<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span>              Outs.emplace_back(Fact, Inst, <a class="code hl_struct" href="structpsr_1_1AllBottom.html">AllBottom&lt;l_t&gt;</a>{Val});</div>
+<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span>            }</div>
+<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span>          } <span class="keywordflow">else</span> {</div>
+<div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span>            Outs.emplace_back(</div>
+<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span>                Fact, Inst,</div>
+<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>                <a class="code hl_struct" href="structpsr_1_1ConstantEdgeFunction.html">ConstantEdgeFunction&lt;l_t&gt;</a>{<a class="code hl_function" href="structpsr_1_1NonTopBotValue.html#a0db27d50e7087023e99c24c1b9adfbd5">NonTopBotValue&lt;l_t&gt;::unwrap</a>(Val)});</div>
+<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>          }</div>
+<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>        } <span class="keywordflow">else</span> {</div>
+<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>          Outs.emplace_back(Fact, Inst, <a class="code hl_typedef" href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html#ac431c9ad4bb182ceac0968a108d96707">weight_type</a>{});</div>
+<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>        }</div>
+<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>      }</div>
+<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>    }</div>
+<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span> </div>
+<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>    <span class="keywordflow">return</span> Outs;</div>
+<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span>  }</div>
 </div>
-<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span> </div>
-<div class="line"><a id="l00243" name="l00243"></a><span class="lineno"><a class="line" href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html#ade5bb728789600f4c10ccd447c4c2d14">  243</a></span>  [[nodiscard]] <span class="keyword">constexpr</span> <span class="keyword">auto</span> &amp;<a class="code hl_function" href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html#ade5bb728789600f4c10ccd447c4c2d14">problem</a>() const noexcept { <span class="keywordflow">return</span> *Problem; }</div>
-<div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span> </div>
-<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span><span class="keyword">private</span>:</div>
-<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>  [[nodiscard]] <span class="keyword">auto</span> factSucc(<a class="code hl_typedef" href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html#a34fc4a8673f3dbab01ec8b38d2da4718">stack_element_type</a> Succ,</div>
-<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span>                              <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef&lt;control_location_type&gt;</a> CL) {</div>
-<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>    <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (<a class="code hl_concept" href="conceptpsr_1_1has__advanceToNextUser__v.html">has_advanceToNextUser_v&lt;ICFGTy, control_location_type&gt;</a>) {</div>
-<div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span>      <span class="keywordflow">return</span> ICF-&gt;advancetoNextUser(Succ, CL);</div>
-<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span>    } <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>      <span class="keywordflow">return</span> Succ;</div>
-<div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span>    }</div>
-<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span>  }</div>
-<div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span> </div>
-<div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span>  IfdsIdeProblemWrapper&lt;ProblemT&gt; Problem;</div>
-<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>  <span class="keyword">const</span> ICFGTy *ICF{};</div>
+<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span> </div>
+<div class="foldopen" id="foldopen00244" data-start="{" data-end="}">
+<div class="line"><a id="l00244" name="l00244"></a><span class="lineno"><a class="line" href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html#ade5bb728789600f4c10ccd447c4c2d14">  244</a></span>  [[nodiscard]] <span class="keyword">constexpr</span> <span class="keyword">auto</span> &amp;<a class="code hl_function" href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html#ade5bb728789600f4c10ccd447c4c2d14">problem</a>() const noexcept {</div>
+<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>    <span class="keywordflow">return</span> Problem.<a class="code hl_function" href="classpsr_1_1IfdsIdeProblemWrapper.html#a67128bd27647fd285c1fc9a714520be8">ideProblem</a>();</div>
+<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>  }</div>
+</div>
+<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span> </div>
+<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span>  [[nodiscard]] <span class="keyword">auto</span> factSucc(<a class="code hl_typedef" href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html#a34fc4a8673f3dbab01ec8b38d2da4718">stack_element_type</a> Succ,</div>
+<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span>                              <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef&lt;control_location_type&gt;</a> CL) {</div>
+<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>    <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (<a class="code hl_concept" href="conceptpsr_1_1has__advanceToNextUser__v.html">has_advanceToNextUser_v&lt;ICFGTy, control_location_type&gt;</a>) {</div>
+<div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span>      <span class="keywordflow">return</span> ICF-&gt;advanceToNextUser(Succ, CL);</div>
+<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span>    } <span class="keywordflow">else</span> {</div>
+<div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span>      <span class="keywordflow">return</span> Succ;</div>
+<div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span>    }</div>
+<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>  }</div>
 <div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span> </div>
-<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span>  FlowEdgeFunctionCache&lt;typename IfdsIdeProblemWrapper&lt;ProblemT&gt;::IDEProblemTy&gt;</div>
-<div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span>      FECache{&amp;Problem.ideProblem()};</div>
-<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span>};</div>
+<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span>  IfdsIdeProblemWrapper&lt;ProblemT&gt; Problem;</div>
+<div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span>  <span class="keyword">const</span> ICFGTy *ICF{};</div>
+<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span> </div>
+<div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span>  FlowEdgeFunctionCache&lt;typename IfdsIdeProblemWrapper&lt;ProblemT&gt;::IDEProblemTy&gt;</div>
+<div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span>      FECache{&amp;Problem.ideProblem()};</div>
+<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span>};</div>
 </div>
-<div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span> </div>
-<div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span><span class="keyword">template</span> &lt;IDEProblem ProblemT, <span class="keyword">typename</span> ICFGTy&gt;</div>
-<div class="line"><a id="l00263" name="l00263"></a><span class="lineno"><a class="line" href="namespacepsr_1_1wpds.html#ac266dc98b719abed5457a0752350b456">  263</a></span><span class="keyword">using </span><a class="code hl_class" href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html">IDERuleProvider</a> = <a class="code hl_class" href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html">IfdsIdeRuleProvider&lt;ProblemT, ICFGTy, true&gt;</a>;</div>
 <div class="line"><a id="l00264" name="l00264"></a><span class="lineno">  264</span> </div>
-<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span><span class="keyword">template</span> &lt;IFDSProblem ProblemT, <span class="keyword">typename</span> ICFGTy&gt;</div>
-<div class="line"><a id="l00266" name="l00266"></a><span class="lineno"><a class="line" href="namespacepsr_1_1wpds.html#a5b20be1267ab418805f66e190ea3df06">  266</a></span><span class="keyword">using </span><a class="code hl_class" href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html">IFDSRuleProvider</a> = <a class="code hl_class" href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html">IfdsIdeRuleProvider&lt;ProblemT, ICFGTy, false&gt;</a>;</div>
+<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span><span class="keyword">template</span> &lt;IDEProblem ProblemT, <span class="keyword">typename</span> ICFGTy&gt;</div>
+<div class="line"><a id="l00266" name="l00266"></a><span class="lineno"><a class="line" href="namespacepsr_1_1wpds.html#ac266dc98b719abed5457a0752350b456">  266</a></span><span class="keyword">using </span><a class="code hl_class" href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html">IDERuleProvider</a> = <a class="code hl_class" href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html">IfdsIdeRuleProvider&lt;ProblemT, ICFGTy, true&gt;</a>;</div>
 <div class="line"><a id="l00267" name="l00267"></a><span class="lineno">  267</span> </div>
-<div class="line"><a id="l00268" name="l00268"></a><span class="lineno">  268</span>} <span class="comment">// namespace psr::wpds</span></div>
+<div class="line"><a id="l00268" name="l00268"></a><span class="lineno">  268</span><span class="keyword">template</span> &lt;IFDSProblem ProblemT, <span class="keyword">typename</span> ICFGTy&gt;</div>
+<div class="line"><a id="l00269" name="l00269"></a><span class="lineno"><a class="line" href="namespacepsr_1_1wpds.html#a5b20be1267ab418805f66e190ea3df06">  269</a></span><span class="keyword">using </span><a class="code hl_class" href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html">IFDSRuleProvider</a> = <a class="code hl_class" href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html">IfdsIdeRuleProvider&lt;ProblemT, ICFGTy, false&gt;</a>;</div>
+<div class="line"><a id="l00270" name="l00270"></a><span class="lineno">  270</span> </div>
+<div class="line"><a id="l00271" name="l00271"></a><span class="lineno">  271</span>} <span class="comment">// namespace psr::wpds</span></div>
 </div>
 <div class="ttc" id="aBinaryDomain_8h_html"><div class="ttname"><a href="BinaryDomain_8h.html">BinaryDomain.h</a></div></div>
 <div class="ttc" id="aByRef_8h_html"><div class="ttname"><a href="ByRef_8h.html">ByRef.h</a></div></div>
@@ -391,20 +396,21 @@ $(document).ready(function() { init_codefold(0); });
 <div class="ttc" id="aSparseCFGProvider_8h_html"><div class="ttname"><a href="SparseCFGProvider_8h.html">SparseCFGProvider.h</a></div></div>
 <div class="ttc" id="aUtilities_8h_html"><div class="ttname"><a href="Utilities_8h.html">Utilities.h</a></div></div>
 <div class="ttc" id="aclasspsr_1_1IFDSProblemWrapper_html_a10b9f4f5bc8926b3ce297986dd99ad57"><div class="ttname"><a href="classpsr_1_1IFDSProblemWrapper.html#a10b9f4f5bc8926b3ce297986dd99ad57">psr::IFDSProblemWrapper::initialSeeds</a></div><div class="ttdeci">constexpr decltype(auto) initialSeeds()</div><div class="ttdef"><b>Definition</b> <a href="IFDSProblemWrapper_8h_source.html#l00049">IFDSProblemWrapper.h:49</a></div></div>
+<div class="ttc" id="aclasspsr_1_1IfdsIdeProblemWrapper_html_a67128bd27647fd285c1fc9a714520be8"><div class="ttname"><a href="classpsr_1_1IfdsIdeProblemWrapper.html#a67128bd27647fd285c1fc9a714520be8">psr::IfdsIdeProblemWrapper::ideProblem</a></div><div class="ttdeci">constexpr IDEProblem auto &amp; ideProblem() noexcept</div><div class="ttdef"><b>Definition</b> <a href="IDEProblemWrapper_8h_source.html#l00133">IDEProblemWrapper.h:133</a></div></div>
 <div class="ttc" id="aclasspsr_1_1IfdsToIdeProblemAdapter_html_a2206e34d5e0833f2c30840137d569804"><div class="ttname"><a href="classpsr_1_1IfdsToIdeProblemAdapter.html#a2206e34d5e0833f2c30840137d569804">psr::IfdsToIdeProblemAdapter::topElement</a></div><div class="ttdeci">constexpr auto topElement() noexcept</div><div class="ttdef"><b>Definition</b> <a href="IfdsToIdeProblemAdapter_8h_source.html#l00066">IfdsToIdeProblemAdapter.h:66</a></div></div>
 <div class="ttc" id="aclasspsr_1_1IfdsToIdeProblemAdapter_html_a3f6ae7153f028185b5ab6d8a22cd1e14"><div class="ttname"><a href="classpsr_1_1IfdsToIdeProblemAdapter.html#a3f6ae7153f028185b5ab6d8a22cd1e14">psr::IfdsToIdeProblemAdapter::bottomElement</a></div><div class="ttdeci">constexpr auto bottomElement() noexcept</div><div class="ttdef"><b>Definition</b> <a href="IfdsToIdeProblemAdapter_8h_source.html#l00070">IfdsToIdeProblemAdapter.h:70</a></div></div>
 <div class="ttc" id="aclasspsr_1_1wpds_1_1IfdsIdeRuleProvider_html"><div class="ttname"><a href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html">psr::wpds::IfdsIdeRuleProvider</a></div><div class="ttdef"><b>Definition</b> <a href="IfdsIdeRuleProvider_8h_source.html#l00043">IfdsIdeRuleProvider.h:43</a></div></div>
-<div class="ttc" id="aclasspsr_1_1wpds_1_1IfdsIdeRuleProvider_html_a116d01c99ee93b1a8350134142efae83"><div class="ttname"><a href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html#a116d01c99ee93b1a8350134142efae83">psr::wpds::IfdsIdeRuleProvider::initialSeeds</a></div><div class="ttdeci">auto initialSeeds()</div><div class="ttdef"><b>Definition</b> <a href="IfdsIdeRuleProvider_8h_source.html#l00211">IfdsIdeRuleProvider.h:211</a></div></div>
+<div class="ttc" id="aclasspsr_1_1wpds_1_1IfdsIdeRuleProvider_html_a116d01c99ee93b1a8350134142efae83"><div class="ttname"><a href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html#a116d01c99ee93b1a8350134142efae83">psr::wpds::IfdsIdeRuleProvider::initialSeeds</a></div><div class="ttdeci">auto initialSeeds()</div><div class="ttdef"><b>Definition</b> <a href="IfdsIdeRuleProvider_8h_source.html#l00212">IfdsIdeRuleProvider.h:212</a></div></div>
 <div class="ttc" id="aclasspsr_1_1wpds_1_1IfdsIdeRuleProvider_html_a34fc4a8673f3dbab01ec8b38d2da4718"><div class="ttname"><a href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html#a34fc4a8673f3dbab01ec8b38d2da4718">psr::wpds::IfdsIdeRuleProvider::stack_element_type</a></div><div class="ttdeci">typename ProblemT::n_t stack_element_type</div><div class="ttdef"><b>Definition</b> <a href="IfdsIdeRuleProvider_8h_source.html#l00046">IfdsIdeRuleProvider.h:46</a></div></div>
 <div class="ttc" id="aclasspsr_1_1wpds_1_1IfdsIdeRuleProvider_html_a65e7cddc8ed36666a6cefe02a6d898fb"><div class="ttname"><a href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html#a65e7cddc8ed36666a6cefe02a6d898fb">psr::wpds::IfdsIdeRuleProvider::IfdsIdeRuleProvider</a></div><div class="ttdeci">IfdsIdeRuleProvider(ProblemT *Problem, const ICFGTy *ICF, std::bool_constant&lt; ComputeWeights &gt;={}) noexcept</div><div class="ttdef"><b>Definition</b> <a href="IfdsIdeRuleProvider_8h_source.html#l00054">IfdsIdeRuleProvider.h:54</a></div></div>
 <div class="ttc" id="aclasspsr_1_1wpds_1_1IfdsIdeRuleProvider_html_a718334e3706e3aebd2e8ce063ecebc7b"><div class="ttname"><a href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html#a718334e3706e3aebd2e8ce063ecebc7b">psr::wpds::IfdsIdeRuleProvider::LogCategory</a></div><div class="ttdeci">static constexpr auto LogCategory</div><div class="ttdef"><b>Definition</b> <a href="IfdsIdeRuleProvider_8h_source.html#l00050">IfdsIdeRuleProvider.h:50</a></div></div>
 <div class="ttc" id="aclasspsr_1_1wpds_1_1IfdsIdeRuleProvider_html_a845f3a41ee8b899612acfa01fe6a2c4c"><div class="ttname"><a href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html#a845f3a41ee8b899612acfa01fe6a2c4c">psr::wpds::IfdsIdeRuleProvider::getNormalRules</a></div><div class="ttdeci">auto getNormalRules(ByConstRef&lt; control_location_type &gt; CL, ByConstRef&lt; stack_element_type &gt; SE)</div><div class="ttdef"><b>Definition</b> <a href="IfdsIdeRuleProvider_8h_source.html#l00061">IfdsIdeRuleProvider.h:61</a></div></div>
-<div class="ttc" id="aclasspsr_1_1wpds_1_1IfdsIdeRuleProvider_html_ab965f0ffc0868b097c293603615223ab"><div class="ttname"><a href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html#ab965f0ffc0868b097c293603615223ab">psr::wpds::IfdsIdeRuleProvider::getPopRules</a></div><div class="ttdeci">auto getPopRules(ByConstRef&lt; control_location_type &gt; CL, ByConstRef&lt; stack_element_type &gt; ExitSE, ByConstRef&lt; stack_element_type &gt; RetSiteSE, ByConstRef&lt; stack_element_type &gt;)</div><div class="ttdef"><b>Definition</b> <a href="IfdsIdeRuleProvider_8h_source.html#l00175">IfdsIdeRuleProvider.h:175</a></div></div>
+<div class="ttc" id="aclasspsr_1_1wpds_1_1IfdsIdeRuleProvider_html_ab965f0ffc0868b097c293603615223ab"><div class="ttname"><a href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html#ab965f0ffc0868b097c293603615223ab">psr::wpds::IfdsIdeRuleProvider::getPopRules</a></div><div class="ttdeci">auto getPopRules(ByConstRef&lt; control_location_type &gt; CL, ByConstRef&lt; stack_element_type &gt; ExitSE, ByConstRef&lt; stack_element_type &gt; RetSiteSE, ByConstRef&lt; stack_element_type &gt;)</div><div class="ttdef"><b>Definition</b> <a href="IfdsIdeRuleProvider_8h_source.html#l00176">IfdsIdeRuleProvider.h:176</a></div></div>
 <div class="ttc" id="aclasspsr_1_1wpds_1_1IfdsIdeRuleProvider_html_ac39a18389bd990c1fabf7fe82ffb39a7"><div class="ttname"><a href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html#ac39a18389bd990c1fabf7fe82ffb39a7">psr::wpds::IfdsIdeRuleProvider::control_location_type</a></div><div class="ttdeci">typename ProblemT::d_t control_location_type</div><div class="ttdef"><b>Definition</b> <a href="IfdsIdeRuleProvider_8h_source.html#l00045">IfdsIdeRuleProvider.h:45</a></div></div>
 <div class="ttc" id="aclasspsr_1_1wpds_1_1IfdsIdeRuleProvider_html_ac42fb9e21ecc7f3437a1501d82b1fb19"><div class="ttname"><a href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html#ac42fb9e21ecc7f3437a1501d82b1fb19">psr::wpds::IfdsIdeRuleProvider::getPushRules</a></div><div class="ttdeci">auto getPushRules(ByConstRef&lt; control_location_type &gt; CL, ByConstRef&lt; stack_element_type &gt; SE)</div><div class="ttdef"><b>Definition</b> <a href="IfdsIdeRuleProvider_8h_source.html#l00125">IfdsIdeRuleProvider.h:125</a></div></div>
 <div class="ttc" id="aclasspsr_1_1wpds_1_1IfdsIdeRuleProvider_html_ac431c9ad4bb182ceac0968a108d96707"><div class="ttname"><a href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html#ac431c9ad4bb182ceac0968a108d96707">psr::wpds::IfdsIdeRuleProvider::weight_type</a></div><div class="ttdeci">typename detail::WeightTypeOf&lt; ComputeWeights, ProblemT &gt;::type weight_type</div><div class="ttdef"><b>Definition</b> <a href="IfdsIdeRuleProvider_8h_source.html#l00047">IfdsIdeRuleProvider.h:48</a></div></div>
-<div class="ttc" id="aclasspsr_1_1wpds_1_1IfdsIdeRuleProvider_html_ad8a3f43a69b3f24010d32ff90d4aec09"><div class="ttname"><a href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html#ad8a3f43a69b3f24010d32ff90d4aec09">psr::wpds::IfdsIdeRuleProvider::hasPopRules</a></div><div class="ttdeci">bool hasPopRules(ByConstRef&lt; control_location_type &gt;, ByConstRef&lt; stack_element_type &gt; SE)</div><div class="ttdef"><b>Definition</b> <a href="IfdsIdeRuleProvider_8h_source.html#l00168">IfdsIdeRuleProvider.h:168</a></div></div>
-<div class="ttc" id="aclasspsr_1_1wpds_1_1IfdsIdeRuleProvider_html_ade5bb728789600f4c10ccd447c4c2d14"><div class="ttname"><a href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html#ade5bb728789600f4c10ccd447c4c2d14">psr::wpds::IfdsIdeRuleProvider::problem</a></div><div class="ttdeci">constexpr auto &amp; problem() const noexcept</div><div class="ttdef"><b>Definition</b> <a href="IfdsIdeRuleProvider_8h_source.html#l00243">IfdsIdeRuleProvider.h:243</a></div></div>
+<div class="ttc" id="aclasspsr_1_1wpds_1_1IfdsIdeRuleProvider_html_ad8a3f43a69b3f24010d32ff90d4aec09"><div class="ttname"><a href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html#ad8a3f43a69b3f24010d32ff90d4aec09">psr::wpds::IfdsIdeRuleProvider::hasPopRules</a></div><div class="ttdeci">bool hasPopRules(ByConstRef&lt; control_location_type &gt;, ByConstRef&lt; stack_element_type &gt; SE)</div><div class="ttdef"><b>Definition</b> <a href="IfdsIdeRuleProvider_8h_source.html#l00169">IfdsIdeRuleProvider.h:169</a></div></div>
+<div class="ttc" id="aclasspsr_1_1wpds_1_1IfdsIdeRuleProvider_html_ade5bb728789600f4c10ccd447c4c2d14"><div class="ttname"><a href="classpsr_1_1wpds_1_1IfdsIdeRuleProvider.html#ade5bb728789600f4c10ccd447c4c2d14">psr::wpds::IfdsIdeRuleProvider::problem</a></div><div class="ttdeci">constexpr auto &amp; problem() const noexcept</div><div class="ttdef"><b>Definition</b> <a href="IfdsIdeRuleProvider_8h_source.html#l00244">IfdsIdeRuleProvider.h:244</a></div></div>
 <div class="ttc" id="aconceptpsr_1_1HasJoinLatticeTraits_html"><div class="ttname"><a href="conceptpsr_1_1HasJoinLatticeTraits.html">psr::HasJoinLatticeTraits</a></div><div class="ttdef"><b>Definition</b> <a href="JoinLattice_8h_source.html#l00035">JoinLattice.h:35</a></div></div>
 <div class="ttc" id="aconceptpsr_1_1IDEProblem_html"><div class="ttname"><a href="conceptpsr_1_1IDEProblem.html">psr::IDEProblem</a></div><div class="ttdef"><b>Definition</b> <a href="IDEProblem_8h_source.html#l00019">IDEProblem.h:19</a></div></div>
 <div class="ttc" id="aconceptpsr_1_1IFDSProblem_html"><div class="ttname"><a href="conceptpsr_1_1IFDSProblem.html">psr::IFDSProblem</a></div><div class="ttdef"><b>Definition</b> <a href="IFDSProblem_8h_source.html#l00024">IFDSProblem.h:24</a></div></div>
@@ -412,10 +418,10 @@ $(document).ready(function() { init_codefold(0); });
 <div class="ttc" id="aconceptpsr_1_1wpds_1_1RuleProvider_html"><div class="ttname"><a href="conceptpsr_1_1wpds_1_1RuleProvider.html">psr::wpds::RuleProvider</a></div><div class="ttdef"><b>Definition</b> <a href="RuleProvider_8h_source.html#l00020">RuleProvider.h:20</a></div></div>
 <div class="ttc" id="anamespacellvm_html"><div class="ttname"><a href="namespacellvm.html">llvm</a></div><div class="ttdef"><b>Definition</b> <a href="Strategies_8h_source.html#l00018">Strategies.h:18</a></div></div>
 <div class="ttc" id="anamespacepsr_1_1wpds_html"><div class="ttname"><a href="namespacepsr_1_1wpds.html">psr::wpds</a></div><div class="ttdef"><b>Definition</b> <a href="IfdsIdeRuleProvider_8h_source.html#l00030">IfdsIdeRuleProvider.h:30</a></div></div>
-<div class="ttc" id="anamespacepsr_html_a40959371d6d8d02e197a2939d33d5dea"><div class="ttname"><a href="namespacepsr.html#a40959371d6d8d02e197a2939d33d5dea">psr::assertNotNull</a></div><div class="ttdeci">LLVM_ATTRIBUTE_ALWAYS_INLINE T &amp; assertNotNull(T &amp;Value)</div><div class="ttdef"><b>Definition</b> <a href="Utilities_8h_source.html#l00317">Utilities.h:317</a></div></div>
+<div class="ttc" id="anamespacepsr_html_a40959371d6d8d02e197a2939d33d5dea"><div class="ttname"><a href="namespacepsr.html#a40959371d6d8d02e197a2939d33d5dea">psr::assertNotNull</a></div><div class="ttdeci">LLVM_ATTRIBUTE_ALWAYS_INLINE T &amp; assertNotNull(T &amp;Value)</div><div class="ttdef"><b>Definition</b> <a href="Utilities_8h_source.html#l00322">Utilities.h:322</a></div></div>
 <div class="ttc" id="anamespacepsr_html_a5462787d6bd41739c36e66d99f2aee6a"><div class="ttname"><a href="namespacepsr.html#a5462787d6bd41739c36e66d99f2aee6a">psr::DToString</a></div><div class="ttdeci">std::string DToString(const AbstractMemoryLocation &amp;AML)</div></div>
 <div class="ttc" id="anamespacepsr_html_a8d0886fed3b61a4324c1c8d5d156bf03"><div class="ttname"><a href="namespacepsr.html#a8d0886fed3b61a4324c1c8d5d156bf03">psr::NToString</a></div><div class="ttdeci">decltype(auto) NToString(const N &amp;Node)</div><div class="ttdef"><b>Definition</b> <a href="Printer_8h_source.html#l00055">Printer.h:55</a></div></div>
-<div class="ttc" id="anamespacepsr_html_ab1fa2b63d3a5ab4934961480f678afea"><div class="ttname"><a href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">psr::ByConstRef</a></div><div class="ttdeci">std::conditional_t&lt; CanEfficientlyPassByValue&lt; T &gt;, T, const T &amp; &gt; ByConstRef</div><div class="ttdef"><b>Definition</b> <a href="ByRef_8h_source.html#l00024">ByRef.h:25</a></div></div>
+<div class="ttc" id="anamespacepsr_html_ab1fa2b63d3a5ab4934961480f678afea"><div class="ttname"><a href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">psr::ByConstRef</a></div><div class="ttdeci">std::conditional_t&lt; CanEfficientlyPassByValue&lt; T &gt;, T, const T &amp; &gt; ByConstRef</div><div class="ttdef"><b>Definition</b> <a href="ByRef_8h_source.html#l00026">ByRef.h:27</a></div></div>
 <div class="ttc" id="astructpsr_1_1AllBottom_html"><div class="ttname"><a href="structpsr_1_1AllBottom.html">psr::AllBottom</a></div><div class="ttdef"><b>Definition</b> <a href="EdgeFunctionUtils_8h_source.html#l00119">EdgeFunctionUtils.h:119</a></div></div>
 <div class="ttc" id="astructpsr_1_1ConstantEdgeFunction_html"><div class="ttname"><a href="structpsr_1_1ConstantEdgeFunction.html">psr::ConstantEdgeFunction</a></div><div class="ttdef"><b>Definition</b> <a href="EdgeFunctionUtils_8h_source.html#l00052">EdgeFunctionUtils.h:52</a></div></div>
 <div class="ttc" id="astructpsr_1_1EdgeIdentity_html"><div class="ttname"><a href="structpsr_1_1EdgeIdentity.html">psr::EdgeIdentity</a></div><div class="ttdef"><b>Definition</b> <a href="EdgeFunctionUtils_8h_source.html#l00024">EdgeFunctionUtils.h:24</a></div></div>
@@ -423,7 +429,7 @@ $(document).ready(function() { init_codefold(0); });
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Aug 20 2026 16:52:21 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Aug 27 2026 18:17:23 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

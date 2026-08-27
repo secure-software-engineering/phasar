@@ -1,13 +1,13 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
 <area shape="rect" id="Node000000" href="$classpsr_1_1IFDSProblemWrapper.html" title="A simple wrapper over a pointer to an IFDS problem." alt="" coords="5,101,195,141"/>
 <area shape="rect" id="Node000001" href="$classpsr_1_1IfdsToIdeProblemAdapter.html" title=" " alt="" coords="243,69,532,109"/>
-<area shape="poly" id="edge232_Node000000_Node000001" title=" " alt="" coords="208,107,242,103,243,108,209,112"/>
+<area shape="poly" id="edge233_Node000000_Node000001" title=" " alt="" coords="208,107,242,103,243,108,209,112"/>
 <area shape="rect" id="Node000004" href="$classpsr_1_1IDEProblemWrapper.html" title="A simple wrapper over a pointer to an IFDS/IDE problem." alt="" coords="297,133,478,173"/>
-<area shape="poly" id="edge235_Node000000_Node000004" title=" " alt="" coords="209,131,297,141,296,146,208,136"/>
+<area shape="poly" id="edge236_Node000000_Node000004" title=" " alt="" coords="209,131,297,141,296,146,208,136"/>
 <area shape="rect" id="Node000002" href="$classpsr_1_1IfdsIdeProblemWrapper.html" title=" " alt="" coords="580,5,783,45"/>
-<area shape="poly" id="edge233_Node000001_Node000002" title=" " alt="" coords="493,64,588,43,590,48,494,69"/>
+<area shape="poly" id="edge234_Node000001_Node000002" title=" " alt="" coords="493,64,588,43,590,48,494,69"/>
 <area shape="rect" id="Node000003" href="$classpsr_1_1IfdsIdeProblemWrapper.html" title=" " alt="" coords="580,69,783,109"/>
-<area shape="poly" id="edge234_Node000001_Node000003" title=" " alt="" coords="546,87,580,87,580,92,546,92"/>
+<area shape="poly" id="edge235_Node000001_Node000003" title=" " alt="" coords="546,87,580,87,580,92,546,92"/>
 <area shape="rect" id="Node000005" href="$classpsr_1_1IfdsIdeProblemWrapper_3_01ProblemTy_01_4.html" title=" " alt="" coords="580,133,783,173"/>
-<area shape="poly" id="edge236_Node000004_Node000005" title=" " alt="" coords="491,151,580,151,580,156,491,156"/>
+<area shape="poly" id="edge237_Node000004_Node000005" title=" " alt="" coords="491,151,580,151,580,156,491,156"/>
 </map>

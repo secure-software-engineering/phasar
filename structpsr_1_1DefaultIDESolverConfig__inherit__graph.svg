@@ -22,8 +22,8 @@
 <g id="Node000002" class="node">
 <title>Node2</title>
 <g id="a_Node000002"><a xlink:href="structpsr_1_1WithComputeValues.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#666666" points="123.5,-85 28.5,-85 28.5,-66 123.5,-66 123.5,-85"/>
-<text text-anchor="middle" x="76" y="-73" font-family="Helvetica,sans-Serif" font-size="10.00">IDESolverConfig</text>
+<polygon fill="white" stroke="#666666" points="126.5,-85 25.5,-85 25.5,-66 126.5,-66 126.5,-85"/>
+<text text-anchor="middle" x="76" y="-73" font-family="Helvetica,sans-Serif" font-size="10.00">IFDSSolverConfig</text>
 </a>
 </g>
 </g>

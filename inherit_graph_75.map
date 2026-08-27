@@ -1,3 +1,9 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$classpsr_1_1AnalysisPropertiesMixin.html" title=" " alt="" coords="5,5,212,45"/>
+<area shape="rect" id="Node000000" href="$classpsr_1_1AnalysisPropertiesMixin.html" title=" " alt="" coords="5,5,220,45"/>
+<area shape="rect" id="Node000001" href="$classpsr_1_1CachedLLVMAliasIterator.html" title="A wrapper over a LLVMAliasIteratorRef that adds caching to make it conform to the LLVMAliasInfoRef in..." alt="" coords="269,13,481,38"/>
+<area shape="poly" id="edge97_Node000000_Node000001" title=" " alt="" coords="234,23,269,23,269,28,234,28"/>
+<area shape="rect" id="Node000002" href="$classpsr_1_1FilteredLLVMAliasSet.html" title=" " alt="" coords="529,38,716,63"/>
+<area shape="poly" id="edge98_Node000001_Node000002" title=" " alt="" coords="494,35,530,39,529,44,494,40"/>
+<area shape="rect" id="Node000003" href="$classpsr_1_1FilteredLLVMAliasIterator.html" title=" " alt="" coords="268,62,481,87"/>
+<area shape="poly" id="edge99_Node000003_Node000002" title=" " alt="" coords="495,60,529,57,529,62,495,66"/>
 </map>

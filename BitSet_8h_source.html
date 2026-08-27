@@ -103,382 +103,409 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#define PHASAR_UTILS_BITSET_H</span></div>
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span> </div>
 <div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="preprocessor">#include &quot;<a class="code" href="TypeTraits_8h.html">phasar/Utils/TypeTraits.h</a>&quot;</span></div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span> </div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="preprocessor">#include &quot;llvm/ADT/STLExtras.h&quot;</span></div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span><span class="preprocessor">#include &quot;llvm/ADT/SmallBitVector.h&quot;</span></div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span> </div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="preprocessor">#include &lt;bit&gt;</span></div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="preprocessor">#include &lt;climits&gt;</span></div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="preprocessor">#include &lt;concepts&gt;</span></div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="preprocessor">#include &lt;cstddef&gt;</span></div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="preprocessor">#include &lt;cstdint&gt;</span></div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#include &lt;functional&gt;</span></div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="preprocessor">#include &lt;iterator&gt;</span></div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="preprocessor">#include &lt;optional&gt;</span></div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="preprocessor">#include &lt;type_traits&gt;</span></div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span> </div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespacepsr.html">psr</a> {</div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="comment"></span> </div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span><span class="comment">/// \brief A set-type that can compactly store sets of sequential integer-like</span></div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span><span class="comment">/// types.</span></div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span><span class="comment">///</span></div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span><span class="comment">/// Use this type for sequential (unsigned) integers and ids that can convert</span></div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span><span class="comment">/// from and to uint32_t.</span></div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span><span class="comment">///</span></div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span><span class="comment">/// \tparam IdT The type of elements to store in this set. Must be losslessly</span></div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span><span class="comment">/// convertible from and to uint32_t.</span></div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span><span class="comment">/// \tparam BitVectorTy The underlying bit-vector to use. Must be either</span></div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span><span class="comment">/// llvm::BitVector or llvm::SmallBitVector.</span></div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span><span class="comment"></span><span class="keyword">template</span> &lt;SmallIdType IdT, <span class="keyword">typename</span> BitVectorTy = llvm::BitVector&gt;</div>
-<div class="foldopen" id="foldopen00041" data-start="{" data-end="};">
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html">   41</a></span><span class="keyword">class </span><a class="code hl_class" href="classpsr_1_1BitSet.html">BitSet</a> {</div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>  <span class="keyword">static</span> llvm::ArrayRef&lt;uintptr_t&gt; getWords(<span class="keyword">const</span> llvm::BitVector &amp;BV,</div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>                                            uintptr_t &amp; <span class="comment">/*Store*/</span>) {</div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>    <span class="comment">// getData() accesses Bits[0] unconditionally; guard against empty vector.</span></div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>    <span class="keywordflow">if</span> (BV.empty()) {</div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>      <span class="keywordflow">return</span> {};</div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>    }</div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>    <span class="keywordflow">return</span> BV.getData();</div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>  }</div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>  <span class="keyword">static</span> llvm::ArrayRef&lt;uintptr_t&gt; getWords(<span class="keyword">const</span> llvm::SmallBitVector &amp;BV,</div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>                                            uintptr_t &amp;Store) {</div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>    <span class="keywordflow">if</span> (BV.empty()) {</div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>      <span class="keywordflow">return</span> {};</div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>    }</div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>    <span class="keywordflow">return</span> BV.getData(Store);</div>
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>  }</div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span> </div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span><span class="keyword">public</span>:<span class="comment"></span></div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span><span class="comment">  /// Wraps BitVectorTy::const_set_bits_iterator, as LLVM&#39;s bitset iterators</span></div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span><span class="comment">  /// unfortunately do not conform to the named requirement of an iterator</span></div>
-<div class="foldopen" id="foldopen00061" data-start="{" data-end="};">
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet_1_1Iterator.html">   61</a></span><span class="comment"></span>  <span class="keyword">class </span><a class="code hl_class" href="classpsr_1_1BitSet_1_1Iterator.html">Iterator</a> {</div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>  <span class="keyword">public</span>:</div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet_1_1Iterator.html#a644879ea56ba4c59c78b535c49d90736">   63</a></span>    <span class="keyword">using </span><a class="code hl_typedef" href="classpsr_1_1BitSet_1_1Iterator.html#a644879ea56ba4c59c78b535c49d90736">value_type</a> = IdT;</div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet_1_1Iterator.html#a04c096bf2a67e2293b1425e6f3e2129b">   64</a></span>    <span class="keyword">using </span><a class="code hl_typedef" href="classpsr_1_1BitSet_1_1Iterator.html#a04c096bf2a67e2293b1425e6f3e2129b">reference</a> = IdT;</div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet_1_1Iterator.html#af6ff272b173b8b46f13d3258ef2979fb">   65</a></span>    <span class="keyword">using </span><a class="code hl_typedef" href="classpsr_1_1BitSet_1_1Iterator.html#af6ff272b173b8b46f13d3258ef2979fb">pointer</a> = <span class="keyword">const</span> IdT *;</div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet_1_1Iterator.html#aecb9726446ab0f8fc22f183c7836fcdc">   66</a></span>    <span class="keyword">using </span><a class="code hl_typedef" href="classpsr_1_1BitSet_1_1Iterator.html#aecb9726446ab0f8fc22f183c7836fcdc">difference_type</a> = ptrdiff_t;</div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet_1_1Iterator.html#adb94763b7bb4fc75059023fccab8a487">   67</a></span>    <span class="keyword">using </span><a class="code hl_typedef" href="classpsr_1_1BitSet_1_1Iterator.html#adb94763b7bb4fc75059023fccab8a487">iterator_category</a> = std::forward_iterator_tag;</div>
-<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span> </div>
-<div class="foldopen" id="foldopen00069" data-start="{" data-end="}">
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet_1_1Iterator.html#a38d3d68d7b2f306b87dba4ddf06a22a0">   69</a></span>    <a class="code hl_function" href="classpsr_1_1BitSet_1_1Iterator.html#a38d3d68d7b2f306b87dba4ddf06a22a0">Iterator</a>(<span class="keyword">typename</span> BitVectorTy::const_set_bits_iterator It) noexcept</div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>        : It(It) {}</div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="preprocessor">#include &quot;<a class="code" href="Utilities_8h.html">phasar/Utils/Utilities.h</a>&quot;</span></div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span> </div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span><span class="preprocessor">#include &quot;llvm/ADT/STLExtras.h&quot;</span></div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="preprocessor">#include &quot;llvm/ADT/SmallBitVector.h&quot;</span></div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span> </div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="preprocessor">#include &lt;bit&gt;</span></div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="preprocessor">#include &lt;climits&gt;</span></div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="preprocessor">#include &lt;concepts&gt;</span></div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="preprocessor">#include &lt;cstddef&gt;</span></div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#include &lt;cstdint&gt;</span></div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="preprocessor">#include &lt;functional&gt;</span></div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="preprocessor">#include &lt;iterator&gt;</span></div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="preprocessor">#include &lt;optional&gt;</span></div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span><span class="preprocessor">#include &lt;type_traits&gt;</span></div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span><span class="preprocessor">#include &lt;utility&gt;</span></div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span> </div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespacepsr.html">psr</a> {</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span><span class="comment"></span> </div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span><span class="comment">/// \brief A set-type that can compactly store sets of sequential integer-like</span></div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span><span class="comment">/// types.</span></div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span><span class="comment">///</span></div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span><span class="comment">/// Use this type for sequential (unsigned) integers and ids that can convert</span></div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span><span class="comment">/// from and to uint32_t.</span></div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span><span class="comment">///</span></div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span><span class="comment">/// \tparam IdT The type of elements to store in this set. Must be losslessly</span></div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span><span class="comment">/// convertible from and to uint32_t.</span></div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span><span class="comment">/// \tparam BitVectorTy The underlying bit-vector to use. Must be either</span></div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span><span class="comment">/// llvm::BitVector or llvm::SmallBitVector.</span></div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span><span class="comment"></span><span class="keyword">template</span> &lt;SmallIdType IdT, <span class="keyword">typename</span> BitVectorTy = llvm::BitVector&gt;</div>
+<div class="foldopen" id="foldopen00043" data-start="{" data-end="};">
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html">   43</a></span><span class="keyword">class </span><a class="code hl_class" href="classpsr_1_1BitSet.html">BitSet</a> {</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>  <span class="keyword">static</span> llvm::ArrayRef&lt;uintptr_t&gt; getWords(<span class="keyword">const</span> llvm::BitVector &amp;BV,</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>                                            uintptr_t &amp; <span class="comment">/*Store*/</span>) {</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>    <span class="comment">// getData() accesses Bits[0] unconditionally; guard against empty vector.</span></div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>    <span class="keywordflow">if</span> (BV.empty()) {</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>      <span class="keywordflow">return</span> {};</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>    }</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>    <span class="keywordflow">return</span> BV.getData();</div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>  }</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>  <span class="keyword">static</span> llvm::ArrayRef&lt;uintptr_t&gt; getWords(<span class="keyword">const</span> llvm::SmallBitVector &amp;BV,</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>                                            uintptr_t &amp;Store) {</div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>    <span class="keywordflow">if</span> (BV.empty()) {</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>      <span class="keywordflow">return</span> {};</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>    }</div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>    <span class="keywordflow">return</span> BV.getData(Store);</div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>  }</div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span> </div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span><span class="keyword">public</span>:<span class="comment"></span></div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span><span class="comment">  /// Wraps BitVectorTy::const_set_bits_iterator, as LLVM&#39;s bitset iterators</span></div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span><span class="comment">  /// unfortunately do not conform to the named requirement of an iterator</span></div>
+<div class="foldopen" id="foldopen00063" data-start="{" data-end="};">
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet_1_1Iterator.html">   63</a></span><span class="comment"></span>  <span class="keyword">class </span><a class="code hl_class" href="classpsr_1_1BitSet_1_1Iterator.html">Iterator</a> {</div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>  <span class="keyword">public</span>:</div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet_1_1Iterator.html#a644879ea56ba4c59c78b535c49d90736">   65</a></span>    <span class="keyword">using </span><a class="code hl_typedef" href="classpsr_1_1BitSet_1_1Iterator.html#a644879ea56ba4c59c78b535c49d90736">value_type</a> = IdT;</div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet_1_1Iterator.html#a04c096bf2a67e2293b1425e6f3e2129b">   66</a></span>    <span class="keyword">using </span><a class="code hl_typedef" href="classpsr_1_1BitSet_1_1Iterator.html#a04c096bf2a67e2293b1425e6f3e2129b">reference</a> = IdT;</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet_1_1Iterator.html#af6ff272b173b8b46f13d3258ef2979fb">   67</a></span>    <span class="keyword">using </span><a class="code hl_typedef" href="classpsr_1_1BitSet_1_1Iterator.html#af6ff272b173b8b46f13d3258ef2979fb">pointer</a> = <span class="keyword">const</span> IdT *;</div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet_1_1Iterator.html#aecb9726446ab0f8fc22f183c7836fcdc">   68</a></span>    <span class="keyword">using </span><a class="code hl_typedef" href="classpsr_1_1BitSet_1_1Iterator.html#aecb9726446ab0f8fc22f183c7836fcdc">difference_type</a> = ptrdiff_t;</div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet_1_1Iterator.html#adb94763b7bb4fc75059023fccab8a487">   69</a></span>    <span class="keyword">using </span><a class="code hl_typedef" href="classpsr_1_1BitSet_1_1Iterator.html#adb94763b7bb4fc75059023fccab8a487">iterator_category</a> = std::forward_iterator_tag;</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span> </div>
+<div class="foldopen" id="foldopen00071" data-start="{" data-end="}">
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet_1_1Iterator.html#a38d3d68d7b2f306b87dba4ddf06a22a0">   71</a></span>    <a class="code hl_function" href="classpsr_1_1BitSet_1_1Iterator.html#a38d3d68d7b2f306b87dba4ddf06a22a0">Iterator</a>(<span class="keyword">typename</span> BitVectorTy::const_set_bits_iterator It) noexcept</div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>        : It(It) {}</div>
 </div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span> </div>
-<div class="foldopen" id="foldopen00072" data-start="{" data-end="}">
-<div class="line"><a id="l00072" name="l00072"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet_1_1Iterator.html#a564767c3becb6785a4e1c5abe5127c3a">   72</a></span>    <a class="code hl_class" href="classpsr_1_1BitSet_1_1Iterator.html">Iterator</a> &amp;<a class="code hl_function" href="classpsr_1_1BitSet_1_1Iterator.html#a564767c3becb6785a4e1c5abe5127c3a">operator++</a>() noexcept {</div>
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>      ++It;</div>
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>      <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>    }</div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span> </div>
+<div class="foldopen" id="foldopen00074" data-start="{" data-end="}">
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet_1_1Iterator.html#a564767c3becb6785a4e1c5abe5127c3a">   74</a></span>    <a class="code hl_class" href="classpsr_1_1BitSet_1_1Iterator.html">Iterator</a> &amp;<a class="code hl_function" href="classpsr_1_1BitSet_1_1Iterator.html#a564767c3becb6785a4e1c5abe5127c3a">operator++</a>() noexcept {</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>      ++It;</div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>      <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>    }</div>
 </div>
-<div class="foldopen" id="foldopen00076" data-start="{" data-end="}">
-<div class="line"><a id="l00076" name="l00076"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet_1_1Iterator.html#ad45f11b5e3cae8ccf09efe3c6c2c64a0">   76</a></span>    <a class="code hl_class" href="classpsr_1_1BitSet_1_1Iterator.html">Iterator</a> <a class="code hl_function" href="classpsr_1_1BitSet_1_1Iterator.html#ad45f11b5e3cae8ccf09efe3c6c2c64a0">operator++</a>(<span class="keywordtype">int</span>) <span class="keyword">noexcept</span> {</div>
-<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>      <span class="keyword">auto</span> <a class="code hl_enumvalue" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">Ret</a> = *<span class="keyword">this</span>;</div>
-<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>      ++*<span class="keyword">this</span>;</div>
-<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>      <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">Ret</a>;</div>
-<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>    }</div>
+<div class="foldopen" id="foldopen00078" data-start="{" data-end="}">
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet_1_1Iterator.html#ad45f11b5e3cae8ccf09efe3c6c2c64a0">   78</a></span>    <a class="code hl_class" href="classpsr_1_1BitSet_1_1Iterator.html">Iterator</a> <a class="code hl_function" href="classpsr_1_1BitSet_1_1Iterator.html#ad45f11b5e3cae8ccf09efe3c6c2c64a0">operator++</a>(<span class="keywordtype">int</span>) <span class="keyword">noexcept</span> {</div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>      <span class="keyword">auto</span> <a class="code hl_enumvalue" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">Ret</a> = *<span class="keyword">this</span>;</div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>      ++*<span class="keyword">this</span>;</div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>      <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">Ret</a>;</div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>    }</div>
 </div>
-<div class="line"><a id="l00081" name="l00081"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet_1_1Iterator.html#a51e1a152d92e80f10a10ed15831b3f9c">   81</a></span>    <a class="code hl_typedef" href="classpsr_1_1BitSet_1_1Iterator.html#a04c096bf2a67e2293b1425e6f3e2129b">reference</a> <a class="code hl_function" href="classpsr_1_1BitSet_1_1Iterator.html#a51e1a152d92e80f10a10ed15831b3f9c">operator*</a>() const noexcept { <span class="keywordflow">return</span> IdT(*It); }</div>
-<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span> </div>
-<div class="foldopen" id="foldopen00083" data-start="{" data-end="}">
-<div class="line"><a id="l00083" name="l00083"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet_1_1Iterator.html#a8ec063e17494510611eb9c420da93604">   83</a></span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="classpsr_1_1BitSet_1_1Iterator.html#a8ec063e17494510611eb9c420da93604">operator==</a>(<span class="keyword">const</span> <a class="code hl_class" href="classpsr_1_1BitSet_1_1Iterator.html">Iterator</a> &amp;Other) <span class="keyword">const</span> <span class="keyword">noexcept</span> {</div>
-<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>      <span class="keywordflow">return</span> It == Other.It;</div>
-<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>    }</div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet_1_1Iterator.html#a51e1a152d92e80f10a10ed15831b3f9c">   83</a></span>    <a class="code hl_typedef" href="classpsr_1_1BitSet_1_1Iterator.html#a04c096bf2a67e2293b1425e6f3e2129b">reference</a> <a class="code hl_function" href="classpsr_1_1BitSet_1_1Iterator.html#a51e1a152d92e80f10a10ed15831b3f9c">operator*</a>() const noexcept { <span class="keywordflow">return</span> IdT(*It); }</div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span> </div>
+<div class="foldopen" id="foldopen00085" data-start="{" data-end="}">
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet_1_1Iterator.html#a8ec063e17494510611eb9c420da93604">   85</a></span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="classpsr_1_1BitSet_1_1Iterator.html#a8ec063e17494510611eb9c420da93604">operator==</a>(<span class="keyword">const</span> <a class="code hl_class" href="classpsr_1_1BitSet_1_1Iterator.html">Iterator</a> &amp;Other) <span class="keyword">const</span> <span class="keyword">noexcept</span> {</div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>      <span class="keywordflow">return</span> It == Other.It;</div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>    }</div>
 </div>
-<div class="foldopen" id="foldopen00086" data-start="{" data-end="}">
-<div class="line"><a id="l00086" name="l00086"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet_1_1Iterator.html#a0a0542bcbb3e194776aa7d32846797be">   86</a></span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="classpsr_1_1BitSet_1_1Iterator.html#a0a0542bcbb3e194776aa7d32846797be">operator!=</a>(<span class="keyword">const</span> <a class="code hl_class" href="classpsr_1_1BitSet_1_1Iterator.html">Iterator</a> &amp;Other) <span class="keyword">const</span> <span class="keyword">noexcept</span> {</div>
-<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>      <span class="keywordflow">return</span> !(*<span class="keyword">this</span> == Other);</div>
-<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>    }</div>
+<div class="foldopen" id="foldopen00088" data-start="{" data-end="}">
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet_1_1Iterator.html#a0a0542bcbb3e194776aa7d32846797be">   88</a></span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="classpsr_1_1BitSet_1_1Iterator.html#a0a0542bcbb3e194776aa7d32846797be">operator!=</a>(<span class="keyword">const</span> <a class="code hl_class" href="classpsr_1_1BitSet_1_1Iterator.html">Iterator</a> &amp;Other) <span class="keyword">const</span> <span class="keyword">noexcept</span> {</div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>      <span class="keywordflow">return</span> !(*<span class="keyword">this</span> == Other);</div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>    }</div>
 </div>
-<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span> </div>
-<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>  <span class="keyword">private</span>:</div>
-<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>    <span class="keyword">typename</span> BitVectorTy::const_set_bits_iterator It;</div>
-<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>  };</div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span> </div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>  <span class="keyword">private</span>:</div>
+<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>    <span class="keyword">typename</span> BitVectorTy::const_set_bits_iterator It;</div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>  };</div>
 </div>
-<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span> </div>
-<div class="line"><a id="l00094" name="l00094"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#a952cf4cc50d06046f9d936e0ffeed715">   94</a></span>  <span class="keyword">using </span><a class="code hl_class" href="classpsr_1_1BitSet_1_1Iterator.html">iterator</a> = <a class="code hl_class" href="classpsr_1_1BitSet_1_1Iterator.html">Iterator</a>;</div>
-<div class="line"><a id="l00095" name="l00095"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#ab4204de9f84afe9bd46f3d5cd6c3238c">   95</a></span>  <span class="keyword">using </span><a class="code hl_typedef" href="classpsr_1_1BitSet.html#ab4204de9f84afe9bd46f3d5cd6c3238c">value_type</a> = IdT;</div>
-<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span> </div>
-<div class="line"><a id="l00097" name="l00097"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#a77b251a5684e91ef9c0ce765dad410ac">   97</a></span>  <a class="code hl_function" href="classpsr_1_1BitSet.html#a77b251a5684e91ef9c0ce765dad410ac">BitSet</a>() noexcept = default;</div>
-<div class="line"><a id="l00098" name="l00098"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#a6bee06934c82d2d8fcb33c6081480ecb">   98</a></span>  explicit <a class="code hl_class" href="classpsr_1_1BitSet.html">BitSet</a>(<span class="keywordtype">size_t</span> InitialCapacity) : Bits(InitialCapacity) {}</div>
-<div class="foldopen" id="foldopen00099" data-start="{" data-end="}">
-<div class="line"><a id="l00099" name="l00099"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#ad841023a016fdac85a7517c6b52e3525">   99</a></span>  <span class="keyword">explicit</span> <a class="code hl_function" href="classpsr_1_1BitSet.html#ad841023a016fdac85a7517c6b52e3525">BitSet</a>(<span class="keywordtype">size_t</span> InitialCapacity, <span class="keywordtype">bool</span> InitialValue)</div>
-<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>      : Bits(InitialCapacity, InitialValue) {}</div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span> </div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#a952cf4cc50d06046f9d936e0ffeed715">   96</a></span>  <span class="keyword">using </span><a class="code hl_class" href="classpsr_1_1BitSet_1_1Iterator.html">iterator</a> = <a class="code hl_class" href="classpsr_1_1BitSet_1_1Iterator.html">Iterator</a>;</div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#ab4204de9f84afe9bd46f3d5cd6c3238c">   97</a></span>  <span class="keyword">using </span><a class="code hl_typedef" href="classpsr_1_1BitSet.html#ab4204de9f84afe9bd46f3d5cd6c3238c">value_type</a> = IdT;</div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span> </div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#a77b251a5684e91ef9c0ce765dad410ac">   99</a></span>  <a class="code hl_function" href="classpsr_1_1BitSet.html#a77b251a5684e91ef9c0ce765dad410ac">BitSet</a>() noexcept = default;</div>
+<div class="line"><a id="l00100" name="l00100"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#a6bee06934c82d2d8fcb33c6081480ecb">  100</a></span>  explicit <a class="code hl_class" href="classpsr_1_1BitSet.html">BitSet</a>(<span class="keywordtype">size_t</span> InitialCapacity) : Bits(InitialCapacity) {}</div>
+<div class="foldopen" id="foldopen00101" data-start="{" data-end="}">
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#ad841023a016fdac85a7517c6b52e3525">  101</a></span>  <span class="keyword">explicit</span> <a class="code hl_function" href="classpsr_1_1BitSet.html#ad841023a016fdac85a7517c6b52e3525">BitSet</a>(<span class="keywordtype">size_t</span> InitialCapacity, <span class="keywordtype">bool</span> InitialValue)</div>
+<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>      : Bits(InitialCapacity, InitialValue) {}</div>
 </div>
-<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span> </div>
-<div class="foldopen" id="foldopen00102" data-start="{" data-end="}">
-<div class="line"><a id="l00102" name="l00102"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#a2bca1bbd666592222dd77d33e8bf51b0">  102</a></span>  <span class="keywordtype">void</span> <a class="code hl_function" href="classpsr_1_1BitSet.html#a2bca1bbd666592222dd77d33e8bf51b0">reserve</a>(<span class="keywordtype">size_t</span> Cap) {</div>
-<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>    <span class="keywordflow">if</span> (Bits.size() &lt; Cap) {</div>
-<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>      Bits.resize(Cap);</div>
-<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>    }</div>
-<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>  }</div>
+<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span> </div>
+<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>  <span class="comment">// Moved-from llvm::BitVector is not empty. ValueIdMap requires this in its</span></div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>  <span class="comment">// dtor.</span></div>
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#a572c9d535217f304a9cd70e91db40fea">  106</a></span>  <a class="code hl_function" href="classpsr_1_1BitSet.html#a572c9d535217f304a9cd70e91db40fea">BitSet</a>(<a class="code hl_class" href="classpsr_1_1BitSet.html">BitSet</a> &amp;&amp;Other) noexcept : Bits(std::exchange(Other.Bits, {})) {}</div>
+<div class="foldopen" id="foldopen00107" data-start="{" data-end="}">
+<div class="line"><a id="l00107" name="l00107"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#a779e3cc1d96aef55ae8e9d9d9440e51f">  107</a></span>  <a class="code hl_class" href="classpsr_1_1BitSet.html">BitSet</a> &amp;<a class="code hl_function" href="classpsr_1_1BitSet.html#a779e3cc1d96aef55ae8e9d9d9440e51f">operator=</a>(<a class="code hl_class" href="classpsr_1_1BitSet.html">BitSet</a> &amp;&amp;Other) <span class="keyword">noexcept</span> {</div>
+<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>    std::swap(Bits, Other.Bits);</div>
+<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>    <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
+<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>  }</div>
 </div>
-<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span> </div>
-<div class="foldopen" id="foldopen00108" data-start="{" data-end="}">
-<div class="line"><a id="l00108" name="l00108"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#a47d9b1e5376152804532dfdf39087c5c">  108</a></span>  [[nodiscard]] <span class="keywordtype">bool</span> <a class="code hl_function" href="classpsr_1_1BitSet.html#a47d9b1e5376152804532dfdf39087c5c">contains</a>(IdT Id) <span class="keyword">const</span> <span class="keyword">noexcept</span> {</div>
-<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>    <span class="keyword">auto</span> Index = uint32_t(Id);</div>
-<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>    <span class="keywordflow">return</span> Bits.size() &gt; Index &amp;&amp; Bits.test(Index);</div>
-<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>  }</div>
+<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span> </div>
+<div class="line"><a id="l00112" name="l00112"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#a380574843967b59355d5f59ab03224a9">  112</a></span>  <a class="code hl_function" href="classpsr_1_1BitSet.html#a380574843967b59355d5f59ab03224a9">BitSet</a>(<span class="keyword">const</span> <a class="code hl_class" href="classpsr_1_1BitSet.html">BitSet</a> &amp;) = <span class="keywordflow">default</span>;</div>
+<div class="line"><a id="l00113" name="l00113"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#a0a58b0be7dd48bcdd71e0fa17e6098a4">  113</a></span>  <a class="code hl_class" href="classpsr_1_1BitSet.html">BitSet</a> &amp;<a class="code hl_function" href="classpsr_1_1BitSet.html#a0a58b0be7dd48bcdd71e0fa17e6098a4">operator=</a>(<span class="keyword">const</span> <a class="code hl_class" href="classpsr_1_1BitSet.html">BitSet</a> &amp;) = <span class="keywordflow">default</span>;</div>
+<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span> </div>
+<div class="line"><a id="l00115" name="l00115"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#a232c00ee0fa1a3a8ee9cebd05e2d69d7">  115</a></span>  <a class="code hl_function" href="classpsr_1_1BitSet.html#a232c00ee0fa1a3a8ee9cebd05e2d69d7">~BitSet</a>() = <span class="keywordflow">default</span>;</div>
+<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span> </div>
+<div class="foldopen" id="foldopen00117" data-start="{" data-end="}">
+<div class="line"><a id="l00117" name="l00117"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#a2bca1bbd666592222dd77d33e8bf51b0">  117</a></span>  <span class="keywordtype">void</span> <a class="code hl_function" href="classpsr_1_1BitSet.html#a2bca1bbd666592222dd77d33e8bf51b0">reserve</a>(<span class="keywordtype">size_t</span> Cap) {</div>
+<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>    <span class="keywordflow">if</span> (Bits.size() &lt; Cap) {</div>
+<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>      Bits.resize(Cap);</div>
+<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>    }</div>
+<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>  }</div>
 </div>
-<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span> </div>
-<div class="foldopen" id="foldopen00113" data-start="{" data-end="}">
-<div class="line"><a id="l00113" name="l00113"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#a40dff093c4bc2a7ff9a4fabdc3166db6">  113</a></span>  <span class="keywordtype">void</span> <a class="code hl_function" href="classpsr_1_1BitSet.html#a40dff093c4bc2a7ff9a4fabdc3166db6">insert</a>(IdT Id) {</div>
-<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>    <span class="keyword">auto</span> Index = uint32_t(Id);</div>
-<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>    <span class="keywordflow">if</span> (Bits.size() &lt;= Index) {</div>
-<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>      Bits.resize(Index + 1);</div>
-<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>    }</div>
-<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span> </div>
-<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>    Bits.set(Index);</div>
-<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>  }</div>
-</div>
-<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span><span class="comment"></span> </div>
-<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span><span class="comment">  /// Same as insert(), but returns, whether the set was changed.</span></div>
+<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span> </div>
 <div class="foldopen" id="foldopen00123" data-start="{" data-end="}">
-<div class="line"><a id="l00123" name="l00123"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#adc7e18f756a02f2265664e6704de3a9c">  123</a></span><span class="comment"></span>  [[nodiscard]] <span class="keywordtype">bool</span> <a class="code hl_function" href="classpsr_1_1BitSet.html#adc7e18f756a02f2265664e6704de3a9c">tryInsert</a>(IdT Id) {</div>
+<div class="line"><a id="l00123" name="l00123"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#a47d9b1e5376152804532dfdf39087c5c">  123</a></span>  [[nodiscard]] <span class="keywordtype">bool</span> <a class="code hl_function" href="classpsr_1_1BitSet.html#a47d9b1e5376152804532dfdf39087c5c">contains</a>(IdT Id) <span class="keyword">const</span> <span class="keyword">noexcept</span> {</div>
 <div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>    <span class="keyword">auto</span> Index = uint32_t(Id);</div>
-<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>    <span class="keywordflow">if</span> (Bits.size() &lt;= Index) {</div>
-<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>      Bits.resize(Index + 1);</div>
-<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>    }</div>
-<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span> </div>
-<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>    <span class="keywordtype">bool</span> <a class="code hl_enumvalue" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">Ret</a> = !Bits.test(Index);</div>
-<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>    Bits.set(Index);</div>
-<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>    <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">Ret</a>;</div>
-<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>  }</div>
+<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>    <span class="keywordflow">return</span> Bits.size() &gt; Index &amp;&amp; Bits.test(Index);</div>
+<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>  }</div>
 </div>
+<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span> </div>
+<div class="foldopen" id="foldopen00128" data-start="{" data-end="}">
+<div class="line"><a id="l00128" name="l00128"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#a40dff093c4bc2a7ff9a4fabdc3166db6">  128</a></span>  <span class="keywordtype">void</span> <a class="code hl_function" href="classpsr_1_1BitSet.html#a40dff093c4bc2a7ff9a4fabdc3166db6">insert</a>(IdT Id) {</div>
+<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>    <span class="keyword">auto</span> Index = uint32_t(Id);</div>
+<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>    <span class="keywordflow">if</span> (Bits.size() &lt;= Index) {</div>
+<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>      Bits.resize(Index + 1);</div>
+<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>    }</div>
 <div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span> </div>
-<div class="foldopen" id="foldopen00134" data-start="{" data-end="}">
-<div class="line"><a id="l00134" name="l00134"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#af06e051bc7c2ae4f2046f41ed1001257">  134</a></span>  <span class="keywordtype">void</span> <a class="code hl_function" href="classpsr_1_1BitSet.html#af06e051bc7c2ae4f2046f41ed1001257">erase</a>(IdT Id) <span class="keyword">noexcept</span> {</div>
-<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>    <span class="keywordflow">if</span> (Bits.size() &gt; <span class="keywordtype">size_t</span>(Id)) {</div>
-<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>      Bits.reset(uint32_t(Id));</div>
-<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span>    }</div>
-<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>  }<span class="comment"></span></div>
+<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>    Bits.set(Index);</div>
+<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>  }</div>
 </div>
-<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span><span class="comment">  /// Same as erase(), but returns, whether the set was changed.</span></div>
-<div class="foldopen" id="foldopen00140" data-start="{" data-end="}">
-<div class="line"><a id="l00140" name="l00140"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#a6fe981d587790aa4c15581b1eae61aab">  140</a></span><span class="comment"></span>  [[nodiscard]] <span class="keywordtype">bool</span> <a class="code hl_function" href="classpsr_1_1BitSet.html#a6fe981d587790aa4c15581b1eae61aab">tryErase</a>(IdT Id) <span class="keyword">noexcept</span> {</div>
-<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span>    <span class="keywordflow">if</span> (<a class="code hl_function" href="classpsr_1_1BitSet.html#a47d9b1e5376152804532dfdf39087c5c">contains</a>(Id)) {</div>
-<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span>      <span class="keywordflow">return</span> Bits.reset(uint32_t(Id)), <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span>    }</div>
-<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span> </div>
-<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>    <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>  }</div>
+<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span><span class="comment"></span> </div>
+<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span><span class="comment">  /// Same as insert(), but returns, whether the set was changed.</span></div>
+<div class="foldopen" id="foldopen00138" data-start="{" data-end="}">
+<div class="line"><a id="l00138" name="l00138"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#adc7e18f756a02f2265664e6704de3a9c">  138</a></span><span class="comment"></span>  [[nodiscard]] <span class="keywordtype">bool</span> <a class="code hl_function" href="classpsr_1_1BitSet.html#adc7e18f756a02f2265664e6704de3a9c">tryInsert</a>(IdT Id) {</div>
+<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>    <span class="keyword">auto</span> Index = uint32_t(Id);</div>
+<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span>    <span class="keywordflow">if</span> (Bits.size() &lt;= Index) {</div>
+<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span>      Bits.resize(Index + 1);</div>
+<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span>    }</div>
+<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span> </div>
+<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span>    <span class="keywordtype">bool</span> <a class="code hl_enumvalue" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">Ret</a> = !Bits.test(Index);</div>
+<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>    Bits.set(Index);</div>
+<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>    <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">Ret</a>;</div>
+<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>  }</div>
 </div>
-<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span> </div>
-<div class="line"><a id="l00148" name="l00148"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#a94e5843e16ca38c8e5f6c1f5c2ff6d06">  148</a></span>  <span class="keywordtype">void</span> <a class="code hl_function" href="classpsr_1_1BitSet.html#a94e5843e16ca38c8e5f6c1f5c2ff6d06">mergeWith</a>(<span class="keyword">const</span> <a class="code hl_class" href="classpsr_1_1BitSet.html">BitSet</a> &amp;Other) { Bits |= Other.Bits; }</div>
-<div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span><span class="comment"></span> </div>
-<div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span><span class="comment">  /// Same as mergeWith(), but returns, whether the set was changed.</span></div>
-<div class="foldopen" id="foldopen00151" data-start="{" data-end="}">
-<div class="line"><a id="l00151" name="l00151"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#a549505df76f401d5371ed7e890d0663a">  151</a></span><span class="comment"></span>  <span class="keywordtype">bool</span> <a class="code hl_function" href="classpsr_1_1BitSet.html#a549505df76f401d5371ed7e890d0663a">tryMergeWith</a>(<span class="keyword">const</span> <a class="code hl_class" href="classpsr_1_1BitSet.html">BitSet</a> &amp;Other) {<span class="comment"></span></div>
-<div class="line"><a id="l00152" name="l00152"></a><span class="lineno">  152</span><span class="comment">    /// TODO: Make this more efficient</span></div>
-<div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span><span class="comment"></span>    <span class="keywordflow">return</span> <a class="code hl_function" href="classpsr_1_1BitSet.html#abdeb3f6349768af8af1c6a62f50fcf67">isSupersetOf</a>(Other) ? false : (<a class="code hl_function" href="classpsr_1_1BitSet.html#a94e5843e16ca38c8e5f6c1f5c2ff6d06">mergeWith</a>(Other), <span class="keyword">true</span>);</div>
-<div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span>  }</div>
+<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span> </div>
+<div class="foldopen" id="foldopen00149" data-start="{" data-end="}">
+<div class="line"><a id="l00149" name="l00149"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#af06e051bc7c2ae4f2046f41ed1001257">  149</a></span>  <span class="keywordtype">void</span> <a class="code hl_function" href="classpsr_1_1BitSet.html#af06e051bc7c2ae4f2046f41ed1001257">erase</a>(IdT Id) <span class="keyword">noexcept</span> {</div>
+<div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span>    <span class="keywordflow">if</span> (Bits.size() &gt; <span class="keywordtype">size_t</span>(Id)) {</div>
+<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span>      Bits.reset(uint32_t(Id));</div>
+<div class="line"><a id="l00152" name="l00152"></a><span class="lineno">  152</span>    }</div>
+<div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span>  }<span class="comment"></span></div>
 </div>
-<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span> </div>
-<div class="line"><a id="l00156" name="l00156"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#a82284ecda5a04088b4f2bc1b078701dd">  156</a></span>  <span class="keywordtype">void</span> <a class="code hl_function" href="classpsr_1_1BitSet.html#a82284ecda5a04088b4f2bc1b078701dd">clear</a>() noexcept { Bits.reset(); }</div>
-<div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span> </div>
-<div class="foldopen" id="foldopen00158" data-start="{" data-end="};">
-<div class="line"><a id="l00158" name="l00158"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#adec04611b1ea6900eb1da954cf297de6">  158</a></span>  [[nodiscard]] <span class="keyword">friend</span> <span class="keywordtype">bool</span> <a class="code hl_friend" href="classpsr_1_1BitSet.html#adec04611b1ea6900eb1da954cf297de6">operator==</a>(<span class="keyword">const</span> <a class="code hl_class" href="classpsr_1_1BitSet.html">BitSet</a> &amp;Lhs,</div>
-<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span>                                       <span class="keyword">const</span> <a class="code hl_class" href="classpsr_1_1BitSet.html">BitSet</a> &amp;Rhs) <span class="keyword">noexcept</span> {</div>
-<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span>    <span class="comment">// Check, whether Lhs and Rhs actually have the same bits set and not</span></div>
-<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>    <span class="comment">// whether their internal representation is exactly identitcal</span></div>
-<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span>    uintptr_t LhsStore{};</div>
-<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>    uintptr_t RhsStore{};</div>
-<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span> </div>
-<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span>    <span class="keyword">auto</span> LhsWords = getWords(Lhs.Bits, LhsStore);</div>
-<div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span>    <span class="keyword">auto</span> RhsWords = getWords(Rhs.Bits, RhsStore);</div>
-<div class="line"><a id="l00167" name="l00167"></a><span class="lineno">  167</span>    <span class="keywordflow">if</span> (LhsWords.size() == RhsWords.size()) {</div>
-<div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span>      <span class="keywordflow">return</span> LhsWords == RhsWords;</div>
-<div class="line"><a id="l00169" name="l00169"></a><span class="lineno">  169</span>    }</div>
-<div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span>    <span class="keyword">auto</span> MinSize = std::min(LhsWords.size(), RhsWords.size());</div>
-<div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span>    <span class="keywordflow">if</span> (LhsWords.slice(0, MinSize) != RhsWords.slice(0, MinSize)) {</div>
-<div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span>      <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span>    }</div>
-<div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span>    <span class="keyword">auto</span> Rest = (LhsWords.size() &gt; RhsWords.size() ? LhsWords : RhsWords)</div>
-<div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span>                    .slice(MinSize);</div>
-<div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span>    <span class="keywordflow">return</span> std::all_of(Rest.begin(), Rest.end(),</div>
-<div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span>                       [](<span class="keyword">auto</span> Word) { return Word == 0; });</div>
-<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span>  }</div>
+<div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span><span class="comment">  /// Same as erase(), but returns, whether the set was changed.</span></div>
+<div class="foldopen" id="foldopen00155" data-start="{" data-end="}">
+<div class="line"><a id="l00155" name="l00155"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#a6fe981d587790aa4c15581b1eae61aab">  155</a></span><span class="comment"></span>  [[nodiscard]] <span class="keywordtype">bool</span> <a class="code hl_function" href="classpsr_1_1BitSet.html#a6fe981d587790aa4c15581b1eae61aab">tryErase</a>(IdT Id) <span class="keyword">noexcept</span> {</div>
+<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span>    <span class="keywordflow">if</span> (<a class="code hl_function" href="classpsr_1_1BitSet.html#a47d9b1e5376152804532dfdf39087c5c">contains</a>(Id)) {</div>
+<div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span>      <span class="keywordflow">return</span> Bits.reset(uint32_t(Id)), <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>    }</div>
+<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span> </div>
+<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span>    <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>  }</div>
 </div>
+<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span> </div>
+<div class="line"><a id="l00163" name="l00163"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#a94e5843e16ca38c8e5f6c1f5c2ff6d06">  163</a></span>  <span class="keywordtype">void</span> <a class="code hl_function" href="classpsr_1_1BitSet.html#a94e5843e16ca38c8e5f6c1f5c2ff6d06">mergeWith</a>(<span class="keyword">const</span> <a class="code hl_class" href="classpsr_1_1BitSet.html">BitSet</a> &amp;Other) { Bits |= Other.Bits; }</div>
+<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span><span class="comment"></span> </div>
+<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span><span class="comment">  /// Same as mergeWith(), but returns, whether the set was changed.</span></div>
+<div class="foldopen" id="foldopen00166" data-start="{" data-end="}">
+<div class="line"><a id="l00166" name="l00166"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#a549505df76f401d5371ed7e890d0663a">  166</a></span><span class="comment"></span>  <span class="keywordtype">bool</span> <a class="code hl_function" href="classpsr_1_1BitSet.html#a549505df76f401d5371ed7e890d0663a">tryMergeWith</a>(<span class="keyword">const</span> <a class="code hl_class" href="classpsr_1_1BitSet.html">BitSet</a> &amp;Other) {<span class="comment"></span></div>
+<div class="line"><a id="l00167" name="l00167"></a><span class="lineno">  167</span><span class="comment">    /// TODO: Make this more efficient</span></div>
+<div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span><span class="comment"></span>    <span class="keywordflow">return</span> <a class="code hl_function" href="classpsr_1_1BitSet.html#abdeb3f6349768af8af1c6a62f50fcf67">isSupersetOf</a>(Other) ? false : (<a class="code hl_function" href="classpsr_1_1BitSet.html#a94e5843e16ca38c8e5f6c1f5c2ff6d06">mergeWith</a>(Other), <span class="keyword">true</span>);</div>
+<div class="line"><a id="l00169" name="l00169"></a><span class="lineno">  169</span>  }</div>
+</div>
+<div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span> </div>
+<div class="line"><a id="l00171" name="l00171"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#a82284ecda5a04088b4f2bc1b078701dd">  171</a></span>  <span class="keywordtype">void</span> <a class="code hl_function" href="classpsr_1_1BitSet.html#a82284ecda5a04088b4f2bc1b078701dd">clear</a>() noexcept { Bits.reset(); }</div>
+<div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span> </div>
+<div class="foldopen" id="foldopen00173" data-start="{" data-end="};">
+<div class="line"><a id="l00173" name="l00173"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#adec04611b1ea6900eb1da954cf297de6">  173</a></span>  [[nodiscard]] <span class="keyword">friend</span> <span class="keywordtype">bool</span> <a class="code hl_friend" href="classpsr_1_1BitSet.html#adec04611b1ea6900eb1da954cf297de6">operator==</a>(<span class="keyword">const</span> <a class="code hl_class" href="classpsr_1_1BitSet.html">BitSet</a> &amp;Lhs,</div>
+<div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span>                                       <span class="keyword">const</span> <a class="code hl_class" href="classpsr_1_1BitSet.html">BitSet</a> &amp;Rhs) <span class="keyword">noexcept</span> {</div>
+<div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span>    <span class="comment">// Check, whether Lhs and Rhs actually have the same bits set and not</span></div>
+<div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span>    <span class="comment">// whether their internal representation is exactly identitcal</span></div>
+<div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span>    uintptr_t LhsStore{};</div>
+<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span>    uintptr_t RhsStore{};</div>
 <div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span> </div>
-<div class="foldopen" id="foldopen00180" data-start="{" data-end="};">
-<div class="line"><a id="l00180" name="l00180"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#aaee4e1ef54e5ff36e4bfe23db8d922c7">  180</a></span>  [[nodiscard]] <span class="keyword">friend</span> <span class="keywordtype">bool</span> <a class="code hl_friend" href="classpsr_1_1BitSet.html#aaee4e1ef54e5ff36e4bfe23db8d922c7">operator!=</a>(<span class="keyword">const</span> <a class="code hl_class" href="classpsr_1_1BitSet.html">BitSet</a> &amp;Lhs,</div>
-<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span>                                       <span class="keyword">const</span> <a class="code hl_class" href="classpsr_1_1BitSet.html">BitSet</a> &amp;Rhs) <span class="keyword">noexcept</span> {</div>
-<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span>    <span class="keywordflow">return</span> !(Lhs == Rhs);</div>
-<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span>  }</div>
+<div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span>    <span class="keyword">auto</span> LhsWords = getWords(Lhs.Bits, LhsStore);</div>
+<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span>    <span class="keyword">auto</span> RhsWords = getWords(Rhs.Bits, RhsStore);</div>
+<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span>    <span class="keywordflow">if</span> (LhsWords.size() == RhsWords.size()) {</div>
+<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span>      <span class="keywordflow">return</span> LhsWords == RhsWords;</div>
+<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>    }</div>
+<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>    <span class="keyword">auto</span> MinSize = std::min(LhsWords.size(), RhsWords.size());</div>
+<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>    <span class="keywordflow">if</span> (LhsWords.slice(0, MinSize) != RhsWords.slice(0, MinSize)) {</div>
+<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>      <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>    }</div>
+<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>    <span class="keyword">auto</span> Rest = (LhsWords.size() &gt; RhsWords.size() ? LhsWords : RhsWords)</div>
+<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>                    .slice(MinSize);</div>
+<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>    <span class="keywordflow">return</span> std::all_of(Rest.begin(), Rest.end(),</div>
+<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>                       [](<span class="keyword">auto</span> Word) { return Word == 0; });</div>
+<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>  }</div>
 </div>
-<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span> </div>
-<div class="line"><a id="l00185" name="l00185"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#a2b49e8615154f88b4dc4e85e426a85e2">  185</a></span>  [[nodiscard]] <span class="keywordtype">bool</span> <a class="code hl_function" href="classpsr_1_1BitSet.html#a2b49e8615154f88b4dc4e85e426a85e2">any</a>() const noexcept { <span class="keywordflow">return</span> Bits.any(); }</div>
-<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span> </div>
-<div class="foldopen" id="foldopen00187" data-start="{" data-end="}">
-<div class="line"><a id="l00187" name="l00187"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#a9c773b94f34ef63eeae26d85a4f1a5eb">  187</a></span>  [[nodiscard]] <a class="code hl_class" href="classpsr_1_1BitSet_1_1Iterator.html">iterator</a> <a class="code hl_function" href="classpsr_1_1BitSet.html#a9c773b94f34ef63eeae26d85a4f1a5eb">begin</a>() const noexcept {</div>
-<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>    <span class="keywordflow">return</span> Bits.set_bits_begin();</div>
-<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>  }</div>
+<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span> </div>
+<div class="foldopen" id="foldopen00195" data-start="{" data-end="};">
+<div class="line"><a id="l00195" name="l00195"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#aaee4e1ef54e5ff36e4bfe23db8d922c7">  195</a></span>  [[nodiscard]] <span class="keyword">friend</span> <span class="keywordtype">bool</span> <a class="code hl_friend" href="classpsr_1_1BitSet.html#aaee4e1ef54e5ff36e4bfe23db8d922c7">operator!=</a>(<span class="keyword">const</span> <a class="code hl_class" href="classpsr_1_1BitSet.html">BitSet</a> &amp;Lhs,</div>
+<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>                                       <span class="keyword">const</span> <a class="code hl_class" href="classpsr_1_1BitSet.html">BitSet</a> &amp;Rhs) <span class="keyword">noexcept</span> {</div>
+<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span>    <span class="keywordflow">return</span> !(Lhs == Rhs);</div>
+<div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span>  }</div>
 </div>
-<div class="line"><a id="l00190" name="l00190"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#a81d3b773edeb95af8dcd5a82c4a1c330">  190</a></span>  [[nodiscard]] <a class="code hl_class" href="classpsr_1_1BitSet_1_1Iterator.html">iterator</a> <a class="code hl_function" href="classpsr_1_1BitSet.html#a81d3b773edeb95af8dcd5a82c4a1c330">end</a>() const noexcept { <span class="keywordflow">return</span> Bits.set_bits_end(); }</div>
-<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span><span class="comment"></span> </div>
-<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span><span class="comment">  /// Returns the smallest element in the set, or std::nullopt if empty.</span></div>
-<div class="foldopen" id="foldopen00193" data-start="{" data-end="}">
-<div class="line"><a id="l00193" name="l00193"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#a02fb071fa9c8b0534b7ce2aa0cf5e548">  193</a></span><span class="comment"></span>  [[nodiscard]] std::optional&lt;IdT&gt; <a class="code hl_function" href="classpsr_1_1BitSet.html#a02fb071fa9c8b0534b7ce2aa0cf5e548">findFirst</a>() const noexcept {</div>
-<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span>    <span class="keyword">const</span> <span class="keywordtype">int</span> First = Bits.find_first();</div>
-<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span>    <span class="keywordflow">return</span> First &gt;= 0 ? std::optional&lt;IdT&gt;(IdT(First)) : std::nullopt;</div>
-<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>  }</div>
+<div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span> </div>
+<div class="line"><a id="l00200" name="l00200"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#a2b49e8615154f88b4dc4e85e426a85e2">  200</a></span>  [[nodiscard]] <span class="keywordtype">bool</span> <a class="code hl_function" href="classpsr_1_1BitSet.html#a2b49e8615154f88b4dc4e85e426a85e2">any</a>() const noexcept { <span class="keywordflow">return</span> Bits.any(); }</div>
+<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span> </div>
+<div class="foldopen" id="foldopen00202" data-start="{" data-end="}">
+<div class="line"><a id="l00202" name="l00202"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#a9c773b94f34ef63eeae26d85a4f1a5eb">  202</a></span>  [[nodiscard]] <a class="code hl_class" href="classpsr_1_1BitSet_1_1Iterator.html">iterator</a> <a class="code hl_function" href="classpsr_1_1BitSet.html#a9c773b94f34ef63eeae26d85a4f1a5eb">begin</a>() const noexcept {</div>
+<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span>    <span class="keywordflow">return</span> Bits.set_bits_begin();</div>
+<div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span>  }</div>
 </div>
-<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span><span class="comment"></span> </div>
-<div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span><span class="comment">  /// Returns the smallest element greater than \p Key, or std::nullopt if</span></div>
-<div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span><span class="comment">  /// none exists.</span></div>
-<div class="foldopen" id="foldopen00200" data-start="{" data-end="}">
-<div class="line"><a id="l00200" name="l00200"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#ac94984f283508fbf0bea5948353b007c">  200</a></span><span class="comment"></span>  [[nodiscard]] std::optional&lt;IdT&gt; <a class="code hl_function" href="classpsr_1_1BitSet.html#ac94984f283508fbf0bea5948353b007c">findNext</a>(IdT Key) <span class="keyword">const</span> <span class="keyword">noexcept</span> {</div>
-<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span>    <span class="keyword">const</span> <span class="keywordtype">int</span> Next = Bits.find_next(<span class="keywordtype">int</span>(uint32_t(Key)));</div>
-<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span>    <span class="keywordflow">return</span> Next &gt;= 0 ? std::optional&lt;IdT&gt;(IdT(Next)) : std::nullopt;</div>
-<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span>  }</div>
+<div class="line"><a id="l00205" name="l00205"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#a81d3b773edeb95af8dcd5a82c4a1c330">  205</a></span>  [[nodiscard]] <a class="code hl_class" href="classpsr_1_1BitSet_1_1Iterator.html">iterator</a> <a class="code hl_function" href="classpsr_1_1BitSet.html#a81d3b773edeb95af8dcd5a82c4a1c330">end</a>() const noexcept { <span class="keywordflow">return</span> Bits.set_bits_end(); }</div>
+<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span><span class="comment"></span> </div>
+<div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span><span class="comment">  /// Returns the smallest element in the set, or std::nullopt if empty.</span></div>
+<div class="foldopen" id="foldopen00208" data-start="{" data-end="}">
+<div class="line"><a id="l00208" name="l00208"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#a02fb071fa9c8b0534b7ce2aa0cf5e548">  208</a></span><span class="comment"></span>  [[nodiscard]] std::optional&lt;IdT&gt; <a class="code hl_function" href="classpsr_1_1BitSet.html#a02fb071fa9c8b0534b7ce2aa0cf5e548">findFirst</a>() const noexcept {</div>
+<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>    <span class="keyword">const</span> <span class="keywordtype">int</span> First = Bits.find_first();</div>
+<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>    <span class="keywordflow">return</span> First &gt;= 0 ? std::optional&lt;IdT&gt;(IdT(First)) : std::nullopt;</div>
+<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>  }</div>
 </div>
-<div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span><span class="comment"></span> </div>
-<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span><span class="comment">  /// Calls the given handler function for each set bit in the bitset.</span></div>
-<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span><span class="comment">  ///</span></div>
-<div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span><span class="comment">  /// This is likely faster than using iterators.</span></div>
-<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span><span class="comment"></span>  <span class="keyword">template</span> &lt;std::invocable&lt;IdT&gt; HandlerFn&gt;</div>
-<div class="foldopen" id="foldopen00209" data-start="{" data-end="}">
-<div class="line"><a id="l00209" name="l00209"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#af55bee435aa63fbb0bc95eff1cf8e803">  209</a></span>  <span class="keywordtype">void</span> <span class="keywordflow">foreach</span> (HandlerFn Handler) <span class="keyword">const</span></div>
-<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>      <span class="keyword">noexcept</span>(std::is_nothrow_invocable_v&lt;HandlerFn &amp;, IdT&gt;) {</div>
-<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>    uintptr_t Store{};</div>
-<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span>    <span class="keyword">auto</span> Words = getWords(Bits, Store);</div>
-<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>    uint32_t Offset = 0;</div>
-<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>    <span class="keywordflow">for</span> (<span class="keyword">auto</span> W : Words) {</div>
-<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span>      <span class="keywordflow">while</span> (W) {</div>
-<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span>        <span class="keyword">auto</span> Curr = std::countr_zero(W) + Offset;</div>
-<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span>        W &amp;= W - 1;</div>
-<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span>        std::invoke(Handler, IdT(Curr));</div>
-<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span>      }</div>
-<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span> </div>
-<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>      Offset += <span class="keyword">sizeof</span>(W) * CHAR_BIT;</div>
-<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span>    }</div>
-<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span>  }</div>
+<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span><span class="comment"></span> </div>
+<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span><span class="comment">  /// Returns the smallest element greater than \p Key, or std::nullopt if</span></div>
+<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span><span class="comment">  /// none exists.</span></div>
+<div class="foldopen" id="foldopen00215" data-start="{" data-end="}">
+<div class="line"><a id="l00215" name="l00215"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#ac94984f283508fbf0bea5948353b007c">  215</a></span><span class="comment"></span>  [[nodiscard]] std::optional&lt;IdT&gt; <a class="code hl_function" href="classpsr_1_1BitSet.html#ac94984f283508fbf0bea5948353b007c">findNext</a>(IdT Key) <span class="keyword">const</span> <span class="keyword">noexcept</span> {</div>
+<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span>    <span class="keyword">const</span> <span class="keywordtype">int</span> Next = Bits.find_next(<span class="keywordtype">int</span>(uint32_t(Key)));</div>
+<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span>    <span class="keywordflow">return</span> Next &gt;= 0 ? std::optional&lt;IdT&gt;(IdT(Next)) : std::nullopt;</div>
+<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span>  }</div>
 </div>
-<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span><span class="comment"></span> </div>
-<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span><span class="comment">  /// Same as mergeWith()</span></div>
-<div class="line"><a id="l00226" name="l00226"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#a33a05c4014064d260a14984949f75252">  226</a></span><span class="comment"></span>  <span class="keywordtype">void</span> <a class="code hl_function" href="classpsr_1_1BitSet.html#a33a05c4014064d260a14984949f75252">operator|=</a>(<span class="keyword">const</span> <a class="code hl_class" href="classpsr_1_1BitSet.html">BitSet</a> &amp;Other) { Bits |= Other.Bits; }</div>
-<div class="line"><a id="l00227" name="l00227"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#a72b93c550af0540628ee163e74f5fb3c">  227</a></span>  <span class="keywordtype">void</span> <a class="code hl_function" href="classpsr_1_1BitSet.html#a72b93c550af0540628ee163e74f5fb3c">operator-=</a>(<span class="keyword">const</span> <a class="code hl_class" href="classpsr_1_1BitSet.html">BitSet</a> &amp;Other) { Bits.reset(Other.Bits); }</div>
-<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span> </div>
-<div class="foldopen" id="foldopen00229" data-start="{" data-end="}">
-<div class="line"><a id="l00229" name="l00229"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#add335cf3760d69d3a3bc93d57fccba84">  229</a></span>  [[nodiscard]] <a class="code hl_class" href="classpsr_1_1BitSet.html">BitSet</a> <a class="code hl_function" href="classpsr_1_1BitSet.html#add335cf3760d69d3a3bc93d57fccba84">operator-</a>(<span class="keyword">const</span> <a class="code hl_class" href="classpsr_1_1BitSet.html">BitSet</a> &amp;Other)<span class="keyword"> const </span>{</div>
-<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span>    <span class="comment">// TODO: keep allocation small by looping from the end and truncating all</span></div>
-<div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span>    <span class="comment">// words that result in all-zero</span></div>
-<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span>    <span class="keyword">auto</span> <a class="code hl_enumvalue" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">Ret</a> = *<span class="keyword">this</span>;</div>
-<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>    <a class="code hl_enumvalue" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">Ret</a> -= Other;</div>
-<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>    <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">Ret</a>;</div>
-<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>  }</div>
+<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span><span class="comment"></span> </div>
+<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span><span class="comment">  /// Calls the given handler function for each set bit in the bitset.</span></div>
+<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span><span class="comment">  ///</span></div>
+<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span><span class="comment">  /// This is likely faster than using iterators.</span></div>
+<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span><span class="comment"></span>  <span class="keyword">template</span> &lt;std::invocable&lt;IdT&gt; HandlerFn&gt;</div>
+<div class="foldopen" id="foldopen00224" data-start="{" data-end="}">
+<div class="line"><a id="l00224" name="l00224"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#a4bd18b83a1d5d6b1f5bcfe95a2b41f5d">  224</a></span>  <span class="keywordtype">bool</span> <span class="keywordflow">foreach</span> (HandlerFn Handler) <span class="keyword">const</span></div>
+<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>      <span class="keyword">noexcept</span>(std::is_nothrow_invocable_v&lt;HandlerFn &amp;, IdT&gt;) {</div>
+<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span>    uintptr_t Store{};</div>
+<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span>    <span class="keyword">auto</span> Words = getWords(Bits, Store);</div>
+<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span>    uint32_t Offset = 0;</div>
+<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span>    <span class="keywordflow">for</span> (<span class="keyword">auto</span> W : Words) {</div>
+<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span>      <span class="keywordflow">while</span> (W) {</div>
+<div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span>        <span class="keyword">auto</span> Curr = std::countr_zero(W) + Offset;</div>
+<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span>        W &amp;= W - 1;</div>
+<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>        <span class="keywordflow">if</span> (!<a class="code hl_function" href="namespacepsr.html#ab62417df50d871e33934f0c14bd641c2">invokeControlFlow</a>(Handler, IdT(Curr))) {</div>
+<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>          <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>        }</div>
+<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>      }</div>
+<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span> </div>
+<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>      Offset += <span class="keyword">sizeof</span>(W) * CHAR_BIT;</div>
+<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>    }</div>
+<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>    <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>  }</div>
 </div>
-<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span><span class="comment"></span> </div>
-<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span><span class="comment">  /// Same as mergeWith(), but returns *this to allow a fluent interface.</span></div>
-<div class="foldopen" id="foldopen00238" data-start="{" data-end="}">
-<div class="line"><a id="l00238" name="l00238"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#a6102982eae7a17caba0468a4ab1447f3">  238</a></span><span class="comment"></span>  <a class="code hl_class" href="classpsr_1_1BitSet.html">BitSet</a> &amp;<a class="code hl_function" href="classpsr_1_1BitSet.html#a6102982eae7a17caba0468a4ab1447f3">insertAllOf</a>(<span class="keyword">const</span> <a class="code hl_class" href="classpsr_1_1BitSet.html">BitSet</a> &amp;Other) {</div>
-<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>    Bits |= Other.Bits;</div>
-<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>    <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
-<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>  }<span class="comment"></span></div>
+<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span><span class="comment"></span> </div>
+<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span><span class="comment">  /// Same as mergeWith()</span></div>
+<div class="line"><a id="l00244" name="l00244"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#a33a05c4014064d260a14984949f75252">  244</a></span><span class="comment"></span>  <span class="keywordtype">void</span> <a class="code hl_function" href="classpsr_1_1BitSet.html#a33a05c4014064d260a14984949f75252">operator|=</a>(<span class="keyword">const</span> <a class="code hl_class" href="classpsr_1_1BitSet.html">BitSet</a> &amp;Other) { Bits |= Other.Bits; }</div>
+<div class="line"><a id="l00245" name="l00245"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#a72b93c550af0540628ee163e74f5fb3c">  245</a></span>  <span class="keywordtype">void</span> <a class="code hl_function" href="classpsr_1_1BitSet.html#a72b93c550af0540628ee163e74f5fb3c">operator-=</a>(<span class="keyword">const</span> <a class="code hl_class" href="classpsr_1_1BitSet.html">BitSet</a> &amp;Other) { Bits.reset(Other.Bits); }</div>
+<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span> </div>
+<div class="foldopen" id="foldopen00247" data-start="{" data-end="}">
+<div class="line"><a id="l00247" name="l00247"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#add335cf3760d69d3a3bc93d57fccba84">  247</a></span>  [[nodiscard]] <a class="code hl_class" href="classpsr_1_1BitSet.html">BitSet</a> <a class="code hl_function" href="classpsr_1_1BitSet.html#add335cf3760d69d3a3bc93d57fccba84">operator-</a>(<span class="keyword">const</span> <a class="code hl_class" href="classpsr_1_1BitSet.html">BitSet</a> &amp;Other)<span class="keyword"> const </span>{</div>
+<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>    <span class="comment">// TODO: keep allocation small by looping from the end and truncating all</span></div>
+<div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span>    <span class="comment">// words that result in all-zero</span></div>
+<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span>    <span class="keyword">auto</span> <a class="code hl_enumvalue" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">Ret</a> = *<span class="keyword">this</span>;</div>
+<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>    <a class="code hl_enumvalue" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">Ret</a> -= Other;</div>
+<div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span>    <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">Ret</a>;</div>
+<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span>  }</div>
 </div>
-<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span><span class="comment">  /// Same as operator-=, but returns *this to allow a fluent interface.</span></div>
-<div class="foldopen" id="foldopen00243" data-start="{" data-end="}">
-<div class="line"><a id="l00243" name="l00243"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#a0b87a89f1e3689cd63806ea1acf4c3c3">  243</a></span><span class="comment"></span>  <a class="code hl_class" href="classpsr_1_1BitSet.html">BitSet</a> &amp;<a class="code hl_function" href="classpsr_1_1BitSet.html#a0b87a89f1e3689cd63806ea1acf4c3c3">eraseAllOf</a>(<span class="keyword">const</span> <a class="code hl_class" href="classpsr_1_1BitSet.html">BitSet</a> &amp;Other) {</div>
-<div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span>    Bits.reset(Other.Bits);</div>
-<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>    <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
-<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>  }</div>
+<div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span><span class="comment"></span> </div>
+<div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span><span class="comment">  /// Same as mergeWith(), but returns *this to allow a fluent interface.</span></div>
+<div class="foldopen" id="foldopen00256" data-start="{" data-end="}">
+<div class="line"><a id="l00256" name="l00256"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#a6102982eae7a17caba0468a4ab1447f3">  256</a></span><span class="comment"></span>  <a class="code hl_class" href="classpsr_1_1BitSet.html">BitSet</a> &amp;<a class="code hl_function" href="classpsr_1_1BitSet.html#a6102982eae7a17caba0468a4ab1447f3">insertAllOf</a>(<span class="keyword">const</span> <a class="code hl_class" href="classpsr_1_1BitSet.html">BitSet</a> &amp;Other) {</div>
+<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>    Bits |= Other.Bits;</div>
+<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span>    <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
+<div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span>  }<span class="comment"></span></div>
 </div>
-<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span> </div>
-<div class="foldopen" id="foldopen00248" data-start="{" data-end="}">
-<div class="line"><a id="l00248" name="l00248"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#ab073c964b3defc81810b5a2e64ee36e1">  248</a></span>  [[nodiscard]] <span class="keywordtype">bool</span> <a class="code hl_function" href="classpsr_1_1BitSet.html#ab073c964b3defc81810b5a2e64ee36e1">isSubsetOf</a>(<span class="keyword">const</span> <a class="code hl_class" href="classpsr_1_1BitSet.html">BitSet</a> &amp;Of)<span class="keyword"> const </span>{</div>
-<div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span>    uintptr_t Buf = 0;</div>
-<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span>    uintptr_t OfBuf = 0;</div>
-<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span> </div>
-<div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span>    <span class="keyword">auto</span> Words = getWords(Bits, Buf);</div>
-<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span>    <span class="keyword">auto</span> OfWords = getWords(Of.Bits, OfBuf);</div>
-<div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span>    <span class="keywordflow">if</span> (Words.size() &gt; OfWords.size()) {</div>
-<div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span>      <span class="keywordflow">if</span> (llvm::any_of(Words.drop_front(OfWords.size()),</div>
-<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>                       [](uintptr_t W) { return W != 0; })) {</div>
-<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>        <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span>      }</div>
-<div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span>    }</div>
-<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span> </div>
-<div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span>    <span class="keywordflow">for</span> (<span class="keyword">auto</span> [W, OfW] : llvm::zip(Words, OfWords)) {</div>
-<div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span>      <span class="keywordflow">if</span> ((W &amp; ~OfW) != 0) {</div>
-<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span>        <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00264" name="l00264"></a><span class="lineno">  264</span>      }</div>
-<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span>    }</div>
-<div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span> </div>
-<div class="line"><a id="l00267" name="l00267"></a><span class="lineno">  267</span>    <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00268" name="l00268"></a><span class="lineno">  268</span>  }</div>
+<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span><span class="comment">  /// Same as operator-=, but returns *this to allow a fluent interface.</span></div>
+<div class="foldopen" id="foldopen00261" data-start="{" data-end="}">
+<div class="line"><a id="l00261" name="l00261"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#a0b87a89f1e3689cd63806ea1acf4c3c3">  261</a></span><span class="comment"></span>  <a class="code hl_class" href="classpsr_1_1BitSet.html">BitSet</a> &amp;<a class="code hl_function" href="classpsr_1_1BitSet.html#a0b87a89f1e3689cd63806ea1acf4c3c3">eraseAllOf</a>(<span class="keyword">const</span> <a class="code hl_class" href="classpsr_1_1BitSet.html">BitSet</a> &amp;Other) {</div>
+<div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span>    Bits.reset(Other.Bits);</div>
+<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span>    <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
+<div class="line"><a id="l00264" name="l00264"></a><span class="lineno">  264</span>  }</div>
 </div>
+<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span> </div>
+<div class="foldopen" id="foldopen00266" data-start="{" data-end="}">
+<div class="line"><a id="l00266" name="l00266"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#ab073c964b3defc81810b5a2e64ee36e1">  266</a></span>  [[nodiscard]] <span class="keywordtype">bool</span> <a class="code hl_function" href="classpsr_1_1BitSet.html#ab073c964b3defc81810b5a2e64ee36e1">isSubsetOf</a>(<span class="keyword">const</span> <a class="code hl_class" href="classpsr_1_1BitSet.html">BitSet</a> &amp;Of)<span class="keyword"> const </span>{</div>
+<div class="line"><a id="l00267" name="l00267"></a><span class="lineno">  267</span>    uintptr_t Buf = 0;</div>
+<div class="line"><a id="l00268" name="l00268"></a><span class="lineno">  268</span>    uintptr_t OfBuf = 0;</div>
 <div class="line"><a id="l00269" name="l00269"></a><span class="lineno">  269</span> </div>
-<div class="foldopen" id="foldopen00270" data-start="{" data-end="}">
-<div class="line"><a id="l00270" name="l00270"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#abdeb3f6349768af8af1c6a62f50fcf67">  270</a></span>  [[nodiscard]] <span class="keywordtype">bool</span> <a class="code hl_function" href="classpsr_1_1BitSet.html#abdeb3f6349768af8af1c6a62f50fcf67">isSupersetOf</a>(<span class="keyword">const</span> <a class="code hl_class" href="classpsr_1_1BitSet.html">BitSet</a> &amp;Of)<span class="keyword"> const </span>{</div>
-<div class="line"><a id="l00271" name="l00271"></a><span class="lineno">  271</span>    <span class="keywordflow">return</span> Of.<a class="code hl_function" href="classpsr_1_1BitSet.html#ab073c964b3defc81810b5a2e64ee36e1">isSubsetOf</a>(*<span class="keyword">this</span>);</div>
-<div class="line"><a id="l00272" name="l00272"></a><span class="lineno">  272</span>  }</div>
+<div class="line"><a id="l00270" name="l00270"></a><span class="lineno">  270</span>    <span class="keyword">auto</span> Words = getWords(Bits, Buf);</div>
+<div class="line"><a id="l00271" name="l00271"></a><span class="lineno">  271</span>    <span class="keyword">auto</span> OfWords = getWords(Of.Bits, OfBuf);</div>
+<div class="line"><a id="l00272" name="l00272"></a><span class="lineno">  272</span>    <span class="keywordflow">if</span> (Words.size() &gt; OfWords.size()) {</div>
+<div class="line"><a id="l00273" name="l00273"></a><span class="lineno">  273</span>      <span class="keywordflow">if</span> (llvm::any_of(Words.drop_front(OfWords.size()),</div>
+<div class="line"><a id="l00274" name="l00274"></a><span class="lineno">  274</span>                       [](uintptr_t W) { return W != 0; })) {</div>
+<div class="line"><a id="l00275" name="l00275"></a><span class="lineno">  275</span>        <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00276" name="l00276"></a><span class="lineno">  276</span>      }</div>
+<div class="line"><a id="l00277" name="l00277"></a><span class="lineno">  277</span>    }</div>
+<div class="line"><a id="l00278" name="l00278"></a><span class="lineno">  278</span> </div>
+<div class="line"><a id="l00279" name="l00279"></a><span class="lineno">  279</span>    <span class="keywordflow">for</span> (<span class="keyword">auto</span> [W, OfW] : llvm::zip(Words, OfWords)) {</div>
+<div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span>      <span class="keywordflow">if</span> ((W &amp; ~OfW) != 0) {</div>
+<div class="line"><a id="l00281" name="l00281"></a><span class="lineno">  281</span>        <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span>      }</div>
+<div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span>    }</div>
+<div class="line"><a id="l00284" name="l00284"></a><span class="lineno">  284</span> </div>
+<div class="line"><a id="l00285" name="l00285"></a><span class="lineno">  285</span>    <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00286" name="l00286"></a><span class="lineno">  286</span>  }</div>
 </div>
-<div class="line"><a id="l00273" name="l00273"></a><span class="lineno">  273</span><span class="comment"></span> </div>
-<div class="line"><a id="l00274" name="l00274"></a><span class="lineno">  274</span><span class="comment">  /// The number of bits available. This operation is O(1)</span></div>
-<div class="line"><a id="l00275" name="l00275"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#a77e96739d20540e5286fdd432def0c3b">  275</a></span><span class="comment"></span>  [[nodiscard]] <span class="keywordtype">size_t</span> <a class="code hl_function" href="classpsr_1_1BitSet.html#a77e96739d20540e5286fdd432def0c3b">capacity</a>() const noexcept { <span class="keywordflow">return</span> Bits.size(); }<span class="comment"></span></div>
-<div class="line"><a id="l00276" name="l00276"></a><span class="lineno">  276</span><span class="comment">  /// The number of bits set to 1. In contrast to most other containers, this</span></div>
-<div class="line"><a id="l00277" name="l00277"></a><span class="lineno">  277</span><span class="comment">  /// operation is linear in O(capacity())</span></div>
-<div class="line"><a id="l00278" name="l00278"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#a327150ef2e3dedc3827915baa69d780a">  278</a></span><span class="comment"></span>  [[nodiscard]] <span class="keywordtype">size_t</span> <a class="code hl_function" href="classpsr_1_1BitSet.html#a327150ef2e3dedc3827915baa69d780a">size</a>() const noexcept { <span class="keywordflow">return</span> Bits.count(); }<span class="comment"></span></div>
-<div class="line"><a id="l00279" name="l00279"></a><span class="lineno">  279</span><span class="comment">  /// Whether this set contains no elements. In contrast to most other</span></div>
-<div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span><span class="comment">  /// containers, this operation is linear in O(capacity())</span></div>
-<div class="line"><a id="l00281" name="l00281"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#affc2799b76a03151efac3e8d9aab82fa">  281</a></span><span class="comment"></span>  [[nodiscard]] <span class="keywordtype">bool</span> <a class="code hl_function" href="classpsr_1_1BitSet.html#affc2799b76a03151efac3e8d9aab82fa">empty</a>() const noexcept { <span class="keywordflow">return</span> Bits.none(); }</div>
-<div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span> </div>
-<div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span><span class="keyword">private</span>:</div>
-<div class="line"><a id="l00284" name="l00284"></a><span class="lineno">  284</span>  BitVectorTy Bits;</div>
-<div class="line"><a id="l00285" name="l00285"></a><span class="lineno">  285</span>};</div>
-</div>
-<div class="line"><a id="l00286" name="l00286"></a><span class="lineno">  286</span>} <span class="comment">// namespace psr</span></div>
 <div class="line"><a id="l00287" name="l00287"></a><span class="lineno">  287</span> </div>
-<div class="line"><a id="l00288" name="l00288"></a><span class="lineno">  288</span><span class="preprocessor">#endif</span></div>
+<div class="foldopen" id="foldopen00288" data-start="{" data-end="}">
+<div class="line"><a id="l00288" name="l00288"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#abdeb3f6349768af8af1c6a62f50fcf67">  288</a></span>  [[nodiscard]] <span class="keywordtype">bool</span> <a class="code hl_function" href="classpsr_1_1BitSet.html#abdeb3f6349768af8af1c6a62f50fcf67">isSupersetOf</a>(<span class="keyword">const</span> <a class="code hl_class" href="classpsr_1_1BitSet.html">BitSet</a> &amp;Of)<span class="keyword"> const </span>{</div>
+<div class="line"><a id="l00289" name="l00289"></a><span class="lineno">  289</span>    <span class="keywordflow">return</span> Of.<a class="code hl_function" href="classpsr_1_1BitSet.html#ab073c964b3defc81810b5a2e64ee36e1">isSubsetOf</a>(*<span class="keyword">this</span>);</div>
+<div class="line"><a id="l00290" name="l00290"></a><span class="lineno">  290</span>  }</div>
+</div>
+<div class="line"><a id="l00291" name="l00291"></a><span class="lineno">  291</span><span class="comment"></span> </div>
+<div class="line"><a id="l00292" name="l00292"></a><span class="lineno">  292</span><span class="comment">  /// The number of bits available. This operation is O(1)</span></div>
+<div class="line"><a id="l00293" name="l00293"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#a77e96739d20540e5286fdd432def0c3b">  293</a></span><span class="comment"></span>  [[nodiscard]] <span class="keywordtype">size_t</span> <a class="code hl_function" href="classpsr_1_1BitSet.html#a77e96739d20540e5286fdd432def0c3b">capacity</a>() const noexcept { <span class="keywordflow">return</span> Bits.size(); }<span class="comment"></span></div>
+<div class="line"><a id="l00294" name="l00294"></a><span class="lineno">  294</span><span class="comment">  /// The number of bits set to 1. In contrast to most other containers, this</span></div>
+<div class="line"><a id="l00295" name="l00295"></a><span class="lineno">  295</span><span class="comment">  /// operation is linear in O(capacity())</span></div>
+<div class="line"><a id="l00296" name="l00296"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#a327150ef2e3dedc3827915baa69d780a">  296</a></span><span class="comment"></span>  [[nodiscard]] <span class="keywordtype">size_t</span> <a class="code hl_function" href="classpsr_1_1BitSet.html#a327150ef2e3dedc3827915baa69d780a">size</a>() const noexcept { <span class="keywordflow">return</span> Bits.count(); }<span class="comment"></span></div>
+<div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span><span class="comment">  /// Whether this set contains no elements. In contrast to most other</span></div>
+<div class="line"><a id="l00298" name="l00298"></a><span class="lineno">  298</span><span class="comment">  /// containers, this operation is linear in O(capacity())</span></div>
+<div class="line"><a id="l00299" name="l00299"></a><span class="lineno"><a class="line" href="classpsr_1_1BitSet.html#affc2799b76a03151efac3e8d9aab82fa">  299</a></span><span class="comment"></span>  [[nodiscard]] <span class="keywordtype">bool</span> <a class="code hl_function" href="classpsr_1_1BitSet.html#affc2799b76a03151efac3e8d9aab82fa">empty</a>() const noexcept { <span class="keywordflow">return</span> Bits.none(); }</div>
+<div class="line"><a id="l00300" name="l00300"></a><span class="lineno">  300</span> </div>
+<div class="line"><a id="l00301" name="l00301"></a><span class="lineno">  301</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00302" name="l00302"></a><span class="lineno">  302</span>  BitVectorTy Bits;</div>
+<div class="line"><a id="l00303" name="l00303"></a><span class="lineno">  303</span>};</div>
+</div>
+<div class="line"><a id="l00304" name="l00304"></a><span class="lineno">  304</span>} <span class="comment">// namespace psr</span></div>
+<div class="line"><a id="l00305" name="l00305"></a><span class="lineno">  305</span> </div>
+<div class="line"><a id="l00306" name="l00306"></a><span class="lineno">  306</span><span class="preprocessor">#endif</span></div>
 <div class="ttc" id="aTypeTraits_8h_html"><div class="ttname"><a href="TypeTraits_8h.html">TypeTraits.h</a></div></div>
-<div class="ttc" id="aclasspsr_1_1BitSet_1_1Iterator_html"><div class="ttname"><a href="classpsr_1_1BitSet_1_1Iterator.html">psr::BitSet::Iterator</a></div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00061">BitSet.h:61</a></div></div>
-<div class="ttc" id="aclasspsr_1_1BitSet_1_1Iterator_html_a04c096bf2a67e2293b1425e6f3e2129b"><div class="ttname"><a href="classpsr_1_1BitSet_1_1Iterator.html#a04c096bf2a67e2293b1425e6f3e2129b">psr::BitSet::Iterator::reference</a></div><div class="ttdeci">IdT reference</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00064">BitSet.h:64</a></div></div>
-<div class="ttc" id="aclasspsr_1_1BitSet_1_1Iterator_html_a0a0542bcbb3e194776aa7d32846797be"><div class="ttname"><a href="classpsr_1_1BitSet_1_1Iterator.html#a0a0542bcbb3e194776aa7d32846797be">psr::BitSet::Iterator::operator!=</a></div><div class="ttdeci">bool operator!=(const Iterator &amp;Other) const noexcept</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00086">BitSet.h:86</a></div></div>
-<div class="ttc" id="aclasspsr_1_1BitSet_1_1Iterator_html_a38d3d68d7b2f306b87dba4ddf06a22a0"><div class="ttname"><a href="classpsr_1_1BitSet_1_1Iterator.html#a38d3d68d7b2f306b87dba4ddf06a22a0">psr::BitSet::Iterator::Iterator</a></div><div class="ttdeci">Iterator(typename BitVectorTy::const_set_bits_iterator It) noexcept</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00069">BitSet.h:69</a></div></div>
-<div class="ttc" id="aclasspsr_1_1BitSet_1_1Iterator_html_a51e1a152d92e80f10a10ed15831b3f9c"><div class="ttname"><a href="classpsr_1_1BitSet_1_1Iterator.html#a51e1a152d92e80f10a10ed15831b3f9c">psr::BitSet::Iterator::operator*</a></div><div class="ttdeci">reference operator*() const noexcept</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00081">BitSet.h:81</a></div></div>
-<div class="ttc" id="aclasspsr_1_1BitSet_1_1Iterator_html_a564767c3becb6785a4e1c5abe5127c3a"><div class="ttname"><a href="classpsr_1_1BitSet_1_1Iterator.html#a564767c3becb6785a4e1c5abe5127c3a">psr::BitSet::Iterator::operator++</a></div><div class="ttdeci">Iterator &amp; operator++() noexcept</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00072">BitSet.h:72</a></div></div>
-<div class="ttc" id="aclasspsr_1_1BitSet_1_1Iterator_html_a644879ea56ba4c59c78b535c49d90736"><div class="ttname"><a href="classpsr_1_1BitSet_1_1Iterator.html#a644879ea56ba4c59c78b535c49d90736">psr::BitSet::Iterator::value_type</a></div><div class="ttdeci">IdT value_type</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00063">BitSet.h:63</a></div></div>
-<div class="ttc" id="aclasspsr_1_1BitSet_1_1Iterator_html_a8ec063e17494510611eb9c420da93604"><div class="ttname"><a href="classpsr_1_1BitSet_1_1Iterator.html#a8ec063e17494510611eb9c420da93604">psr::BitSet::Iterator::operator==</a></div><div class="ttdeci">bool operator==(const Iterator &amp;Other) const noexcept</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00083">BitSet.h:83</a></div></div>
-<div class="ttc" id="aclasspsr_1_1BitSet_1_1Iterator_html_ad45f11b5e3cae8ccf09efe3c6c2c64a0"><div class="ttname"><a href="classpsr_1_1BitSet_1_1Iterator.html#ad45f11b5e3cae8ccf09efe3c6c2c64a0">psr::BitSet::Iterator::operator++</a></div><div class="ttdeci">Iterator operator++(int) noexcept</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00076">BitSet.h:76</a></div></div>
-<div class="ttc" id="aclasspsr_1_1BitSet_1_1Iterator_html_adb94763b7bb4fc75059023fccab8a487"><div class="ttname"><a href="classpsr_1_1BitSet_1_1Iterator.html#adb94763b7bb4fc75059023fccab8a487">psr::BitSet::Iterator::iterator_category</a></div><div class="ttdeci">std::forward_iterator_tag iterator_category</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00067">BitSet.h:67</a></div></div>
-<div class="ttc" id="aclasspsr_1_1BitSet_1_1Iterator_html_aecb9726446ab0f8fc22f183c7836fcdc"><div class="ttname"><a href="classpsr_1_1BitSet_1_1Iterator.html#aecb9726446ab0f8fc22f183c7836fcdc">psr::BitSet::Iterator::difference_type</a></div><div class="ttdeci">ptrdiff_t difference_type</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00066">BitSet.h:66</a></div></div>
-<div class="ttc" id="aclasspsr_1_1BitSet_1_1Iterator_html_af6ff272b173b8b46f13d3258ef2979fb"><div class="ttname"><a href="classpsr_1_1BitSet_1_1Iterator.html#af6ff272b173b8b46f13d3258ef2979fb">psr::BitSet::Iterator::pointer</a></div><div class="ttdeci">const IdT * pointer</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00065">BitSet.h:65</a></div></div>
-<div class="ttc" id="aclasspsr_1_1BitSet_html"><div class="ttname"><a href="classpsr_1_1BitSet.html">psr::BitSet</a></div><div class="ttdoc">A set-type that can compactly store sets of sequential integer-like types.</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00041">BitSet.h:41</a></div></div>
-<div class="ttc" id="aclasspsr_1_1BitSet_html_a02fb071fa9c8b0534b7ce2aa0cf5e548"><div class="ttname"><a href="classpsr_1_1BitSet.html#a02fb071fa9c8b0534b7ce2aa0cf5e548">psr::BitSet::findFirst</a></div><div class="ttdeci">std::optional&lt; IdT &gt; findFirst() const noexcept</div><div class="ttdoc">Returns the smallest element in the set, or std::nullopt if empty.</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00193">BitSet.h:193</a></div></div>
-<div class="ttc" id="aclasspsr_1_1BitSet_html_a0b87a89f1e3689cd63806ea1acf4c3c3"><div class="ttname"><a href="classpsr_1_1BitSet.html#a0b87a89f1e3689cd63806ea1acf4c3c3">psr::BitSet::eraseAllOf</a></div><div class="ttdeci">BitSet &amp; eraseAllOf(const BitSet &amp;Other)</div><div class="ttdoc">Same as operator-=, but returns *this to allow a fluent interface.</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00243">BitSet.h:243</a></div></div>
-<div class="ttc" id="aclasspsr_1_1BitSet_html_a2b49e8615154f88b4dc4e85e426a85e2"><div class="ttname"><a href="classpsr_1_1BitSet.html#a2b49e8615154f88b4dc4e85e426a85e2">psr::BitSet::any</a></div><div class="ttdeci">bool any() const noexcept</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00185">BitSet.h:185</a></div></div>
-<div class="ttc" id="aclasspsr_1_1BitSet_html_a2bca1bbd666592222dd77d33e8bf51b0"><div class="ttname"><a href="classpsr_1_1BitSet.html#a2bca1bbd666592222dd77d33e8bf51b0">psr::BitSet::reserve</a></div><div class="ttdeci">void reserve(size_t Cap)</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00102">BitSet.h:102</a></div></div>
-<div class="ttc" id="aclasspsr_1_1BitSet_html_a327150ef2e3dedc3827915baa69d780a"><div class="ttname"><a href="classpsr_1_1BitSet.html#a327150ef2e3dedc3827915baa69d780a">psr::BitSet::size</a></div><div class="ttdeci">size_t size() const noexcept</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00278">BitSet.h:278</a></div></div>
-<div class="ttc" id="aclasspsr_1_1BitSet_html_a33a05c4014064d260a14984949f75252"><div class="ttname"><a href="classpsr_1_1BitSet.html#a33a05c4014064d260a14984949f75252">psr::BitSet::operator|=</a></div><div class="ttdeci">void operator|=(const BitSet &amp;Other)</div><div class="ttdoc">Same as mergeWith()</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00226">BitSet.h:226</a></div></div>
-<div class="ttc" id="aclasspsr_1_1BitSet_html_a40dff093c4bc2a7ff9a4fabdc3166db6"><div class="ttname"><a href="classpsr_1_1BitSet.html#a40dff093c4bc2a7ff9a4fabdc3166db6">psr::BitSet::insert</a></div><div class="ttdeci">void insert(IdT Id)</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00113">BitSet.h:113</a></div></div>
-<div class="ttc" id="aclasspsr_1_1BitSet_html_a47d9b1e5376152804532dfdf39087c5c"><div class="ttname"><a href="classpsr_1_1BitSet.html#a47d9b1e5376152804532dfdf39087c5c">psr::BitSet::contains</a></div><div class="ttdeci">bool contains(IdT Id) const noexcept</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00108">BitSet.h:108</a></div></div>
-<div class="ttc" id="aclasspsr_1_1BitSet_html_a549505df76f401d5371ed7e890d0663a"><div class="ttname"><a href="classpsr_1_1BitSet.html#a549505df76f401d5371ed7e890d0663a">psr::BitSet::tryMergeWith</a></div><div class="ttdeci">bool tryMergeWith(const BitSet &amp;Other)</div><div class="ttdoc">Same as mergeWith(), but returns, whether the set was changed.</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00151">BitSet.h:151</a></div></div>
-<div class="ttc" id="aclasspsr_1_1BitSet_html_a6102982eae7a17caba0468a4ab1447f3"><div class="ttname"><a href="classpsr_1_1BitSet.html#a6102982eae7a17caba0468a4ab1447f3">psr::BitSet::insertAllOf</a></div><div class="ttdeci">BitSet &amp; insertAllOf(const BitSet &amp;Other)</div><div class="ttdoc">Same as mergeWith(), but returns *this to allow a fluent interface.</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00238">BitSet.h:238</a></div></div>
-<div class="ttc" id="aclasspsr_1_1BitSet_html_a6fe981d587790aa4c15581b1eae61aab"><div class="ttname"><a href="classpsr_1_1BitSet.html#a6fe981d587790aa4c15581b1eae61aab">psr::BitSet::tryErase</a></div><div class="ttdeci">bool tryErase(IdT Id) noexcept</div><div class="ttdoc">Same as erase(), but returns, whether the set was changed.</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00140">BitSet.h:140</a></div></div>
-<div class="ttc" id="aclasspsr_1_1BitSet_html_a72b93c550af0540628ee163e74f5fb3c"><div class="ttname"><a href="classpsr_1_1BitSet.html#a72b93c550af0540628ee163e74f5fb3c">psr::BitSet::operator-=</a></div><div class="ttdeci">void operator-=(const BitSet &amp;Other)</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00227">BitSet.h:227</a></div></div>
+<div class="ttc" id="aUtilities_8h_html"><div class="ttname"><a href="Utilities_8h.html">Utilities.h</a></div></div>
+<div class="ttc" id="aclasspsr_1_1BitSet_1_1Iterator_html"><div class="ttname"><a href="classpsr_1_1BitSet_1_1Iterator.html">psr::BitSet::Iterator</a></div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00063">BitSet.h:63</a></div></div>
+<div class="ttc" id="aclasspsr_1_1BitSet_1_1Iterator_html_a04c096bf2a67e2293b1425e6f3e2129b"><div class="ttname"><a href="classpsr_1_1BitSet_1_1Iterator.html#a04c096bf2a67e2293b1425e6f3e2129b">psr::BitSet::Iterator::reference</a></div><div class="ttdeci">IdT reference</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00066">BitSet.h:66</a></div></div>
+<div class="ttc" id="aclasspsr_1_1BitSet_1_1Iterator_html_a0a0542bcbb3e194776aa7d32846797be"><div class="ttname"><a href="classpsr_1_1BitSet_1_1Iterator.html#a0a0542bcbb3e194776aa7d32846797be">psr::BitSet::Iterator::operator!=</a></div><div class="ttdeci">bool operator!=(const Iterator &amp;Other) const noexcept</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00088">BitSet.h:88</a></div></div>
+<div class="ttc" id="aclasspsr_1_1BitSet_1_1Iterator_html_a38d3d68d7b2f306b87dba4ddf06a22a0"><div class="ttname"><a href="classpsr_1_1BitSet_1_1Iterator.html#a38d3d68d7b2f306b87dba4ddf06a22a0">psr::BitSet::Iterator::Iterator</a></div><div class="ttdeci">Iterator(typename BitVectorTy::const_set_bits_iterator It) noexcept</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00071">BitSet.h:71</a></div></div>
+<div class="ttc" id="aclasspsr_1_1BitSet_1_1Iterator_html_a51e1a152d92e80f10a10ed15831b3f9c"><div class="ttname"><a href="classpsr_1_1BitSet_1_1Iterator.html#a51e1a152d92e80f10a10ed15831b3f9c">psr::BitSet::Iterator::operator*</a></div><div class="ttdeci">reference operator*() const noexcept</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00083">BitSet.h:83</a></div></div>
+<div class="ttc" id="aclasspsr_1_1BitSet_1_1Iterator_html_a564767c3becb6785a4e1c5abe5127c3a"><div class="ttname"><a href="classpsr_1_1BitSet_1_1Iterator.html#a564767c3becb6785a4e1c5abe5127c3a">psr::BitSet::Iterator::operator++</a></div><div class="ttdeci">Iterator &amp; operator++() noexcept</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00074">BitSet.h:74</a></div></div>
+<div class="ttc" id="aclasspsr_1_1BitSet_1_1Iterator_html_a644879ea56ba4c59c78b535c49d90736"><div class="ttname"><a href="classpsr_1_1BitSet_1_1Iterator.html#a644879ea56ba4c59c78b535c49d90736">psr::BitSet::Iterator::value_type</a></div><div class="ttdeci">IdT value_type</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00065">BitSet.h:65</a></div></div>
+<div class="ttc" id="aclasspsr_1_1BitSet_1_1Iterator_html_a8ec063e17494510611eb9c420da93604"><div class="ttname"><a href="classpsr_1_1BitSet_1_1Iterator.html#a8ec063e17494510611eb9c420da93604">psr::BitSet::Iterator::operator==</a></div><div class="ttdeci">bool operator==(const Iterator &amp;Other) const noexcept</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00085">BitSet.h:85</a></div></div>
+<div class="ttc" id="aclasspsr_1_1BitSet_1_1Iterator_html_ad45f11b5e3cae8ccf09efe3c6c2c64a0"><div class="ttname"><a href="classpsr_1_1BitSet_1_1Iterator.html#ad45f11b5e3cae8ccf09efe3c6c2c64a0">psr::BitSet::Iterator::operator++</a></div><div class="ttdeci">Iterator operator++(int) noexcept</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00078">BitSet.h:78</a></div></div>
+<div class="ttc" id="aclasspsr_1_1BitSet_1_1Iterator_html_adb94763b7bb4fc75059023fccab8a487"><div class="ttname"><a href="classpsr_1_1BitSet_1_1Iterator.html#adb94763b7bb4fc75059023fccab8a487">psr::BitSet::Iterator::iterator_category</a></div><div class="ttdeci">std::forward_iterator_tag iterator_category</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00069">BitSet.h:69</a></div></div>
+<div class="ttc" id="aclasspsr_1_1BitSet_1_1Iterator_html_aecb9726446ab0f8fc22f183c7836fcdc"><div class="ttname"><a href="classpsr_1_1BitSet_1_1Iterator.html#aecb9726446ab0f8fc22f183c7836fcdc">psr::BitSet::Iterator::difference_type</a></div><div class="ttdeci">ptrdiff_t difference_type</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00068">BitSet.h:68</a></div></div>
+<div class="ttc" id="aclasspsr_1_1BitSet_1_1Iterator_html_af6ff272b173b8b46f13d3258ef2979fb"><div class="ttname"><a href="classpsr_1_1BitSet_1_1Iterator.html#af6ff272b173b8b46f13d3258ef2979fb">psr::BitSet::Iterator::pointer</a></div><div class="ttdeci">const IdT * pointer</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00067">BitSet.h:67</a></div></div>
+<div class="ttc" id="aclasspsr_1_1BitSet_html"><div class="ttname"><a href="classpsr_1_1BitSet.html">psr::BitSet</a></div><div class="ttdoc">A set-type that can compactly store sets of sequential integer-like types.</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00043">BitSet.h:43</a></div></div>
+<div class="ttc" id="aclasspsr_1_1BitSet_html_a02fb071fa9c8b0534b7ce2aa0cf5e548"><div class="ttname"><a href="classpsr_1_1BitSet.html#a02fb071fa9c8b0534b7ce2aa0cf5e548">psr::BitSet::findFirst</a></div><div class="ttdeci">std::optional&lt; IdT &gt; findFirst() const noexcept</div><div class="ttdoc">Returns the smallest element in the set, or std::nullopt if empty.</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00208">BitSet.h:208</a></div></div>
+<div class="ttc" id="aclasspsr_1_1BitSet_html_a0a58b0be7dd48bcdd71e0fa17e6098a4"><div class="ttname"><a href="classpsr_1_1BitSet.html#a0a58b0be7dd48bcdd71e0fa17e6098a4">psr::BitSet::operator=</a></div><div class="ttdeci">BitSet &amp; operator=(const BitSet &amp;)=default</div></div>
+<div class="ttc" id="aclasspsr_1_1BitSet_html_a0b87a89f1e3689cd63806ea1acf4c3c3"><div class="ttname"><a href="classpsr_1_1BitSet.html#a0b87a89f1e3689cd63806ea1acf4c3c3">psr::BitSet::eraseAllOf</a></div><div class="ttdeci">BitSet &amp; eraseAllOf(const BitSet &amp;Other)</div><div class="ttdoc">Same as operator-=, but returns *this to allow a fluent interface.</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00261">BitSet.h:261</a></div></div>
+<div class="ttc" id="aclasspsr_1_1BitSet_html_a232c00ee0fa1a3a8ee9cebd05e2d69d7"><div class="ttname"><a href="classpsr_1_1BitSet.html#a232c00ee0fa1a3a8ee9cebd05e2d69d7">psr::BitSet::~BitSet</a></div><div class="ttdeci">~BitSet()=default</div></div>
+<div class="ttc" id="aclasspsr_1_1BitSet_html_a2b49e8615154f88b4dc4e85e426a85e2"><div class="ttname"><a href="classpsr_1_1BitSet.html#a2b49e8615154f88b4dc4e85e426a85e2">psr::BitSet::any</a></div><div class="ttdeci">bool any() const noexcept</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00200">BitSet.h:200</a></div></div>
+<div class="ttc" id="aclasspsr_1_1BitSet_html_a2bca1bbd666592222dd77d33e8bf51b0"><div class="ttname"><a href="classpsr_1_1BitSet.html#a2bca1bbd666592222dd77d33e8bf51b0">psr::BitSet::reserve</a></div><div class="ttdeci">void reserve(size_t Cap)</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00117">BitSet.h:117</a></div></div>
+<div class="ttc" id="aclasspsr_1_1BitSet_html_a327150ef2e3dedc3827915baa69d780a"><div class="ttname"><a href="classpsr_1_1BitSet.html#a327150ef2e3dedc3827915baa69d780a">psr::BitSet::size</a></div><div class="ttdeci">size_t size() const noexcept</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00296">BitSet.h:296</a></div></div>
+<div class="ttc" id="aclasspsr_1_1BitSet_html_a33a05c4014064d260a14984949f75252"><div class="ttname"><a href="classpsr_1_1BitSet.html#a33a05c4014064d260a14984949f75252">psr::BitSet::operator|=</a></div><div class="ttdeci">void operator|=(const BitSet &amp;Other)</div><div class="ttdoc">Same as mergeWith()</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00244">BitSet.h:244</a></div></div>
+<div class="ttc" id="aclasspsr_1_1BitSet_html_a380574843967b59355d5f59ab03224a9"><div class="ttname"><a href="classpsr_1_1BitSet.html#a380574843967b59355d5f59ab03224a9">psr::BitSet::BitSet</a></div><div class="ttdeci">BitSet(const BitSet &amp;)=default</div></div>
+<div class="ttc" id="aclasspsr_1_1BitSet_html_a40dff093c4bc2a7ff9a4fabdc3166db6"><div class="ttname"><a href="classpsr_1_1BitSet.html#a40dff093c4bc2a7ff9a4fabdc3166db6">psr::BitSet::insert</a></div><div class="ttdeci">void insert(IdT Id)</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00128">BitSet.h:128</a></div></div>
+<div class="ttc" id="aclasspsr_1_1BitSet_html_a47d9b1e5376152804532dfdf39087c5c"><div class="ttname"><a href="classpsr_1_1BitSet.html#a47d9b1e5376152804532dfdf39087c5c">psr::BitSet::contains</a></div><div class="ttdeci">bool contains(IdT Id) const noexcept</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00123">BitSet.h:123</a></div></div>
+<div class="ttc" id="aclasspsr_1_1BitSet_html_a549505df76f401d5371ed7e890d0663a"><div class="ttname"><a href="classpsr_1_1BitSet.html#a549505df76f401d5371ed7e890d0663a">psr::BitSet::tryMergeWith</a></div><div class="ttdeci">bool tryMergeWith(const BitSet &amp;Other)</div><div class="ttdoc">Same as mergeWith(), but returns, whether the set was changed.</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00166">BitSet.h:166</a></div></div>
+<div class="ttc" id="aclasspsr_1_1BitSet_html_a572c9d535217f304a9cd70e91db40fea"><div class="ttname"><a href="classpsr_1_1BitSet.html#a572c9d535217f304a9cd70e91db40fea">psr::BitSet::BitSet</a></div><div class="ttdeci">BitSet(BitSet &amp;&amp;Other) noexcept</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00106">BitSet.h:106</a></div></div>
+<div class="ttc" id="aclasspsr_1_1BitSet_html_a6102982eae7a17caba0468a4ab1447f3"><div class="ttname"><a href="classpsr_1_1BitSet.html#a6102982eae7a17caba0468a4ab1447f3">psr::BitSet::insertAllOf</a></div><div class="ttdeci">BitSet &amp; insertAllOf(const BitSet &amp;Other)</div><div class="ttdoc">Same as mergeWith(), but returns *this to allow a fluent interface.</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00256">BitSet.h:256</a></div></div>
+<div class="ttc" id="aclasspsr_1_1BitSet_html_a6fe981d587790aa4c15581b1eae61aab"><div class="ttname"><a href="classpsr_1_1BitSet.html#a6fe981d587790aa4c15581b1eae61aab">psr::BitSet::tryErase</a></div><div class="ttdeci">bool tryErase(IdT Id) noexcept</div><div class="ttdoc">Same as erase(), but returns, whether the set was changed.</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00155">BitSet.h:155</a></div></div>
+<div class="ttc" id="aclasspsr_1_1BitSet_html_a72b93c550af0540628ee163e74f5fb3c"><div class="ttname"><a href="classpsr_1_1BitSet.html#a72b93c550af0540628ee163e74f5fb3c">psr::BitSet::operator-=</a></div><div class="ttdeci">void operator-=(const BitSet &amp;Other)</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00245">BitSet.h:245</a></div></div>
+<div class="ttc" id="aclasspsr_1_1BitSet_html_a779e3cc1d96aef55ae8e9d9d9440e51f"><div class="ttname"><a href="classpsr_1_1BitSet.html#a779e3cc1d96aef55ae8e9d9d9440e51f">psr::BitSet::operator=</a></div><div class="ttdeci">BitSet &amp; operator=(BitSet &amp;&amp;Other) noexcept</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00107">BitSet.h:107</a></div></div>
 <div class="ttc" id="aclasspsr_1_1BitSet_html_a77b251a5684e91ef9c0ce765dad410ac"><div class="ttname"><a href="classpsr_1_1BitSet.html#a77b251a5684e91ef9c0ce765dad410ac">psr::BitSet::BitSet</a></div><div class="ttdeci">BitSet() noexcept=default</div></div>
-<div class="ttc" id="aclasspsr_1_1BitSet_html_a77e96739d20540e5286fdd432def0c3b"><div class="ttname"><a href="classpsr_1_1BitSet.html#a77e96739d20540e5286fdd432def0c3b">psr::BitSet::capacity</a></div><div class="ttdeci">size_t capacity() const noexcept</div><div class="ttdoc">The number of bits available. This operation is O(1)</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00275">BitSet.h:275</a></div></div>
-<div class="ttc" id="aclasspsr_1_1BitSet_html_a81d3b773edeb95af8dcd5a82c4a1c330"><div class="ttname"><a href="classpsr_1_1BitSet.html#a81d3b773edeb95af8dcd5a82c4a1c330">psr::BitSet::end</a></div><div class="ttdeci">iterator end() const noexcept</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00190">BitSet.h:190</a></div></div>
-<div class="ttc" id="aclasspsr_1_1BitSet_html_a82284ecda5a04088b4f2bc1b078701dd"><div class="ttname"><a href="classpsr_1_1BitSet.html#a82284ecda5a04088b4f2bc1b078701dd">psr::BitSet::clear</a></div><div class="ttdeci">void clear() noexcept</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00156">BitSet.h:156</a></div></div>
-<div class="ttc" id="aclasspsr_1_1BitSet_html_a94e5843e16ca38c8e5f6c1f5c2ff6d06"><div class="ttname"><a href="classpsr_1_1BitSet.html#a94e5843e16ca38c8e5f6c1f5c2ff6d06">psr::BitSet::mergeWith</a></div><div class="ttdeci">void mergeWith(const BitSet &amp;Other)</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00148">BitSet.h:148</a></div></div>
-<div class="ttc" id="aclasspsr_1_1BitSet_html_a9c773b94f34ef63eeae26d85a4f1a5eb"><div class="ttname"><a href="classpsr_1_1BitSet.html#a9c773b94f34ef63eeae26d85a4f1a5eb">psr::BitSet::begin</a></div><div class="ttdeci">iterator begin() const noexcept</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00187">BitSet.h:187</a></div></div>
-<div class="ttc" id="aclasspsr_1_1BitSet_html_aaee4e1ef54e5ff36e4bfe23db8d922c7"><div class="ttname"><a href="classpsr_1_1BitSet.html#aaee4e1ef54e5ff36e4bfe23db8d922c7">psr::BitSet::operator!=</a></div><div class="ttdeci">friend bool operator!=(const BitSet &amp;Lhs, const BitSet &amp;Rhs) noexcept</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00180">BitSet.h:180</a></div></div>
-<div class="ttc" id="aclasspsr_1_1BitSet_html_ab073c964b3defc81810b5a2e64ee36e1"><div class="ttname"><a href="classpsr_1_1BitSet.html#ab073c964b3defc81810b5a2e64ee36e1">psr::BitSet::isSubsetOf</a></div><div class="ttdeci">bool isSubsetOf(const BitSet &amp;Of) const</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00248">BitSet.h:248</a></div></div>
-<div class="ttc" id="aclasspsr_1_1BitSet_html_ab4204de9f84afe9bd46f3d5cd6c3238c"><div class="ttname"><a href="classpsr_1_1BitSet.html#ab4204de9f84afe9bd46f3d5cd6c3238c">psr::BitSet::value_type</a></div><div class="ttdeci">IdT value_type</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00095">BitSet.h:95</a></div></div>
-<div class="ttc" id="aclasspsr_1_1BitSet_html_abdeb3f6349768af8af1c6a62f50fcf67"><div class="ttname"><a href="classpsr_1_1BitSet.html#abdeb3f6349768af8af1c6a62f50fcf67">psr::BitSet::isSupersetOf</a></div><div class="ttdeci">bool isSupersetOf(const BitSet &amp;Of) const</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00270">BitSet.h:270</a></div></div>
-<div class="ttc" id="aclasspsr_1_1BitSet_html_ac94984f283508fbf0bea5948353b007c"><div class="ttname"><a href="classpsr_1_1BitSet.html#ac94984f283508fbf0bea5948353b007c">psr::BitSet::findNext</a></div><div class="ttdeci">std::optional&lt; IdT &gt; findNext(IdT Key) const noexcept</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00200">BitSet.h:200</a></div></div>
-<div class="ttc" id="aclasspsr_1_1BitSet_html_ad841023a016fdac85a7517c6b52e3525"><div class="ttname"><a href="classpsr_1_1BitSet.html#ad841023a016fdac85a7517c6b52e3525">psr::BitSet::BitSet</a></div><div class="ttdeci">BitSet(size_t InitialCapacity, bool InitialValue)</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00099">BitSet.h:99</a></div></div>
-<div class="ttc" id="aclasspsr_1_1BitSet_html_adc7e18f756a02f2265664e6704de3a9c"><div class="ttname"><a href="classpsr_1_1BitSet.html#adc7e18f756a02f2265664e6704de3a9c">psr::BitSet::tryInsert</a></div><div class="ttdeci">bool tryInsert(IdT Id)</div><div class="ttdoc">Same as insert(), but returns, whether the set was changed.</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00123">BitSet.h:123</a></div></div>
-<div class="ttc" id="aclasspsr_1_1BitSet_html_add335cf3760d69d3a3bc93d57fccba84"><div class="ttname"><a href="classpsr_1_1BitSet.html#add335cf3760d69d3a3bc93d57fccba84">psr::BitSet::operator-</a></div><div class="ttdeci">BitSet operator-(const BitSet &amp;Other) const</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00229">BitSet.h:229</a></div></div>
-<div class="ttc" id="aclasspsr_1_1BitSet_html_adec04611b1ea6900eb1da954cf297de6"><div class="ttname"><a href="classpsr_1_1BitSet.html#adec04611b1ea6900eb1da954cf297de6">psr::BitSet::operator==</a></div><div class="ttdeci">friend bool operator==(const BitSet &amp;Lhs, const BitSet &amp;Rhs) noexcept</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00158">BitSet.h:158</a></div></div>
-<div class="ttc" id="aclasspsr_1_1BitSet_html_af06e051bc7c2ae4f2046f41ed1001257"><div class="ttname"><a href="classpsr_1_1BitSet.html#af06e051bc7c2ae4f2046f41ed1001257">psr::BitSet::erase</a></div><div class="ttdeci">void erase(IdT Id) noexcept</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00134">BitSet.h:134</a></div></div>
-<div class="ttc" id="aclasspsr_1_1BitSet_html_affc2799b76a03151efac3e8d9aab82fa"><div class="ttname"><a href="classpsr_1_1BitSet.html#affc2799b76a03151efac3e8d9aab82fa">psr::BitSet::empty</a></div><div class="ttdeci">bool empty() const noexcept</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00281">BitSet.h:281</a></div></div>
+<div class="ttc" id="aclasspsr_1_1BitSet_html_a77e96739d20540e5286fdd432def0c3b"><div class="ttname"><a href="classpsr_1_1BitSet.html#a77e96739d20540e5286fdd432def0c3b">psr::BitSet::capacity</a></div><div class="ttdeci">size_t capacity() const noexcept</div><div class="ttdoc">The number of bits available. This operation is O(1)</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00293">BitSet.h:293</a></div></div>
+<div class="ttc" id="aclasspsr_1_1BitSet_html_a81d3b773edeb95af8dcd5a82c4a1c330"><div class="ttname"><a href="classpsr_1_1BitSet.html#a81d3b773edeb95af8dcd5a82c4a1c330">psr::BitSet::end</a></div><div class="ttdeci">iterator end() const noexcept</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00205">BitSet.h:205</a></div></div>
+<div class="ttc" id="aclasspsr_1_1BitSet_html_a82284ecda5a04088b4f2bc1b078701dd"><div class="ttname"><a href="classpsr_1_1BitSet.html#a82284ecda5a04088b4f2bc1b078701dd">psr::BitSet::clear</a></div><div class="ttdeci">void clear() noexcept</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00171">BitSet.h:171</a></div></div>
+<div class="ttc" id="aclasspsr_1_1BitSet_html_a94e5843e16ca38c8e5f6c1f5c2ff6d06"><div class="ttname"><a href="classpsr_1_1BitSet.html#a94e5843e16ca38c8e5f6c1f5c2ff6d06">psr::BitSet::mergeWith</a></div><div class="ttdeci">void mergeWith(const BitSet &amp;Other)</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00163">BitSet.h:163</a></div></div>
+<div class="ttc" id="aclasspsr_1_1BitSet_html_a9c773b94f34ef63eeae26d85a4f1a5eb"><div class="ttname"><a href="classpsr_1_1BitSet.html#a9c773b94f34ef63eeae26d85a4f1a5eb">psr::BitSet::begin</a></div><div class="ttdeci">iterator begin() const noexcept</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00202">BitSet.h:202</a></div></div>
+<div class="ttc" id="aclasspsr_1_1BitSet_html_aaee4e1ef54e5ff36e4bfe23db8d922c7"><div class="ttname"><a href="classpsr_1_1BitSet.html#aaee4e1ef54e5ff36e4bfe23db8d922c7">psr::BitSet::operator!=</a></div><div class="ttdeci">friend bool operator!=(const BitSet &amp;Lhs, const BitSet &amp;Rhs) noexcept</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00195">BitSet.h:195</a></div></div>
+<div class="ttc" id="aclasspsr_1_1BitSet_html_ab073c964b3defc81810b5a2e64ee36e1"><div class="ttname"><a href="classpsr_1_1BitSet.html#ab073c964b3defc81810b5a2e64ee36e1">psr::BitSet::isSubsetOf</a></div><div class="ttdeci">bool isSubsetOf(const BitSet &amp;Of) const</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00266">BitSet.h:266</a></div></div>
+<div class="ttc" id="aclasspsr_1_1BitSet_html_ab4204de9f84afe9bd46f3d5cd6c3238c"><div class="ttname"><a href="classpsr_1_1BitSet.html#ab4204de9f84afe9bd46f3d5cd6c3238c">psr::BitSet::value_type</a></div><div class="ttdeci">IdT value_type</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00097">BitSet.h:97</a></div></div>
+<div class="ttc" id="aclasspsr_1_1BitSet_html_abdeb3f6349768af8af1c6a62f50fcf67"><div class="ttname"><a href="classpsr_1_1BitSet.html#abdeb3f6349768af8af1c6a62f50fcf67">psr::BitSet::isSupersetOf</a></div><div class="ttdeci">bool isSupersetOf(const BitSet &amp;Of) const</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00288">BitSet.h:288</a></div></div>
+<div class="ttc" id="aclasspsr_1_1BitSet_html_ac94984f283508fbf0bea5948353b007c"><div class="ttname"><a href="classpsr_1_1BitSet.html#ac94984f283508fbf0bea5948353b007c">psr::BitSet::findNext</a></div><div class="ttdeci">std::optional&lt; IdT &gt; findNext(IdT Key) const noexcept</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00215">BitSet.h:215</a></div></div>
+<div class="ttc" id="aclasspsr_1_1BitSet_html_ad841023a016fdac85a7517c6b52e3525"><div class="ttname"><a href="classpsr_1_1BitSet.html#ad841023a016fdac85a7517c6b52e3525">psr::BitSet::BitSet</a></div><div class="ttdeci">BitSet(size_t InitialCapacity, bool InitialValue)</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00101">BitSet.h:101</a></div></div>
+<div class="ttc" id="aclasspsr_1_1BitSet_html_adc7e18f756a02f2265664e6704de3a9c"><div class="ttname"><a href="classpsr_1_1BitSet.html#adc7e18f756a02f2265664e6704de3a9c">psr::BitSet::tryInsert</a></div><div class="ttdeci">bool tryInsert(IdT Id)</div><div class="ttdoc">Same as insert(), but returns, whether the set was changed.</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00138">BitSet.h:138</a></div></div>
+<div class="ttc" id="aclasspsr_1_1BitSet_html_add335cf3760d69d3a3bc93d57fccba84"><div class="ttname"><a href="classpsr_1_1BitSet.html#add335cf3760d69d3a3bc93d57fccba84">psr::BitSet::operator-</a></div><div class="ttdeci">BitSet operator-(const BitSet &amp;Other) const</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00247">BitSet.h:247</a></div></div>
+<div class="ttc" id="aclasspsr_1_1BitSet_html_adec04611b1ea6900eb1da954cf297de6"><div class="ttname"><a href="classpsr_1_1BitSet.html#adec04611b1ea6900eb1da954cf297de6">psr::BitSet::operator==</a></div><div class="ttdeci">friend bool operator==(const BitSet &amp;Lhs, const BitSet &amp;Rhs) noexcept</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00173">BitSet.h:173</a></div></div>
+<div class="ttc" id="aclasspsr_1_1BitSet_html_af06e051bc7c2ae4f2046f41ed1001257"><div class="ttname"><a href="classpsr_1_1BitSet.html#af06e051bc7c2ae4f2046f41ed1001257">psr::BitSet::erase</a></div><div class="ttdeci">void erase(IdT Id) noexcept</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00149">BitSet.h:149</a></div></div>
+<div class="ttc" id="aclasspsr_1_1BitSet_html_affc2799b76a03151efac3e8d9aab82fa"><div class="ttname"><a href="classpsr_1_1BitSet.html#affc2799b76a03151efac3e8d9aab82fa">psr::BitSet::empty</a></div><div class="ttdeci">bool empty() const noexcept</div><div class="ttdef"><b>Definition</b> <a href="BitSet_8h_source.html#l00299">BitSet.h:299</a></div></div>
 <div class="ttc" id="anamespacepsr_html"><div class="ttname"><a href="namespacepsr.html">psr</a></div><div class="ttdef"><b>Definition</b> <a href="AnalysisSetup_8h_source.html#l00013">AnalysisSetup.h:13</a></div></div>
 <div class="ttc" id="anamespacepsr_html_a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd"><div class="ttname"><a href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">psr::ESGEdgeKind::Ret</a></div><div class="ttdeci">@ Ret</div></div>
+<div class="ttc" id="anamespacepsr_html_ab62417df50d871e33934f0c14bd641c2"><div class="ttname"><a href="namespacepsr.html#ab62417df50d871e33934f0c14bd641c2">psr::invokeControlFlow</a></div><div class="ttdeci">constexpr auto invokeControlFlow(FnT &amp;&amp;Fn, ArgsT &amp;&amp;...Args) noexcept(std::is_nothrow_invocable_v&lt; FnT, ArgsT... &gt;)</div><div class="ttdef"><b>Definition</b> <a href="Utilities_8h_source.html#l00372">Utilities.h:372</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Aug 20 2026 16:52:21 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Aug 27 2026 18:17:24 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
