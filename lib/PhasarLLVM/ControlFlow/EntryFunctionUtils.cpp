@@ -105,7 +105,7 @@ psr::getEntryFunctionsMut(LLVMProjectIRDB &IRDB,
 std::vector<std::string>
 psr::getDefaultEntryPoints(const LLVMProjectIRDB &IRDB) {
   if (IRDB.getFunctionDefinition(GlobalCtorsDtorsModel::ModelName)) {
-    return {GlobalCtorsDtorsModel::DtorModelName.str()};
+    return {GlobalCtorsDtorsModel::ModelName.str()};
   }
   if (IRDB.getFunctionDefinition("main")) {
     return {"main"};
