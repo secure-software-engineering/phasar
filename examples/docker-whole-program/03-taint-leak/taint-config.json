@@ -1,0 +1,19 @@
+{
+  "name": "demo-source-sink",
+  "version": 1.0,
+  "functions": [
+    {
+      "name": "source",
+      "ret": "source",
+      "params": {}
+    },
+    {
+      "name": "sink",
+      "params": {
+        "sink": [
+          0
+        ]
+      }
+    }
+  ]
+}
