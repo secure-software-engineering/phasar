@@ -325,14 +325,8 @@ std::vector<std::string> setupIRAndEntrypoints(LLVMProjectIRDB &IRDB) {
     EntryPoints = getDefaultEntryPoints(IRDB);
   }
   if (AutoGlobalsOpt) {
-    if (EntryPoints.size() == 1 && EntryPoints.front() == "main") {
-      GlobalCtorsDtorsModel::buildModel(IRDB, EntryPoints);
-      EntryPoints = {GlobalCtorsDtorsModel::ModelName.str()};
-    } else if (AutoGlobalsOpt.getNumOccurrences() > 0) {
-      llvm::WithColor::warning()
-          << "'--auto-globals' is currently not supported for libraries, only "
-             "for applications with 'main' as entry-point'\n";
-    }
+    GlobalCtorsDtorsModel::buildModel(IRDB, EntryPoints);
+    EntryPoints = {GlobalCtorsDtorsModel::ModelName.str()};
   }
   if (ExternalCallsRewriteOpt) {
     ExternCallbackModel::rewriteCalls(IRDB);
