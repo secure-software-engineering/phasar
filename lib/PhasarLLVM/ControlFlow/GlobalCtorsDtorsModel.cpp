@@ -13,58 +13,77 @@
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
+#include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/ArrayRef.h"
+#include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/STLExtras.h"
+#include "llvm/ADT/SmallVector.h"
+#include "llvm/IR/Attributes.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/IRBuilder.h"
 
+#include <concepts>
 #include <functional>
 #include <map>
 
-namespace psr {
-template <typename MapTy>
-static void insertGlobalCtorsDtorsImpl(MapTy &Into, const llvm::Module &M,
-                                       llvm::StringRef Fun) {
-  const auto *Gtors = M.getGlobalVariable(Fun);
+using namespace psr;
+
+namespace {
+
+constexpr llvm::StringLiteral GlobalCtorsName = "llvm.global_ctors";
+constexpr llvm::StringLiteral GlobalDtorsName = "llvm.global_dtors";
+
+void forEachGlobalCtorDtor(
+    const llvm::Module &M, llvm::StringRef GlobalName,
+    std::invocable<size_t, llvm::Function *> auto Handler) {
+  const auto *Gtors = M.getGlobalVariable(GlobalName);
   if (Gtors == nullptr) {
     return;
   }
 
-  if (llvm::isa<llvm::ArrayType>(Gtors->getValueType())) {
-    if (const auto *ConstFunArray =
-            llvm::dyn_cast<llvm::ConstantArray>(Gtors->getInitializer())) {
-      for (const auto &Op : ConstFunArray->operands()) {
-        if (const auto *FunDesc = llvm::dyn_cast<llvm::ConstantStruct>(Op)) {
-          auto *Fun = llvm::dyn_cast<llvm::Function>(FunDesc->getOperand(1));
-          const auto *Prio =
-              llvm::dyn_cast<llvm::ConstantInt>(FunDesc->getOperand(0));
-          if (Fun && Prio) {
-            auto PrioInt = size_t(Prio->getLimitedValue(SIZE_MAX));
-            Into.emplace(PrioInt, Fun);
-          }
-        }
-      }
+  if (!llvm::isa<llvm::ArrayType>(Gtors->getValueType())) {
+    return;
+  }
+
+  const auto *ConstFunArray =
+      llvm::dyn_cast<llvm::ConstantArray>(Gtors->getInitializer());
+  if (!ConstFunArray) {
+    return;
+  }
+
+  for (const auto &Op : ConstFunArray->operands()) {
+    const auto *FunDesc = llvm::dyn_cast<llvm::ConstantStruct>(Op);
+    if (!FunDesc) {
+      continue;
+    }
+
+    auto *Fun = llvm::dyn_cast<llvm::Function>(FunDesc->getOperand(1));
+    const auto *Prio =
+        llvm::dyn_cast<llvm::ConstantInt>(FunDesc->getOperand(0));
+    if (Fun && Prio) {
+      Handler(size_t(Prio->getLimitedValue(SIZE_MAX)), Fun);
     }
   }
 }
 
-static std::multimap<size_t, llvm::Function *>
-collectGlobalCtors(const llvm::Module &Mod) {
+[[nodiscard]] auto collectGlobalCtors(const llvm::Module &Mod) {
   std::multimap<size_t, llvm::Function *> Ret;
-  insertGlobalCtorsDtorsImpl(Ret, Mod, "llvm.global_ctors");
+  forEachGlobalCtorDtor(
+      Mod, GlobalCtorsName,
+      [&Ret](size_t Prio, llvm::Function *Fun) { Ret.emplace(Prio, Fun); });
   return Ret;
 }
 
-static std::multimap<size_t, llvm::Function *, std::greater<>>
-collectGlobalDtors(const llvm::Module &Mod) {
+[[nodiscard]] auto collectGlobalDtors(const llvm::Module &Mod) {
   std::multimap<size_t, llvm::Function *, std::greater<>> Ret;
-  insertGlobalCtorsDtorsImpl(Ret, Mod, "llvm.global_dtors");
+  forEachGlobalCtorDtor(
+      Mod, GlobalDtorsName,
+      [&Ret](size_t Prio, llvm::Function *Fun) { Ret.emplace(Prio, Fun); });
   return Ret;
 }
 
-static llvm::SmallVector<llvm::FunctionCallee>
-collectRegisteredDtorsAtExit(const llvm::Module &Mod) {
+[[nodiscard]] auto collectRegisteredDtorsAtExit(const llvm::Module &Mod) {
   llvm::SmallVector<llvm::FunctionCallee> Ret;
 
   auto *AtExitFn = Mod.getFunction("atexit");
@@ -90,8 +109,7 @@ collectRegisteredDtorsAtExit(const llvm::Module &Mod) {
   return Ret;
 }
 
-static llvm::SmallVector<std::pair<llvm::FunctionCallee, llvm::Value *>, 4>
-collectRegisteredDtorsForModule(const llvm::Module &Mod) {
+[[nodiscard]] auto collectRegisteredDtorsForModule(const llvm::Module &Mod) {
   // NOLINTNEXTLINE
   llvm::SmallVector<std::pair<llvm::FunctionCallee, llvm::Value *>, 4>
       RegisteredDtors, RegisteredLocalStaticDtors;
@@ -130,7 +148,7 @@ collectRegisteredDtorsForModule(const llvm::Module &Mod) {
   return RegisteredDtors;
 }
 
-static std::string getReducedModuleName(const llvm::Module &M) {
+[[nodiscard]] std::string getReducedModuleName(const llvm::Module &M) {
   auto Name = M.getName().str();
   if (auto Idx = Name.find_last_of('/'); Idx != std::string::npos) {
     Name.erase(0, Idx + 1);
@@ -139,7 +157,7 @@ static std::string getReducedModuleName(const llvm::Module &M) {
   return Name;
 }
 
-static llvm::Function *createDtorCallerForModule(
+[[nodiscard]] llvm::Function *createDtorCallerForModule(
     llvm::Module &Mod,
     llvm::ArrayRef<std::pair<llvm::FunctionCallee, llvm::Value *>>
         RegisteredDtors,
@@ -186,10 +204,10 @@ static llvm::Function *createDtorCallerForModule(
   return PhasarDtorCaller;
 }
 
-[[nodiscard]] static llvm::Function *collectRegisteredDtors(
+[[nodiscard]] llvm::Function *collectRegisteredDtors(
     std::multimap<size_t, llvm::Function *, std::greater<>> &GlobalDtors,
     llvm::Module &Mod) {
-  PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedICFG",
+  PHASAR_LOG_LEVEL_CAT(DEBUG, "GlobalCtorsDtorsModel",
                        "Collect Registered Dtors for Module " << Mod.getName());
 
   auto RegisteredDtors = collectRegisteredDtorsForModule(Mod);
@@ -199,20 +217,18 @@ static llvm::Function *createDtorCallerForModule(
     return nullptr;
   }
 
-  PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedICFG",
+  PHASAR_LOG_LEVEL_CAT(DEBUG, "GlobalCtorsDtorsModel",
                        "> Found " << RegisteredDtors.size()
                                   << " Registered Dtors");
 
   auto *RegisteredDtorCaller =
       createDtorCallerForModule(Mod, RegisteredDtors, RegisteredDtorsAtExit);
-  // auto It =
+
   GlobalDtors.emplace(0, RegisteredDtorCaller);
-  // GlobalDtorFn.try_emplace(RegisteredDtorCaller, it);
-  // GlobalRegisteredDtorsCaller.try_emplace(Mod, RegisteredDtorCaller);
   return RegisteredDtorCaller;
 }
 
-static std::pair<llvm::Function *, bool> buildCRuntimeGlobalDtorsModel(
+[[nodiscard]] std::pair<llvm::Function *, bool> buildCRuntimeGlobalDtorsModel(
     llvm::Module &M,
     const std::multimap<size_t, llvm::Function *, std::greater<>>
         &GlobalDtors) {
@@ -220,13 +236,13 @@ static std::pair<llvm::Function *, bool> buildCRuntimeGlobalDtorsModel(
     return {GlobalDtors.begin()->second, false};
   }
 
-  auto &CTX = M.getContext();
+  auto &Ctx = M.getContext();
   auto *Cleanup = llvm::cast<llvm::Function>(
       M.getOrInsertFunction(GlobalCtorsDtorsModel::DtorModelName,
-                            llvm::Type::getVoidTy(CTX))
+                            llvm::Type::getVoidTy(Ctx))
           .getCallee());
 
-  auto *EntryBB = llvm::BasicBlock::Create(CTX, "entry", Cleanup);
+  auto *EntryBB = llvm::BasicBlock::Create(Ctx, "entry", Cleanup);
 
   llvm::IRBuilder<> IRB(EntryBB);
 
@@ -241,6 +257,83 @@ static std::pair<llvm::Function *, bool> buildCRuntimeGlobalDtorsModel(
   IRB.CreateRetVoid();
 
   return {Cleanup, true};
+}
+
+/// Produces the values that an entry point receives from its (unknown) callers
+/// outside of the analyzed module
+class NonDetValueBuilder {
+public:
+  explicit NonDetValueBuilder(llvm::Module &M) noexcept : M(&M) {}
+
+  llvm::Value *createValue(llvm::IRBuilder<> &IRB, llvm::Type *Ty) {
+    auto &Producer = Producers[Ty];
+    if (!Producer) {
+      // Deliberately no memory or speculation attributes: two calls to the
+      // same producer must not be merged into one value, as that would make
+      // unrelated arguments must-alias.
+      Producer =
+          M->getOrInsertFunction((GlobalCtorsDtorsModel::NonDetValuePrefix +
+                                  llvm::Twine('.') + llvmTypeToString(Ty, true))
+                                     .str(),
+                                 Ty);
+    }
+    return IRB.CreateCall(Producer);
+  }
+
+  /// Creates the argument for parameter no. ArgNo of UEntry. Parameters that
+  /// are passed indirectly get the buffer that the caller is required to
+  /// provide.
+  llvm::Value *createArgument(llvm::IRBuilder<> &IRB,
+                              const llvm::Function &UEntry, unsigned ArgNo) {
+    if (auto *ByValTy = UEntry.getParamByValType(ArgNo)) {
+      auto *Buffer = IRB.CreateAlloca(ByValTy);
+      IRB.CreateStore(createValue(IRB, ByValTy), Buffer);
+      return Buffer;
+    }
+
+    if (auto *SRetTy = UEntry.getParamStructRetType(ArgNo)) {
+      return IRB.CreateAlloca(SRetTy);
+    }
+
+    return createValue(IRB, UEntry.getArg(ArgNo)->getType());
+  }
+
+private:
+  llvm::Module *M;
+  llvm::DenseMap<llvm::Type *, llvm::FunctionCallee> Producers;
+};
+
+/// Gives the declaration of exit() a body that runs the global destructors, so
+/// that existing calls to exit() reach them through the regular call-graph
+/// construction.
+[[nodiscard]] llvm::Function *buildExitModel(llvm::Module &M,
+                                             llvm::Function *GlobalCleanupFn) {
+  auto *ExitFn = M.getFunction("exit");
+  if (!ExitFn || !ExitFn->isDeclaration()) {
+    return nullptr;
+  }
+
+  auto *BB = llvm::BasicBlock::Create(M.getContext(), "entry", ExitFn);
+  llvm::IRBuilder<> IRB(BB);
+  IRB.CreateCall(GlobalCleanupFn);
+  // XXX: Do we need a call to abort() here? GlobalCleanupFn *does* actually
+  // return...
+  IRB.CreateUnreachable();
+
+  return ExitFn;
+}
+
+} // namespace
+
+llvm::DenseSet<const llvm::Function *>
+GlobalCtorsDtorsModel::collectGlobalCtorsDtors(const llvm::Module &M) {
+  llvm::DenseSet<const llvm::Function *> Ret;
+  const auto Insert = [&Ret](size_t /*Prio*/, llvm::Function *Fun) {
+    Ret.insert(Fun);
+  };
+  forEachGlobalCtorDtor(M, GlobalCtorsName, Insert);
+  forEachGlobalCtorDtor(M, GlobalDtorsName, Insert);
+  return Ret;
 }
 
 llvm::Function *GlobalCtorsDtorsModel::buildModel(
@@ -259,18 +352,29 @@ llvm::Function *GlobalCtorsDtorsModel::buildModel(
     IRDB.insertFunction(GlobalCleanupFn);
   }
 
-  auto &CTX = M.getContext();
+  if (!GlobalDtors.empty()) {
+    if (auto *ExitFn = buildExitModel(M, GlobalCleanupFn)) {
+      IRDB.insertFunction(ExitFn);
+    }
+  }
+
+  auto &Ctx = M.getContext();
   auto *GlobModel = llvm::cast<llvm::Function>(
       M.getOrInsertFunction(ModelName,
                             /*retTy*/
-                            llvm::Type::getVoidTy(CTX),
+                            llvm::Type::getVoidTy(Ctx),
                             /*argc*/
-                            llvm::Type::getInt32Ty(CTX),
+                            llvm::Type::getInt32Ty(Ctx),
                             /*argv*/
-                            llvm::PointerType::get(CTX, 0))
+                            llvm::PointerType::get(Ctx, 0))
           .getCallee());
 
-  auto *EntryBB = llvm::BasicBlock::Create(CTX, "entry", GlobModel);
+  scope_exit FinalizeModel = [&] {
+    IRDB.insertFunction(GlobModel);
+    ModulesToSlotTracker::updateMSTForModule(&M);
+  };
+
+  auto *EntryBB = llvm::BasicBlock::Create(Ctx, "entry", GlobModel);
 
   llvm::IRBuilder<> IRB(EntryBB);
 
@@ -285,85 +389,80 @@ llvm::Function *GlobalCtorsDtorsModel::buildModel(
 
   /// After all ctors have been called, now go for the user-defined entrypoints
 
-  assert(!UserEntryPoints.empty());
+  NonDetValueBuilder NonDet(M);
 
-  auto CallUEntry =
-      [&, GlobalCleanupFn{GlobalCleanupFn}](llvm::Function *UEntry) { // NOLINT
-        switch (UEntry->arg_size()) {
-        case 0:
-          IRB.CreateCall(UEntry);
-          break;
-        case 2:
-          if (UEntry->getName() != "main") {
-            PHASAR_LOG_LEVEL(
-                WARNING,
-                "WARNING: The only entrypoint, where parameters are "
-                "supported, is 'main'.\nAutomated global support for library "
-                "analysis (entry-points=__ALL__) is not yet supported.");
+  const auto CallUEntry = [&](llvm::Function *UEntry) {
+    auto NumArgs = UEntry->arg_size();
+    bool IsMain = UEntry->getName() == "main";
 
-            break;
-          }
+    llvm::SmallVector<llvm::Value *, 4> Args;
+    Args.reserve(NumArgs);
 
-          IRB.CreateCall(UEntry, {GlobModel->getArg(0), GlobModel->getArg(1)});
-          break;
-        default:
-          PHASAR_LOG_LEVEL(
-              WARNING,
-              "WARNING: Entrypoints with parameters are not supported, "
-              "except for argc and argv in main.\nAutomated global support for "
-              "library analysis (entry-points=__ALL__) is not yet supported.");
+    for (unsigned ArgNo = 0; ArgNo != NumArgs; ++ArgNo) {
+      auto *ArgTy = UEntry->getArg(ArgNo)->getType();
+      // main takes argc and argv from the model's own signature; everything
+      // else comes from a caller we cannot see.
+      if (IsMain && ArgNo < 2 && ArgTy == GlobModel->getArg(ArgNo)->getType()) {
+        Args.push_back(GlobModel->getArg(ArgNo));
+        continue;
+      }
 
-          break;
-        }
-
-        if (UEntry->getName() == "main") {
-          ///  After the main function, we must call all global destructors...
-          IRB.CreateCall(GlobalCleanupFn);
-        }
-      };
-
-  if (UserEntryPoints.size() == 1) {
-    auto *MainFn = *UserEntryPoints.begin();
-    CallUEntry(MainFn);
-    IRB.CreateRetVoid();
-  } else {
-
-    auto UEntrySelectorFn = M.getOrInsertFunction(UserEntrySelectorName,
-                                                  llvm::Type::getInt32Ty(CTX));
-
-    auto *UEntrySelector = IRB.CreateCall(UEntrySelectorFn);
-
-    auto *DefaultBB = llvm::BasicBlock::Create(CTX, "invalid", GlobModel);
-    auto *SwitchEnd = llvm::BasicBlock::Create(CTX, "switchEnd", GlobModel);
-
-    auto *UEntrySwitch =
-        IRB.CreateSwitch(UEntrySelector, DefaultBB, UserEntryPoints.size());
-
-    IRB.SetInsertPoint(DefaultBB);
-    IRB.CreateUnreachable();
-
-    unsigned Idx = 0;
-
-    for (auto *UEntry : UserEntryPoints) {
-      auto *BB =
-          llvm::BasicBlock::Create(CTX, "call" + UEntry->getName(), GlobModel);
-      IRB.SetInsertPoint(BB);
-      CallUEntry(UEntry);
-      IRB.CreateBr(SwitchEnd);
-
-      UEntrySwitch->addCase(IRB.getInt32(Idx), BB);
-
-      ++Idx;
+      Args.push_back(NonDet.createArgument(IRB, *UEntry, ArgNo));
     }
 
-    /// After all user-entries have been called, we are done
+    auto *Call = IRB.CreateCall(UEntry, Args);
 
-    IRB.SetInsertPoint(SwitchEnd);
+    for (unsigned ArgNo = 0; ArgNo != NumArgs; ++ArgNo) {
+      for (const auto &Attr : UEntry->getAttributes().getParamAttrs(ArgNo)) {
+        Call->addParamAttr(ArgNo, Attr);
+      }
+    }
+  };
+
+  if (UserEntryPoints.size() <= 1) {
+    if (UserEntryPoints.empty()) {
+      PHASAR_LOG_LEVEL(WARNING,
+                       "No entry points to call from the global model; only "
+                       "global ctors and dtors are modeled");
+    } else {
+      CallUEntry(UserEntryPoints.front());
+    }
+
+    IRB.CreateCall(GlobalCleanupFn);
     IRB.CreateRetVoid();
+    return GlobModel;
   }
 
-  IRDB.insertFunction(GlobModel);
-  ModulesToSlotTracker::updateMSTForModule(&M);
+  auto UEntrySelectorFn =
+      M.getOrInsertFunction(UserEntrySelectorName, llvm::Type::getInt32Ty(Ctx));
+
+  auto *UEntrySelector = IRB.CreateCall(UEntrySelectorFn);
+
+  auto *DefaultBB = llvm::BasicBlock::Create(Ctx, "invalid", GlobModel);
+  auto *SwitchEnd = llvm::BasicBlock::Create(Ctx, "switchEnd", GlobModel);
+
+  auto *UEntrySwitch =
+      IRB.CreateSwitch(UEntrySelector, DefaultBB, UserEntryPoints.size());
+
+  IRB.SetInsertPoint(DefaultBB);
+  IRB.CreateUnreachable();
+
+  for (const auto &[Idx, UEntry] : llvm::enumerate(UserEntryPoints)) {
+    auto *BB =
+        llvm::BasicBlock::Create(Ctx, "call." + UEntry->getName(), GlobModel);
+    IRB.SetInsertPoint(BB);
+    CallUEntry(UEntry);
+    IRB.CreateBr(SwitchEnd);
+
+    UEntrySwitch->addCase(IRB.getInt32(uint32_t(Idx)), BB);
+  }
+
+  /// After the selected user-entries have returned, the program exists, so call
+  /// the global dtors here:
+
+  IRB.SetInsertPoint(SwitchEnd);
+  IRB.CreateCall(GlobalCleanupFn);
+  IRB.CreateRetVoid();
 
   return GlobModel;
 }
@@ -377,14 +476,14 @@ GlobalCtorsDtorsModel::buildModel(LLVMProjectIRDB &IRDB,
 
 bool GlobalCtorsDtorsModel::isPhasarGenerated(
     const llvm::Function &F) noexcept {
-  if (F.hasName()) {
-    llvm::StringRef FunctionName = F.getName();
-    const auto Cases = {ModelName, DtorModelName, DtorsCallerName,
-                        UserEntrySelectorName};
-    return llvm::is_contained(Cases, FunctionName);
+  if (!F.hasName()) {
+    return false;
   }
 
-  return false;
+  llvm::StringRef FunctionName = F.getName();
+  const auto Cases = {ModelName, DtorModelName, DtorsCallerName,
+                      UserEntrySelectorName, NonDetValuePrefix};
+  return llvm::any_of(Cases, [FunctionName](llvm::StringLiteral Case) {
+    return FunctionName.starts_with(Case);
+  });
 }
-
-} // namespace psr

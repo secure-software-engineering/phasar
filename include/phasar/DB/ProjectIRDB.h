@@ -122,7 +122,7 @@ concept ProjectIRDBConstPtr =
     ProjectIRDB<std::remove_cvref_t<decltype(*std::declval<T>())>>;
 
 // NOLINTNEXTLINE(readability-identifier-naming)
-auto IRDBGetFunctionDef(const ProjectIRDB auto *IRDB) noexcept {
+auto IRDBGetFunctionDef(ProjectIRDB auto *IRDB) noexcept {
   return [IRDB](llvm::StringRef Name) {
     return IRDB->getFunctionDefinition(Name);
   };
