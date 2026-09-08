@@ -1706,12 +1706,14 @@ requires (std::is_same_v&lt;<a class="el" href="namespacepsr.html#a951662fd4f90e
 <tr class="memitem:a4b43488beeaf35f0c985874427d92cec" id="r_a4b43488beeaf35f0c985874427d92cec"><td class="memTemplParams" colspan="2">template&lt;typename Problem &gt; </td></tr>
 <tr class="memitem:a4b43488beeaf35f0c985874427d92cec"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a4b43488beeaf35f0c985874427d92cec">IntraMonoSolver</a> (Problem &amp;) -&gt; <a class="el" href="classpsr_1_1IntraMonoSolver.html">IntraMonoSolver</a>&lt; typename Problem::ProblemAnalysisDomain &gt;</td></tr>
 <tr class="separator:a4b43488beeaf35f0c985874427d92cec"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abb7af10b4b74715fd397d3caa75899b2" id="r_abb7af10b4b74715fd397d3caa75899b2"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#abb7af10b4b74715fd397d3caa75899b2">IRDBGetFunctionDef</a> (const ProjectIRDB auto *IRDB) noexcept</td></tr>
-<tr class="separator:abb7af10b4b74715fd397d3caa75899b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa406ae1fb13b6ba237429599b0359178" id="r_aa406ae1fb13b6ba237429599b0359178"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#aa406ae1fb13b6ba237429599b0359178">IRDBGetFunctionDef</a> (ProjectIRDB auto *IRDB) noexcept</td></tr>
+<tr class="separator:aa406ae1fb13b6ba237429599b0359178"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a44202ae7e19e7ae3bd454149976c364a" id="r_a44202ae7e19e7ae3bd454149976c364a"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a44202ae7e19e7ae3bd454149976c364a">to_string</a> (<a class="el" href="namespacepsr.html#a951662fd4f90e7136dd1d6679ad80a9b">BinaryDomain</a> B)</td></tr>
 <tr class="separator:a44202ae7e19e7ae3bd454149976c364a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac4747ffef1f1cd10f40d1ab24edda0ab" id="r_ac4747ffef1f1cd10f40d1ab24edda0ab"><td class="memItemLeft" align="right" valign="top">llvm::raw_ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#ac4747ffef1f1cd10f40d1ab24edda0ab">operator&lt;&lt;</a> (llvm::raw_ostream &amp;OS, <a class="el" href="namespacepsr.html#a951662fd4f90e7136dd1d6679ad80a9b">BinaryDomain</a> B)</td></tr>
 <tr class="separator:ac4747ffef1f1cd10f40d1ab24edda0ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a95f46ef63a85b6277f58593f7768d667" id="r_a95f46ef63a85b6277f58593f7768d667"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a95f46ef63a85b6277f58593f7768d667">isExternallyCallable</a> (const llvm::Function &amp;F) noexcept</td></tr>
+<tr class="separator:a95f46ef63a85b6277f58593f7768d667"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a412f805b6fc30e3319b0e3618875af7d" id="r_a412f805b6fc30e3319b0e3618875af7d"><td class="memItemLeft" align="right" valign="top">std::vector&lt; const llvm::Function * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a412f805b6fc30e3319b0e3618875af7d">getEntryFunctions</a> (const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;IRDB, llvm::ArrayRef&lt; std::string &gt; <a class="el" href="namespacepsr.html#abee833e16ef749173730713d144c91b1">EntryPoints</a>)</td></tr>
 <tr class="separator:a412f805b6fc30e3319b0e3618875af7d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac986f0d8118e2037a944d5bf5ab641cb" id="r_ac986f0d8118e2037a944d5bf5ab641cb"><td class="memItemLeft" align="right" valign="top">std::vector&lt; const llvm::Function * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#ac986f0d8118e2037a944d5bf5ab641cb">getEntryFunctions</a> (const <a class="el" href="classpsr_1_1LLVMBasedICFG.html">LLVMBasedICFG</a> &amp;ICF, llvm::ArrayRef&lt; std::string &gt; <a class="el" href="namespacepsr.html#abee833e16ef749173730713d144c91b1">EntryPoints</a>)</td></tr>
@@ -10723,8 +10725,8 @@ template&lt;typename IdT  = size_t&gt; </div>
 
 </div>
 </div>
-<a id="abb7af10b4b74715fd397d3caa75899b2" name="abb7af10b4b74715fd397d3caa75899b2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abb7af10b4b74715fd397d3caa75899b2">&#9670;&#160;</a></span>IRDBGetFunctionDef()</h2>
+<a id="aa406ae1fb13b6ba237429599b0359178" name="aa406ae1fb13b6ba237429599b0359178"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa406ae1fb13b6ba237429599b0359178">&#9670;&#160;</a></span>IRDBGetFunctionDef()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -10735,7 +10737,7 @@ template&lt;typename IdT  = size_t&gt; </div>
         <tr>
           <td class="memname">auto psr::IRDBGetFunctionDef </td>
           <td>(</td>
-          <td class="paramtype">const ProjectIRDB auto *&#160;</td>
+          <td class="paramtype">ProjectIRDB auto *&#160;</td>
           <td class="paramname"><em>IRDB</em></td><td>)</td>
           <td></td>
         </tr>
@@ -10926,6 +10928,33 @@ template&lt;typename IdT  = size_t&gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="a95f46ef63a85b6277f58593f7768d667" name="a95f46ef63a85b6277f58593f7768d667"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a95f46ef63a85b6277f58593f7768d667">&#9670;&#160;</a></span>isExternallyCallable()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classbool.html">bool</a> psr::isExternallyCallable </td>
+          <td>(</td>
+          <td class="paramtype">const llvm::Function &amp;&#160;</td>
+          <td class="paramname"><em>F</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Returns true, if F is a definition that a client outside the module under analysis is able to call. Used to expand the special entry point "__ALL__". </p>
 
 </div>
 </div>
@@ -15430,7 +15459,7 @@ template&lt;typename Var , typename T &gt; </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Sep 2 2026 16:19:43 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Tue Sep 8 2026 16:28:15 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
