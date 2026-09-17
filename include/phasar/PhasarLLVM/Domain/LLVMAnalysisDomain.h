@@ -11,8 +11,6 @@
 #define PHASAR_PHASARLLVM_DOMAIN_LLVMANALYSISDOMAIN_H
 
 #include "phasar/Domain/AnalysisDomain.h"
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/AbstractMemoryLocation.h"
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/EdgeDomain.h"
 #include "phasar/PhasarLLVM/Utils/LLVMAnalysisPrinter.h"
 #include "phasar/Utils/DefaultAnalysisPrinterSelector.h"
 #include "phasar/Utils/TypeTraits.h"
