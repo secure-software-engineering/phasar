@@ -161,6 +161,7 @@ if(PHASAR_ALLOW_LTO_IN_RELEASE_BUILD)
 endif()
 
 option(PHASAR_BUILD_UNITTESTS "Build all tests (default is ON)" ${PHASAR_BUILD_OPTIONAL_TARGETS_DEFAULT})
+option(PHASAR_ENABLE_INTEGRATIONTESTS "Enable LIT integration tests (default is ON)" ${PHASAR_BUILD_OPTIONAL_TARGETS_DEFAULT})
 
 option(PHASAR_BUILD_OPENSSL_TS_UNITTESTS "Build OPENSSL typestate tests (require OpenSSL, default is OFF)" OFF)
 

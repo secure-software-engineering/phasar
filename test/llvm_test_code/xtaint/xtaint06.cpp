@@ -1,3 +1,4 @@
+
 void print([[clang::annotate("psr.sink")]] int) {}
 extern int rand(void);
 
@@ -21,7 +22,7 @@ int main([[clang::annotate("psr.source")]] int argc, char *argv[]) {
 // ide-xtaint: No leaks found!
 
 // RUN: %phasar-cli --data-flow-analysis=ifds-taint --module %llvm_test_code/xtaint/xtaint06_cpp_dbg.ll | FileCheck %s -check-prefix=ifds-taint
-// ifds-taint: /xtaint/xtaint06.cpp:13:3:
+// ifds-taint: /xtaint/xtaint06.cpp:14:3:
 
 // RUN: %phasar-cli --data-flow-analysis=ifds-fieldsens-taint --module %llvm_test_code/xtaint/xtaint06_cpp_dbg.ll | FileCheck %s -check-prefix=ifds-fieldsens-taint
 // ifds-fieldsens-taint: No leaks found!
@@ -30,4 +31,4 @@ int main([[clang::annotate("psr.source")]] int argc, char *argv[]) {
 // monoifds-taint: No leaks found!
 
 // RUN: %phasar-cli --data-flow-analysis=sparse-ifds-taint --module %llvm_test_code/xtaint/xtaint06_cpp_dbg.ll | FileCheck %s -check-prefix=sparse-ifds-taint
-// sparse-ifds-taint: /xtaint/xtaint06.cpp:13:3:
+// sparse-ifds-taint: /xtaint/xtaint06.cpp:14:3:

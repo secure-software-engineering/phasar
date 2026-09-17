@@ -84,7 +84,7 @@ jobs:
       - name: Run Unittests
         shell: bash
         run: |
-          cmake --build ./build --target check-phasar-unittests
+          cmake --build ./build --target check-phasar-unittests check-phasar-cli
 
       - name: Install PhASAR and Build Examples
         if: matrix.build == 'DebugLibdeps' # Circumvent conflicting ASAn flags
