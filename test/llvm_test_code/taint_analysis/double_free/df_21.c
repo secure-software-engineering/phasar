@@ -24,7 +24,7 @@ void v(void **dataVoidPtr) {
 int main() {
   int *foo = (int *)malloc(32);
   free(foo);
-  v(&foo);
+  v((void **)&foo);
   return 0;
 }
 
