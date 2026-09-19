@@ -1,5 +1,6 @@
 import lit.llvm
 
+config.phasar_config_dir = "@PHASAR_SRC_DIR@/config"
 config.phasar_obj_root = "@CMAKE_CURRENT_BINARY_DIR@"
 config.phasar_cli_dir = "@PHASAR_BINARY_DIR@/tools/phasar-cli/"
 config.phasar_ll_dir = "@PHASAR_BINARY_DIR@/test/llvm_test_code/"

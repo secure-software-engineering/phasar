@@ -25,6 +25,8 @@ config.substitutions.append(
     ('%phasar-cli', os.path.join(config.phasar_cli_dir, 'phasar-cli')))
 config.substitutions.append(
     ('%llvm_test_code', config.phasar_ll_dir))
+config.substitutions.append(
+    ('%config', config.phasar_config_dir))
 
 config.environment["PATH"] = os.pathsep.join(
     [config.phasar_filecheck_dir, config.environment["PATH"]]
