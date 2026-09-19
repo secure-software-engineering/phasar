@@ -21,6 +21,7 @@ Checks: '-*,
            -readability-use-anyofallof,
            -readability-avoid-return-with-void-value,
            -readability-use-std-min-max,
+           -readability-math-missing-parentheses,
          cppcoreguidelines-*,
            -cppcoreguidelines-avoid-non-const-global-variables,
            -cppcoreguidelines-pro-bounds-array-to-pointer-decay,
@@ -38,6 +39,7 @@ Checks: '-*,
            -modernize-use-trailing-return-type,
            -modernize-avoid-c-arrays,
          performance-*,
+           -performance-enum-size,
          clang-analyzer-*
         '
 

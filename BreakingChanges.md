@@ -2,6 +2,9 @@
 
 ## development HEAD
 
+- Existing IFDS/IDE problems provided by PhASAR do no longer inherit from `IFDSTabulationProblem`/`IDETabulationProblem`. The solvers can now deal with them without polymorphic inheritance hierarchy. However, **you cannot cast an analysis problem to one of these base classes anymore**. If that's required (unlikely), wrap your problem in a `LegacyIDEProblemWrapper`.
+  - Although the IFDS/IDETabulationProblem classes still work, new IFDS/IDE analysis problems should conform to the `IFDSProblem`/`IDEProblem` concepts instead. Use `IfdsIdeProblemMixin` as helper for that.
+- `IDESolver` and `IFDSSolver` now take analysis problems by pointer instead of by reference to better document that they capture the address (without taking ownership).
 - `FlowFunctionPtrType` is now a move-only type.
 - Removed the CRTP-template `ProjectIRDBBase`. Use the concept `ProjectIRDB` instead.
 - Removed `EdgeFunction<L>::equals`. Use `operator==` instead.

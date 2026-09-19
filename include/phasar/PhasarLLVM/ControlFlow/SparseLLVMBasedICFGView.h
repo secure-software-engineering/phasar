@@ -56,7 +56,7 @@ public:
   // To make the IDESolver happy...
   operator const LLVMBasedICFG &() const noexcept { return *ICF; }
 
-  [[nodiscard]] n_t advanceToNextUser(n_t Succ, const auto &Fact) {
+  [[nodiscard]] n_t advanceToNextUser(n_t Succ, const auto &Fact) const {
     using psr::valueOf;
     return advanceToNextUserImpl(Succ, valueOf(Fact));
   }
@@ -77,7 +77,9 @@ private:
   [[nodiscard]] const SparseLLVMBasedCFG &
   getSparseCFGImpl(const llvm::Function *Fun, const llvm::Value *Val) const;
 
-  [[nodiscard]] n_t advanceToNextUserImpl(n_t Succ, v_t Fact);
+  [[nodiscard]] n_t advanceToNextUserImpl(n_t Succ, v_t Fact) const;
+
+  [[nodiscard]] size_t getNumCallSitesImpl() const noexcept;
 
   const LLVMBasedICFG *ICF{};
   std::unique_ptr<SVFGCache> SparseCFGCache;

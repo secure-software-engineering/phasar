@@ -11,6 +11,7 @@
 #define PHASAR_UTILS_BITSET_H
 
 #include "phasar/Utils/TypeTraits.h"
+#include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallBitVector.h"
@@ -24,6 +25,7 @@
 #include <iterator>
 #include <optional>
 #include <type_traits>
+#include <utility>
 
 namespace psr {
 
@@ -98,6 +100,19 @@ public:
   explicit BitSet(size_t InitialCapacity) : Bits(InitialCapacity) {}
   explicit BitSet(size_t InitialCapacity, bool InitialValue)
       : Bits(InitialCapacity, InitialValue) {}
+
+  // Moved-from llvm::BitVector is not empty. ValueIdMap requires this in its
+  // dtor.
+  BitSet(BitSet &&Other) noexcept : Bits(std::exchange(Other.Bits, {})) {}
+  BitSet &operator=(BitSet &&Other) noexcept {
+    std::swap(Bits, Other.Bits);
+    return *this;
+  }
+
+  BitSet(const BitSet &) = default;
+  BitSet &operator=(const BitSet &) = default;
+
+  ~BitSet() = default;
 
   void reserve(size_t Cap) {
     if (Bits.size() < Cap) {
@@ -206,7 +221,7 @@ public:
   ///
   /// This is likely faster than using iterators.
   template <std::invocable<IdT> HandlerFn>
-  void foreach (HandlerFn Handler) const
+  bool foreach (HandlerFn Handler) const
       noexcept(std::is_nothrow_invocable_v<HandlerFn &, IdT>) {
     uintptr_t Store{};
     auto Words = getWords(Bits, Store);
@@ -215,11 +230,14 @@ public:
       while (W) {
         auto Curr = std::countr_zero(W) + Offset;
         W &= W - 1;
-        std::invoke(Handler, IdT(Curr));
+        if (!invokeControlFlow(Handler, IdT(Curr))) {
+          return false;
+        }
       }
 
       Offset += sizeof(W) * CHAR_BIT;
     }
+    return true;
   }
 
   /// Same as mergeWith()

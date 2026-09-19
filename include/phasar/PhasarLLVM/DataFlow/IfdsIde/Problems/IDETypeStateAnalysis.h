@@ -13,7 +13,7 @@
 #include "phasar/DataFlow/IfdsIde/EdgeFunction.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
-#include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
+#include "phasar/DataFlow/IfdsIde/IfdsIdeProblemMixin.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
@@ -24,6 +24,7 @@
 #include "phasar/Utils/JoinLattice.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Printer.h"
+#include "phasar/Utils/WithAnalysisPrinterMixin.h"
 
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Demangle/Demangle.h"
@@ -62,9 +63,6 @@ public:
   IDETypeStateAnalysisBase &
   operator=(const IDETypeStateAnalysisBase &) noexcept = delete;
 
-protected:
-  IDETypeStateAnalysisBase(LLVMAliasInfoRef PT) noexcept : PT(PT) {}
-
   using typename IDETypeStateAnalysisBaseCommon::container_type;
   using typename IDETypeStateAnalysisBaseCommon::d_t;
   using typename IDETypeStateAnalysisBaseCommon::f_t;
@@ -80,6 +78,9 @@ protected:
   FlowFunctionPtrType getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
                                                llvm::ArrayRef<f_t> Callees);
   FlowFunctionPtrType getSummaryFlowFunction(n_t CallSite, f_t DestFun);
+
+protected:
+  IDETypeStateAnalysisBase(LLVMAliasInfoRef PT) noexcept : PT(PT) {}
 
   // --- Utilities
 
@@ -148,12 +149,14 @@ struct IDETypeStateAnalysisDomain : public LLVMAnalysisDomainDefault {
 
 template <typename TypeStateDescriptionTy>
 class IDETypeStateAnalysis
-    : public IDETabulationProblem<
+    : public IfdsIdeProblemMixin<
           IDETypeStateAnalysisDomain<TypeStateDescriptionTy>>,
-      private detail::IDETypeStateAnalysisBase {
+      public WithAnalysisPrinterMixin<
+          IDETypeStateAnalysisDomain<TypeStateDescriptionTy>>,
+      public detail::IDETypeStateAnalysisBase {
 public:
   using IDETabProblemType =
-      IDETabulationProblem<IDETypeStateAnalysisDomain<TypeStateDescriptionTy>>;
+      IfdsIdeProblemMixin<IDETypeStateAnalysisDomain<TypeStateDescriptionTy>>;
   using typename IDETabProblemType::container_type;
   using typename IDETabProblemType::d_t;
   using typename IDETabProblemType::f_t;
@@ -354,51 +357,20 @@ public:
 
   // start formulating our analysis by specifying the parts required for IFDS
 
-  FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t Succ) override {
-    return detail::IDETypeStateAnalysisBase::getNormalFlowFunction(Curr, Succ);
-  }
-
-  FlowFunctionPtrType getCallFlowFunction(n_t CallSite, f_t DestFun) override {
-    return detail::IDETypeStateAnalysisBase::getCallFlowFunction(CallSite,
-                                                                 DestFun);
-  }
-
-  FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t CalleeFun,
-                                         n_t ExitStmt, n_t RetSite) override {
-
-    return detail::IDETypeStateAnalysisBase::getRetFlowFunction(
-        CallSite, CalleeFun, ExitStmt, RetSite);
-  }
-
-  FlowFunctionPtrType
-  getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
-                           llvm::ArrayRef<f_t> Callees) override {
-    return detail::IDETypeStateAnalysisBase::getCallToRetFlowFunction(
-        CallSite, RetSite, Callees);
-  }
-
-  FlowFunctionPtrType getSummaryFlowFunction(n_t CallSite,
-                                             f_t DestFun) override {
-    return detail::IDETypeStateAnalysisBase::getSummaryFlowFunction(CallSite,
-                                                                    DestFun);
-  }
-
-  InitialSeeds<n_t, d_t, l_t> initialSeeds() override {
-    return this->createDefaultSeeds();
+  InitialSeeds<n_t, d_t, l_t> initialSeeds() {
+    return IDETabProblemType::createDefaultSeeds(*this);
   }
 
   [[nodiscard]] d_t createZeroValue() const {
     return LLVMZeroValue::getInstance();
   }
 
-  [[nodiscard]] bool isZeroValue(d_t Fact) const noexcept override {
-    return LLVMZeroValue::isLLVMZeroValue(Fact);
-  }
+  using detail::IDETypeStateAnalysisBase::getSummaryFlowFunction;
 
   // in addition provide specifications for the IDE parts
 
   EdgeFunction<l_t> getNormalEdgeFunction(n_t Curr, d_t CurrNode, n_t /*Succ*/,
-                                          d_t SuccNode) override {
+                                          d_t SuccNode) {
     // Set alloca instructions of target type to uninitialized.
     if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
       if (hasMatchingType(Alloca)) {
@@ -412,22 +384,20 @@ public:
 
   EdgeFunction<l_t> getCallEdgeFunction(n_t /*CallSite*/, d_t /*SrcNode*/,
                                         f_t /*DestinationFunction*/,
-                                        d_t /*DestNode*/) override {
+                                        d_t /*DestNode*/) {
     return EdgeIdentity<l_t>{};
   }
 
   EdgeFunction<l_t> getReturnEdgeFunction(n_t /*CallSite*/,
                                           f_t /*CalleeFunction*/,
                                           n_t /*ExitInst*/, d_t /*ExitNode*/,
-                                          n_t /*RetSite*/,
-                                          d_t /*RetNode*/) override {
+                                          n_t /*RetSite*/, d_t /*RetNode*/) {
     return EdgeIdentity<l_t>{};
   }
 
-  EdgeFunction<l_t>
-  getCallToRetEdgeFunction(n_t CallSite, d_t CallNode, n_t /*RetSite*/,
-                           d_t RetSiteNode,
-                           llvm::ArrayRef<f_t> Callees) override {
+  EdgeFunction<l_t> getCallToRetEdgeFunction(n_t CallSite, d_t CallNode,
+                                             n_t /*RetSite*/, d_t RetSiteNode,
+                                             llvm::ArrayRef<f_t> Callees) {
     const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
     for (const auto *Callee : Callees) {
       std::string DemangledFname = llvm::demangle(Callee->getName().str());
@@ -436,7 +406,7 @@ public:
       // We apply the same edge function for the return value, i.e. callsite.
       if (TSD->isFactoryFunction(DemangledFname)) {
         PHASAR_LOG_LEVEL(DEBUG, "Processing factory function");
-        if (isZeroValue(CallNode) && RetSiteNode == CS) {
+        if (this->isZeroValue(CallNode) && RetSiteNode == CS) {
           return TSConstant{
               TSD->getNextState(DemangledFname, TSD->uninit(), CS), TSD};
         }
@@ -459,15 +429,9 @@ public:
     return EdgeIdentity<l_t>{};
   }
 
-  EdgeFunction<l_t> getSummaryEdgeFunction(n_t /*CallSite*/, d_t /*CallNode*/,
-                                           n_t /*RetSite*/,
-                                           d_t /*RetSiteNode*/) override {
-    return nullptr;
-  }
+  l_t topElement() { return TSD->top(); }
 
-  l_t topElement() override { return TSD->top(); }
-
-  l_t bottomElement() override { return TSD->bottom(); }
+  l_t bottomElement() { return TSD->bottom(); }
 
   /**
    * We have a lattice with BOTTOM representing all information
@@ -477,7 +441,7 @@ public:
    *
    * @note Only one-level lattice's are handled currently
    */
-  l_t join(l_t Lhs, l_t Rhs) override {
+  l_t join(l_t Lhs, l_t Rhs) {
     if (Lhs == Rhs) {
       return Lhs;
     }
@@ -488,14 +452,6 @@ public:
       return Lhs;
     }
     return TSD->bottom();
-  }
-
-  EdgeFunction<l_t> allTopFunction() override {
-    if constexpr (HasJoinLatticeTraits<l_t>) {
-      return AllTop<l_t>{};
-    } else {
-      return AllTop<l_t>{topElement()};
-    }
   }
 
   [[nodiscard]] bool
@@ -514,7 +470,7 @@ public:
   }
 
   void emitTextReport(GenericSolverResults<n_t, d_t, l_t> SR,
-                      llvm::raw_ostream &OS = llvm::outs()) override {
+                      llvm::raw_ostream &OS = llvm::outs()) {
 
     for (const auto &F : this->IRDB->getAllFunctions()) {
       for (const auto &BB : *F) {
@@ -535,7 +491,7 @@ public:
       }
     }
 
-    this->Printer->onFinalize(OS);
+    this->printer().onFinalize(OS);
   }
 
   [[nodiscard]] bool
@@ -560,10 +516,6 @@ IDETypeStateAnalysis(const LLVMProjectIRDB *, LLVMAliasInfoRef,
                      const TypeStateDescriptionTy *,
                      std::vector<std::string> EntryPoints)
     -> IDETypeStateAnalysis<TypeStateDescriptionTy>;
-
-// class CSTDFILEIOTypeStateDescription;
-
-// extern template class IDETypeStateAnalysis<CSTDFILEIOTypeStateDescription>;
 
 } // namespace psr
 

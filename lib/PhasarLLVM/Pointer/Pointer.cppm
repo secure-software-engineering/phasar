@@ -33,13 +33,15 @@ using psr::LLVMAliasInfoRef;
 using psr::LLVMAliasIteratorRef;
 using psr::LLVMAliasSet;
 using psr::LLVMAliasSetData;
+using psr::LLVMLocalRawAliasIterator;
+using psr::LLVMLocalRawAliasIteratorMixin;
 using psr::LLVMLocalUnionFindAliasIterator;
-using psr::LLVMLocalUnionFindAliasIteratorMixin;
 using psr::LLVMPointsToIterator;
 using psr::LLVMPointsToIteratorRef;
-using psr::llvmUnionFindAliasHandler;
+using psr::llvmRawAliasHandler;
+using psr::LLVMRawAliasIterator;
+using psr::LLVMRawAliasIteratorMixin;
 using psr::LLVMUnionFindAliasIterator;
-using psr::LLVMUnionFindAliasIteratorMixin;
 using psr::MemSSABundle;
 using psr::pag::LLVMCGProvider;
 

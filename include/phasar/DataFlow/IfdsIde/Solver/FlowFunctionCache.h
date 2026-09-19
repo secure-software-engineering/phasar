@@ -1,6 +1,7 @@
 #ifndef PHASAR_DATAFLOW_IFDSIDE_SOLVER_FLOWFUNCTIONCACHE_H
 #define PHASAR_DATAFLOW_IFDSIDE_SOLVER_FLOWFUNCTIONCACHE_H
 
+#include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
 #include "phasar/DataFlow/IfdsIde/GenericFlowFunction.h"
 #include "phasar/DataFlow/IfdsIde/Solver/FlowFunctionCacheStats.h"
 #include "phasar/Utils/ByRef.h"
@@ -20,15 +21,6 @@
 
 namespace psr {
 namespace detail {
-template <typename T, typename D>
-concept IsFlowFunction = requires(T &FF, D Fact) {
-  { FF.computeTargets(Fact) } -> is_iterable_over_v<D>;
-};
-
-template <typename T, typename D>
-concept IsFlowFunctionPtr = requires(T FF, D Fact) {
-  { FF->computeTargets(Fact) } -> is_iterable_over_v<D>;
-};
 
 template <typename D, typename FFTy> struct AutoAddZeroFF {
   FFTy FF;
@@ -109,23 +101,18 @@ template <typename ProblemTy> struct FlowFunctionCacheBase {
       std::decay_t<decltype(std::declval<ProblemTy>().getSummaryFlowFunction(
           std::declval<n_t>(), std::declval<f_t>()))>;
 
-  static_assert(detail::IsFlowFunction<normal_ff_t, d_t> ||
-                detail::IsFlowFunctionPtr<normal_ff_t, d_t>);
-  static_assert(detail::IsFlowFunction<call_ff_t, d_t> ||
-                detail::IsFlowFunctionPtr<call_ff_t, d_t>);
-  static_assert(detail::IsFlowFunction<ret_ff_t, d_t> ||
-                detail::IsFlowFunctionPtr<ret_ff_t, d_t>);
-  static_assert(detail::IsFlowFunction<ctr_ff_t, d_t> ||
-                detail::IsFlowFunctionPtr<ctr_ff_t, d_t>);
-  static_assert(detail::IsFlowFunction<summary_ff_t, d_t> ||
-                detail::IsFlowFunctionPtr<summary_ff_t, d_t> ||
+  static_assert(IsFlowFunctionOrFFPtrOf<normal_ff_t, d_t>);
+  static_assert(IsFlowFunctionOrFFPtrOf<call_ff_t, d_t>);
+  static_assert(IsFlowFunctionOrFFPtrOf<ret_ff_t, d_t>);
+  static_assert(IsFlowFunctionOrFFPtrOf<ctr_ff_t, d_t>);
+  static_assert(IsFlowFunctionOrFFPtrOf<summary_ff_t, d_t> ||
                 std::is_same_v<summary_ff_t, std::nullptr_t>);
 
   template <typename T>
   static constexpr bool needs_cache_v =
       std::is_same_v<std::unique_ptr<FlowFunction<d_t>>, T> ||
       std::is_same_v<GenericFlowFunction<d_t>, T> ||
-      (detail::IsFlowFunctionPtr<T, d_t> && !std::is_pointer_v<T>);
+      (IsFlowFunctionPtrOf<T, d_t> && !std::is_pointer_v<T>);
 };
 
 } // namespace detail
@@ -163,7 +150,7 @@ class FlowFunctionCache
     using ff_t = std::decay_t<FFTy>;
 
     if constexpr (AutoAddZero) {
-      if constexpr (detail::IsFlowFunctionPtr<ff_t, d_t>) {
+      if constexpr (IsFlowFunctionPtrOf<ff_t, d_t>) {
         if constexpr (needs_cache_v<ff_t>) {
           return detail::AutoAddZeroFF{
               GenericFlowFunctionView(getPointerFrom(FF)),
@@ -178,7 +165,7 @@ class FlowFunctionCache
                                      Problem.getZeroValue()};
       }
     } else {
-      if constexpr (detail::IsFlowFunctionPtr<ff_t, d_t>) {
+      if constexpr (IsFlowFunctionPtrOf<ff_t, d_t>) {
         if constexpr (needs_cache_v<ff_t>) {
           return GenericFlowFunctionView(getPointerFrom(FF));
         } else {

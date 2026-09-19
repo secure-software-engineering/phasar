@@ -46,7 +46,7 @@ static void executeIfdsIdeAnalysisImpl(SolverTy &Solver,
 template <typename SolverTy, typename ProblemTy, typename... ArgTys>
 static void executeSparseIfdsIdeAnalysis(AnalysisController &Data,
                                          ArgTys &&...Args) {
-  SparseLLVMBasedICFGView SVFG(&Data.HA->getICFG(), Data.HA->getAliasInfo());
+  SparseLLVMBasedICFGView SVFG(&Data.HA.getICFG(), Data.HA.getAliasInfo());
   executeIfdsIdeAnalysisImpl<SolverTy, ProblemTy>(
       Data, SVFG, std::forward<ArgTys>(Args)...);
 }
@@ -56,7 +56,7 @@ static void executeIFDSAnalysisWithICFG(AnalysisController &Data,
                                         const ICFG auto &ICF,
                                         ArgTys &&...Args) {
   auto Problem =
-      createAnalysisProblem<ProblemTy>(*Data.HA, std::forward<ArgTys>(Args)...);
+      createAnalysisProblem<ProblemTy>(Data.HA, std::forward<ArgTys>(Args)...);
   IFDSSolver Solver(&Problem, &ICF);
   executeIfdsIdeAnalysisImpl(Solver, Data);
 }
@@ -64,34 +64,34 @@ template <typename ProblemTy, typename... ArgTys>
 static void executeIDEAnalysisWithICFG(AnalysisController &Data,
                                        const ICFG auto &ICF, ArgTys &&...Args) {
   auto Problem =
-      createAnalysisProblem<ProblemTy>(*Data.HA, std::forward<ArgTys>(Args)...);
+      createAnalysisProblem<ProblemTy>(Data.HA, std::forward<ArgTys>(Args)...);
   IDESolver Solver(&Problem, &ICF);
   executeIfdsIdeAnalysisImpl(Solver, Data);
 }
 
 template <typename ProblemTy, typename... ArgTys>
 static void executeIFDSAnalysis(AnalysisController &Data, ArgTys &&...Args) {
-  executeIFDSAnalysisWithICFG<ProblemTy>(Data, Data.HA->getICFG(),
+  executeIFDSAnalysisWithICFG<ProblemTy>(Data, Data.HA.getICFG(),
                                          PSR_FWD(Args)...);
 }
 
 template <typename ProblemTy, typename... ArgTys>
 static void executeSparseIFDSAnalysis(AnalysisController &Data,
                                       ArgTys &&...Args) {
-  SparseLLVMBasedICFGView SVFG(&Data.HA->getICFG(), Data.HA->getAliasInfo());
+  SparseLLVMBasedICFGView SVFG(&Data.HA.getICFG(), Data.HA.getAliasInfo());
   executeIFDSAnalysisWithICFG<ProblemTy>(Data, SVFG, PSR_FWD(Args)...);
 }
 
 template <typename ProblemTy, typename... ArgTys>
 static void executeIDEAnalysis(AnalysisController &Data, ArgTys &&...Args) {
-  executeIDEAnalysisWithICFG<ProblemTy>(Data, Data.HA->getICFG(),
+  executeIDEAnalysisWithICFG<ProblemTy>(Data, Data.HA.getICFG(),
                                         PSR_FWD(Args)...);
 }
 
 template <typename ProblemTy, typename... ArgTys>
 static void executeSparseIDEAnalysis(AnalysisController &Data,
                                      ArgTys &&...Args) {
-  SparseLLVMBasedICFGView SVFG(&Data.HA->getICFG(), Data.HA->getAliasInfo());
+  SparseLLVMBasedICFGView SVFG(&Data.HA.getICFG(), Data.HA.getAliasInfo());
   executeIDEAnalysisWithICFG<ProblemTy>(Data, SVFG, PSR_FWD(Args)...);
 }
 

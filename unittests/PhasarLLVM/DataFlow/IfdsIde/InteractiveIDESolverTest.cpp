@@ -33,10 +33,10 @@ TEST_P(LinearConstant, ResultsEquivalentSolveUntil) {
       std::vector{HasGlobalCtor ? LLVMBasedICFG::GlobalCRuntimeModelName.str()
                                 : "main"});
 
-  auto AtomicResults = IDESolver(LCAProblem, &ICFG).solve();
+  auto AtomicResults = IDESolver(&LCAProblem, &ICFG).solve();
   {
     auto InteractiveResults =
-        IDESolver(LCAProblem, &ICFG).solveUntil(FalseFn{});
+        IDESolver(&LCAProblem, &ICFG).solveUntil(FalseFn{});
 
     ASSERT_TRUE(InteractiveResults.has_value());
     for (auto &&Cell : AtomicResults.getAllResultEntries()) {
@@ -46,7 +46,7 @@ TEST_P(LinearConstant, ResultsEquivalentSolveUntil) {
     }
   }
   auto InterruptedResults = [&] {
-    IDESolver Solver(LCAProblem, &ICFG);
+    IDESolver Solver(&LCAProblem, &ICFG);
     auto Result = Solver.solveUntil(TrueFn{});
     EXPECT_EQ(std::nullopt, Result);
     if (!Result) {
@@ -76,12 +76,12 @@ TEST_P(LinearConstant, ResultsEquivalentSolveUntilAsync) {
       std::vector{HasGlobalCtor ? LLVMBasedICFG::GlobalCRuntimeModelName.str()
                                 : "main"});
 
-  auto AtomicResults = IDESolver(LCAProblem, &ICFG).solve();
+  auto AtomicResults = IDESolver(&LCAProblem, &ICFG).solve();
 
   {
     std::atomic_bool IsCancelled = false;
     auto InteractiveResults =
-        IDESolver(LCAProblem, &ICFG).solveWithAsyncCancellation(IsCancelled);
+        IDESolver(&LCAProblem, &ICFG).solveWithAsyncCancellation(IsCancelled);
 
     ASSERT_TRUE(InteractiveResults.has_value());
     for (auto &&Cell : AtomicResults.getAllResultEntries()) {
@@ -91,7 +91,7 @@ TEST_P(LinearConstant, ResultsEquivalentSolveUntilAsync) {
     }
   }
   auto InterruptedResults = [&] {
-    IDESolver Solver(LCAProblem, &ICFG);
+    IDESolver Solver(&LCAProblem, &ICFG);
     std::atomic_bool IsCancelled = true;
     auto Result = Solver.solveWithAsyncCancellation(IsCancelled);
     EXPECT_EQ(std::nullopt, Result);

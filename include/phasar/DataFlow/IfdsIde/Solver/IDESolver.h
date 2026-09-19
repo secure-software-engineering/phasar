@@ -25,9 +25,10 @@
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
+#include "phasar/DataFlow/IfdsIde/IDEProblem.h"
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
-#include "phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h"
 #include "phasar/DataFlow/IfdsIde/InitialSeeds.h"
+#include "phasar/DataFlow/IfdsIde/LegacyIDEProblemWrapper.h"
 #include "phasar/DataFlow/IfdsIde/Solver/ESGEdgeKind.h"
 #include "phasar/DataFlow/IfdsIde/Solver/FlowEdgeFunctionCache.h"
 #include "phasar/DataFlow/IfdsIde/Solver/IDESolverAPIMixin.h"
@@ -41,6 +42,7 @@
 #include "phasar/Utils/JoinLattice.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Macros.h"
+#include "phasar/Utils/NonNullPtr.h"
 #include "phasar/Utils/Nullable.h"
 #include "phasar/Utils/PAMMMacros.h"
 #include "phasar/Utils/Table.h"
@@ -93,6 +95,20 @@ struct IDESolverPerf {
   PAMM_TIMER(DFAPhase2, Full);
   // NOLINTEND
 };
+
+template <typename AnalysisDomainTy, typename Container>
+class IDESolverProblemWrapperStorage {
+protected:
+  constexpr IDESolverProblemWrapperStorage() = default;
+
+  template <IFDSProblem ProblemTy>
+  IDESolverProblemWrapperStorage(ProblemTy *Problem)
+      : ProblemOwner(
+            std::make_unique<LegacyIDEProblemWrapper<ProblemTy>>(Problem)) {}
+
+  std::unique_ptr<IDETabulationProblem<AnalysisDomainTy, Container>>
+      ProblemOwner{};
+};
 } // namespace detail
 
 /// Solves the given IDETabulationProblem as described in the 1996 paper by
@@ -102,7 +118,9 @@ template <typename AnalysisDomainTy,
           typename Container = std::set<typename AnalysisDomainTy::d_t>,
           ICFG ICFGTy = typename AnalysisDomainTy::i_t>
 class IDESolver
-    : private detail::IDESolverPerf,
+    : private detail::IDESolverProblemWrapperStorage<AnalysisDomainTy,
+                                                     Container>,
+      private detail::IDESolverPerf,
       public IDESolverAPIMixin<IDESolver<AnalysisDomainTy, Container, ICFGTy>> {
   friend IDESolverAPIMixin<IDESolver<AnalysisDomainTy, Container, ICFGTy>>;
 
@@ -119,18 +137,36 @@ public:
   using t_t = typename AnalysisDomainTy::t_t;
   using v_t = typename AnalysisDomainTy::v_t;
 
-  IDESolver(IDETabulationProblem<AnalysisDomainTy, Container> &Problem,
-            const ICFGTy *ICF)
-      : IDEProblem(Problem), ZeroValue(Problem.getZeroValue()),
-        ICF(&assertNotNull(ICF)),
-        SolverConfig(Problem.getIFDSIDESolverConfig()),
-        CachedFlowEdgeFunctions(Problem), AllTop(Problem.allTopFunction()),
-        JumpFn(std::make_unique<JumpFunctions<AnalysisDomainTy, Container>>()),
-        Seeds(Problem.initialSeeds()) {}
-
   IDESolver(IDETabulationProblem<AnalysisDomainTy, Container> *Problem,
             const i_t *ICF)
-      : IDESolver(assertNotNull(Problem), ICF) {}
+      : IDEProblem(assertNotNull(Problem)), ZeroValue(Problem->getZeroValue()),
+        ICF(&assertNotNull(ICF)),
+        SolverConfig(Problem->getIFDSIDESolverConfig()),
+        CachedFlowEdgeFunctions(Problem), AllTop(Problem->allTopFunction()),
+        Seeds(Problem->initialSeeds()) {}
+
+  template <IFDSProblem ProblemTy>
+  [[deprecated(
+      "Use the other overload of IDESolver() instead, which takes the "
+      "ide-problem by pointer. This documents better that the solver captures "
+      "the address without taking ownership")]] IDESolver(ProblemTy &Problem,
+                                                          const ICFGTy *ICF)
+      : IDESolver(&Problem, ICF) {}
+
+  template <IFDSProblem ProblemTy>
+    requires(!std::derived_from<
+                ProblemTy,
+                IDETabulationProblem<typename ProblemTy::ProblemAnalysisDomain,
+                                     typename ProblemTy::container_type>>)
+  IDESolver(ProblemTy *Problem, const i_t *ICF)
+      : detail::IDESolverProblemWrapperStorage<AnalysisDomainTy, Container>(
+            Problem),
+        IDEProblem(*this->ProblemOwner), ZeroValue(Problem->getZeroValue()),
+        ICF(&assertNotNull(ICF)),
+        SolverConfig(this->ProblemOwner->getIFDSIDESolverConfig()),
+        CachedFlowEdgeFunctions(this->ProblemOwner.get()),
+        AllTop(this->ProblemOwner->allTopFunction()),
+        Seeds(Problem->initialSeeds()) {}
 
   IDESolver(const IDESolver &) = delete;
   IDESolver &operator=(const IDESolver &) = delete;
@@ -687,7 +723,7 @@ protected:
       auto CallFlowFunction =
           CachedFlowEdgeFunctions.getCallFlowFunction(Stmt, Callee);
       FFQueries++;
-      for (const d_t dPrime : CallFlowFunction->computeTargets(Fact)) {
+      for (const d_t &dPrime : CallFlowFunction->computeTargets(Fact)) {
         auto EdgeFn = CachedFlowEdgeFunctions.getCallEdgeFunction(
             Stmt, Fact, Callee, dPrime);
         PHASAR_LOG_LEVEL(DEBUG, "Queried Call Edge Function: " << EdgeFn);
@@ -1861,7 +1897,8 @@ private:
 
   size_t PathEdgeCount = 0;
 
-  FlowEdgeFunctionCache<AnalysisDomainTy, Container> CachedFlowEdgeFunctions;
+  FlowEdgeFunctionCache<IDETabulationProblem<AnalysisDomainTy, Container>>
+      CachedFlowEdgeFunctions;
 
   Table<n_t, n_t, std::map<d_t, Container>> ComputedIntraPathEdges;
 
@@ -1869,7 +1906,8 @@ private:
 
   EdgeFunction<l_t> AllTop;
 
-  std::unique_ptr<JumpFunctions<AnalysisDomainTy, Container>> JumpFn;
+  std::unique_ptr<JumpFunctions<AnalysisDomainTy, Container>> JumpFn =
+      std::make_unique<JumpFunctions<AnalysisDomainTy, Container>>();
 
   std::map<std::tuple<n_t, d_t, n_t, d_t>, std::vector<EdgeFunction<l_t>>>
       IntermediateEdgeFunctions;
@@ -1910,12 +1948,11 @@ using IDESolver_P
         IDESolver<typename Problem::ProblemAnalysisDomain,
                   typename Problem::container_type>;
 
-template <typename AnalysisDomainTy, typename Container>
-OwningSolverResults<typename AnalysisDomainTy::n_t,
-                    typename AnalysisDomainTy::d_t,
-                    typename AnalysisDomainTy::l_t>
-solveIDEProblem(IDETabulationProblem<AnalysisDomainTy, Container> &Problem,
-                const ICFG auto &ICF) {
+template <IDEProblem ProblemTy>
+auto solveIDEProblem(ProblemTy &Problem, const ICFG auto &ICF)
+    -> OwningSolverResults<typename ProblemTy::ProblemAnalysisDomain::n_t,
+                           typename ProblemTy::ProblemAnalysisDomain::d_t,
+                           typename ProblemTy::ProblemAnalysisDomain::l_t> {
   IDESolver Solver(&Problem, &ICF);
   Solver.solve();
   return Solver.consumeSolverResults();

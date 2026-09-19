@@ -20,7 +20,7 @@ namespace psr::controller {
 template <typename SolverTy, typename ProblemTy, typename... ArgTys>
 static void executeMonoAnalysis(AnalysisController &Data, ArgTys &&...Args) {
   auto Problem =
-      createAnalysisProblem<ProblemTy>(*Data.HA, std::forward<ArgTys>(Args)...);
+      createAnalysisProblem<ProblemTy>(Data.HA, std::forward<ArgTys>(Args)...);
   SolverTy Solver(Problem);
   Solver.solve();
   emitRequestedDataFlowResults(Data, Solver);

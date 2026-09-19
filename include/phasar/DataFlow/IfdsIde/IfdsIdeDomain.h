@@ -28,7 +28,7 @@ concept IsEdgeValue =
     std::is_move_constructible_v<T> && psr::IsEqualityComparable<T>;
 
 template <typename T>
-concept IfdsAnalysisDomain = IsAnalysisDomain<T> && requires() {
+concept IfdsAnalysisDomain = IsAnalysisDomain<T> && requires {
   typename T::d_t;
   typename T::i_t;
 
@@ -37,7 +37,7 @@ concept IfdsAnalysisDomain = IsAnalysisDomain<T> && requires() {
 };
 
 template <typename T>
-concept IdeAnalysisDomain = IfdsAnalysisDomain<T> && requires() {
+concept IdeAnalysisDomain = IfdsAnalysisDomain<T> && requires {
   typename T::l_t;
   requires IsEdgeValue<typename T::l_t>;
 };

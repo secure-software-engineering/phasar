@@ -11,6 +11,7 @@
 #define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_DEFAULTALLOCSITESAWAREIDEPROBLEM_H
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/DefaultNoAliasIDEProblem.h"
+#include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMBasePointerAliasSet.h"
 
@@ -68,7 +69,7 @@ private:
 
 template <typename AnalysisDomainTy>
 class DefaultAllocSitesAwareIDEProblem
-    : public IDETabulationProblem<AnalysisDomainTy>,
+    : public IfdsIdeProblemMixin<AnalysisDomainTy>,
       protected detail::IDEAllocSitesAwareDefaultFlowFunctionsImpl {
 public:
   using ProblemAnalysisDomain = AnalysisDomainTy;
@@ -80,8 +81,6 @@ public:
   using l_t = typename AnalysisDomainTy::l_t;
   using i_t = typename AnalysisDomainTy::i_t;
   using db_t = typename AnalysisDomainTy::db_t;
-
-  using ConfigurationTy = HasNoConfigurationType;
 
   using FlowFunctionType = FlowFunction<d_t>;
   using FlowFunctionPtrType = typename FlowFunctionType::FlowFunctionPtrType;
@@ -96,83 +95,38 @@ public:
   explicit DefaultAllocSitesAwareIDEProblem(
       const db_t *IRDB, LLVMAliasInfoRef AS,
       std::vector<std::string> EntryPoints,
-      std::optional<d_t>
-          ZeroValue) noexcept(std::is_nothrow_move_constructible_v<d_t>)
-      : IDETabulationProblem<AnalysisDomainTy>(IRDB, std::move(EntryPoints),
-                                               std::move(ZeroValue)),
-        detail::IDEAllocSitesAwareDefaultFlowFunctionsImpl(AS) {}
-
-  void disableStrongUpdateStore() noexcept {
-    this->EnableStrongUpdateStore = false;
-  }
-
-  [[nodiscard]] FlowFunctionPtrType getNormalFlowFunction(n_t Curr,
-                                                          n_t Succ) override {
-    return getNormalFlowFunctionImpl(Curr, Succ);
-  }
-
-  [[nodiscard]] FlowFunctionPtrType
-  getCallFlowFunction(n_t CallInst, f_t CalleeFun) override {
-    return getCallFlowFunctionImpl(CallInst, CalleeFun);
-  }
-
-  [[nodiscard]] FlowFunctionPtrType getRetFlowFunction(n_t CallSite,
-                                                       f_t CalleeFun,
-                                                       n_t ExitInst,
-                                                       n_t RetSite) override {
-    return getRetFlowFunctionImpl(CallSite, CalleeFun, ExitInst, RetSite);
-  }
-
-  [[nodiscard]] FlowFunctionPtrType
-  getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
-                           llvm::ArrayRef<f_t> Callees) override {
-    return getCallToRetFlowFunctionImpl(CallSite, RetSite, Callees);
-  }
-};
-
-class DefaultAllocSitesAwareIFDSProblem
-    : public IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault>,
-      protected detail::IDEAllocSitesAwareDefaultFlowFunctionsImpl {
-public:
-  /// Constructs an IFDSTabulationProblem with the usual arguments + alias
-  /// information.
-  ///
-  /// \note It is useful to use an instance of FilteredAliasSet for the alias
-  /// information to lower suprious aliases
-  explicit DefaultAllocSitesAwareIFDSProblem(
-      const db_t *IRDB, LLVMAliasInfoRef AS,
-      std::vector<std::string> EntryPoints,
       d_t ZeroValue) noexcept(std::is_nothrow_move_constructible_v<d_t>)
-      : IFDSTabulationProblem(IRDB, std::move(EntryPoints), ZeroValue),
+      : IfdsIdeProblemMixin<AnalysisDomainTy>(IRDB, std::move(EntryPoints),
+                                              std::move(ZeroValue)),
         detail::IDEAllocSitesAwareDefaultFlowFunctionsImpl(AS) {}
 
   void disableStrongUpdateStore() noexcept {
     this->EnableStrongUpdateStore = false;
   }
 
-  [[nodiscard]] FlowFunctionPtrType getNormalFlowFunction(n_t Curr,
-                                                          n_t Succ) override {
+  [[nodiscard]] FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t Succ) {
     return getNormalFlowFunctionImpl(Curr, Succ);
   }
 
-  [[nodiscard]] FlowFunctionPtrType
-  getCallFlowFunction(n_t CallInst, f_t CalleeFun) override {
+  [[nodiscard]] FlowFunctionPtrType getCallFlowFunction(n_t CallInst,
+                                                        f_t CalleeFun) {
     return getCallFlowFunctionImpl(CallInst, CalleeFun);
   }
 
-  [[nodiscard]] FlowFunctionPtrType getRetFlowFunction(n_t CallSite,
-                                                       f_t CalleeFun,
-                                                       n_t ExitInst,
-                                                       n_t RetSite) override {
+  [[nodiscard]] FlowFunctionPtrType
+  getRetFlowFunction(n_t CallSite, f_t CalleeFun, n_t ExitInst, n_t RetSite) {
     return getRetFlowFunctionImpl(CallSite, CalleeFun, ExitInst, RetSite);
   }
 
   [[nodiscard]] FlowFunctionPtrType
   getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
-                           llvm::ArrayRef<f_t> Callees) override {
+                           llvm::ArrayRef<f_t> Callees) {
     return getCallToRetFlowFunctionImpl(CallSite, RetSite, Callees);
   }
 };
+
+using DefaultAllocSitesAwareIFDSProblem =
+    DefaultAllocSitesAwareIDEProblem<LLVMIFDSAnalysisDomainDefault>;
 
 } // namespace psr
 

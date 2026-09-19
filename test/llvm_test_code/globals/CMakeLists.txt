@@ -11,6 +11,11 @@ set(NoMem2regSources
   globals_lca_4.cpp
   globals_lca_4_1.cpp
   globals_lca_5.cpp
+  globals_lib_ctor_1.cpp
+  globals_lib_args_1.cpp
+  globals_lib_byval_1.cpp
+  globals_lib_all_1.cpp
+  globals_lib_exit_1.cpp
 )
 
 foreach(TEST_SRC ${NoMem2regSources})

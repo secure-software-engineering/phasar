@@ -18,30 +18,34 @@
 namespace psr {
 
 template <typename T>
-using Nullable =
-    std::conditional_t<std::is_convertible_v<T, bool>, T, std::optional<T>>;
+concept IsNullable =
+    requires(T Val) { bool(Val); } && !std::is_arithmetic_v<T> &&
+    !std::is_enum_v<T> && !std::is_member_pointer_v<T>;
 
 template <typename T>
-  requires std::is_convertible_v<T, bool>
+using Nullable = std::conditional_t<IsNullable<T>, T, std::optional<T>>;
+
+template <typename T>
+  requires IsNullable<T>
 [[nodiscard]] constexpr T unwrapNullable(T &&Val) noexcept {
   assert(Val && "Unwrapping null-value!");
   return std::forward<T>(Val);
 }
 template <typename T>
-  requires(!std::is_convertible_v<T, bool>)
+  requires(!IsNullable<T>)
 [[nodiscard]] constexpr T unwrapNullable(std::optional<T> &&Val) noexcept {
   assert(Val && "Unwrapping nullopt!");
   return *std::move(Val);
 }
 template <typename T>
-  requires(!std::is_convertible_v<T, bool>)
+  requires(!IsNullable<T>)
 [[nodiscard]] constexpr const T &
 unwrapNullable(const std::optional<T> &Val) noexcept {
   assert(Val && "Unwrapping nullopt!");
   return *Val;
 }
 template <typename T>
-  requires(!std::is_convertible_v<T, bool>)
+  requires(!IsNullable<T>)
 [[nodiscard]] constexpr T &unwrapNullable(std::optional<T> &Val) noexcept {
   assert(Val && "Unwrapping nullopt!");
   return *Val;

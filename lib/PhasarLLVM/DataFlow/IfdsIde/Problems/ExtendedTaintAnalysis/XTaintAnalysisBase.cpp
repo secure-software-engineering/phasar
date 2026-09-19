@@ -6,7 +6,8 @@
 #include "llvm/IR/Instructions.h"
 
 namespace psr::XTaint {
-AnalysisBase::AnalysisBase(const LLVMTaintConfig *TSF) noexcept : TSF(TSF) {
+AnalysisBase::AnalysisBase(const LLVMTaintConfig *TSF, size_t NumInstructions)
+    : TSF(TSF), FactFactory(NumInstructions) {
   assert(TSF != nullptr);
 }
 

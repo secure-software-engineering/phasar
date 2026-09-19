@@ -54,19 +54,19 @@ public:
   /// to hold un-conditionally at the beginning of the analysis.
   /// Similar to IFDS, this is the start state that the IDE solver will use to
   /// start with.
-  [[nodiscard]] psr::InitialSeeds<n_t, d_t, l_t> initialSeeds() override {
+  [[nodiscard]] psr::InitialSeeds<n_t, d_t, l_t> initialSeeds() {
     psr::InitialSeeds<n_t, d_t, l_t> Seeds;
 
     psr::LLVMBasedCFG CFG;
     // Here, we just say that for all entry-functions in the EntryPoints, the
     // zero-value should hold at the very first statement.
-    addSeedsForStartingPoints(EntryPoints, IRDB, CFG, Seeds, getZeroValue(),
-                              bottomElement());
+    addSeedsForStartingPoints(EntryPoints, getProjectIRDB(), CFG, Seeds,
+                              getZeroValue(), bottomElement());
 
     return Seeds;
   };
 
-  FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t Succ) override {
+  FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t Succ) {
     if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
       // Freshly allocated variables hold no constant value
 
@@ -88,7 +88,7 @@ public:
     return this->DefaultNoAliasIDEProblem::getNormalFlowFunction(Curr, Succ);
   }
 
-  FlowFunctionPtrType getCallFlowFunction(n_t CallSite, f_t DestFun) override {
+  FlowFunctionPtrType getCallFlowFunction(n_t CallSite, f_t DestFun) {
     // We definitely want to re-use as much as possible from the default
     // call-flow-function
     auto DefaultFn =
@@ -118,7 +118,7 @@ public:
   }
 
   FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t CalleeFun,
-                                         n_t ExitInst, n_t RetSite) override {
+                                         n_t ExitInst, n_t RetSite) {
 
     auto DefaultFn = this->DefaultNoAliasIDEProblem::getRetFlowFunction(
         CallSite, CalleeFun, ExitInst, RetSite);
@@ -352,8 +352,7 @@ public:
   };
 
   psr::EdgeFunction<l_t> getNormalEdgeFunction(n_t Curr, d_t CurrNode,
-                                               n_t /*Succ*/,
-                                               d_t SuccNode) override {
+                                               n_t /*Succ*/, d_t SuccNode) {
     if (isZeroValue(CurrNode) && !isZeroValue(SuccNode)) {
       // Handle the two cases, where we generate facts from zero:
 
@@ -384,8 +383,11 @@ public:
       }
 
       // Attach the arithmetic transformer to this edge
-      return BinOp{Op, llvm::dyn_cast<llvm::ConstantInt>(Lop),
-                   llvm::dyn_cast<llvm::ConstantInt>(Rop)};
+      return BinOp{
+          .OpCode = Op,
+          .LeftConst = llvm::dyn_cast<llvm::ConstantInt>(Lop),
+          .RightConst = llvm::dyn_cast<llvm::ConstantInt>(Rop),
+      };
     }
 
     // Pass everything else as identity
@@ -394,7 +396,7 @@ public:
 
   psr::EdgeFunction<l_t> getCallEdgeFunction(n_t CallSite, d_t SrcNode,
                                              f_t /*DestinationFunction*/,
-                                             d_t DestNode) override {
+                                             d_t DestNode) {
     if (isZeroValue(SrcNode) && !isZeroValue(DestNode)) {
       // If a constant int is passed as parameter, we need to generate the
       // parameter inside the callee from zero
@@ -408,9 +410,10 @@ public:
     return psr::EdgeIdentity<l_t>{};
   }
 
-  psr::EdgeFunction<l_t>
-  getReturnEdgeFunction(n_t CallSite, f_t /*CalleeFunction*/, n_t ExitStmt,
-                        d_t ExitNode, n_t /*RetSite*/, d_t RetNode) override {
+  psr::EdgeFunction<l_t> getReturnEdgeFunction(n_t CallSite,
+                                               f_t /*CalleeFunction*/,
+                                               n_t ExitStmt, d_t ExitNode,
+                                               n_t /*RetSite*/, d_t RetNode) {
     if (isZeroValue(ExitNode) && RetNode == CallSite) {
       // If we return a literal constant int, we must generate the corresponding
       // value at the call-site from zero, i.e., the CallSite itself in case of
@@ -428,7 +431,7 @@ public:
   psr::EdgeFunction<l_t>
   getCallToRetEdgeFunction(n_t /*CallSite*/, d_t /*CallNode*/, n_t /*RetSite*/,
                            d_t /*RetSiteNode*/,
-                           llvm::ArrayRef<f_t> /*Callees*/) override {
+                           llvm::ArrayRef<f_t> /*Callees*/) {
     // The call-to-return edge-function handles facts that are not affected by
     // the call. This is usually the identity function.
     return psr::EdgeIdentity<l_t>{};

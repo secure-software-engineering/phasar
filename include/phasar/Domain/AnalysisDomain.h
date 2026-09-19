@@ -13,6 +13,7 @@
 #include "phasar/ControlFlow/CFG.h"
 #include "phasar/Domain/IRDomain.h"
 
+#include <concepts>
 #include <type_traits>
 
 namespace psr {
@@ -84,23 +85,32 @@ struct AnalysisDomain {
 
 enum class BinaryDomain;
 
+template <typename T>
+concept HasValueDomain = requires() {
+  typename T::l_t;
+  requires(!std::is_void_v<typename T::l_t>);
+};
+
 namespace detail {
-template <typename AnalysisDomainTy, typename ValueTy = BinaryDomain>
-struct HasBinaryValueDomain : std::false_type {};
-template <typename AnalysisDomainTy>
-struct HasBinaryValueDomain<AnalysisDomainTy, typename AnalysisDomainTy::l_t>
-    : std::true_type {};
+template <typename T>
+concept HasBinaryValueDomain =
+    requires() { requires std::same_as<typename T::l_t, BinaryDomain>; };
 
 template <typename AnalysisDomainTy>
 struct WithBinaryValueDomainExtender : AnalysisDomainTy {
   using l_t = BinaryDomain;
 };
 
+template <typename AnalysisDomainTy>
+using ValueDomainAdder =
+    std::conditional_t<HasValueDomain<AnalysisDomainTy>, AnalysisDomainTy,
+                       WithBinaryValueDomainExtender<AnalysisDomainTy>>;
+
 } // namespace detail
 
 template <typename AnalysisDomainTy>
 using WithBinaryValueDomain =
-    std::conditional_t<detail::HasBinaryValueDomain<AnalysisDomainTy>::value,
+    std::conditional_t<detail::HasBinaryValueDomain<AnalysisDomainTy>,
                        AnalysisDomainTy,
                        detail::WithBinaryValueDomainExtender<AnalysisDomainTy>>;
 

@@ -18,6 +18,8 @@
 #include "TestConfig.h"
 #include "gtest/gtest.h"
 
+namespace {
+
 using namespace psr;
 using namespace psr::unittest;
 
@@ -107,7 +109,7 @@ protected:
 
     GroundTruthCollector GTCollector(Helpers.getProjectIRDB(), GT);
     TaintProblem.setAnalysisPrinter(&GTCollector);
-    IDESolver Solver(TaintProblem, &Helpers.getICFG());
+    IDESolver Solver(&TaintProblem, &Helpers.getICFG());
     Solver.solve();
 
     TaintProblem.emitTextReport(Solver.getSolverResults());
@@ -146,6 +148,7 @@ TEST_F(AnalysisPrinterTest, XTaint01) {
   };
   doAnalysisTest("xtaint01_cpp_dbg.ll", GroundTruth, std::monostate{});
 }
+} // namespace
 
 // main function for the test case
 int main(int Argc, char **Argv) {

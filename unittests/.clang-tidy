@@ -1,10 +1,8 @@
-Checks: '-*,
-         clang-diagnostic-*,
-         llvm-*,
-         misc-*,
+InheritParentConfig: true
+
+Checks: >
            -misc-non-private-member-variables-in-classes,
            -misc-no-recursion,
-         readability-*,
            -readability-else-after*,
            -readability-simplify-boolean-expr,
            -readability-implicit-bool-cast,
@@ -13,7 +11,6 @@ Checks: '-*,
            -readability-magic-numbers,
            -readability-function-cognitive-complexity,
            -readability-convert-member-functions-to-static,
-         cppcoreguidelines-*,
            -cppcoreguidelines-avoid-non-const-global-variables,
            -cppcoreguidelines-pro-bounds-array-to-pointer-decay,
            -cppcoreguidelines-owning-memory,
@@ -22,14 +19,10 @@ Checks: '-*,
            -cppcoreguidelines-non-private-member-variables-in-classes,
            -cppcoreguidelines-init-variables,
            -cppcoreguidelines-macro-usage,
-         bugprone-*,
            -bugprone-easily-swappable-parameters,
-         modernize-*,
            -modernize-use-trailing-return-type,
-           -modernize-pass-by-value,
-         performance-*,
-         clang-analyzer-*,
-        '
+           -modernize-pass-by-value
+
 
 FormatStyle:  LLVM
 

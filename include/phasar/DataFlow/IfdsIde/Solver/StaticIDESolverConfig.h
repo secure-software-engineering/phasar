@@ -2,11 +2,14 @@
 #define PHASAR_DATAFLOW_IFDSIDE_SOLVER_STATICIDESOLVERCONFIG_H
 
 #include "phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h"
+#include "phasar/DataFlow/IfdsIde/Solver/ESGEdgeKind.h"
 #include "phasar/DataFlow/IfdsIde/Solver/FlowEdgeFunctionCacheNG.h"
 #include "phasar/DataFlow/IfdsIde/Solver/WorkListTraits.h"
+#include "phasar/Utils/EmptyBaseOptimizationUtils.h"
 #include "phasar/Utils/TableWrappers.h"
 #include "phasar/Utils/TypeTraits.h"
 
+#include <concepts>
 #include <type_traits>
 #include <utility>
 
@@ -51,6 +54,22 @@ struct IDESolverConfigBase {
 
   template <typename L> using EdgeFunctionPtrType = EdgeFunction<L>;
 
+  template <typename AnalysisDomainTy> using PathTrackingData = EmptyType;
+
+  template <typename ProblemTy>
+  static PathTrackingData<typename ProblemTy::ProblemAnalysisDomain>
+  initPathData(ProblemTy & /*Problem*/) {
+    return {};
+  }
+
+  template <typename AnalysisDomainTy>
+  static void saveEdges(PathTrackingData<AnalysisDomainTy> &Data,
+                        ByConstRef<typename AnalysisDomainTy::n_t> Curr,
+                        ByConstRef<typename AnalysisDomainTy::n_t> Succ,
+                        ByConstRef<typename AnalysisDomainTy::d_t> CurrNode,
+                        const auto &SuccNodes,
+                        std::convertible_to<ESGEdgeKind> auto Kind) {}
+
   static constexpr bool AutoAddZero = true;
   static constexpr bool EnableStatistics = false;
   static constexpr JumpFunctionGCMode EnableJumpFunctionGC =
@@ -63,9 +82,8 @@ using IDESolverConfig = WithComputeValues<IDESolverConfigBase, true>;
 using IFDSSolverConfig = WithComputeValues<IDESolverConfigBase, false>;
 
 template <typename Base, bool ComputeValuesVal>
-struct [[clang::preferred_name(IDESolverConfig),
-         clang::preferred_name(IFDSSolverConfig)]]
-WithComputeValues : Base {
+struct PSR_PREFERRED_NAME(IDESolverConfig)
+    PSR_PREFERRED_NAME(IFDSSolverConfig) WithComputeValues : Base {
   static constexpr bool ComputeValues = ComputeValuesVal;
 };
 
@@ -74,8 +92,8 @@ using IDESolverConfigWithStats = WithStats<IDESolverConfig, true>;
 using IFDSSolverConfigWithStats = WithStats<IFDSSolverConfig, true>;
 
 template <typename Base, bool EnableStats>
-struct [[clang::preferred_name(IDESolverConfigWithStats),
-         clang::preferred_name(IFDSSolverConfigWithStats)]] WithStats : Base {
+struct PSR_PREFERRED_NAME(IDESolverConfigWithStats)
+    PSR_PREFERRED_NAME(IFDSSolverConfigWithStats) WithStats : Base {
   static constexpr bool EnableStatistics = EnableStats;
 };
 
@@ -93,19 +111,15 @@ template <typename Base, JumpFunctionGCMode GCMode> struct WithGCMode;
 using IFDSSolverConfigWithStatsAndGC =
     WithGCMode<IFDSSolverConfigWithStats, JumpFunctionGCMode::Enabled>;
 template <typename Base, JumpFunctionGCMode GCMode>
-struct [[clang::preferred_name(IFDSSolverConfigWithStatsAndGC)]] WithGCMode
-    : Base {
+struct PSR_PREFERRED_NAME(IFDSSolverConfigWithStatsAndGC) WithGCMode : Base {
   static constexpr JumpFunctionGCMode EnableJumpFunctionGC = GCMode;
 };
 
-template <typename ProblemTy>
-struct DefaultIDESolverConfig : IDESolverConfig {};
+template <IFDSProblem ProblemTy>
+struct DefaultIDESolverConfig : IFDSSolverConfig {};
 
-template <typename ProblemTy>
-  requires std::is_base_of_v<
-      IFDSTabulationProblem<typename ProblemTy::ProblemAnalysisDomain>,
-      ProblemTy>
-struct DefaultIDESolverConfig<ProblemTy> : IFDSSolverConfig {};
+template <IDEProblem ProblemTy>
+struct DefaultIDESolverConfig<ProblemTy> : IDESolverConfig {};
 
 } // namespace psr
 

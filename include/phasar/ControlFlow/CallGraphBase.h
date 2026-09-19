@@ -15,6 +15,7 @@
 #include "phasar/Utils/Compressor.h"
 #include "phasar/Utils/GraphTraits.h"
 #include "phasar/Utils/IotaIterator.h"
+#include "phasar/Utils/Macros.h"
 #include "phasar/Utils/NonNullPtr.h"
 #include "phasar/Utils/TypeTraits.h"
 
@@ -147,13 +148,15 @@ public:
                                         typename CallGraphTy::f_t>;
 
   constexpr ReverseCGGraph(
-      NonNullPtr<const CallGraphTy> CGView, NonNullPtr<const DB> IRDB,
+      NonNullPtr<const CallGraphTy> CGView PSR_LIFETIMEBOUND,
+      NonNullPtr<const DB> IRDB PSR_LIFETIMEBOUND,
       Compressor<typename CallGraphTy::f_t, FunctionId> FC) noexcept
     requires(NeedsMapping)
       : CGView(CGView), IRDB(IRDB), FC(std::move(FC)) {}
 
-  constexpr ReverseCGGraph(NonNullPtr<const CallGraphTy> CGView,
-                           NonNullPtr<const DB> IRDB) noexcept
+  constexpr ReverseCGGraph(NonNullPtr<const CallGraphTy> CGView
+                               PSR_LIFETIMEBOUND,
+                           NonNullPtr<const DB> IRDB PSR_LIFETIMEBOUND) noexcept
       : CGView(CGView), IRDB(IRDB) {
     FC.reserve(CGView->getNumVertexFunctions());
     for (const auto &Fun : CGView->getAllVertexFunctions()) {

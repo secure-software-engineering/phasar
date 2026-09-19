@@ -147,6 +147,7 @@ int main(int Argc, char *Argv[]) {
     case psr::CallGraphAnalysisType::Invalid:
       llvm::report_fatal_error("Invalid call-graph analysis type");
     }
+    llvm_unreachable("All CG analysis types handled in switch above");
   }();
 
   std::optional<llvm::raw_fd_ostream> OS;

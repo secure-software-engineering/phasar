@@ -75,7 +75,7 @@ concept IsPointsToIterator =
 /// \note You can also convert an AliasInfoRef to PointsToIteratorRef. In this
 /// case, it will use the getReachableAllocationSites() API.
 template <typename V, typename O, typename N>
-class [[gsl::Pointer]] PointsToIteratorRef : protected TypeErasureUtils {
+class PSR_POINTER() PointsToIteratorRef : protected TypeErasureUtils {
 public:
   using v_t = V;
   using o_t = O;
@@ -272,7 +272,7 @@ protected:
 
 /// Owning version of PointsToIteratorRef
 template <typename V, typename O, typename N>
-class [[clang::trivial_abi, gsl::Owner]] PointsToIterator
+class PSR_TRIVIAL_ABI PSR_OWNER() PointsToIterator
     : public PointsToIteratorRef<V, O, N> {
   using base_t = PointsToIteratorRef<V, O, N>;
 

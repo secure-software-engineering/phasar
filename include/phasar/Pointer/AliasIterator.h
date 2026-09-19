@@ -65,7 +65,7 @@ concept IsAliasIterator = requires {
 /// LLVMAliasIteratorRef AA = &ASet;
 /// \endcode
 template <typename V, typename N>
-class [[gsl::Pointer]] AliasIteratorRef : private TypeErasureUtils {
+class PSR_POINTER() AliasIteratorRef : private TypeErasureUtils {
 public:
   using n_t = N;
   using v_t = V;

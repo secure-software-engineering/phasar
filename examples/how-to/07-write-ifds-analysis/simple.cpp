@@ -34,13 +34,14 @@ public:
   /// Provides the initial seeds, i.e., the <stmt, fact> pairs that are assumed
   /// to hold un-conditionally at the beginning of the analysis.
   /// This is the start state that the IFDS solver will use to start with.
-  [[nodiscard]] psr::InitialSeeds<n_t, d_t, l_t> initialSeeds() override {
+  [[nodiscard]] psr::InitialSeeds<n_t, d_t, l_t> initialSeeds() {
     psr::InitialSeeds<n_t, d_t, l_t> Seeds;
 
     psr::LLVMBasedCFG CFG;
     // Here, we just say that for all entry-functions in the EntryPoints, the
     // zero-value should hold at the very first statement.
-    addSeedsForStartingPoints(EntryPoints, IRDB, CFG, Seeds, getZeroValue());
+    addSeedsForStartingPoints(EntryPoints, getProjectIRDB(), CFG, Seeds,
+                              getZeroValue());
 
     return Seeds;
   };
@@ -48,8 +49,8 @@ public:
   /// Here, we define special semantics of function-calls that are specified
   /// outside of the target program. In the case of taint analysis, we need to
   /// handle sources, sinks and sanitizers here:
-  [[nodiscard]] FlowFunctionPtrType
-  getSummaryFlowFunction(n_t CallSite, f_t DestFun) override {
+  [[nodiscard]] FlowFunctionPtrType getSummaryFlowFunction(n_t CallSite,
+                                                           f_t DestFun) {
     const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
 
     // Process the effects of source or sink functions that are called
@@ -60,7 +61,7 @@ public:
     if (Gen.empty() && Leak.empty() && Kill.empty()) {
       // This CallSite apparently is not calling a special source/sink/sanitizer
       // function. Fallback to the default-behavior.
-      return DefaultAliasAwareIFDSProblem::getSummaryFlowFunction(CS, DestFun);
+      return nullptr;
     }
 
     // Since our analysis is alias-aware, we must handle aliasing here:
@@ -76,13 +77,13 @@ public:
         return Gen;
       }
 
-      if (Leak.count(Source)) {
+      if (Leak.contains(Source)) {
         // In case of a sink, we create a leak if one of the leaking parameters
         // (Leak) is tainted (Source).
         Leaks.insert(CS);
       }
 
-      if (Kill.count(Source)) {
+      if (Kill.contains(Source)) {
         // In case of a sanitizer, we kill tainted values (Source) that flow
         // into the sanitizied parameters (Kill).
         return {};

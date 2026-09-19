@@ -27,8 +27,6 @@ public:
   static constexpr bool ComputeValues = StaticSolverConfigTy::ComputeValues;
   static constexpr bool EnableStatistics =
       StaticSolverConfigTy::EnableStatistics;
-  /// NOTE: EdgeFunctionPtrType may be either std::unique_ptr<EdgeFunction<l_t>>
-  /// or llvm::IntrusiveRefCntPtr<EdgeFunction<l_t>> once this is supported
   using EdgeFunctionPtrType =
       std::conditional_t<ComputeValues, EdgeFunPtrTy, EmptyType>;
 

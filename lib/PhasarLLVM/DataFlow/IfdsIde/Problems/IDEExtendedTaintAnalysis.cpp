@@ -10,8 +10,7 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEExtendedTaintAnalysis.h"
 
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
-#include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
-#include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
+#include "phasar/DataFlow/IfdsIde/EntryPointUtils.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/GenEdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/Helpers.h"
@@ -20,20 +19,17 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
-#include "phasar/Pointer/PointsToInfo.h"
 #include "phasar/Utils/DebugOutput.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Printer.h"
 #include "phasar/Utils/Utilities.h"
 
-#include "llvm/ADT/SmallSet.h"
 #include "llvm/IR/GlobalValue.h"
 #include "llvm/IR/IntrinsicInst.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/WithColor.h"
 
 #include <algorithm>
-#include <type_traits>
 
 namespace psr::XTaint {
 
@@ -51,8 +47,8 @@ IDEExtendedTaintAnalysis::initialSeeds() {
     }
   }
 
-  addSeedsForStartingPoints(base_t::EntryPoints, ICF, Seeds,
-                            this->base_t::getZeroValue(), bottomElement());
+  addSeedsForStartingPoints(this->EntryPoints, ICF, Seeds, this->getZeroValue(),
+                            bottomElement());
 
   if (Seeds.empty()) {
     llvm::WithColor::warning()
@@ -62,10 +58,6 @@ IDEExtendedTaintAnalysis::initialSeeds() {
   }
 
   return Seeds;
-}
-
-auto IDEExtendedTaintAnalysis::createZeroValue() const -> d_t {
-  return FactFactory.getOrCreateZero();
 }
 
 bool IDEExtendedTaintAnalysis::isZeroValue(d_t Fact) const noexcept {
@@ -216,7 +208,7 @@ void IDEExtendedTaintAnalysis::generateFromZero(std::set<d_t> &Dest,
                                                 bool IncludeActualArg) {
   if (const auto &SourceCB = TSF->getRegisteredSourceCallBack();
       TSF->isSource(ActualArg) ||
-      (SourceCB && SourceCB(Inst).count(ActualArg))) {
+      (SourceCB && SourceCB(Inst).contains(ActualArg))) {
     Dest.insert(makeFlowFact(FormalArg));
     if (IncludeActualArg) {
       Dest.insert(makeFlowFact(ActualArg));
@@ -229,8 +221,8 @@ void IDEExtendedTaintAnalysis::reportLeakIfNecessary(
     const llvm::Value *LeakCandidate) {
   if (isSink(SinkCandidate, Inst)) {
     Leaks[Inst].insert(LeakCandidate);
-    Printer->onResult(Inst, makeFlowFact(LeakCandidate), Top{},
-                      DataFlowAnalysisType::IDEExtendedTaintAnalysis);
+    onResult(Inst, makeFlowFact(LeakCandidate), Top{},
+             DataFlowAnalysisType::IDEExtendedTaintAnalysis);
   }
 }
 
@@ -738,7 +730,7 @@ void IDEExtendedTaintAnalysis::emitTextReport(
     }
   }
 
-  Printer->onFinalize(OS);
+  printer().onFinalize(OS);
 }
 
 // Helpers:

@@ -25,13 +25,14 @@
 #include <map>
 #include <memory>
 #include <source_location>
+#include <string>
 #include <vector>
 
 namespace {
 using namespace psr;
 using namespace psr::unittest;
 
-static_assert(UnionFindAAResult<AndersenOTFResult>);
+static_assert(RawAAResult<AndersenOTFResult>);
 
 constexpr auto PathToLLFiles = PHASAR_BUILD_SUBFOLDER("pointers/");
 
@@ -124,7 +125,7 @@ constexpr llvm::StringRef EntryNames[] = {"main"};
 /// the domain and are not subject to the precision check.
 void doAnalysisAndCheckExact(
     const llvm::Twine &IRFile, const GTMap &ExpectedResults,
-    bool DumpResults = false,
+    ContextSensitivityOptions CSOpts = {}, bool DumpResults = false,
     std::source_location Loc = std::source_location::current()) {
 
   auto IRDB = LLVMProjectIRDB::loadOrExit(PathToLLFiles + IRFile);
@@ -141,7 +142,8 @@ void doAnalysisAndCheckExact(
   }
 
   ValueCompressor<PAGVariable> Compressor;
-  AndersenOTFResult Results = computeAndersenOTFRaw(IRDB, Entries, &Compressor);
+  AndersenOTFResult Results = computeAndersenOTFRaw(
+      IRDB, Entries, &Compressor, Soundness::Soundy, std::move(CSOpts));
 
   // Build domain from all values explicitly named in the GT.
   llvm::SmallDenseSet<ValueId, 16> Domain;
@@ -187,8 +189,26 @@ void doAnalysisAndCheckExact(
   }
 
   if (DumpResults || ::testing::Test::HasFailure()) {
+    IRDB.emitPreprocessedIR(llvm::errs() << "LLVM IR:\n");
+    llvm::errs() << " ================== \n";
     dumpAnalysisState(Compressor, Results);
   }
+}
+
+using CSMode = ContextSensitivityOptions::Mode;
+
+ContextSensitivityOptions csOpts(CSMode Mode,
+                                 std::vector<std::string> Allow = {},
+                                 std::vector<std::string> Deny = {},
+                                 size_t Budget = 200000,
+                                 unsigned MaxContextsPerFunction = 8) {
+  ContextSensitivityOptions Opts;
+  Opts.SelectionMode = Mode;
+  Opts.AllowList = std::move(Allow);
+  Opts.DenyList = std::move(Deny);
+  Opts.MaxContextualNodes = Budget;
+  Opts.MaxContextsPerFunction = MaxContextsPerFunction;
+  return Opts;
 }
 
 // ---- Tests ----------------------------------------------------------------
@@ -263,6 +283,230 @@ TEST(AndersenOTFAATest, ContextInsensitiveCallsMerge) {
       {Call2, {Arg, Ret, Call1, Call2}},
   };
   doAnalysisAndCheckExact("context_01_c_dbg.ll", ExpectedResults);
+}
+
+TEST(AndersenOTFAATest, ContextSensitiveCallsStaySeparate) {
+  // Same fixture as ContextInsensitiveCallsMerge, with context-sensitivity on:
+  // each call site keeps its own clone of id's parameter/return nodes, so the
+  // two call results no longer alias each other.  The parameter and return
+  // slot themselves are the union over both contexts -- the external result
+  // has one id per PAGVariable, not one per context.
+  const TSL Arg = TSL(ArgInFun{.Idx = 0, .InFunction = "id"});
+  const TSL Ret = TSL(RetVal{.InFunction = "id"});
+  const TSL Call1 = TSL(LineColFunOp{.Line = 8,
+                                     .Col = 0,
+                                     .InFunction = "main",
+                                     .OpCode = llvm::Instruction::Call});
+  const TSL Call2 = TSL(LineColFunOp{.Line = 9,
+                                     .Col = 0,
+                                     .InFunction = "main",
+                                     .OpCode = llvm::Instruction::Call});
+  const GTMap ExpectedResults = {
+      {Arg, {Arg, Ret, Call1, Call2}},
+      {Ret, {Arg, Ret, Call1, Call2}},
+      {Call1, {Arg, Ret, Call1}},
+      {Call2, {Arg, Ret, Call2}},
+  };
+  doAnalysisAndCheckExact("context_01_c_dbg.ll", ExpectedResults,
+                          csOpts(CSMode::All));
+}
+
+TEST(AndersenOTFAATest, ReturnedParamSelectsDynamically) {
+  // context_01: id(p) returns p.  Only one pointer parameter and no indirect
+  // call, so id qualifies purely through "a param-derived value escapes via
+  // the return" -- the signal that generalizes beyond the end(p, q) shape.
+  const TSL Arg = TSL(ArgInFun{.Idx = 0, .InFunction = "id"});
+  const TSL Ret = TSL(RetVal{.InFunction = "id"});
+  const TSL Call1 = TSL(LineColFunOp{.Line = 8,
+                                     .Col = 0,
+                                     .InFunction = "main",
+                                     .OpCode = llvm::Instruction::Call});
+  const TSL Call2 = TSL(LineColFunOp{.Line = 9,
+                                     .Col = 0,
+                                     .InFunction = "main",
+                                     .OpCode = llvm::Instruction::Call});
+  const GTMap ExpectedResults = {
+      {Call1, {Arg, Ret, Call1}},
+      {Call2, {Arg, Ret, Call2}},
+  };
+  doAnalysisAndCheckExact("context_01_c_dbg.ll", ExpectedResults,
+                          csOpts(CSMode::Dynamic));
+}
+
+TEST(AndersenOTFAATest, ContextBudgetZeroMatchesInsensitive) {
+  // A budget of zero admits no function, so Mode::All degrades gracefully to
+  // exactly the context-insensitive result.
+  const TSL Arg = TSL(ArgInFun{.Idx = 0, .InFunction = "id"});
+  const TSL Ret = TSL(RetVal{.InFunction = "id"});
+  const TSL Call1 = TSL(LineColFunOp{.Line = 8,
+                                     .Col = 0,
+                                     .InFunction = "main",
+                                     .OpCode = llvm::Instruction::Call});
+  const TSL Call2 = TSL(LineColFunOp{.Line = 9,
+                                     .Col = 0,
+                                     .InFunction = "main",
+                                     .OpCode = llvm::Instruction::Call});
+  const GTMap ExpectedResults = {
+      {Arg, {Arg, Ret, Call1, Call2}},
+      {Ret, {Arg, Ret, Call1, Call2}},
+      {Call1, {Arg, Ret, Call1, Call2}},
+      {Call2, {Arg, Ret, Call1, Call2}},
+  };
+  doAnalysisAndCheckExact("context_01_c_dbg.ll", ExpectedResults,
+                          csOpts(CSMode::All, {}, {}, /*Budget=*/0));
+}
+
+TEST(AndersenOTFAATest, ContextBudgetDoesNotOverrideAllowList) {
+  // The budget also gates calleeContext, but an allow-listed function must
+  // still get its clones -- selected-but-uncloned is selected in name only.
+  const TSL Arg = TSL(ArgInFun{.Idx = 0, .InFunction = "id"});
+  const TSL Call1 = TSL(LineColFunOp{.Line = 8,
+                                     .Col = 0,
+                                     .InFunction = "main",
+                                     .OpCode = llvm::Instruction::Call});
+  const TSL Call2 = TSL(LineColFunOp{.Line = 9,
+                                     .Col = 0,
+                                     .InFunction = "main",
+                                     .OpCode = llvm::Instruction::Call});
+  const GTMap Expected = {{Call1, {Arg, Call1}}, {Call2, {Arg, Call2}}};
+  doAnalysisAndCheckExact("context_01_c_dbg.ll", Expected,
+                          csOpts(CSMode::Manual, {"id"}, {}, /*Budget=*/0));
+}
+
+TEST(AndersenOTFAATest, ContextManualAllowListSelectsOneFunction) {
+  // Only 'id' is allow-listed, so it gets per-call-site clones.
+  const TSL Arg = TSL(ArgInFun{.Idx = 0, .InFunction = "id"});
+  const TSL Call1 = TSL(LineColFunOp{.Line = 8,
+                                     .Col = 0,
+                                     .InFunction = "main",
+                                     .OpCode = llvm::Instruction::Call});
+  const TSL Call2 = TSL(LineColFunOp{.Line = 9,
+                                     .Col = 0,
+                                     .InFunction = "main",
+                                     .OpCode = llvm::Instruction::Call});
+  const GTMap Expected = {{Call1, {Arg, Call1}}, {Call2, {Arg, Call2}}};
+  doAnalysisAndCheckExact("context_01_c_dbg.ll", Expected,
+                          csOpts(CSMode::Manual, {"id"}));
+}
+
+TEST(AndersenOTFAATest, ContextDenyListOverridesAllowList) {
+  // 'id' is on both lists; deny wins, so the result stays insensitive.
+  const TSL Arg = TSL(ArgInFun{.Idx = 0, .InFunction = "id"});
+  const TSL Call1 = TSL(LineColFunOp{.Line = 8,
+                                     .Col = 0,
+                                     .InFunction = "main",
+                                     .OpCode = llvm::Instruction::Call});
+  const TSL Call2 = TSL(LineColFunOp{.Line = 9,
+                                     .Col = 0,
+                                     .InFunction = "main",
+                                     .OpCode = llvm::Instruction::Call});
+  const GTMap Expected = {{Call1, {Arg, Call1, Call2}},
+                          {Call2, {Arg, Call1, Call2}}};
+  doAnalysisAndCheckExact("context_01_c_dbg.ll", Expected,
+                          csOpts(CSMode::Manual, {"id"}, {"id"}));
+}
+
+TEST(AndersenOTFAATest, ContextInvalidGlobIsReported) {
+  // A malformed pattern is skipped with a diagnostic; 'id' still selects.
+  const TSL Arg = TSL(ArgInFun{.Idx = 0, .InFunction = "id"});
+  const TSL Call1 = TSL(LineColFunOp{.Line = 8,
+                                     .Col = 0,
+                                     .InFunction = "main",
+                                     .OpCode = llvm::Instruction::Call});
+  const TSL Call2 = TSL(LineColFunOp{.Line = 9,
+                                     .Col = 0,
+                                     .InFunction = "main",
+                                     .OpCode = llvm::Instruction::Call});
+  const GTMap Expected = {{Call1, {Arg, Call1}}, {Call2, {Arg, Call2}}};
+
+  testing::internal::CaptureStderr();
+  doAnalysisAndCheckExact("context_01_c_dbg.ll", Expected,
+                          csOpts(CSMode::Manual, {"[", "id"}));
+  const std::string Err = testing::internal::GetCapturedStderr();
+
+  EXPECT_NE(Err.find("Ignoring invalid allow-list pattern '['"),
+            std::string::npos)
+      << Err;
+}
+
+// context_15: end(&O1, &x) and end(&O2, &y); end dispatches through a
+// function-pointer field of its first parameter.
+static GTMap endPatternGT(bool Separate) {
+  const TSL XX = TSL(LineColFunOp{.Line = 22,
+                                  .Col = 0,
+                                  .InFunction = "main",
+                                  .OpCode = llvm::Instruction::Call});
+  const TSL YY = TSL(LineColFunOp{.Line = 23,
+                                  .Col = 0,
+                                  .InFunction = "main",
+                                  .OpCode = llvm::Instruction::Call});
+  if (Separate) {
+    return {{XX, {XX}}, {YY, {YY}}};
+  }
+  return {{XX, {XX, YY}}, {YY, {XX, YY}}};
+}
+
+TEST(AndersenOTFAATest, EndPatternMergesWithoutContexts) {
+  // Baseline: both call results alias, because end's formals are shared.
+  doAnalysisAndCheckExact("context_15_c_dbg.ll", endPatternGT(false));
+}
+
+TEST(AndersenOTFAATest, EndPatternSeparatedByDynamicSelection) {
+  // The dispatch inside end resolves to two targets, which promotes end (and
+  // its two targets) mid-solve; afterwards the call results stay separate.
+  doAnalysisAndCheckExact("context_15_c_dbg.ll", endPatternGT(true),
+                          csOpts(CSMode::Dynamic));
+}
+
+TEST(AndersenOTFAATest, EndPatternSeparatedByAllMode) {
+  doAnalysisAndCheckExact("context_15_c_dbg.ll", endPatternGT(true),
+                          csOpts(CSMode::All));
+}
+
+TEST(AndersenOTFAATest, MutualRecursionTerminatesWithContexts) {
+  // context_17: ping/pong recurse into each other from two call sites.  The
+  // k = 1 call string is bounded, so the solver must still converge -- and
+  // must not lose the sound arg/ret alias inside the recursion.
+  const TSL PingArg = TSL(ArgInFun{.Idx = 0, .InFunction = "ping"});
+  const TSL PingRet = TSL(RetVal{.InFunction = "ping"});
+  const GTMap Expected = {{PingRet, {PingArg, PingRet}}};
+  doAnalysisAndCheckExact("context_17_c_dbg.ll", Expected, csOpts(CSMode::All));
+}
+
+TEST(AndersenOTFAATest, SharedTableHelperNoCrossContextContamination) {
+  // context_16: make() allocates and fills a dispatch table, called from two
+  // sites with different callees.  With context cloning, each call site's
+  // table is its own object with its own FnPtrFieldWrites entry.
+  auto IRDB =
+      LLVMProjectIRDB::loadOrExit(PathToLLFiles + "context_16_c_dbg.ll");
+  const auto *MainFn = IRDB.getFunctionDefinition("main");
+  const auto *Red = IRDB.getFunctionDefinition("red");
+  const auto *Blue = IRDB.getFunctionDefinition("blue");
+  ASSERT_NE(MainFn, nullptr);
+  ASSERT_NE(Red, nullptr);
+  ASSERT_NE(Blue, nullptr);
+
+  llvm::SmallVector<const llvm::CallBase *, 2> IndirectCalls;
+  for (const auto &Inst : llvm::instructions(MainFn)) {
+    const auto *CallSite = llvm::dyn_cast<llvm::CallBase>(&Inst);
+    if (CallSite && !CallSite->isDebugOrPseudoInst() &&
+        !llvm::isa<llvm::Function>(
+            CallSite->getCalledOperand()->stripPointerCastsAndAliases())) {
+      IndirectCalls.push_back(CallSite);
+    }
+  }
+  ASSERT_EQ(IndirectCalls.size(), 2U);
+
+  auto Res = computeAndersenOTFRaw(IRDB, {MainFn}, nullptr, Soundness::Soundy,
+                                   csOpts(CSMode::All));
+
+  const auto &CalleesA = Res.CG.getCalleesOfCallAt(IndirectCalls[0]);
+  EXPECT_TRUE(llvm::is_contained(CalleesA, Red));
+  EXPECT_FALSE(llvm::is_contained(CalleesA, Blue));
+
+  const auto &CalleesB = Res.CG.getCalleesOfCallAt(IndirectCalls[1]);
+  EXPECT_TRUE(llvm::is_contained(CalleesB, Blue));
+  EXPECT_FALSE(llvm::is_contained(CalleesB, Red));
 }
 
 TEST(AndersenOTFAATest, SeparateFunctionsDontAlias) {
@@ -904,6 +1148,46 @@ TEST(AndersenOTFAATest, TwoArgSecondRetFourCallSites) {
   doAnalysisAndCheckExact("context_12_0_c_dbg.ll", ExpectedResults);
 }
 
+TEST(AndersenOTFAATest, MergingFormalsAloneSelectsDynamically) {
+  // Same fixture, context-sensitive.  argretq has no indirect call at all, so
+  // it qualifies only through "several call sites + several pointer
+  // parameters". Each call site now returns exactly its own second argument.
+  const auto MkCall = [](uint32_t Line) {
+    return TSL(LineColFunOp{.Line = Line,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Call});
+  };
+  // Lines 8/9 pass &x as the returned argument, lines 10/11 pass &y.
+  const GTMap ExpectedResults = {
+      {MkCall(8), {MkCall(8), MkCall(9)}},
+      {MkCall(9), {MkCall(8), MkCall(9)}},
+      {MkCall(10), {MkCall(10), MkCall(11)}},
+      {MkCall(11), {MkCall(10), MkCall(11)}},
+  };
+  doAnalysisAndCheckExact("context_12_0_c_dbg.ll", ExpectedResults,
+                          csOpts(CSMode::Dynamic));
+}
+
+TEST(AndersenOTFAATest, PerFunctionContextCapDegradesGracefully) {
+  // Same fixture with room for only two of argretq's four call sites.  The
+  // first two keep their own contexts; the rest fall back to the shared root
+  // context and merge, exactly as the context-insensitive solver would.
+  const auto MkCall = [](uint32_t Line) {
+    return TSL(LineColFunOp{.Line = Line,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Call});
+  };
+  const GTMap ExpectedResults = {
+      {MkCall(10), {MkCall(10), MkCall(11)}},
+      {MkCall(11), {MkCall(10), MkCall(11)}},
+  };
+  doAnalysisAndCheckExact("context_12_0_c_dbg.ll", ExpectedResults,
+                          csOpts(CSMode::Dynamic, {}, {}, /*Budget=*/200000,
+                                 /*MaxContextsPerFunction=*/2));
+}
+
 TEST(AndersenOTFAATest, VTableDispatch) {
   // Virtual call via A* in call_get must resolve through the vtable.
   // A::get() returns @x, so call_get's return must alias @x.
@@ -1330,6 +1614,257 @@ TEST(AndersenOTFAATest, FnPtrTableMemcpyPropagatesKnownFields) {
   const auto &BarCallees = Res.CG.getCalleesOfCallAt(BarCS);
   EXPECT_TRUE(llvm::is_contained(BarCallees, BarImpl));
   EXPECT_FALSE(llvm::is_contained(BarCallees, FooImpl));
+}
+
+// ---- Regression tests for previously fixed defects ------------------------
+
+TEST(AndersenOTFAATest, PoisonSurvivesSCCCollapse) {
+  // pong's disqualifying store (`o->Fn = f`, f not a literal) lands on a node
+  // that LCD later folds into the ping/pong SCC. The re-check must resolve it
+  // through rep(), or O stays unpoisoned and call_fn is wrongly precise.
+  auto IRDB = LLVMProjectIRDB::loadOrExit(
+      PathToLLFiles + "andersen_otf_poison_scc_c_m2r_dbg.ll");
+  const auto *CallFn = IRDB.getFunctionDefinition("call_fn");
+  const auto *RealFn = IRDB.getFunctionDefinition("real_fn");
+  const auto *OtherFn = IRDB.getFunctionDefinition("other_fn");
+  const auto *MainFn = IRDB.getFunctionDefinition("main");
+  ASSERT_NE(MainFn, nullptr);
+  ASSERT_NE(CallFn, nullptr);
+  ASSERT_NE(RealFn, nullptr);
+  ASSERT_NE(OtherFn, nullptr);
+
+  auto Res = computeAndersenOTFRaw(IRDB, {MainFn});
+
+  const auto *CS = findFirstIndirectCall(CallFn);
+  ASSERT_NE(CS, nullptr);
+
+  const auto &Callees = Res.CG.getCalleesOfCallAt(CS);
+  EXPECT_TRUE(llvm::is_contained(Callees, RealFn));
+  EXPECT_TRUE(llvm::is_contained(Callees, OtherFn))
+      << "pong's non-literal field write must poison O even after its "
+         "pointer node collapses into the ping/pong SCC";
+}
+
+TEST(AndersenOTFAATest, LoopCarriedGEPKeepsBaseAliases) {
+  // handlePhi interns the loop-carried GEP before the GEP itself is
+  // translated, so addPtrAlias's addAlias() no-ops. The GEP must still end up
+  // aliasing Buf rather than keeping an empty pts-set.
+  const TSL Buf =
+      TSL(OperandOf{.OperandIndex = 0,
+                    .Inst = LineColFunOp{.Line = 15,
+                                         .Col = 0,
+                                         .InFunction = "main",
+                                         .OpCode = llvm::Instruction::Call}});
+  const TSL Gep = TSL(LineColFunOp{.Line = 8,
+                                   .Col = 0,
+                                   .InFunction = "findEnd",
+                                   .OpCode = llvm::Instruction::GetElementPtr});
+  const TSL Arg = TSL(ArgInFun{.Idx = 0, .InFunction = "findEnd"});
+  const std::vector<TSL> All = {Buf, Gep, Arg};
+  const GTMap Expected = {{Gep, All}, {Arg, All}, {Buf, All}};
+  doAnalysisAndCheckExact("andersen_otf_loop_gep_c_m2r_dbg.ll", Expected);
+}
+
+TEST(AndersenOTFAATest, MergeDoesNotStrandPendingPts) {
+  // handlePhi interns the loop-carried GEP first, so its still-empty node wins
+  // the join when the GEP is merged with the load it is based on. The absorbed
+  // diff must still cross GEP -> %P.0 instead of stranding in PendingPts.
+  auto IRDB = LLVMProjectIRDB::loadOrExit(
+      PathToLLFiles + "andersen_otf_stranded_pending_c_m2r_dbg.ll");
+  const auto *MainFn = IRDB.getFunctionDefinition("main");
+  const auto *WalkFn = IRDB.getFunctionDefinition("walk");
+  ASSERT_NE(MainFn, nullptr);
+  ASSERT_NE(WalkFn, nullptr);
+
+  const llvm::AllocaInst *Local = nullptr;
+  for (const auto &Inst : llvm::instructions(MainFn)) {
+    if (const auto *A = llvm::dyn_cast<llvm::AllocaInst>(&Inst);
+        A && A->getName() == "Local") {
+      Local = A;
+      break;
+    }
+  }
+  const llvm::PHINode *P = nullptr;
+  for (const auto &Inst : llvm::instructions(WalkFn)) {
+    if (const auto *N = llvm::dyn_cast<llvm::PHINode>(&Inst);
+        N && N->getType()->isPointerTy()) {
+      P = N;
+      break;
+    }
+  }
+  ASSERT_NE(Local, nullptr);
+  ASSERT_NE(P, nullptr);
+
+  ValueCompressor<PAGVariable> Compressor;
+  auto Res = computeAndersenOTFRaw(IRDB, {MainFn}, &Compressor);
+
+  const auto PId = Compressor.getOrNull(PAGVariable(P));
+  const auto LocalId = Compressor.getOrNull(PAGVariable(Local));
+  ASSERT_TRUE(PId.has_value());
+  ASSERT_TRUE(LocalId.has_value());
+  EXPECT_TRUE(Res.getRawAliasSet(*PId).contains(*LocalId))
+      << "P is assigned Base + 1 each round, so it must alias whatever "
+         "*Slot points to";
+}
+
+TEST(AndersenOTFAATest, AggregateReturnReachesCaller) {
+  // make() returns { ptr, i64 }, so the call result is not pointer-typed and
+  // reaches the caller only through an ExtractValueInst.
+  const TSL A =
+      TSL(OperandOf{.OperandIndex = 0,
+                    .Inst = LineColFunOp{.Line = 18,
+                                         .Col = 0,
+                                         .InFunction = "main",
+                                         .OpCode = llvm::Instruction::Call}});
+  const TSL BVal = TSL(LineColFunOp{.Line = 19,
+                                    .Col = 0,
+                                    .InFunction = "main",
+                                    .OpCode = llvm::Instruction::Load});
+  const std::vector<TSL> All = {A, BVal};
+  const GTMap Expected = {{A, All}, {BVal, All}};
+  doAnalysisAndCheckExact("andersen_otf_aggregate_ret_c_dbg.ll", Expected);
+}
+
+TEST(AndersenOTFAATest, AtomicExchangeIsAStoreAndALoad) {
+  // Clang lowers the pointer exchange to `atomicrmw xchg ptr %P, i64 ...`.
+  // Flow-insensitively P holds both A and B, so the exchanged-out value and
+  // the reloaded one each alias both.
+  const TSL A =
+      TSL(OperandOf{.OperandIndex = 0,
+                    .Inst = LineColFunOp{.Line = 6,
+                                         .Col = 0,
+                                         .InFunction = "main",
+                                         .OpCode = llvm::Instruction::Store}});
+  const TSL B =
+      TSL(OperandOf{.OperandIndex = 0,
+                    .Inst = LineColFunOp{.Line = 7,
+                                         .Col = 0,
+                                         .InFunction = "main",
+                                         .OpCode = llvm::Instruction::Store}});
+  const TSL OldVal = TSL(LineColFunOp{.Line = 10,
+                                      .Col = 0,
+                                      .InFunction = "main",
+                                      .OpCode = llvm::Instruction::Load});
+  const TSL CurVal = TSL(LineColFunOp{.Line = 11,
+                                      .Col = 0,
+                                      .InFunction = "main",
+                                      .OpCode = llvm::Instruction::Load});
+  const GTMap Expected = {
+      {A, {A, OldVal, CurVal}},
+      {B, {B, OldVal, CurVal}},
+      {OldVal, {A, B, OldVal, CurVal}},
+      {CurVal, {A, B, OldVal, CurVal}},
+  };
+  doAnalysisAndCheckExact("andersen_otf_atomics_c_dbg.ll", Expected);
+}
+
+TEST(AndersenOTFAATest, MemSSAConstExprDefAssignsLeaves) {
+  // The load's single reaching def stores a ConstantExpr GEP of A. That value
+  // cannot be aliased with, but its leaves still are, so the load must not
+  // pick up the B that the earlier indirect store also put into P.
+  const TSL Load = TSL(LineColFunOp{.Line = 13,
+                                    .Col = 0,
+                                    .InFunction = "main",
+                                    .OpCode = llvm::Instruction::Load});
+  const TSL A = TSL(GlobalVar{.Name = "A"});
+  const TSL B = TSL(GlobalVar{.Name = "B"});
+  const GTMap Expected = {
+      {Load, {Load, A}},
+      {A, {A, Load}},
+      {B, {B}},
+  };
+  doAnalysisAndCheckExact("memssa_constexpr_def_c_dbg.ll", Expected);
+}
+
+TEST(AndersenOTFAATest, ContextsDoNotComposeAtK1) {
+  // context_04_1: id3 -> id2 -> id1, called four times from main.  k = 1 makes
+  // withPrefix drop the caller string, so all four id3 clones feed the single
+  // id2@{CS} clone and the results re-merge one level down.  Pins that; a
+  // future k > 1 must break it.
+  const TSL XX1 = TSL(LineColFunOp{.Line = 10,
+                                   .Col = 0,
+                                   .InFunction = "main",
+                                   .OpCode = llvm::Instruction::Call});
+  const TSL XX2 = TSL(LineColFunOp{.Line = 11,
+                                   .Col = 0,
+                                   .InFunction = "main",
+                                   .OpCode = llvm::Instruction::Call});
+  const TSL YY1 = TSL(LineColFunOp{.Line = 12,
+                                   .Col = 0,
+                                   .InFunction = "main",
+                                   .OpCode = llvm::Instruction::Call});
+  const TSL YY2 = TSL(LineColFunOp{.Line = 13,
+                                   .Col = 0,
+                                   .InFunction = "main",
+                                   .OpCode = llvm::Instruction::Call});
+  const TSL XAlloca =
+      TSL(OperandOf{.OperandIndex = 0,
+                    .Inst = LineColFunOp{.Line = 10,
+                                         .Col = 0,
+                                         .InFunction = "main",
+                                         .OpCode = llvm::Instruction::Call}});
+  const TSL YAlloca =
+      TSL(OperandOf{.OperandIndex = 0,
+                    .Inst = LineColFunOp{.Line = 12,
+                                         .Col = 0,
+                                         .InFunction = "main",
+                                         .OpCode = llvm::Instruction::Call}});
+  const std::vector<TSL> AllRets = {XX1, XX2, YY1, YY2};
+  std::vector<TSL> WithX = AllRets;
+  WithX.push_back(XAlloca);
+  std::vector<TSL> WithY = AllRets;
+  WithY.push_back(YAlloca);
+  std::vector<TSL> Both = WithX;
+  Both.push_back(YAlloca);
+  const GTMap Expected = {
+      {XX1, Both}, {XX2, Both},      {YY1, Both},
+      {YY2, Both}, {XAlloca, WithX}, {YAlloca, WithY},
+  };
+  doAnalysisAndCheckExact("context_04_1_c_dbg.ll", Expected,
+                          csOpts(CSMode::All));
+}
+
+TEST(AndersenOTFAATest, PrePopulatedCompressorKeepsAllAliases) {
+  // A caller-supplied compressor that already maps both a GEP and its base
+  // pointer to distinct external ids must not leave either with an empty
+  // alias set, since they are the same PAG node.
+  auto IRDB = LLVMProjectIRDB::loadOrExit(
+      PathToLLFiles + "andersen_otf_fnptr_table_basic_c_dbg.ll");
+  const auto *MainFn = IRDB.getFunctionDefinition("main");
+  const auto *CallFoo = IRDB.getFunctionDefinition("call_foo");
+  ASSERT_NE(MainFn, nullptr);
+  ASSERT_NE(CallFoo, nullptr);
+
+  const llvm::GetElementPtrInst *Gep = nullptr;
+  for (const auto &Inst : llvm::instructions(CallFoo)) {
+    if (const auto *G = llvm::dyn_cast<llvm::GetElementPtrInst>(&Inst)) {
+      Gep = G;
+      break;
+    }
+  }
+  ASSERT_NE(Gep, nullptr);
+  const auto *Base = Gep->getPointerOperand();
+
+  // Pre-intern both ends of the aliasing pair, in the order the solver cannot
+  // reproduce: each gets its own external id.
+  ValueCompressor<PAGVariable> Compressor;
+  Compressor.insert(PAGVariable(Gep));
+  Compressor.insert(PAGVariable(Base));
+
+  auto Res = computeAndersenOTFRaw(IRDB, {MainFn}, &Compressor);
+
+  const auto GepId = Compressor.getOrNull(PAGVariable(Gep));
+  const auto BaseId = Compressor.getOrNull(PAGVariable(Base));
+  ASSERT_TRUE(GepId.has_value());
+  ASSERT_TRUE(BaseId.has_value());
+
+  const auto &GepAliases = Res.getRawAliasSet(*GepId);
+  const auto &BaseAliases = Res.getRawAliasSet(*BaseId);
+  EXPECT_FALSE(GepAliases.empty());
+  EXPECT_FALSE(BaseAliases.empty());
+  EXPECT_EQ(GepAliases, BaseAliases)
+      << "the GEP and its base are one PAG node, so a caller-supplied "
+         "compressor must not lose either one's alias set";
 }
 
 } // namespace

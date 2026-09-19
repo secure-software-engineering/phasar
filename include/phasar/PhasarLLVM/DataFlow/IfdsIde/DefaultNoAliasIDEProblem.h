@@ -11,10 +11,7 @@
 #define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_IDENOALIASINFOTABULATIONPROBLEM_H
 
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
-#include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
-#include "phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/DataFlow/IfdsIde/IfdsIdeProblemMixin.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 
 namespace llvm {
@@ -56,74 +53,39 @@ public:
 
 template <typename AnalysisDomainTy>
 class DefaultNoAliasIDEProblem
-    : public IDETabulationProblem<AnalysisDomainTy>,
+    : public IfdsIdeProblemMixin<AnalysisDomainTy>,
       protected detail::IDENoAliasDefaultFlowFunctionsImpl {
 public:
-  using IDETabulationProblem<AnalysisDomainTy>::IDETabulationProblem;
+  using IfdsIdeProblemMixin<AnalysisDomainTy>::IfdsIdeProblemMixin;
 
-  using typename IDETabulationProblem<AnalysisDomainTy>::f_t;
-  using typename IDETabulationProblem<AnalysisDomainTy>::FlowFunctionPtrType;
-  using typename IDETabulationProblem<AnalysisDomainTy>::n_t;
+  using typename IfdsIdeProblemMixin<AnalysisDomainTy>::f_t;
+  using typename IfdsIdeProblemMixin<AnalysisDomainTy>::FlowFunctionPtrType;
+  using typename IfdsIdeProblemMixin<AnalysisDomainTy>::n_t;
+  using typename IfdsIdeProblemMixin<AnalysisDomainTy>::d_t;
 
-  [[nodiscard]] FlowFunctionPtrType getNormalFlowFunction(n_t Curr,
-                                                          n_t Succ) override {
+  [[nodiscard]] FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t Succ) {
     return getNormalFlowFunctionImpl(Curr, Succ);
   }
 
-  [[nodiscard]] FlowFunctionPtrType
-  getCallFlowFunction(n_t CallInst, f_t CalleeFun) override {
+  [[nodiscard]] FlowFunctionPtrType getCallFlowFunction(n_t CallInst,
+                                                        f_t CalleeFun) {
     return getCallFlowFunctionImpl(CallInst, CalleeFun);
   }
 
-  [[nodiscard]] FlowFunctionPtrType getRetFlowFunction(n_t CallSite,
-                                                       f_t CalleeFun,
-                                                       n_t ExitInst,
-                                                       n_t RetSite) override {
+  [[nodiscard]] FlowFunctionPtrType
+  getRetFlowFunction(n_t CallSite, f_t CalleeFun, n_t ExitInst, n_t RetSite) {
     return getRetFlowFunctionImpl(CallSite, CalleeFun, ExitInst, RetSite);
   }
 
   [[nodiscard]] FlowFunctionPtrType
   getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
-                           llvm::ArrayRef<f_t> Callees) override {
+                           llvm::ArrayRef<f_t> Callees) {
     return getCallToRetFlowFunctionImpl(CallSite, RetSite, Callees);
   }
 };
 
-class DefaultNoAliasIFDSProblem
-    : public IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault>,
-      protected detail::IDENoAliasDefaultFlowFunctionsImpl {
-public:
-  using IFDSTabulationProblem::IFDSTabulationProblem;
-
-  using typename IFDSTabulationProblem::d_t;
-  using typename IFDSTabulationProblem::f_t;
-  using typename IFDSTabulationProblem::FlowFunctionPtrType;
-  using typename IFDSTabulationProblem::l_t;
-  using typename IFDSTabulationProblem::n_t;
-
-  [[nodiscard]] FlowFunctionPtrType getNormalFlowFunction(n_t Curr,
-                                                          n_t Succ) override {
-    return getNormalFlowFunctionImpl(Curr, Succ);
-  }
-
-  [[nodiscard]] FlowFunctionPtrType
-  getCallFlowFunction(n_t CallInst, f_t CalleeFun) override {
-    return getCallFlowFunctionImpl(CallInst, CalleeFun);
-  }
-
-  [[nodiscard]] FlowFunctionPtrType getRetFlowFunction(n_t CallSite,
-                                                       f_t CalleeFun,
-                                                       n_t ExitInst,
-                                                       n_t RetSite) override {
-    return getRetFlowFunctionImpl(CallSite, CalleeFun, ExitInst, RetSite);
-  }
-
-  [[nodiscard]] FlowFunctionPtrType
-  getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
-                           llvm::ArrayRef<f_t> Callees) override {
-    return getCallToRetFlowFunctionImpl(CallSite, RetSite, Callees);
-  }
-};
+using DefaultNoAliasIFDSProblem =
+    DefaultNoAliasIDEProblem<LLVMIFDSAnalysisDomainDefault>;
 
 } // namespace psr
 

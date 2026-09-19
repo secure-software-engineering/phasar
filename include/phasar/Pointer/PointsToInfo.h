@@ -217,7 +217,7 @@ private:
 /// Implicitly convertible to PointsToInfoRef.
 ///
 template <is_PointsToTraits_v PTATraits>
-class [[clang::trivial_abi]] PointsToInfo<PTATraits> final
+class PSR_TRIVIAL_ABI PointsToInfo<PTATraits> final
     : public PointsToInfoRef<PTATraits> {
   using base_t = PointsToInfoRef<PTATraits>;
 

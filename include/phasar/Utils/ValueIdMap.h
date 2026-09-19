@@ -13,6 +13,7 @@
 #include "phasar/Utils/BitSet.h"
 #include "phasar/Utils/Macros.h"
 #include "phasar/Utils/TypeTraits.h"
+#include "phasar/Utils/Utilities.h"
 
 #include <cassert>
 #include <cstddef>
@@ -478,8 +479,19 @@ public:
   }
   [[nodiscard]] constexpr const_iterator cend() const noexcept { return end(); }
 
+  auto foreach (std::invocable<IdT, ValueT &> auto Handler) {
+    return foreachImpl(*this, std::move(Handler));
+  }
+  auto foreach (std::invocable<IdT, const ValueT &> auto Handler) const {
+    return foreachImpl(*this, std::move(Handler));
+  }
+
 private:
-  // ── Private helpers ────────────────────────────────────────────────────────
+  static auto foreachImpl(auto &&Self, auto &&Handler) {
+    return Self.IsSet.foreach ([&Self, Handler{copyOrRef(Handler)}](IdT Id) {
+      return psr::invokeControlFlow(Handler, Id, *Self.slot(Id));
+    });
+  }
 
   [[nodiscard]] constexpr ValueT *slot(IdT Key) noexcept {
     // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)

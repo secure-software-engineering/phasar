@@ -15,5 +15,6 @@ using namespace psr;
 
 void controller::executeSparseIFDSTaint(AnalysisController &Data) {
   auto Config = makeTaintConfig(Data);
-  executeSparseIFDSAnalysis<IFDSTaintAnalysis>(Data, &Config, Data.EntryPoints);
+  executeSparseIFDSAnalysis<IFDSTaintAnalysis>(Data, &Config,
+                                               Data.getEntryPoints());
 }

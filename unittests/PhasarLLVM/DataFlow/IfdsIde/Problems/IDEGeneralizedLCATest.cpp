@@ -56,7 +56,7 @@ protected:
     LCAProblem = createAnalysisProblem<IDEGeneralizedLCA>(
         *HA, std::vector{"main"s}, MaxSetSize);
     LCASolver = std::make_unique<IDESolver<IDEGeneralizedLCADomain>>(
-        *LCAProblem, &HA->getICFG());
+        &*LCAProblem, &HA->getICFG());
 
     LCASolver->solve();
   }

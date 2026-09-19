@@ -14,5 +14,5 @@
 using namespace psr;
 
 void controller::executeIFDSType(AnalysisController &Data) {
-  executeIFDSAnalysis<IFDSTypeAnalysis>(Data, Data.EntryPoints);
+  executeIFDSAnalysis<IFDSTypeAnalysis>(Data, Data.getEntryPoints());
 }

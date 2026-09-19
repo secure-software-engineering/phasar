@@ -10,6 +10,7 @@
  *****************************************************************************/
 
 #include "llvm/ADT/StringRef.h"
+#include "llvm/Support/ErrorHandling.h"
 
 namespace psr {
 enum class UnionFindAliasAnalysisType : uint8_t {
@@ -25,5 +26,7 @@ to_string(UnionFindAliasAnalysisType AType) noexcept {
     return CMDFLAG;
 #include "phasar/Pointer/UnionFindAAType.def"
   }
+
+  llvm_unreachable("All union-find AA types handled in the switch above");
 }
 } // namespace psr

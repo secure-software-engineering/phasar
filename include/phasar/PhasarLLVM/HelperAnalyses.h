@@ -63,6 +63,9 @@ public:
   explicit HelperAnalyses(std::unique_ptr<llvm::Module> IRModule,
                           std::vector<std::string> EntryPoints,
                           HelperAnalysisConfig Config = {});
+  explicit HelperAnalyses(std::unique_ptr<LLVMProjectIRDB> IRDB,
+                          std::vector<std::string> EntryPoints,
+                          HelperAnalysisConfig Config = {});
   ~HelperAnalyses() noexcept;
 
   [[nodiscard]] LLVMProjectIRDB &getProjectIRDB();
@@ -76,6 +79,10 @@ public:
   [[nodiscard]] const SCCDependencyGraph<FunctionId> &getCGSCCCallers();
   [[nodiscard]] const UsedGlobalsHolder<const llvm::GlobalVariable *> &
   getUsedGlobals();
+  [[nodiscard]] const std::vector<std::string> &
+  getEntryPoints() const noexcept {
+    return EntryPoints;
+  }
 
 private:
   std::unique_ptr<LLVMProjectIRDB> IRDB;

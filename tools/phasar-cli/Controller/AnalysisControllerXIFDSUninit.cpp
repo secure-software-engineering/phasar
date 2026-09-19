@@ -14,5 +14,5 @@
 using namespace psr;
 
 void controller::executeIFDSUninitVar(AnalysisController &Data) {
-  executeIFDSAnalysis<IFDSUninitializedVariables>(Data, Data.EntryPoints);
+  executeIFDSAnalysis<IFDSUninitializedVariables>(Data, Data.getEntryPoints());
 }

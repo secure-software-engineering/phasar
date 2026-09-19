@@ -13,6 +13,7 @@
 #include "phasar/DataFlow/IfdsIde/DefaultEdgeFunctionSingletonCache.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunction.h"
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
+#include "phasar/DataFlow/IfdsIde/IfdsIdeProblemMixin.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
@@ -79,22 +80,18 @@ struct IDEFeatureTaintEdgeFact {
 
   /// Checks whether this set contains no facts.
   /// Note: Top also counts as empty
-  [[nodiscard]] inline bool empty() const noexcept {
-    return isTop() || Taints.none();
-  }
+  [[nodiscard]] bool empty() const noexcept { return isTop() || Taints.none(); }
   /// Returns the number of facts in this set.
   /// Note: Top counts as empty
-  [[nodiscard]] inline size_t size() const noexcept {
+  [[nodiscard]] size_t size() const noexcept {
     if (isTop()) {
       return 0;
     }
     return Taints.count();
   }
 
-  [[nodiscard]] inline bool isBottom() const noexcept { return Taints.empty(); }
-  [[nodiscard]] inline bool isTop() const noexcept {
-    return Taints.isInvalid();
-  }
+  [[nodiscard]] bool isBottom() const noexcept { return Taints.empty(); }
+  [[nodiscard]] bool isTop() const noexcept { return Taints.isInvalid(); }
 
   [[nodiscard]] friend llvm::hash_code
   hash_value(const IDEFeatureTaintEdgeFact &BV) noexcept {
@@ -170,16 +167,16 @@ struct IDEFeatureTaintEdgeFact {
 [[nodiscard]] std::string LToString(const IDEFeatureTaintEdgeFact &EdgeFact);
 
 template <> struct JoinLatticeTraits<IDEFeatureTaintEdgeFact> {
-  inline static IDEFeatureTaintEdgeFact top() {
+  static IDEFeatureTaintEdgeFact top() {
     IDEFeatureTaintEdgeFact Ret{};
     return Ret;
   }
-  inline static IDEFeatureTaintEdgeFact bottom() {
+  static IDEFeatureTaintEdgeFact bottom() {
     // TODO
     return 0;
   }
-  inline static IDEFeatureTaintEdgeFact join(const IDEFeatureTaintEdgeFact &L,
-                                             const IDEFeatureTaintEdgeFact &R) {
+  static IDEFeatureTaintEdgeFact join(const IDEFeatureTaintEdgeFact &L,
+                                      const IDEFeatureTaintEdgeFact &R) {
     if (L.isTop()) {
       return R;
     }
@@ -273,7 +270,7 @@ private:
 };
 
 class IDEFeatureTaintAnalysis
-    : public IDETabulationProblem<IDEFeatureTaintAnalysisDomain> {
+    : public IfdsIdeProblemMixin<IDEFeatureTaintAnalysisDomain> {
 
 public:
   IDEFeatureTaintAnalysis(const LLVMProjectIRDB *IRDB, LLVMAliasInfoRef PT,
@@ -306,62 +303,56 @@ public:
   operator=(IDEFeatureTaintAnalysis &&) noexcept = delete;
 
   // The EF Caches are incomplete, so move the dtor into the .cpp
-  ~IDEFeatureTaintAnalysis() override;
+  ~IDEFeatureTaintAnalysis();
 
   //////////////////////////////////////////////////////////////////////////////
   ///                              Flow Functions
   //////////////////////////////////////////////////////////////////////////////
 
-  FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t Succ) override;
+  FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t Succ);
 
-  FlowFunctionPtrType getCallFlowFunction(n_t CallSite, f_t DestFun) override;
+  FlowFunctionPtrType getCallFlowFunction(n_t CallSite, f_t DestFun);
 
   FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t CalleeFun,
-                                         n_t ExitInst, n_t RetSite) override;
-  FlowFunctionPtrType
-  getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
-                           llvm::ArrayRef<f_t> Callees) override;
-  FlowFunctionPtrType getSummaryFlowFunction(n_t CallSite,
-                                             f_t DestFun) override;
+                                         n_t ExitInst, n_t RetSite);
+  FlowFunctionPtrType getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
+                                               llvm::ArrayRef<f_t> Callees);
+  FlowFunctionPtrType getSummaryFlowFunction(n_t CallSite, f_t DestFun);
 
   //////////////////////////////////////////////////////////////////////////////
   ///                              Edge Functions
   //////////////////////////////////////////////////////////////////////////////
 
   EdgeFunction<l_t> getNormalEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ,
-                                          d_t SuccNode) override;
+                                          d_t SuccNode);
 
   EdgeFunction<l_t> getCallEdgeFunction(n_t CallSite, d_t SrcNode,
-                                        f_t DestinationFunction,
-                                        d_t DestNode) override;
+                                        f_t DestinationFunction, d_t DestNode);
 
   EdgeFunction<l_t> getReturnEdgeFunction(n_t CallSite, f_t CalleeFunction,
                                           n_t ExitStmt, d_t ExitNode,
-                                          n_t RetSite, d_t RetNode) override;
+                                          n_t RetSite, d_t RetNode);
 
-  EdgeFunction<l_t>
-  getCallToRetEdgeFunction(n_t CallSite, d_t CallNode, n_t RetSite,
-                           d_t RetSiteNode,
-                           llvm::ArrayRef<f_t> Callees) override;
+  EdgeFunction<l_t> getCallToRetEdgeFunction(n_t CallSite, d_t CallNode,
+                                             n_t RetSite, d_t RetSiteNode,
+                                             llvm::ArrayRef<f_t> Callees);
 
   EdgeFunction<l_t> getSummaryEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ,
-                                           d_t SuccNode) override;
+                                           d_t SuccNode);
 
   //////////////////////////////////////////////////////////////////////////////
   ///                                  Misc
   //////////////////////////////////////////////////////////////////////////////
 
-  InitialSeeds<n_t, d_t, l_t> initialSeeds() override;
-
-  bool isZeroValue(d_t FlowFact) const noexcept override;
+  InitialSeeds<n_t, d_t, l_t> initialSeeds();
 
   void emitTextReport(GenericSolverResults<n_t, d_t, l_t> SR,
-                      llvm::raw_ostream &OS = llvm::outs()) override;
+                      llvm::raw_ostream &OS = llvm::outs());
 
   EdgeFunction<l_t> extend(const EdgeFunction<l_t> &FirstEF,
-                           const EdgeFunction<l_t> &SecondEF) override;
+                           const EdgeFunction<l_t> &SecondEF);
   EdgeFunction<l_t> combine(const EdgeFunction<l_t> &FirstEF,
-                            const EdgeFunction<l_t> &OtherEF) override;
+                            const EdgeFunction<l_t> &OtherEF);
 
 private:
   FeatureTaintGenerator TaintGen;

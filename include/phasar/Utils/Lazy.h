@@ -27,6 +27,11 @@ template <typename Fn> struct lazy {
       std::is_nothrow_invocable_v<Fn>) {
     return std::invoke(std::move(F));
   }
+
+  constexpr operator std::invoke_result_t<Fn>() & noexcept(
+      std::is_nothrow_invocable_v<Fn>) {
+    return std::invoke(F);
+  }
 };
 
 template <typename FF> lazy(FF) -> lazy<std::decay_t<FF>>;

@@ -10,7 +10,9 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_PROBLEMS_IDELINEARCONSTANTANALYSIS_H
 #define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_PROBLEMS_IDELINEARCONSTANTANALYSIS_H
 
-#include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
+#include "phasar/DataFlow/IfdsIde/IDEProblem.h"
+#include "phasar/DataFlow/IfdsIde/IfdsIdeProblemMixin.h"
+#include "phasar/DataFlow/IfdsIde/Solver/GenericSolverResults.h"
 #include "phasar/Domain/LatticeDomain.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
@@ -19,8 +21,6 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include <map>
-#include <memory>
-#include <set>
 #include <string>
 
 namespace llvm {
@@ -39,23 +39,15 @@ struct IDELinearConstantAnalysisDomain : public LLVMAnalysisDomainDefault {
 
 // NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
 class IDELinearConstantAnalysis
-    : public IDETabulationProblem<IDELinearConstantAnalysisDomain> {
-public:
-  using IDETabProblemType =
-      IDETabulationProblem<IDELinearConstantAnalysisDomain>;
-  using typename IDETabProblemType::d_t;
-  using typename IDETabProblemType::f_t;
-  using typename IDETabProblemType::i_t;
-  using typename IDETabProblemType::l_t;
-  using typename IDETabProblemType::n_t;
-  using typename IDETabProblemType::t_t;
-  using typename IDETabProblemType::v_t;
+    : public IfdsIdeProblemMixin<IDELinearConstantAnalysisDomain> {
+  using base_t = IfdsIdeProblemMixin<IDELinearConstantAnalysisDomain>;
 
+public:
   IDELinearConstantAnalysis(const LLVMProjectIRDB *IRDB,
                             const LLVMBasedICFG *ICF,
                             std::vector<std::string> EntryPoints = {"main"});
 
-  ~IDELinearConstantAnalysis() override;
+  ~IDELinearConstantAnalysis();
 
   struct LCAResult {
     LCAResult() = default;
@@ -64,7 +56,7 @@ public:
     std::map<std::string, l_t> VariableToValue;
     std::vector<n_t> IRTrace;
     void print(llvm::raw_ostream &OS) const;
-    inline bool operator==(const LCAResult &Rhs) const {
+    bool operator==(const LCAResult &Rhs) const {
       return SrcNode == Rhs.SrcNode && VariableToValue == Rhs.VariableToValue &&
              IRTrace == Rhs.IRTrace;
     }
@@ -76,45 +68,38 @@ public:
 
   // start formulating our analysis by specifying the parts required for IFDS
 
-  FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t Succ) override;
+  FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t Succ);
 
-  FlowFunctionPtrType getCallFlowFunction(n_t CallSite, f_t DestFun) override;
+  FlowFunctionPtrType getCallFlowFunction(n_t CallSite, f_t DestFun);
 
   FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t CalleeFun,
-                                         n_t ExitInst, n_t RetSite) override;
+                                         n_t ExitInst, n_t RetSite);
 
-  FlowFunctionPtrType
-  getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
-                           llvm::ArrayRef<f_t> Callees) override;
+  FlowFunctionPtrType getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
+                                               llvm::ArrayRef<f_t> Callees);
 
-  FlowFunctionPtrType getSummaryFlowFunction(n_t Curr, f_t CalleeFun) override;
+  FlowFunctionPtrType getSummaryFlowFunction(n_t Curr, f_t CalleeFun);
 
-  [[nodiscard]] InitialSeeds<n_t, d_t, l_t> initialSeeds() override;
-
-  [[nodiscard]] d_t createZeroValue() const;
-
-  [[nodiscard]] bool isZeroValue(d_t Fact) const noexcept override;
+  [[nodiscard]] InitialSeeds<n_t, d_t, l_t> initialSeeds();
 
   // in addition provide specifications for the IDE parts
 
   EdgeFunction<l_t> getNormalEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ,
-                                          d_t SuccNode) override;
+                                          d_t SuccNode);
 
   EdgeFunction<l_t> getCallEdgeFunction(n_t CallSite, d_t SrcNode,
-                                        f_t DestinationFunction,
-                                        d_t DestNode) override;
+                                        f_t DestinationFunction, d_t DestNode);
 
   EdgeFunction<l_t> getReturnEdgeFunction(n_t CallSite, f_t CalleeFunction,
                                           n_t ExitStmt, d_t ExitNode,
-                                          n_t RetSite, d_t RetNode) override;
+                                          n_t RetSite, d_t RetNode);
 
-  EdgeFunction<l_t>
-  getCallToRetEdgeFunction(n_t CallSite, d_t CallNode, n_t RetSite,
-                           d_t RetSiteNode,
-                           llvm::ArrayRef<f_t> Callees) override;
+  EdgeFunction<l_t> getCallToRetEdgeFunction(n_t CallSite, d_t CallNode,
+                                             n_t RetSite, d_t RetSiteNode,
+                                             llvm::ArrayRef<f_t> Callees);
 
   EdgeFunction<l_t> getSummaryEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ,
-                                           d_t SuccNode) override;
+                                           d_t SuccNode);
 
   // Helper functions
 
@@ -122,7 +107,7 @@ public:
   getLCAResults(GenericSolverResults<n_t, d_t, l_t> SR);
 
   void emitTextReport(GenericSolverResults<n_t, d_t, l_t> SR,
-                      llvm::raw_ostream &OS = llvm::outs()) override;
+                      llvm::raw_ostream &OS = llvm::outs());
 
 private:
   const LLVMBasedICFG *ICF{};

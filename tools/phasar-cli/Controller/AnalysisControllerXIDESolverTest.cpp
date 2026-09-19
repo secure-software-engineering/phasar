@@ -14,5 +14,5 @@
 using namespace psr;
 
 void controller::executeIDESolverTest(AnalysisController &Data) {
-  executeIDEAnalysis<IDESolverTest>(Data, Data.EntryPoints);
+  executeIDEAnalysis<IDESolverTest>(Data, Data.getEntryPoints());
 }

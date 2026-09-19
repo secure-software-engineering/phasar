@@ -1,5 +1,6 @@
 #pragma once
 
+#include "phasar/PhasarLLVM/TaintConfig/DoubleFreeConfig.h"
 #include "phasar/PhasarLLVM/TaintConfig/LLVMTaintConfig.h"
 
 #include "llvm/ADT/StringRef.h"
@@ -35,17 +36,5 @@ inline LLVMTaintConfig getDefaultConfig() {
   return LLVMTaintConfig(std::move(SourceCB), std::move(SinkCB));
 }
 
-inline LLVMTaintConfig getDoubleFreeConfig() {
-  auto SourceCB = [](const llvm::Instruction *Inst) {
-    std::set<const llvm::Value *> Ret;
-    if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(Inst);
-        Call && Call->getCalledFunction() &&
-        Call->getCalledFunction()->getName() == "free") {
-      Ret.insert(Call->getArgOperand(0));
-    }
-    return Ret;
-  };
-
-  return LLVMTaintConfig(SourceCB, SourceCB);
-}
+using psr::getDoubleFreeConfig;
 } // namespace psr::unittest

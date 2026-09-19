@@ -43,6 +43,11 @@ concept IsEdgeFunction = requires(const T &EF, typename T::l_t Src) {
   { EF.computeTarget(Src) } -> std::convertible_to<typename T::l_t>;
 };
 
+template <typename T, typename L>
+concept IsEdgeFunctionFor = IsEdgeFunction<T> && requires {
+  requires std::same_as<typename T::l_t, L>;
+};
+
 template <typename T>
 concept HasEFCompose = requires(EdgeFunctionRef<T> EFRef,
                                 const EdgeFunction<typename T::l_t> &EF) {
@@ -110,7 +115,7 @@ protected:
 /// \brief Non-null reference to an edge function that is guarenteed to be
 /// managed by an EdgeFunction object.
 template <typename EF>
-class [[gsl::Pointer(EF)]] EdgeFunctionRef final : EdgeFunctionBase {
+class PSR_POINTER(EF) EdgeFunctionRef final : EdgeFunctionBase {
   template <typename L> friend class EdgeFunction;
 
 public:
@@ -160,7 +165,7 @@ private:
 template <typename L>
 // -- combined copy and move assignment
 // NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
-class [[clang::trivial_abi, gsl::Owner]] EdgeFunction final : EdgeFunctionBase {
+class PSR_TRIVIAL_ABI PSR_OWNER() EdgeFunction final : EdgeFunctionBase {
 public:
   using l_t = L;
 

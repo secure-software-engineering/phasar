@@ -269,7 +269,7 @@ static_assert(is_llvm_hashable_v<BinOp>);
 IDELinearConstantAnalysis::IDELinearConstantAnalysis(
     const LLVMProjectIRDB *IRDB, const LLVMBasedICFG *ICF,
     std::vector<std::string> EntryPoints)
-    : IDETabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()),
+    : base_t(IRDB, std::move(EntryPoints), LLVMZeroValue::getInstance()),
       ICF(ICF) {
   assert(ICF != nullptr);
 }
@@ -286,7 +286,7 @@ IDELinearConstantAnalysis::getNormalFlowFunction(n_t Curr, n_t /*Succ*/) {
   if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
     auto *AT = Alloca->getAllocatedType();
     if (AT->isIntegerTy() || isIntegerLikeType(AT)) {
-      return generateFromZero(Alloca);
+      return generateFlow(Alloca, ZeroValue);
     }
   }
 
@@ -397,7 +397,7 @@ IDELinearConstantAnalysis::initialSeeds() {
   InitialSeeds<n_t, d_t, l_t> Seeds;
 
   forallStartingPoints(EntryPoints, ICF, [this, &Seeds](n_t SP) {
-    Seeds.addSeed(SP, getZeroValue(), bottomElement());
+    Seeds.addSeed(SP, ZeroValue, Bottom{});
     // Generate global integer-typed variables using generalized initial seeds
 
     for (const auto &G : IRDB->getModule()->globals()) {
@@ -432,16 +432,6 @@ IDELinearConstantAnalysis::getSummaryFlowFunction(n_t Curr, f_t /*CalleeFun*/) {
     });
   }
   return nullptr;
-}
-
-IDELinearConstantAnalysis::d_t
-IDELinearConstantAnalysis::createZeroValue() const {
-  // create a special value to represent the zero value!
-  return LLVMZeroValue::getInstance();
-}
-
-bool IDELinearConstantAnalysis::isZeroValue(d_t Fact) const noexcept {
-  return LLVMZeroValue::isLLVMZeroValue(Fact);
 }
 
 // In addition provide specifications for the IDE parts
@@ -735,5 +725,7 @@ void IDELinearConstantAnalysis::LCAResult::print(llvm::raw_ostream &OS) const {
     OS << "  " << llvmIRToString(Ir) << '\n';
   }
 }
+
+static_assert(IDEProblem<IDELinearConstantAnalysis>);
 
 } // namespace psr

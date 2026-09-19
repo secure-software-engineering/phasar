@@ -104,7 +104,7 @@ concept is_iterable_v = requires(T &Val) {
 
 template <typename T, typename Over>
 concept is_iterable_over_v = is_iterable_v<T> && requires(T &Val) {
-  { *llvm::adl_begin(Val) } -> same_as_decay<Over>;
+  { *llvm::adl_begin(Val) } -> std::convertible_to<Over>;
 };
 
 template <typename T>

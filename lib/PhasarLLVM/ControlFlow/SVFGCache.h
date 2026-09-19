@@ -40,20 +40,16 @@ struct SVFGCache {
   getOrCreate(const LLVMBasedCFG &CFG, const llvm::Function *Fun,
               const llvm::Value *Val, LLVMAliasInfoRef AliasAnalysis);
 
-  [[nodiscard]] n_t advanceToNextUser(n_t Succ, const auto &Fact,
-                                      LLVMAliasInfoRef AliasAnalysis) {
+  [[nodiscard]] static n_t advanceToNextUser(n_t Succ, const auto &Fact,
+                                             LLVMAliasInfoRef AliasAnalysis) {
     using psr::valueOf;
 
-    // XXX: Measure, whether caching actually helps here...
-    // XXX: Make thread-safe:
+    // Not memoized: the forward scan skips only very few instructions on
+    // average, which is cheaper than a lookup in a multi-million-entry map.
+    // On a small coreutils benchmark, it was about ~11% *faster* to skip the
+    // cache.
 
-    auto [It, Inserted] =
-        SameOrNextUserCache.try_emplace(std::pair{Succ, valueOf(Fact)});
-    if (Inserted) {
-      It->second =
-          SparseLLVMControlFlow::advanceToNextUser(Succ, Fact, AliasAnalysis);
-    }
-    return It->second;
+    return SparseLLVMControlFlow::advanceToNextUser(Succ, Fact, AliasAnalysis);
   }
 };
 

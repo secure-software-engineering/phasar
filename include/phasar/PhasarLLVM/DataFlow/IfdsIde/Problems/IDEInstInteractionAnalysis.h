@@ -13,8 +13,9 @@
 #include "phasar/DataFlow/IfdsIde/DefaultEdgeFunctionSingletonCache.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunction.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
-#include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
-#include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
+#include "phasar/DataFlow/IfdsIde/IfdsIdeProblemMixin.h"
+#include "phasar/DataFlow/IfdsIde/InitialSeeds.h"
+#include "phasar/DataFlow/IfdsIde/Solver/GenericSolverResults.h"
 #include "phasar/DataFlow/IfdsIde/SolverResults.h"
 #include "phasar/Domain/LatticeDomain.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
@@ -24,7 +25,6 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/BitVectorSet.h"
@@ -34,7 +34,6 @@
 
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/Twine.h"
-#include "llvm/IR/Argument.h"
 #include "llvm/IR/Attributes.h"
 #include "llvm/IR/Constant.h"
 #include "llvm/IR/Constants.h"
@@ -45,15 +44,12 @@
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Value.h"
 #include "llvm/Support/Casting.h"
-#include "llvm/Support/Compiler.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_os_ostream.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <functional>
 #include <initializer_list>
-#include <map>
-#include <memory>
 #include <set>
 #include <string>
 #include <type_traits>
@@ -130,13 +126,12 @@ public:
   /// location than the other one.
   [[nodiscard]] bool flowFactEqual(const IDEIIAFlowFact &Other) const;
 
-  [[nodiscard]] inline const llvm::Value *getBase() const { return BaseVal; }
-  [[nodiscard]] inline llvm::SmallVector<const llvm::GetElementPtrInst *,
-                                         KLimit>
+  [[nodiscard]] const llvm::Value *getBase() const { return BaseVal; }
+  [[nodiscard]] llvm::SmallVector<const llvm::GetElementPtrInst *, KLimit>
   getField() const {
     return FieldDesc;
   }
-  [[nodiscard]] inline constexpr unsigned getKLimit() const { return KLimit; }
+  [[nodiscard]] constexpr unsigned getKLimit() const { return KLimit; }
 
   void print(llvm::raw_ostream &OS, bool IsForDebug = false) const;
 
@@ -146,7 +141,7 @@ public:
 
   bool operator==(const llvm::Value *V) const;
 
-  inline operator const llvm::Value *() { return BaseVal; }
+  operator const llvm::Value *() const { return BaseVal; }
 
   [[nodiscard]] std::string str() const {
     std::string Ret;
@@ -210,15 +205,15 @@ struct IDEInstInteractionAnalysisDomain : public LLVMAnalysisDomainDefault {
 template <typename EdgeFactType = std::string,
           bool SyntacticAnalysisOnly = false, bool EnableIndirectTaints = false>
 class IDEInstInteractionAnalysisT
-    : public IDETabulationProblem<
+    : public IfdsIdeProblemMixin<
           IDEInstInteractionAnalysisDomain<EdgeFactType>> {
-  using IDETabulationProblem<
+  using IfdsIdeProblemMixin<
       IDEInstInteractionAnalysisDomain<EdgeFactType>>::generateFromZero;
 
 public:
   using AnalysisDomainTy = IDEInstInteractionAnalysisDomain<EdgeFactType>;
 
-  using IDETabProblemType = IDETabulationProblem<AnalysisDomainTy>;
+  using IDETabProblemType = IfdsIdeProblemMixin<AnalysisDomainTy>;
   using typename IDETabProblemType::container_type;
   using typename IDETabProblemType::FlowFunctionPtrType;
 
@@ -240,7 +235,7 @@ public:
       const LLVMProjectIRDB *IRDB, const LLVMBasedICFG *ICF,
       LLVMAliasInfoRef PT, std::vector<std::string> EntryPoints = {"main"},
       std::function<EdgeFactGeneratorTy> EdgeFactGenerator = nullptr)
-      : IDETabulationProblem<AnalysisDomainTy, container_type>(
+      : IfdsIdeProblemMixin<AnalysisDomainTy, container_type>(
             IRDB, std::move(EntryPoints), createZeroValue()),
         ICF(ICF), PT(PT), EdgeFactGen(std::move(EdgeFactGenerator)) {
     assert(ICF != nullptr);
@@ -249,19 +244,17 @@ public:
     // IIAAKillOrReplaceEF::initEdgeFunctionCleaner();
   }
 
-  ~IDEInstInteractionAnalysisT() override = default;
-
   /// Offer a special hook to the user that allows to generate additional
   /// edge facts on-the-fly. Above the generator function, the ordinary
   /// edge facts are generated according to the usual edge functions.
-  inline void registerEdgeFactGenerator(
+  void registerEdgeFactGenerator(
       std::function<EdgeFactGeneratorTy> EdgeFactGenerator) {
     EdgeFactGen = std::move(EdgeFactGenerator);
   }
 
   // start formulating our analysis by specifying the parts required for IFDS
 
-  FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t /* Succ */) override {
+  FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t /* Succ */) {
     // Generate all local variables
     //
     // Flow function:
@@ -483,8 +476,7 @@ public:
     });
   }
 
-  inline FlowFunctionPtrType getCallFlowFunction(n_t CallSite,
-                                                 f_t DestFun) override {
+  FlowFunctionPtrType getCallFlowFunction(n_t CallSite, f_t DestFun) {
     if (this->ICF->isHeapAllocatingFunction(DestFun)) {
       // Kill add facts and model the effects in getCallToRetFlowFunction().
       return this->killAllFlows();
@@ -521,9 +513,8 @@ public:
     return MapFactsToCalleeFF;
   }
 
-  inline FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t /*CalleeFun*/,
-                                                n_t ExitInst,
-                                                n_t /* RetSite */) override {
+  FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t /*CalleeFun*/,
+                                         n_t ExitInst, n_t /* RetSite */) {
     // Map return value back to the caller. If pointer parameters hold at the
     // end of a callee function generate all of those in the caller context.
     if (CallSite == nullptr) {
@@ -546,9 +537,8 @@ public:
     return MapFactsToCallerFF;
   }
 
-  inline FlowFunctionPtrType
-  getCallToRetFlowFunction(n_t CallSite, n_t /* RetSite */,
-                           llvm::ArrayRef<f_t> Callees) override {
+  FlowFunctionPtrType getCallToRetFlowFunction(n_t CallSite, n_t /* RetSite */,
+                                               llvm::ArrayRef<f_t> Callees) {
     // Model call to heap allocating functions (new, new[], malloc, etc.) --
     // only model direct calls, though.
     if (Callees.size() == 1) {
@@ -619,13 +609,7 @@ public:
     });
   }
 
-  inline FlowFunctionPtrType
-  getSummaryFlowFunction(n_t /* CallSite */, f_t /* DestFun */) override {
-    // Do not use user-crafted summaries.
-    return nullptr;
-  }
-
-  inline InitialSeeds<n_t, d_t, l_t> initialSeeds() override {
+  InitialSeeds<n_t, d_t, l_t> initialSeeds() {
     InitialSeeds<n_t, d_t, l_t> Seeds;
 
     forallStartingPoints(this->EntryPoints, ICF, [this, &Seeds](n_t SP) {
@@ -653,20 +637,19 @@ public:
     return Seeds;
   }
 
-  [[nodiscard]] inline d_t createZeroValue() const {
+  [[nodiscard]] d_t createZeroValue() const {
     // Create a special value to represent the zero value!
     return LLVMZeroValue::getInstance();
   }
 
-  inline bool isZeroValue(d_t d) const noexcept override {
-    return isZeroValueImpl(d);
-  }
+  using IfdsIdeProblemMixin<
+      IDEInstInteractionAnalysisDomain<EdgeFactType>>::isZeroValue;
 
   // In addition provide specifications for the IDE parts.
 
-  inline EdgeFunctionType getStrongUpdateStoreEF(const llvm::StoreInst *Store,
-                                                 d_t CurrNode, d_t SuccNode,
-                                                 l_t UserEdgeFacts) {
+  EdgeFunctionType getStrongUpdateStoreEF(const llvm::StoreInst *Store,
+                                          d_t CurrNode, d_t SuccNode,
+                                          l_t UserEdgeFacts) {
 
     // Overriding edge: obtain labels from value to be stored (and may add
     // UserEdgeFacts, if any).
@@ -762,9 +745,8 @@ public:
         "\n> CurrNode: " + CurrNode.str() + "\n> SuccNode: " + SuccNode.str());
   }
 
-  inline EdgeFunctionType getNormalEdgeFunction(n_t Curr, d_t CurrNode,
-                                                n_t /* Succ */,
-                                                d_t SuccNode) override {
+  EdgeFunctionType getNormalEdgeFunction(n_t Curr, d_t CurrNode, n_t /* Succ */,
+                                         d_t SuccNode) {
     PHASAR_LOG_LEVEL(DFADEBUG,
                      "Process edge: " << llvmIRToShortString(CurrNode) << " --"
                                       << llvmIRToString(Curr) << "--> "
@@ -814,9 +796,9 @@ public:
     return EdgeIdentity<l_t>{};
   }
 
-  inline EdgeFunctionType getCallEdgeFunction(n_t CallSite, d_t SrcNode,
-                                              f_t /* DestinationMethod */,
-                                              d_t DestNode) override {
+  EdgeFunctionType getCallEdgeFunction(n_t CallSite, d_t SrcNode,
+                                       f_t /* DestinationMethod */,
+                                       d_t DestNode) {
     // Handle the case in which a parameter that has been artificially
     // introduced by the compiler is passed. Such a value must be generated from
     // the zero value, to reflact the fact that the data flows from the callee
@@ -848,9 +830,9 @@ public:
     return EdgeIdentity<l_t>{};
   }
 
-  inline EdgeFunctionType
-  getReturnEdgeFunction(n_t CallSite, f_t /* CalleeMethod */, n_t ExitInst,
-                        d_t ExitNode, n_t /* RetSite */, d_t RetNode) override {
+  EdgeFunctionType getReturnEdgeFunction(n_t CallSite, f_t /* CalleeMethod */,
+                                         n_t ExitInst, d_t ExitNode,
+                                         n_t /* RetSite */, d_t RetNode) {
     // Handle the case in which constant data is returned, e.g. ret i32 42.
     //
     // Let c be the return instruction's corresponding call site.
@@ -879,10 +861,9 @@ public:
     return EdgeIdentity<l_t>{};
   }
 
-  inline EdgeFunctionType
-  getCallToRetEdgeFunction(n_t CallSite, d_t CallNode, n_t /* RetSite */,
-                           d_t RetSiteNode,
-                           llvm::ArrayRef<f_t> Callees) override {
+  EdgeFunctionType getCallToRetEdgeFunction(n_t CallSite, d_t CallNode,
+                                            n_t /* RetSite */, d_t RetSiteNode,
+                                            llvm::ArrayRef<f_t> Callees) {
     // Check if the user has registered a fact generator function
     l_t UserEdgeFacts = bvSetFrom(invoke_or_default(EdgeFactGen, CallSite));
 
@@ -900,7 +881,7 @@ public:
         //
         //               0
         //                \
-          // %i = call H     \ \x.x \cup { commit of('%i = call H') }
+        // %i = call H     \ \x.x \cup { commit of('%i = call H') }
         //                  v
         //                  i
         //
@@ -933,14 +914,9 @@ public:
     return EdgeIdentity<l_t>{};
   }
 
-  inline EdgeFunctionType
-  getSummaryEdgeFunction(n_t /* CallSite */, d_t /* CallNode */,
-                         n_t /* RetSite */, d_t /* RetSiteNode */) override {
-    // Do not use user-crafted summaries.
-    return nullptr;
+  [[nodiscard]] l_t join(const l_t &Lhs, const l_t &Rhs) {
+    return joinImpl(Lhs, Rhs);
   }
-
-  inline l_t join(l_t Lhs, l_t Rhs) override { return joinImpl(Lhs, Rhs); }
 
   // Provide some handy helper edge functions to improve reuse.
 
@@ -1028,7 +1004,7 @@ public:
   }
 
   EdgeFunction<l_t> extend(const EdgeFunction<l_t> &FirstFunction,
-                           const EdgeFunction<l_t> &SecondFunction) override {
+                           const EdgeFunction<l_t> &SecondFunction) {
     if (auto Default = defaultComposeOrNull(FirstFunction, SecondFunction)) {
       return Default;
     }
@@ -1048,7 +1024,7 @@ public:
   }
 
   EdgeFunction<l_t> combine(const EdgeFunction<l_t> &FirstFunction,
-                            const EdgeFunction<l_t> &OtherFunction) override {
+                            const EdgeFunction<l_t> &OtherFunction) {
     /// XXX: Here, we underapproximate joins with EdgeIdentity
     if (llvm::isa<EdgeIdentity<l_t>>(FirstFunction)) {
       return OtherFunction;
@@ -1086,7 +1062,7 @@ public:
   }
 
   void emitTextReport(GenericSolverResults<n_t, d_t, l_t> SR,
-                      llvm::raw_ostream &OS = llvm::outs()) override {
+                      llvm::raw_ostream &OS = llvm::outs()) {
     OS << "\n====================== IDE-Inst-Interaction-Analysis Report "
           "======================\n";
     // if (!IRDB->debugInfoAvailable()) {
@@ -1120,7 +1096,7 @@ public:
 
   /// Computes all variables where a result set has been computed using the
   /// edge functions (and respective value domain).
-  inline std::unordered_set<d_t>
+  [[nodiscard]] std::unordered_set<d_t>
   getAllVariables(GenericSolverResults<n_t, d_t, l_t> /* Solution */) const {
     std::unordered_set<d_t> Variables;
     // collect all variables that are available
@@ -1145,7 +1121,7 @@ public:
 
   /// Computes all variables for which an empty set has been computed using the
   /// edge functions (and respective value domain).
-  inline std::unordered_set<d_t> getAllVariablesWithEmptySetValue(
+  [[nodiscard]] std::unordered_set<d_t> getAllVariablesWithEmptySetValue(
       GenericSolverResults<n_t, d_t, l_t> Solution) const {
     return removeVariablesWithoutEmptySetValue(Solution,
                                                getAllVariables(Solution));
@@ -1170,7 +1146,7 @@ protected:
     }
   }
 
-  static inline l_t joinImpl(ByConstRef<l_t> Lhs, ByConstRef<l_t> Rhs) {
+  static l_t joinImpl(ByConstRef<l_t> Lhs, ByConstRef<l_t> Rhs) {
     if (Lhs.isTop() || Rhs.isBottom()) {
       return Rhs;
     }
@@ -1185,7 +1161,7 @@ protected:
 private:
   /// Filters out all variables that had a non-empty set during edge functions
   /// computations.
-  inline std::unordered_set<d_t> removeVariablesWithoutEmptySetValue(
+  std::unordered_set<d_t> removeVariablesWithoutEmptySetValue(
       GenericSolverResults<n_t, d_t, l_t> Solution,
       std::unordered_set<d_t> Variables) const {
     // Check the solver results and remove all variables for which a

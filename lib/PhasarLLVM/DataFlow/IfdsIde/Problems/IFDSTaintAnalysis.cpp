@@ -49,12 +49,11 @@ IFDSTaintAnalysis::IFDSTaintAnalysis(const LLVMProjectIRDB *IRDB,
                                      std::vector<std::string> EntryPoints,
                                      bool TaintMainArgs,
                                      bool EnableStrongUpdateStore)
-    : IFDSTabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()),
+    : IfdsIdeProblemMixin<LLVMIFDSAnalysisDomainDefault>(
+          IRDB, std::move(EntryPoints), createZeroValue()),
       Config(Config), PT(PT), TaintMainArgs(TaintMainArgs),
       EnableStrongUpdateStore(EnableStrongUpdateStore),
-      Llvmfdff(library_summary::readFromFDFF(
-          getLibCSummary(),
-          [IRDB](llvm::StringRef FName) { return IRDB->getFunction(FName); })) {
+      Llvmfdff(library_summary::readFromFDFF(getLibCSummary(), *IRDB)) {
   assert(Config != nullptr);
   assert(PT);
 }
@@ -77,7 +76,7 @@ bool IFDSTaintAnalysis::isSourceCall(const llvm::CallBase *CB,
     return false;
   }
 
-  if (AdditionalFacts.count(CB)) {
+  if (AdditionalFacts.contains(CB)) {
     return true;
   }
 
@@ -105,7 +104,7 @@ bool IFDSTaintAnalysis::isSinkCall(const llvm::CallBase *CB,
     return false;
   }
 
-  if (AdditionalLeaks.count(CB)) {
+  if (AdditionalLeaks.contains(CB)) {
     return true;
   }
 
@@ -318,8 +317,7 @@ auto IFDSTaintAnalysis::getNormalFlowFunction(n_t Curr,
       return lambdaFlow([this, Store, Ret = std::move(Ret)](d_t Source) {
         if (Store->getValueOperand() == Source) {
           if (Leaks[Store].insert(Source).second) {
-            Printer->onResult(Store, Source,
-                              DataFlowAnalysisType::IFDSTaintAnalysis);
+            onResult(Store, Source, DataFlowAnalysisType::IFDSTaintAnalysis);
           }
         }
 
@@ -483,7 +481,7 @@ auto IFDSTaintAnalysis::getSummaryFlowFunction([[maybe_unused]] n_t CallSite,
 
   if (CS->hasStructRetAttr()) {
     const auto *SRet = CS->getArgOperand(0);
-    if (!Gen.count(SRet)) {
+    if (!Gen.contains(SRet)) {
       // SRet is guaranteed to be written to by the call. If it does not
       // generate it, we can freely kill it
       Kill.insert(SRet);
@@ -493,14 +491,13 @@ auto IFDSTaintAnalysis::getSummaryFlowFunction([[maybe_unused]] n_t CallSite,
     if (!Leak.empty() || !Kill.empty()) {
       return lambdaFlow([Leak{std::move(Leak)}, Kill{std::move(Kill)}, this,
                          CallSite](d_t Source) -> container_type {
-        if (Leak.count(Source)) {
+        if (Leak.contains(Source)) {
           if (Leaks[CallSite].insert(Source).second) {
-            Printer->onResult(CallSite, Source,
-                              DataFlowAnalysisType::IFDSTaintAnalysis);
+            onResult(CallSite, Source, DataFlowAnalysisType::IFDSTaintAnalysis);
           }
         }
 
-        if (Kill.count(Source)) {
+        if (Kill.contains(Source)) {
           return {};
         }
 
@@ -521,10 +518,9 @@ auto IFDSTaintAnalysis::getSummaryFlowFunction([[maybe_unused]] n_t CallSite,
       return Gen;
     }
 
-    if (Leak.count(Source)) {
+    if (Leak.contains(Source)) {
       if (Leaks[CallSite].insert(Source).second) {
-        Printer->onResult(CallSite, Source,
-                          DataFlowAnalysisType::IFDSTaintAnalysis);
+        onResult(CallSite, Source, DataFlowAnalysisType::IFDSTaintAnalysis);
       }
     }
 
@@ -541,7 +537,7 @@ auto IFDSTaintAnalysis::initialSeeds() -> InitialSeeds<n_t, d_t, l_t> {
       Config->makeInitialSeeds(LLVMTaintConfig::SeedConfig::Arguments);
 
   LLVMBasedCFG C;
-  addSeedsForStartingPoints(EntryPoints, IRDB, C, Seeds, getZeroValue(),
+  addSeedsForStartingPoints(EntryPoints, IRDB.get(), C, Seeds, getZeroValue(),
                             psr::BinaryDomain::BOTTOM);
 
   if (TaintMainArgs && llvm::is_contained(EntryPoints, "main")) {
@@ -572,15 +568,11 @@ auto IFDSTaintAnalysis::createZeroValue() const -> d_t {
   return LLVMZeroValue::getInstance();
 }
 
-bool IFDSTaintAnalysis::isZeroValue(d_t FlowFact) const noexcept {
-  return LLVMZeroValue::isLLVMZeroValue(FlowFact);
-}
-
 void IFDSTaintAnalysis::emitTextReport(
     GenericSolverResults<n_t, d_t, BinaryDomain> /*SR*/,
     llvm::raw_ostream &OS) {
   OS << "\n----- Found the following leaks -----\n";
-  Printer->onFinalize(OS);
+  printer().onFinalize(OS);
 }
 
 bool IFDSTaintAnalysis::isInteresting(

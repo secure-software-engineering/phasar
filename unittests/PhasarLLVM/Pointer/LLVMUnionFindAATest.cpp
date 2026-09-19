@@ -25,7 +25,10 @@
 #include "gtest/gtest.h"
 
 #include <map>
+#include <set>
 #include <source_location>
+#include <string>
+#include <tuple>
 #include <vector>
 
 namespace {
@@ -91,7 +94,7 @@ void doAnalysisAndCompareResults(
                                         {"main"}, TH, VTP);
 
   ValueCompressor<PAGVariable> VC;
-  UnionFindAAResult auto Results = computeUnionFindAARaw(
+  RawAAResult auto Results = computeUnionFindAARaw(
       IRDB, AABuilder(IRDB, BaseCG), &VC, std::move(Impl));
 
   for (const auto &[PtrVar, ExpectedAliasVars] : ExpectedResults) {
@@ -7318,6 +7321,109 @@ TEST(IndirectionSensUnionFindAATest, Indirection10) {
 }
 
 // ---------------------------------------------------------------------------
+// Pointer-punning tests
+//
+// P is overwritten and re-read through an intptr_t view of its slot, so both
+// accesses are typed i64.  The plain integer-type gate used to drop them,
+// leaving the loaded pointer unaliased.
+// ---------------------------------------------------------------------------
+
+static const GTMap PunningGT = {
+    // The punned load: reads what either store put into P.
+    {LineColFunOp{.Line = 12,
+                  .Col = 0,
+                  .InFunction = "main",
+                  .OpCode = llvm::Instruction::Load},
+     {GlobalVar{"A"}, GlobalVar{"B"}}},
+    // ... and so does Q, which it is stored into.
+    {LineColFunOp{.Line = 13,
+                  .Col = 0,
+                  .InFunction = "main",
+                  .OpCode = llvm::Instruction::Load},
+     {GlobalVar{"A"}, GlobalVar{"B"}}},
+};
+
+TEST(CtxSensUnionFindAATest, PointerPunning01) {
+  doAnalysisAndCompareResults("pointer_punning_01_c_dbg.ll", PunningGT,
+                              ContextAABuilder);
+}
+
+TEST(IndirectionSensUnionFindAATest, PointerPunning01) {
+  doAnalysisAndCompareResults("pointer_punning_01_c_dbg.ll", PunningGT,
+                              IndAABuilder);
+}
+
+TEST(BotUnionFindAATest, PointerPunning01) {
+  doAnalysisAndCompareResults("pointer_punning_01_c_dbg.ll", PunningGT,
+                              BotAABuilder);
+}
+
+// ---------------------------------------------------------------------------
+// Atomic read-modify-write tests
+//
+// Clang lowers the pointer exchange to `atomicrmw xchg ptr %P, i64 ...`.
+// Flow-insensitively P holds both A and B, so the exchanged-out value and the
+// reloaded one each alias both.  Without the atomicrmw case in dispatch, none
+// of these are related at all.
+//
+// AndersenOTFAATest keeps A and B apart here; a union-find cannot, since both
+// reach the same loads and a single equivalence class is all it can express.
+// ---------------------------------------------------------------------------
+
+static const TestingSrcLocation AtomicsA =
+    OperandOf{.OperandIndex = 0,
+              .Inst = LineColFunOp{.Line = 6,
+                                   .Col = 0,
+                                   .InFunction = "main",
+                                   .OpCode = llvm::Instruction::Store}};
+static const TestingSrcLocation AtomicsB =
+    OperandOf{.OperandIndex = 0,
+              .Inst = LineColFunOp{.Line = 7,
+                                   .Col = 0,
+                                   .InFunction = "main",
+                                   .OpCode = llvm::Instruction::Store}};
+static const TestingSrcLocation AtomicsExchanged =
+    LineColFunOp{.Line = 8,
+                 .Col = 0,
+                 .InFunction = "main",
+                 .OpCode = llvm::Instruction::AtomicRMW};
+static const TestingSrcLocation AtomicsOldVal =
+    LineColFunOp{.Line = 10,
+                 .Col = 0,
+                 .InFunction = "main",
+                 .OpCode = llvm::Instruction::Load};
+static const TestingSrcLocation AtomicsCurVal =
+    LineColFunOp{.Line = 11,
+                 .Col = 0,
+                 .InFunction = "main",
+                 .OpCode = llvm::Instruction::Load};
+
+static const std::vector<TestingSrcLocation> AtomicsAll = {
+    AtomicsA, AtomicsB, AtomicsExchanged, AtomicsOldVal, AtomicsCurVal};
+
+static const GTMap AtomicsGT = {
+    {AtomicsA, AtomicsAll},
+    {AtomicsB, AtomicsAll},
+    {AtomicsOldVal, AtomicsAll},
+    {AtomicsCurVal, AtomicsAll},
+};
+
+TEST(CtxSensUnionFindAATest, AtomicExchange) {
+  doAnalysisAndCompareResults("andersen_otf_atomics_c_dbg.ll", AtomicsGT,
+                              ContextAABuilder);
+}
+
+TEST(IndirectionSensUnionFindAATest, AtomicExchange) {
+  doAnalysisAndCompareResults("andersen_otf_atomics_c_dbg.ll", AtomicsGT,
+                              IndAABuilder);
+}
+
+TEST(BotUnionFindAATest, AtomicExchange) {
+  doAnalysisAndCompareResults("andersen_otf_atomics_c_dbg.ll", AtomicsGT,
+                              BotAABuilder);
+}
+
+// ---------------------------------------------------------------------------
 // MemorySSA flow-sensitivity tests
 //
 // These tests verify that LLVMPAGBuilder::withBuiltinMemSSA() connects each
@@ -7339,6 +7445,30 @@ TEST(MemSSAUnionFindAATest, KillStore) {
                               LLVMPAGBuilder::withBuiltinMemSSA());
 }
 
+// The loop-carried load is interned by the PHI before handleLoad translates
+// it, so addAlias() no-ops. On the single-reaching-def MemSSA path that used
+// to leave the load with no incoming edge at all, losing the alias to A.
+TEST(MemSSAUnionFindAATest, LoopCarriedLoad) {
+  // The loop pointer P, i.e. the PHI the load feeds.
+  const TestingSrcLocation Phi =
+      OperandOf{.OperandIndex = 0,
+                .Inst = LineColFunOp{.Line = 15,
+                                     .Col = 0,
+                                     .InFunction = "main",
+                                     .OpCode = llvm::Instruction::Load}};
+  // Slot joins A through addDelayedEdges' store-safety fallback.
+  GTMap GT = {{LineColFunOp{.Line = 13,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Load},
+               {GlobalVar{"A"}, GlobalVar{"B"}, GlobalVar{"Slot"}, Phi}},
+              {Phi, {GlobalVar{"A"}, GlobalVar{"B"}, GlobalVar{"Slot"}, Phi}}};
+
+  doAnalysisAndCompareResults("loop_carried_load_c_m2r_dbg.ll", GT,
+                              ContextAABuilder,
+                              LLVMPAGBuilder::withBuiltinMemSSA());
+}
+
 // if (c) p = &a; else p = &b; q = load p  — MemoryPhi: q aliases both a and b
 TEST(MemSSAUnionFindAATest, BranchBothReach) {
   GTMap GT = {{LineColFunOp{.Line = 9,
@@ -7356,6 +7486,80 @@ TEST(MemSSAUnionFindAATest, BranchBothReach) {
 
   doAnalysisAndCompareResults("memssa_branch_01_c_dbg.ll", GT, ContextAABuilder,
                               LLVMPAGBuilder::withBuiltinMemSSA());
+}
+
+/// Maps every value name to the names in its alias set, so that two runs can
+/// be compared without depending on the ValueIds they happen to assign.
+[[nodiscard]] std::map<std::string, std::set<std::string>>
+collectAliasSetsByName(const ValueCompressor<PAGVariable> &VC,
+                       const RawAAResult auto &Results) {
+  std::map<std::string, std::set<std::string>> Ret;
+
+  for (const auto &[VId, Vars] : VC.id2vars().enumerate()) {
+    std::set<std::string> Aliases;
+    Results.getRawAliasSet(VId).foreach ([&](ValueId AId) {
+      for (const auto Alias : VC.id2vars(AId)) {
+        Aliases.insert(to_string(Alias));
+      }
+    });
+
+    for (const auto Var : Vars) {
+      Ret[to_string(Var)] = Aliases;
+    }
+  }
+
+  return Ret;
+}
+
+/// A pre-populated ValueCompressor shifts every ValueId. As the strategies
+/// index their per-value tables by id, seeding it must not change the result.
+void checkPrePopulatedVCMatches(
+    const llvm::Twine &IRFile, auto AABuilder,
+    std::source_location Loc = std::source_location::current()) {
+
+  auto IRDB = LLVMProjectIRDB::loadOrExit(PathToLLFiles + IRFile);
+  auto TH = DIBasedTypeHierarchy(IRDB);
+  auto VTP = LLVMVFTableProvider(IRDB);
+  auto BaseCG = buildLLVMBasedCallGraph(IRDB, CallGraphAnalysisType::RTA,
+                                        {"main"}, TH, VTP);
+
+  ValueCompressor<PAGVariable> PlainVC;
+  const auto Plain = collectAliasSetsByName(
+      PlainVC, computeUnionFindAARaw(IRDB, AABuilder(IRDB, BaseCG), &PlainVC));
+
+  // Seed the globals, so they no longer receive the ids buildPAG would assign.
+  ValueCompressor<PAGVariable> SeededVC;
+  for (const auto &Glob : IRDB.getModule()->globals()) {
+    std::ignore = SeededVC.insert(&Glob);
+  }
+  ASSERT_NE(0U, SeededVC.size()) << "Test needs a module with globals";
+
+  const auto Seeded = collectAliasSetsByName(
+      SeededVC,
+      computeUnionFindAARaw(IRDB, AABuilder(IRDB, BaseCG), &SeededVC));
+
+  for (const auto &[Var, Aliases] : Plain) {
+    const auto It = Seeded.find(Var);
+    if (It == Seeded.end()) {
+      ADD_FAILURE_AT(Loc.file_name(), Loc.line())
+          << "Value missing from the seeded run: " << Var;
+      continue;
+    }
+    EXPECT_EQ(Aliases, It->second) << "Alias set of " << Var << " differs at "
+                                   << Loc.file_name() << ':' << Loc.line();
+  }
+}
+
+TEST(CtxSensUnionFindAATest, PrePopulatedVC) {
+  checkPrePopulatedVCMatches("loop_carried_load_c_dbg.ll", ContextAABuilder);
+}
+
+TEST(IndirectionSensUnionFindAATest, PrePopulatedVC) {
+  checkPrePopulatedVCMatches("loop_carried_load_c_dbg.ll", IndAABuilder);
+}
+
+TEST(BotUnionFindAATest, PrePopulatedVC) {
+  checkPrePopulatedVCMatches("loop_carried_load_c_dbg.ll", BotAABuilder);
 }
 
 } // namespace

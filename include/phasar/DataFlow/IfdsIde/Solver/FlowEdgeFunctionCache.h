@@ -10,10 +10,10 @@
 #ifndef PHASAR_DATAFLOW_IFDSIDE_SOLVER_FLOWEDGEFUNCTIONCACHE_H
 #define PHASAR_DATAFLOW_IFDSIDE_SOLVER_FLOWEDGEFUNCTIONCACHE_H
 
-#include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
-#include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
-#include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
+#include "phasar/DataFlow/IfdsIde/IDEProblem.h"
+#include "phasar/DataFlow/IfdsIde/IFDSIDESolverConfig.h"
 #include "phasar/Utils/EquivalenceClassMap.h"
+#include "phasar/Utils/Lazy.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/NonNullPtr.h"
 #include "phasar/Utils/PAMMMacros.h"
@@ -23,9 +23,8 @@
 #include "llvm/ADT/DenseMap.h"
 
 #include <algorithm>
+#include <deque>
 #include <map>
-#include <memory>
-#include <set>
 #include <tuple>
 #include <type_traits>
 #include <utility>
@@ -58,11 +57,8 @@ public:
   using CompressedType = uint32_t;
 
   [[nodiscard]] CompressedType getCompressedID(KeyType Key) {
-    auto Search = Map.find(Key);
-    if (Search == Map.end()) {
-      return Map.insert(std::make_pair(Key, Map.size() + 1)).first->getSecond();
-    }
-    return Search->getSecond();
+    auto [It, _] = Map.try_emplace(Key, Map.size() + 1);
+    return It->second;
   }
 
 private:
@@ -114,38 +110,27 @@ struct FlowEdgeFunctionCachePerf {
  * version is used if existend, otherwise a new one is created and inserted
  * into the cache.
  */
-template <typename AnalysisDomainTy,
-          typename Container = std::set<typename AnalysisDomainTy::d_t>>
+template <IDEProblem ProblemTy>
 class FlowEdgeFunctionCache : private detail::FlowEdgeFunctionCachePerf {
-  using IDEProblemType = IDETabulationProblem<AnalysisDomainTy, Container>;
-  using FlowFunctionPtrType = typename IDEProblemType::FlowFunctionPtrType;
+  using FlowFunctionPtrType = typename ProblemTy::FlowFunctionPtrType;
 
-  using n_t = typename AnalysisDomainTy::n_t;
-  using d_t = typename AnalysisDomainTy::d_t;
-  using f_t = typename AnalysisDomainTy::f_t;
-  using t_t = typename AnalysisDomainTy::t_t;
-  using l_t = typename AnalysisDomainTy::l_t;
+  using n_t = typename ProblemTy::n_t;
+  using d_t = typename ProblemTy::d_t;
+  using f_t = typename ProblemTy::f_t;
+  using t_t = typename ProblemTy::t_t;
+  using l_t = typename ProblemTy::l_t;
+  using container_type = typename ProblemTy::container_type;
 
-  using FlowFunctionType = FlowFunction<d_t, Container>;
-  using EdgeFunctionType = EdgeFunction<l_t>;
+  using FlowFunctionType = FlowFunction<d_t, container_type>;
+  using EdgeFunctionType = typename ProblemTy::EdgeFunctionType;
 
 public:
   // Ctor allows access to the IDEProblem in order to get access to flow and
   // edge function factory functions.
-  FlowEdgeFunctionCache(
-      IDETabulationProblem<AnalysisDomainTy, Container> &Problem)
+  FlowEdgeFunctionCache(NonNullPtr<ProblemTy> Problem)
       : Problem(Problem),
-        AutoAddZero(Problem.getIFDSIDESolverConfig().autoAddZero()),
-        ZV(Problem.getZeroValue()) {}
-
-  ~FlowEdgeFunctionCache() = default;
-
-  FlowEdgeFunctionCache(const FlowEdgeFunctionCache &FEFC) = default;
-  FlowEdgeFunctionCache &operator=(const FlowEdgeFunctionCache &FEFC) = default;
-
-  FlowEdgeFunctionCache(FlowEdgeFunctionCache &&FEFC) noexcept = default;
-  FlowEdgeFunctionCache &
-  operator=(FlowEdgeFunctionCache &&FEFC) noexcept = default;
+        AutoAddZero(getProblemSolverConfig(*Problem).autoAddZero()),
+        ZV(Problem->getZeroValue()) {}
 
   [[nodiscard]] NonNullPtr<FlowFunctionType> getNormalFlowFunction(n_t Curr,
                                                                    n_t Succ) {
@@ -163,9 +148,9 @@ public:
     auto &NormalFE = NormalFunctionCache[std::move(Key)];
     if (!NormalFE.FlowFuncPtr) {
       NormalFF_Construction++;
-      auto FF = Problem.getNormalFlowFunction(Curr, Succ);
+      auto FF = Problem->getNormalFlowFunction(Curr, Succ);
       NormalFE.FlowFuncPtr = AutoAddZero
-                                 ? std::make_unique<ZFF>(std::move(FF), ZV)
+                                 ? &ZFFOwner.emplace_back(std::move(FF), ZV)
                                  : std::move(FF);
       PHASAR_LOG_LEVEL(DEBUG, "Flow function constructed");
     } else {
@@ -186,14 +171,16 @@ public:
         PHASAR_LOG_LEVEL(DEBUG, "(F) Dest Fun : " << FToString(DestFun)));
     auto Key = std::tie(CallSite, DestFun);
 
-    auto [It, Inserted] = CallFlowFunctionCache.try_emplace(std::move(Key));
-    if (Inserted) {
-      CallFF_Construction++;
-      auto FF = Problem.getCallFlowFunction(CallSite, DestFun);
-      It->second = AutoAddZero ? std::make_unique<ZFF>(std::move(FF), ZV)
-                               : std::move(FF);
-      PHASAR_LOG_LEVEL(DEBUG, "Flow function constructed");
-    } else {
+    auto [It, Inserted] = CallFlowFunctionCache.try_emplace(
+        std::move(Key), lazy{[&] {
+          CallFF_Construction++;
+          auto FF = Problem->getCallFlowFunction(CallSite, DestFun);
+          auto Ret = AutoAddZero ? &ZFFOwner.emplace_back(std::move(FF), ZV)
+                                 : std::move(FF);
+          PHASAR_LOG_LEVEL(DEBUG, "Flow function constructed");
+          return Ret;
+        }});
+    if (!Inserted) {
       PHASAR_LOG_LEVEL(DEBUG, "Flow function fetched from cache");
       CallFF_CacheHit++;
     }
@@ -215,16 +202,17 @@ public:
         PHASAR_LOG_LEVEL(DEBUG, "(N) Ret Site  : " << NToString(RetSite)));
     auto Key = std::tie(CallSite, CalleeFun, ExitInst, RetSite);
 
-    auto [It, Inserted] = ReturnFlowFunctionCache.try_emplace(std::move(Key));
-    if (Inserted) {
-      ReturnFF_Construction++;
-      auto FF =
-          Problem.getRetFlowFunction(CallSite, CalleeFun, ExitInst, RetSite);
-      It->second = AutoAddZero ? std::make_unique<ZFF>(std::move(FF), ZV)
-                               : std::move(FF);
-
-      PHASAR_LOG_LEVEL(DEBUG, "Flow function constructed");
-    } else {
+    auto [It, Inserted] = ReturnFlowFunctionCache.try_emplace(
+        std::move(Key), lazy{[&] {
+          ReturnFF_Construction++;
+          auto FF = Problem->getRetFlowFunction(CallSite, CalleeFun, ExitInst,
+                                                RetSite);
+          auto Ret = AutoAddZero ? &ZFFOwner.emplace_back(std::move(FF), ZV)
+                                 : std::move(FF);
+          PHASAR_LOG_LEVEL(DEBUG, "Flow function constructed");
+          return Ret;
+        }});
+    if (!Inserted) {
       PHASAR_LOG_LEVEL(DEBUG, "Flow function fetched from cache");
       ReturnFF_CacheHit++;
     }
@@ -246,15 +234,15 @@ public:
         for (auto Callee : Callees) {
           PHASAR_LOG_LEVEL(DEBUG, "  " << FToString(Callee));
         };);
-    auto Key = std::tie(CallSite, RetSite);
+    auto Key = createEdgeFunctionInstKey(CallSite, RetSite);
 
-    auto [It, Inserted] =
-        CallToRetFlowFunctionCache.try_emplace(std::move(Key));
-    if (Inserted) {
+    auto &CTRFE = NormalFunctionCache[std::move(Key)];
+    if (!CTRFE.FlowFuncPtr) {
       CallToRetFF_Construction++;
-      auto FF = Problem.getCallToRetFlowFunction(CallSite, RetSite, Callees);
-      It->second = AutoAddZero ? std::make_unique<ZFF>(std::move(FF), ZV)
-                               : std::move(FF);
+      auto FF = Problem->getCallToRetFlowFunction(CallSite, RetSite, Callees);
+      CTRFE.FlowFuncPtr = AutoAddZero
+                              ? &ZFFOwner.emplace_back(std::move(FF), ZV)
+                              : std::move(FF);
 
       PHASAR_LOG_LEVEL(DEBUG, "Flow function constructed");
     } else {
@@ -263,7 +251,7 @@ public:
       CallToRetFF_CacheHit++;
     }
 
-    return getPointerFrom(It->second);
+    return getPointerFrom(CTRFE.FlowFuncPtr);
   }
 
   /// \note Unlike the other get*FlowFunction methods, this returns a nullable
@@ -281,7 +269,7 @@ public:
         PHASAR_LOG_LEVEL(DEBUG, "(N) Call Stmt : " << NToString(CallSite));
         PHASAR_LOG_LEVEL(DEBUG, "(F) Dest Mthd : " << FToString(DestFun));
         PHASAR_LOG_LEVEL(DEBUG, ' '));
-    auto FF = Problem.getSummaryFlowFunction(CallSite, DestFun);
+    auto FF = Problem->getSummaryFlowFunction(CallSite, DestFun);
     return FF;
   }
 
@@ -304,7 +292,7 @@ public:
         [&] {
           NormalEF_Construction++;
           auto EF =
-              Problem.getNormalEdgeFunction(Curr, CurrNode, Succ, SuccNode);
+              Problem->getNormalEdgeFunction(Curr, CurrNode, Succ, SuccNode);
           PHASAR_LOG_LEVEL(DEBUG, "Edge function constructed");
           return EF;
         },
@@ -333,14 +321,16 @@ public:
         PHASAR_LOG_LEVEL(DEBUG, "(D) Dest Node : " << DToString(DestNode)));
     auto Key = std::tie(CallSite, SrcNode, DestinationFunction, DestNode);
 
-    auto [It, Inserted] = CallEdgeFunctionCache.try_emplace(std::move(Key));
-    if (Inserted) {
-      CallEF_Construction++;
-      It->second = Problem.getCallEdgeFunction(CallSite, SrcNode,
-                                               DestinationFunction, DestNode);
+    auto [It, Inserted] = CallEdgeFunctionCache.try_emplace(
+        std::move(Key), lazy{[&] {
+          CallEF_Construction++;
+          auto Ret = Problem->getCallEdgeFunction(
+              CallSite, SrcNode, DestinationFunction, DestNode);
 
-      PHASAR_LOG_LEVEL(DEBUG, "Edge function constructed");
-    } else {
+          PHASAR_LOG_LEVEL(DEBUG, "Edge function constructed");
+          return Ret;
+        }});
+    if (!Inserted) {
       CallEF_CacheHit++;
       PHASAR_LOG_LEVEL(DEBUG, "Edge function fetched from cache");
     }
@@ -368,14 +358,16 @@ public:
         PHASAR_LOG_LEVEL(DEBUG, "(D) Ret Node  : " << DToString(RetNode)));
     auto Key = std::tie(CallSite, CalleeFunction, ExitInst, ExitNode, RetSite,
                         RetNode);
-    auto [It, Inserted] = ReturnEdgeFunctionCache.try_emplace(std::move(Key));
+    auto [It, Inserted] = ReturnEdgeFunctionCache.try_emplace(
+        std::move(Key), lazy{[&] {
+          ReturnEF_Construction++;
+          auto Ret = Problem->getReturnEdgeFunction(
+              CallSite, CalleeFunction, ExitInst, ExitNode, RetSite, RetNode);
+          PHASAR_LOG_LEVEL(DEBUG, "Edge function constructed");
+          return Ret;
+        }});
 
-    if (Inserted) {
-      ReturnEF_Construction++;
-      It->second = Problem.getReturnEdgeFunction(
-          CallSite, CalleeFunction, ExitInst, ExitNode, RetSite, RetNode);
-      PHASAR_LOG_LEVEL(DEBUG, "Edge function constructed");
-    } else {
+    if (!Inserted) {
       ReturnEF_CacheHit++;
       PHASAR_LOG_LEVEL(DEBUG, "Edge function fetched from cache");
     }
@@ -405,13 +397,13 @@ public:
         });
 
     EdgeFuncInstKey OuterMapKey = createEdgeFunctionInstKey(CallSite, RetSite);
-    auto &Outer = CallToRetEdgeFunctionCache[std::move(OuterMapKey)];
+    auto &Outer = NormalFunctionCache[std::move(OuterMapKey)];
 
-    auto Ret = Outer.getOrInsertLazy(
+    auto Ret = Outer.EdgeFunctionMap.getOrInsertLazy(
         std::move(createEdgeFunctionNodeKey(CallNode, RetSiteNode)),
         [&] {
           CallToRetEF_Construction++;
-          auto Ret = Problem.getCallToRetEdgeFunction(
+          auto Ret = Problem->getCallToRetEdgeFunction(
               CallSite, CallNode, RetSite, RetSiteNode, Callees);
           PHASAR_LOG_LEVEL(DEBUG, "Edge function constructed");
           return Ret;
@@ -439,13 +431,15 @@ public:
         PHASAR_LOG_LEVEL(DEBUG, "(D) Ret Node  : " << DToString(RetSiteNode));
         PHASAR_LOG_LEVEL(DEBUG, ' '));
     auto Key = std::tie(CallSite, CallNode, RetSite, RetSiteNode);
-    auto [It, Inserted] = SummaryEdgeFunctionCache.try_emplace(std::move(Key));
-    if (Inserted) {
-      SummaryEF_Construction++;
-      It->second = Problem.getSummaryEdgeFunction(CallSite, CallNode, RetSite,
-                                                  RetSiteNode);
-      PHASAR_LOG_LEVEL(DEBUG, "Edge function constructed");
-    } else {
+    auto [It, Inserted] = SummaryEdgeFunctionCache.try_emplace(
+        std::move(Key), lazy{[&] {
+          SummaryEF_Construction++;
+          auto Ret = Problem->getSummaryEdgeFunction(CallSite, CallNode,
+                                                     RetSite, RetSiteNode);
+          PHASAR_LOG_LEVEL(DEBUG, "Edge function constructed");
+          return Ret;
+        }});
+    if (!Inserted) {
       SummaryEF_CacheHit++;
       PHASAR_LOG_LEVEL(DEBUG, "Edge function fetched from cache");
     }
@@ -539,12 +533,6 @@ public:
       std::invoke(Fn, EF, EdgeFunctionKind::Return);
     }
 
-    for (const auto &[Key, CTRFns] : CallToRetEdgeFunctionCache) {
-      for (const auto &[Set, EF] : CTRFns) {
-        std::invoke(Fn, EF, EdgeFunctionKind::CallToReturn);
-      }
-    }
-
     for (const auto &[Key, EF] : SummaryEdgeFunctionCache) {
       std::invoke(Fn, EF, EdgeFunctionKind::Summary);
     }
@@ -568,16 +556,11 @@ private:
       std::is_base_of_v<llvm::Value, std::remove_pointer_t<d_t>>, uint64_t,
       std::pair<d_t, d_t>>;
   using InnerEdgeFunctionMapType =
-      EquivalenceClassMap<EdgeFuncNodeKey, EdgeFunctionType>;
+      EquivalenceClassMapNG<EdgeFuncNodeKey, EdgeFunctionType>;
 
-  using ZFF = ZeroedFlowFunction<d_t, Container>;
+  using ZFF = ZeroedFlowFunction<d_t, container_type>;
 
   struct NormalEdgeFlowData {
-    NormalEdgeFlowData() noexcept = default;
-    NormalEdgeFlowData(FlowFunctionPtrType Val) : FlowFuncPtr(std::move(Val)) {}
-    NormalEdgeFlowData(InnerEdgeFunctionMapType Map)
-        : EdgeFunctionMap{std::move(Map)} {}
-
     FlowFunctionPtrType FlowFuncPtr{};
     InnerEdgeFunctionMapType EdgeFunctionMap{};
   };
@@ -598,33 +581,35 @@ private:
       Val |= KeyCompressor.getCompressedID(Rhs);
       return Val;
     } else {
-      return std::make_pair(Lhs, Rhs);
+      return std::make_pair(std::move(Lhs), std::move(Rhs));
     }
   }
 
   MapKeyCompressorType KeyCompressor;
 
-  IDETabulationProblem<AnalysisDomainTy, Container> &Problem;
+  NonNullPtr<ProblemTy> Problem;
   // Auto add zero
-  bool AutoAddZero;
+  bool AutoAddZero{};
   d_t ZV;
 
-  // Caches for the flow/edge functions
-  std::map<EdgeFuncInstKey, NormalEdgeFlowData> NormalFunctionCache;
+  std::deque<ZFF> ZFFOwner;
+
+  // Caches for the normal/CTR flow/edge functions
+  // NOTE: The key-spaces for normal and CTR functions are disjoint. The solver
+  // will never call getNormal[...]Function on call-sites, or
+  // getCallToRet[...]Function on non-call-sites. So, we can use the same cache
+  // for both here
+  llvm::DenseMap<EdgeFuncInstKey, NormalEdgeFlowData> NormalFunctionCache;
 
   // Caches for the flow functions
   std::map<std::tuple<n_t, f_t>, FlowFunctionPtrType> CallFlowFunctionCache;
   std::map<std::tuple<n_t, f_t, n_t, n_t>, FlowFunctionPtrType>
       ReturnFlowFunctionCache;
-  std::map<std::tuple<n_t, n_t>, FlowFunctionPtrType>
-      CallToRetFlowFunctionCache;
   // Caches for the edge functions
   std::map<std::tuple<n_t, d_t, f_t, d_t>, EdgeFunctionType>
       CallEdgeFunctionCache;
   std::map<std::tuple<n_t, f_t, n_t, d_t, n_t, d_t>, EdgeFunctionType>
       ReturnEdgeFunctionCache;
-  std::map<EdgeFuncInstKey, InnerEdgeFunctionMapType>
-      CallToRetEdgeFunctionCache;
   std::map<std::tuple<n_t, d_t, n_t, d_t>, EdgeFunctionType>
       SummaryEdgeFunctionCache;
 };

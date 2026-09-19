@@ -11,6 +11,7 @@
 #define PHASAR_PHASARLLVM_DOMAIN_LLVMANALYSISDOMAIN_H
 
 #include "phasar/Domain/AnalysisDomain.h"
+#include "phasar/Domain/BinaryDomain.h"
 #include "phasar/PhasarLLVM/Utils/LLVMAnalysisPrinter.h"
 #include "phasar/Utils/DefaultAnalysisPrinterSelector.h"
 #include "phasar/Utils/TypeTraits.h"
@@ -55,6 +56,8 @@ struct LLVMAnalysisDomainDefault : public AnalysisDomain {
 /// IFDS analysis
 using LLVMIFDSAnalysisDomainDefault =
     WithBinaryValueDomain<LLVMAnalysisDomainDefault>;
+
+static_assert(std::same_as<BinaryDomain, LLVMIFDSAnalysisDomainDefault::l_t>);
 
 extern template class DefaultLLVMAnalysisPrinter<LLVMIFDSAnalysisDomainDefault>;
 
