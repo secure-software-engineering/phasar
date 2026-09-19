@@ -28,7 +28,7 @@ int main([[clang::annotate("psr.source")]] int argc, char *argv[]) {
 // ifds-fieldsens-taint: /xtaint/xtaint23.cpp:17:5:
 
 // RUN: %phasar-cli --data-flow-analysis=monoifds-taint --module %llvm_test_code/xtaint/xtaint23_cpp_dbg.ll | FileCheck %s -check-prefix=monoifds-taint
-// monoifds-taint: No leaks found!
+// monoifds-taint: /xtaint/xtaint23.cpp:17:5:
 
 // RUN: %phasar-cli --data-flow-analysis=sparse-ifds-taint --module %llvm_test_code/xtaint/xtaint23_cpp_dbg.ll | FileCheck %s -check-prefix=sparse-ifds-taint
 // sparse-ifds-taint: /xtaint/xtaint23.cpp:17:5:
