@@ -10,8 +10,8 @@ if (PHASAR_ENABLE_INTEGRATIONTESTS)
   include(AddLLVM)
 
   find_program(LLVM_EXTERNAL_LIT_DEFAULT
-    NAMES lit-22 lit-21 lit-20 lit-16 llvm-lit lit
-    HINTS "${LLVM_TOOLS_BINARY_DIR}"
+    NAMES lit-22 lit-21 lit-20 lit-16 llvm-lit lit lit.py
+    HINTS "${LLVM_TOOLS_BINARY_DIR}" "${LLVM_INSTALL_PREFIX}/build/utils/lit"
     REQUIRED
   )
 
@@ -24,7 +24,7 @@ if (PHASAR_ENABLE_INTEGRATIONTESTS)
   get_filename_component(PSR_LIT_DIR ${PSR_LIT_REALPATH} DIRECTORY)
   find_program(PSR_FILECHECK
     NAMES FileCheck-22 FileCheck-21 FileCheck-20 FileCheck
-    HINTS "${PSR_LIT_DIR}"
+    HINTS "${PSR_LIT_DIR}" "${LLVM_TOOLS_BINARY_DIR}"
     REQUIRED
   )
 

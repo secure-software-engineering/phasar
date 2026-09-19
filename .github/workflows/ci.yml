@@ -64,7 +64,7 @@ jobs:
             --llvm-version ${{ matrix.llvm-major-version }} \
             --noninteractive \
             tzdata ccache ${{ matrix.compiler[2] }} ${{ matrix.extra_dependencies }} \
-            llvm-20-tools # For lit, FileCheck
+            llvm-${{ matrix.llvm-major-version }}-tools # For lit, FileCheck
 
       - name: Building Phasar in ${{ matrix.build }} with ${{ matrix.compiler[0] }}
         env:
