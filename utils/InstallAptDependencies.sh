@@ -68,6 +68,7 @@ additional_dependencies=("$@")
         "libclang-rt-$LLVM_IR_VERSION-dev" # ASAN
         libz3-dev libssl-dev "libclang-$LLVM_IR_VERSION-dev" "libclang-common-$LLVM_IR_VERSION-dev" # optional build deps
         zlib1g-dev libzstd-dev "llvm-$LLVM_IR_VERSION-dev" # build deps
+        "llvm-$LLVM_IR_VERSION-tools" # lit, FileCheck
     )
 
 
