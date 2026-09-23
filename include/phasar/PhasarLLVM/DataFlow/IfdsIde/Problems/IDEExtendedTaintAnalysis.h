@@ -45,6 +45,12 @@ struct IDEExtendedTaintAnalysisDomain : public LLVMAnalysisDomainDefault {
   /// sanitizer on the current path, Bottom means sanitized on all paths.
   using l_t = XTaint::EdgeDomain;
 };
+
+template <>
+struct DefaultAnalysisPrinterSelector<IDEExtendedTaintAnalysisDomain>
+    : type_identity<
+          DefaultLLVMAnalysisPrinter<IDEExtendedTaintAnalysisDomain>> {};
+
 namespace XTaint {
 
 /// \brief An IDE-based taint analysis that uses k-limited field-access paths to

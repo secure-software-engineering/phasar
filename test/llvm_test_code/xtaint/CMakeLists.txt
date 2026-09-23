@@ -8,11 +8,10 @@ set(XTAINT_DBG_SOURCES
     xtaint04.cpp
     xtaint05.cpp
     xtaint06.cpp
-
     # xtaint07.cpp
     # xtaint08.cpp
-    xtaint09.cpp
     xtaint09_1.cpp
+    xtaint09.cpp
     xtaint10.cpp
     xtaint11.cpp
     xtaint12.cpp

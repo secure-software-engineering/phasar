@@ -276,10 +276,8 @@ PSR_SHORTLONG_OPTION(PammOutOpt, std::string, "A", "pamm-out",
                      cl::init("PAMM_data.json"), cl::cat(PsrCat), cl::Hidden);
 
 void validateParamModule() {
-  if (!(llvm::sys::fs::exists(ModuleOpt) &&
-        !llvm::sys::fs::is_directory(ModuleOpt) &&
-        (llvm::is_contained(llvm::ArrayRef{".bc", ".ll"},
-                            llvm::sys::path::extension(ModuleOpt))))) {
+  if (!llvm::sys::fs::exists(ModuleOpt) &&
+      !llvm::sys::fs::is_directory(ModuleOpt)) {
     llvm::SmallString<256> RealModPath;
     auto EC = llvm::sys::fs::real_path(ModuleOpt, RealModPath);
     llvm::WithColor::error()

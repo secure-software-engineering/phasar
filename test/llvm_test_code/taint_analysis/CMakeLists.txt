@@ -41,4 +41,5 @@ foreach(TEST_SRC ${NoMem2regSources})
   generate_ll_file(FILE ${TEST_SRC} DEBUG)
 endforeach(TEST_SRC)
 
+add_subdirectory(double_free)
 add_subdirectory(dummy_source_sink)

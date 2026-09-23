@@ -1,0 +1,38 @@
+
+/// TODO: Fields
+
+#include <stdlib.h>
+
+typedef struct _S {
+  int *X;
+  int *Y;
+} S;
+
+void v(S *foo) {
+  free(foo->Y); // foo->X is free'd, but foo->Y is not, so this is fine
+}
+void f(S *foo) { v(foo); }
+int main() {
+  S foo = {};
+  foo.X = (int *)malloc(32);
+  foo.Y = (int *)malloc(32);
+
+  free(foo.X);
+  f(&foo);
+  return 0;
+}
+
+// RUN: %phasar-cli --data-flow-analysis=ide-xtaint --module %llvm_test_code/taint_analysis/double_free/df_06_c_dbg.ll --analysis-config %config/double-free-config.json | FileCheck %s -check-prefix=xtaint
+// xtaint: No leaks found!
+
+// RUN: %phasar-cli --data-flow-analysis=ifds-taint --module %llvm_test_code/taint_analysis/double_free/df_06_c_dbg.ll --analysis-config %config/double-free-config.json | FileCheck %s -check-prefix=ifds-taint
+// ifds-taint: /taint_analysis/double_free/df_06.c:12:3:
+
+// RUN: %phasar-cli --data-flow-analysis=ifds-fieldsens-taint --module %llvm_test_code/taint_analysis/double_free/df_06_c_dbg.ll --analysis-config %config/double-free-config.json | FileCheck %s -check-prefix=ifds-fieldsens-taint
+// ifds-fieldsens-taint: /taint_analysis/double_free/df_06.c:12:3:
+
+// RUN: %phasar-cli --data-flow-analysis=monoifds-taint --module %llvm_test_code/taint_analysis/double_free/df_06_c_dbg.ll --analysis-config %config/double-free-config.json | FileCheck %s -check-prefix=monoifds-taint
+// monoifds-taint: /taint_analysis/double_free/df_06.c:12:3:
+
+// RUN: %phasar-cli --data-flow-analysis=sparse-ifds-taint --module %llvm_test_code/taint_analysis/double_free/df_06_c_dbg.ll --analysis-config %config/double-free-config.json | FileCheck %s -check-prefix=sparse-ifds-taint
+// sparse-ifds-taint: /taint_analysis/double_free/df_06.c:12:3:
