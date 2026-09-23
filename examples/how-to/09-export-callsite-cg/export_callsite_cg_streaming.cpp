@@ -4,60 +4,17 @@
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/HelperAnalysisConfig.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
-#include "phasar/Pointer/AliasAnalysisType.h"
 
+#include "llvm/ADT/StringRef.h"
 #include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instructions.h"
-#include "llvm/Support/CommandLine.h"
 #include "llvm/Support/WithColor.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include <cstdio>
-#include <memory>
-#include <string>
 #include <system_error>
-#include <vector>
 
-namespace cl = llvm::cl;
-
-static cl::OptionCategory Cat("CallGraphCSV");
-
-static cl::opt<std::string> IRFile(cl::Positional, cl::Required,
-                                   cl::desc("The LLVM IR file to analyze"),
-                                   cl::cat(Cat));
-
-static cl::opt<psr::CallGraphAnalysisType>
-    CGTy("call-graph-analysis", cl::init(psr::CallGraphAnalysisType::VTA),
-         cl::cat(Cat),
-         cl::ValuesClass{
-#define CALL_GRAPH_ANALYSIS_TYPE(NAME, CMDFLAG, DESC)                          \
-  clEnumValN(psr::CallGraphAnalysisType::NAME, CMDFLAG, DESC),
-#include "phasar/ControlFlow/CallGraphAnalysisType.def"
-         });
-
-static cl::opt<psr::AliasAnalysisType> AATy(
-    "alias-analysis", cl::init(psr::AliasAnalysisType::AndersenOTF),
-    cl::cat(Cat),
-    cl::desc("The alias analysis to be used by VTA or OTF call-graph analysis. "
-             "Note that CFLAnders/CFLSteens should only be used with "
-             "call-graph-analysis=otf"),
-    cl::ValuesClass{
-#define ALIAS_ANALYSIS_TYPE(NAME, CMDFLAG, DESC)                               \
-  clEnumValN(psr::AliasAnalysisType::NAME, CMDFLAG, DESC),
-#include "phasar/Pointer/AliasAnalysisType.def"
-    });
-
-static cl::list<std::string> EntryPointsOpt(
-    "entry-points", cl::OneOrMore, cl::cat(Cat),
-    cl::desc("The functions from which the analysis should start. "
-             "For executables, usually 'main'; use '__ALL__' for all "
-             "externally visible functions"));
-
-static cl::opt<std::string>
-    OutFile("o", cl::init("-"), cl::cat(Cat),
-            cl::desc("The CSV output file path. Stdout by default"));
-
+namespace {
 struct ResolvedLoc {
   uint32_t Line{};
   uint32_t Column{};
@@ -72,9 +29,9 @@ struct ResolvedLoc {
   }
 };
 
-static constexpr llvm::StringLiteral NoDebugInfo = "<no-debug-info>";
+constexpr llvm::StringLiteral NoDebugInfo = "<no-debug-info>";
 
-static ResolvedLoc resolveLocation(const llvm::Instruction *I) {
+ResolvedLoc resolveLocation(const llvm::Instruction *I) {
   if (auto Loc = psr::getDebugLocation(I)) {
     return {
         .Line = Loc->Line,
@@ -97,7 +54,7 @@ static ResolvedLoc resolveLocation(const llvm::Instruction *I) {
   return {.FileName = NoDebugInfo, .Approximate = true};
 }
 
-static ResolvedLoc resolveLocation(const llvm::Function *F) {
+ResolvedLoc resolveLocation(const llvm::Function *F) {
   if (const auto *SP = F->getSubprogram()) {
     return {
         .Line = SP->getLine(),
@@ -108,14 +65,24 @@ static ResolvedLoc resolveLocation(const llvm::Function *F) {
   }
   return {.FileName = NoDebugInfo, .Approximate = true};
 }
+} // namespace
 
 int main(int Argc, char **Argv) {
-  cl::HideUnrelatedOptions(Cat);
-  cl::ParseCommandLineOptions(
-      Argc, Argv,
-      "Simple CLI tool to build a PhASAR-based call-graph and print it as CSV. "
-      "Uses on-the-fly printing, so you get results even when aborting the "
-      "process.");
+  if (Argc < 5) {
+    llvm::errs() << "USAGE: " << Argv[0]
+                 << " <bitcode.bc> <entry-point> [cha|rta|vta|otf] <out.csv>\n";
+    return 1;
+  }
+
+  llvm::StringRef IRFile = Argv[1];
+  std::vector<std::string> EntryPoints = {Argv[2]};
+  auto CGTy = psr::toCallGraphAnalysisType(Argv[3]);
+  llvm::StringRef OutFile = Argv[4];
+
+  if (CGTy == psr::CallGraphAnalysisType::Invalid) {
+    llvm::WithColor::error() << "Invalid call-graph type '" << Argv[3] << "'\n";
+    return 1;
+  }
 
   std::error_code EC;
   llvm::raw_fd_ostream OS(OutFile, EC);
@@ -132,11 +99,12 @@ int main(int Argc, char **Argv) {
         "caller_loc_approximate\n";
   OS.flush();
 
+  // Basic phasar pipeline:
   psr::HelperAnalyses HA{
       std::make_unique<psr::LLVMProjectIRDB>(
           psr::LLVMProjectIRDB::loadOrExit(IRFile)),
-      EntryPointsOpt,
-      psr::HelperAnalysisConfig{.PTATy = AATy, .CGTy = CGTy},
+      std::move(EntryPoints),
+      psr::HelperAnalysisConfig{.CGTy = CGTy},
   };
 
   auto &ICF = HA.getICFG();
@@ -144,9 +112,8 @@ int main(int Argc, char **Argv) {
   size_t EdgeCount = 0;
   size_t FnCount = 0;
 
-  // Walk every function PhASAR's call-graph knows about, every call
-  // instruction inside it, and every resolved callee at that specific call
-  // site, writing (and forgetting) each result immediately instead of
+  // Walk every function PhASAR's call-graph knows about, and ask it for all
+  // known callers, writing (and forgetting) each result immediately instead of
   // accumulating all of them.
   for (const llvm::Function *Fun : ICF.getAllVertexFunctions()) {
     auto FunName = Fun->getName();
