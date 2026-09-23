@@ -1,0 +1,151 @@
+#include "phasar/ControlFlow/CallGraphAnalysisType.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/HelperAnalyses.h"
+#include "phasar/PhasarLLVM/HelperAnalysisConfig.h"
+#include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
+
+#include "llvm/ADT/StringRef.h"
+#include "llvm/IR/DebugInfoMetadata.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/Support/WithColor.h"
+#include "llvm/Support/raw_ostream.h"
+
+#include <system_error>
+
+namespace {
+struct ResolvedLoc {
+  uint32_t Line{};
+  uint32_t Column{};
+  llvm::StringRef FileName{};
+  bool Approximate{}; // true = fell back to enclosing function's declaration
+                      // site, not the real call site
+
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const ResolvedLoc &Loc) {
+    OS.write_escaped(Loc.FileName) << ',';
+    return OS << Loc.Line << ',' << Loc.Column;
+  }
+};
+
+constexpr llvm::StringLiteral NoDebugInfo = "<no-debug-info>";
+
+ResolvedLoc resolveLocation(const llvm::Instruction *I) {
+  if (auto Loc = psr::getDebugLocation(I)) {
+    return {
+        .Line = Loc->Line,
+        .Column = Loc->Column,
+        .FileName = Loc->File->getFilename(),
+        .Approximate = false,
+    };
+  }
+
+  // No direct location on this instruction -- fall back to the
+  // enclosing function's declared file
+  if (const auto *SP = I->getFunction()->getSubprogram()) {
+    return {
+        .Line = SP->getLine(),
+        .Column = 0,
+        .FileName = SP->getFile()->getFilename(),
+        .Approximate = true,
+    };
+  }
+  return {.FileName = NoDebugInfo, .Approximate = true};
+}
+
+ResolvedLoc resolveLocation(const llvm::Function *F) {
+  if (const auto *SP = F->getSubprogram()) {
+    return {
+        .Line = SP->getLine(),
+        .Column = 0,
+        .FileName = SP->getFile()->getFilename(),
+        .Approximate = false,
+    };
+  }
+  return {.FileName = NoDebugInfo, .Approximate = true};
+}
+} // namespace
+
+int main(int Argc, char **Argv) {
+  if (Argc < 5) {
+    llvm::errs() << "USAGE: " << Argv[0]
+                 << " <bitcode.bc> <entry-point> [cha|rta|vta|otf] <out.csv>\n";
+    return 1;
+  }
+
+  llvm::StringRef IRFile = Argv[1];
+  std::vector<std::string> EntryPoints = {Argv[2]};
+  auto CGTy = psr::toCallGraphAnalysisType(Argv[3]);
+  llvm::StringRef OutFile = Argv[4];
+
+  if (CGTy == psr::CallGraphAnalysisType::Invalid) {
+    llvm::WithColor::error() << "Invalid call-graph type '" << Argv[3] << "'\n";
+    return 1;
+  }
+
+  std::error_code EC;
+  llvm::raw_fd_ostream OS(OutFile, EC);
+  if (EC) {
+    llvm::WithColor::error()
+        << "While opening output file '" << OutFile << "':\n";
+    llvm::WithColor::error() << EC.message() << '\n';
+    return 1;
+  }
+
+  // CSV header:
+  OS << "caller_function,caller_file,caller_line,caller_column,"
+        "callee_function,callee_file,callee_line,callee_column,"
+        "caller_loc_approximate\n";
+  OS.flush();
+
+  // Basic phasar pipeline:
+  psr::HelperAnalyses HA{
+      std::make_unique<psr::LLVMProjectIRDB>(
+          psr::LLVMProjectIRDB::loadOrExit(IRFile)),
+      std::move(EntryPoints),
+      psr::HelperAnalysisConfig{.CGTy = CGTy},
+  };
+
+  auto &ICF = HA.getICFG();
+
+  size_t EdgeCount = 0;
+  size_t FnCount = 0;
+
+  // Walk every function PhASAR's call-graph knows about, and ask it for all
+  // known callers, writing (and forgetting) each result immediately instead of
+  // accumulating all of them.
+  for (const llvm::Function *Fun : ICF.getAllVertexFunctions()) {
+    auto FunName = Fun->getName();
+    ++FnCount;
+
+    ResolvedLoc CalleeLoc = resolveLocation(Fun);
+    for (const auto *CS : ICF.getCallersOf(Fun)) {
+      ResolvedLoc CallerLoc = resolveLocation(CS);
+
+      OS.write_escaped(CS->getFunction()->getName()) << ',' << CallerLoc << ',';
+      OS.write_escaped(FunName) << ',' << CalleeLoc << ',';
+      OS << (CallerLoc.Approximate ? "true" : "false") << '\n';
+
+      ++EdgeCount;
+      if (EdgeCount % 50000 == 0) {
+        OS.flush(); // periodic flush -- makes progress visible on
+                    // disk instead of buffered invisibly
+        llvm::WithColor::note()
+            << "[export_callsite_cg_streaming] " << EdgeCount
+            << " edges written, " << FnCount << '/'
+            << ICF.getNumVertexFunctions() << " functions processed so far\n";
+      }
+    }
+  }
+
+  OS.close();
+
+  llvm::WithColor::note() << "[export_callsite_cg_streaming] DONE: "
+                          << EdgeCount << " total edges across " << FnCount
+                          << " functions -> "
+                          << (OutFile == "-" ? llvm::StringRef("stdout")
+                                             : OutFile)
+                          << "\n";
+  return 0;
+}
