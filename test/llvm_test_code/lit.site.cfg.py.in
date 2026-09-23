@@ -5,6 +5,8 @@ config.phasar_obj_root = "@CMAKE_CURRENT_BINARY_DIR@"
 config.phasar_cli_dir = "@PHASAR_BINARY_DIR@/tools/phasar-cli/"
 config.phasar_ll_dir = "@PHASAR_BINARY_DIR@/test/llvm_test_code/"
 config.phasar_filecheck_dir = "@PSR_FILECHECK_DIR@"
+config.clang = "@PSR_CLANG_REALPATH@"
+config.clangpp = "@PSR_CLANGPP_REALPATH@"
 
 lit.llvm.initialize(lit_config, config)
 

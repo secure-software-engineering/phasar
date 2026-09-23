@@ -32,6 +32,12 @@ if (PHASAR_ENABLE_INTEGRATIONTESTS)
   get_filename_component(PSR_FILECHECK_REALPATH ${PSR_FILECHECK} REALPATH)
   get_filename_component(PSR_FILECHECK_DIR ${PSR_FILECHECK_REALPATH} DIRECTORY)
 
+  if(NOT clang OR NOT clangcpp)
+    message(FATAL_ERROR "Require clang and clang++")
+  endif()
+  get_filename_component(PSR_CLANG_REALPATH ${clang} REALPATH)
+  get_filename_component(PSR_CLANGPP_REALPATH ${clangcpp} REALPATH)
+
   configure_lit_site_cfg(
     ${CMAKE_CURRENT_SOURCE_DIR}/lit.site.cfg.py.in
     ${CMAKE_CURRENT_BINARY_DIR}/lit.site.cfg.py
