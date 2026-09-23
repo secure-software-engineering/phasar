@@ -336,7 +336,7 @@ requires std::is_invocable_r_v&lt;<a class="el" href="classbool.html">bool</a>, 
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>An IDE-based taint analysis that uses k-limited field-access paths to achieve field sensitivity. </p>
 
-<p class="definition">Definition at line <a class="el" href="IDEExtendedTaintAnalysis_8h_source.html#l00052">52</a> of file <a class="el" href="IDEExtendedTaintAnalysis_8h_source.html">IDEExtendedTaintAnalysis.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDEExtendedTaintAnalysis_8h_source.html#l00058">58</a> of file <a class="el" href="IDEExtendedTaintAnalysis_8h_source.html">IDEExtendedTaintAnalysis.h</a>.</p>
 </div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="aa0de16d0e700570ad305945ecb011b42" name="aa0de16d0e700570ad305945ecb011b42"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa0de16d0e700570ad305945ecb011b42">&#9670;&#160;</a></span>config_callback_t</h2>
@@ -350,7 +350,7 @@ requires std::is_invocable_r_v&lt;<a class="el" href="classbool.html">bool</a>, 
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IDEExtendedTaintAnalysis_8h_source.html#l00066">66</a> of file <a class="el" href="IDEExtendedTaintAnalysis_8h_source.html">IDEExtendedTaintAnalysis.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDEExtendedTaintAnalysis_8h_source.html#l00072">72</a> of file <a class="el" href="IDEExtendedTaintAnalysis_8h_source.html">IDEExtendedTaintAnalysis.h</a>.</p>
 
 </div>
 </div>
@@ -366,7 +366,7 @@ requires std::is_invocable_r_v&lt;<a class="el" href="classbool.html">bool</a>, 
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IDEExtendedTaintAnalysis_8h_source.html#l00064">64</a> of file <a class="el" href="IDEExtendedTaintAnalysis_8h_source.html">IDEExtendedTaintAnalysis.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDEExtendedTaintAnalysis_8h_source.html#l00070">70</a> of file <a class="el" href="IDEExtendedTaintAnalysis_8h_source.html">IDEExtendedTaintAnalysis.h</a>.</p>
 
 </div>
 </div>
@@ -445,7 +445,7 @@ template&lt;typename GetDomTree  = DefaultDominatorTreeAnalysis&gt; </div>
 <p>Constructor. If EntryPoints is empty, use the TaintAPI functions as entrypoints. The GetDomTree parameter can be used to inject a custom DominatorTree analysis or the results from a LLVM pass computing dominator trees </p>
 <p>TODO: Once we have better <a class="el" href="classpsr_1_1AliasInfo.html">AliasInfo</a>, do a dynamic_cast over PT and set HasPreciseAliasInfo accordingly</p>
 
-<p class="definition">Definition at line <a class="el" href="IDEExtendedTaintAnalysis_8h_source.html#l00178">178</a> of file <a class="el" href="IDEExtendedTaintAnalysis_8h_source.html">IDEExtendedTaintAnalysis.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDEExtendedTaintAnalysis_8h_source.html#l00184">184</a> of file <a class="el" href="IDEExtendedTaintAnalysis_8h_source.html">IDEExtendedTaintAnalysis.h</a>.</p>
 
 </div>
 </div>
@@ -503,7 +503,7 @@ template&lt;typename GetDomTree  = DefaultDominatorTreeAnalysis&gt; </div>
 <p>Return a map from llvm::Instruction to sets of leaks (llvm::Values) that may or may not be sanitized.</p>
 <p>This function does NOT involve a post-processing step. </p>
 
-<p class="definition">Definition at line <a class="el" href="IDEExtendedTaintAnalysis_8h_source.html#l00268">268</a> of file <a class="el" href="IDEExtendedTaintAnalysis_8h_source.html">IDEExtendedTaintAnalysis.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDEExtendedTaintAnalysis_8h_source.html#l00274">274</a> of file <a class="el" href="IDEExtendedTaintAnalysis_8h_source.html">IDEExtendedTaintAnalysis.h</a>.</p>
 
 </div>
 </div>
@@ -570,7 +570,7 @@ template&lt;typename GetDomTree  = DefaultDominatorTreeAnalysis&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IDEExtendedTaintAnalysis_8h_source.html#l00251">251</a> of file <a class="el" href="IDEExtendedTaintAnalysis_8h_source.html">IDEExtendedTaintAnalysis.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDEExtendedTaintAnalysis_8h_source.html#l00257">257</a> of file <a class="el" href="IDEExtendedTaintAnalysis_8h_source.html">IDEExtendedTaintAnalysis.h</a>.</p>
 
 </div>
 </div>
@@ -745,7 +745,7 @@ template&lt;typename GetDomTree  = DefaultDominatorTreeAnalysis&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IDEExtendedTaintAnalysis_8h_source.html#l00247">247</a> of file <a class="el" href="IDEExtendedTaintAnalysis_8h_source.html">IDEExtendedTaintAnalysis.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDEExtendedTaintAnalysis_8h_source.html#l00253">253</a> of file <a class="el" href="IDEExtendedTaintAnalysis_8h_source.html">IDEExtendedTaintAnalysis.h</a>.</p>
 
 </div>
 </div>
@@ -840,7 +840,7 @@ template&lt;typename GetDomTree  = DefaultDominatorTreeAnalysis&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IDEExtendedTaintAnalysis_8h_source.html#l00270">270</a> of file <a class="el" href="IDEExtendedTaintAnalysis_8h_source.html">IDEExtendedTaintAnalysis.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDEExtendedTaintAnalysis_8h_source.html#l00276">276</a> of file <a class="el" href="IDEExtendedTaintAnalysis_8h_source.html">IDEExtendedTaintAnalysis.h</a>.</p>
 
 <p class="reference">References <a class="el" href="XTaintAnalysisBase_8h_source.html#l00032">psr::XTaint::AnalysisBase::FactFactory</a>.</p>
 
@@ -1055,7 +1055,7 @@ template&lt;typename GetDomTree  = DefaultDominatorTreeAnalysis&gt; </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Sep 8 2026 16:28:16 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Wed Sep 23 2026 10:42:44 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
