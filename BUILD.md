@@ -4,7 +4,7 @@
 It is recommended to compile PhASAR yourself in order to get the full C++ experience and to have full control over the build mode.
 However, you may also want to try out one of the pre-built versions of PhASAR or the Docker container.
 
-As a shortcut for the very first PhASAR build on your system, you can use our [bootstrap](./bootstrap.sh) script.<br>
+As a shortcut for the very first PhASAR build on your system, you can use our [bootstrap](./bootstrap.sh) script. It installs required dependencies and builds the libraries.<br>
 **For subsequent builds**, see [Compiling PhASAR](#compiling-phasar-if-not-already-done-using-the-bootstrap-script).
 
 Please note that you must have python installed for the script to work properly.
@@ -21,6 +21,18 @@ Note: If you want to do changes within PhASAR, it is recommended to build it in 
 
 The bootstrap script may ask for superuser permissions (to install the dependencies); however it is not recommended to start the whole script with `sudo`.
 
+### Requirements
+
+PhASAR requires the following system dependencies:
+- LLVM >=16
+  - We have tested PhASAR only with LLVM versions built with RTTI (runtime-type-info) enabled. Usually, this is no problem as the `llvm-dev` apt package ships with RTTI by default, but may be relevant if you wish to build LLVM from source.
+- C++20 compatible compiler, *we recommend clang >=20*
+- cmake >=3.23
+- some build system, *we recommend ninja*
+- depending on your LLVM configuration, you may need `zlib1g-dev`, `libzstd-dev`
+- *optional*: SVF >= 3.1, if you want to use SVF's points-to analyses from within PhASAR (`-DPHASAR_USE_SVF=ON` in cmake)
+
+If you are on a Debian-based system, you may use `./utils/InstallAptDependencies.sh` to install all required dependencies. If using the `bootstrap.sh` script, it does that for you.
 
 ### Compiling PhASAR (if not already done using the bootstrap script)
 

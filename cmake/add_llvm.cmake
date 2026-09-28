@@ -48,7 +48,7 @@ macro(add_llvm)
   endif(NOT PHASAR_IN_TREE)
 
   if(NOT LLVM_ENABLE_RTTI AND NOT PHASAR_IN_TREE)
-    message(FATAL_ERROR "PhASAR requires a LLVM version that is built with RTTI")
+    message(WARNING "PhASAR has been tested only with LLVM versions built with RTTI. You are trying to link an LLVM version *without* RTTI. Do at your own risk.")
   endif()
 
 endmacro()
