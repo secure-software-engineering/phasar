@@ -113,6 +113,22 @@ You can use these parameters either directly or modify the installer-script `boo
 
 C++'s long compile times are always a pain. As shown in the above, when using cmake the compilation can easily be run in parallel, resulting in shorter compilation times. Make use of it!
 
+### Using PhASAR with Conan v2
+
+To export the recipe and dependencies, execute from the repo root:
+
+- `conan export utils/conan/llvm-core/ --version 15.0.7 --user secure-software-engineering`
+- `conan export utils/conan/clang/ --version 15.0.7 --user secure-software-engineering`
+- `conan export .`
+- View exported: `conan list "phasar/*"`
+- [Consume the package](https://docs.conan.io/2/tutorial/consuming_packages.html)
+
+If you just want to use phasar-cli:
+
+- `conan install --tool-requires phasar/... --build=missing -of .`
+- `source conanbuild.sh`
+- `phasar-cli --help`
+
 ### Running a Test Solver
 
 To test if everything works as expected please run the following command (from the `build/` folder):

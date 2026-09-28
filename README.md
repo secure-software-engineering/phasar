@@ -121,22 +121,6 @@ For more information please consult our [PhASAR wiki pages](https://github.com/s
 
 If you have PhASAR *installed*, [Use-PhASAR-as-a-library](https://github.com/secure-software-engineering/phasar/wiki/Using-Phasar-as-a-Library) may be a good start.
 
-### Using PhASAR with Conan v2
-
-To export the recipe and dependencies, execute from the repo root:
-
-- `conan export utils/conan/llvm-core/ --version 15.0.7 --user secure-software-engineering`
-- `conan export utils/conan/clang/ --version 15.0.7 --user secure-software-engineering`
-- `conan export .`
-- View exported: `conan list "phasar/*"`
-- [Consume the package](https://docs.conan.io/2/tutorial/consuming_packages.html)
-
-If you just want to use phasar-cli:
-
-- `conan install --tool-requires phasar/... --build=missing -of .`
-- `source conanbuild.sh`
-- `phasar-cli --help`
-
 ## Contributing
 
 You are very welcome to contribute to the PhASAR project.
