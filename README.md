@@ -54,6 +54,9 @@ PhASAR supports LLVM versions **between LLVM-16 and LLVM-22.1**, using LLVM-16 b
 We actively test PhASAR with LLVM-16 and LLVM-22.1, so if something does not work, try these versions instead.
 Specify the `PHASAR_LLVM_VERSION` cmake variable to change the LLVM version to use.
 
+> [!NOTE]
+> Since v18, LLVM uses minor versions, so use `-DPHASAR_LLVM_VERSION=17` for LLVM-17 but `-DPHASAR_LLVM_VERSION=22.1` for LLVM-22
+
 ## Breaking Changes
 
 To keep PhASAR in a state that is well suited for state-of-the-art research in static analysis, as well as for productive use, we have to make breaking changes. Please refer to [Breaking Changes](./BreakingChanges.md) for detailed information on what was broken recently and how to migrate.

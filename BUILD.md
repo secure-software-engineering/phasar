@@ -92,18 +92,20 @@ When using CMake to compile PhASAR the following optional parameters can be used
 | **BUILD_SHARED_LIBS** : BOOL | Build shared libraries -- Not recommended anymore. You may want to use PHASAR_BUILD_DYNLIB instead (default is OFF) |
 | **PHASAR_BUILD_DYNLIB** : BOOL | Build one fat shared library (default is OFF) |
 | **CMAKE_BUILD_TYPE** : STRING | Build PhASAR in 'Debug', 'RelWithDebInfo' or 'Release' mode (default is 'Debug') |
-| **CMAKE_INSTALL_PREFIX** : PATH | Path where PhASAR will be installed if "ninja install” is invoked or the “install” target is built (default is /usr/local/phasar) |
+| **CMAKE_INSTALL_PREFIX** : PATH | Path where PhASAR will be installed if "ninja install” is invoked or the “install” target is built (default is /usr/local/phasar or whatever is your system's default install location) |
 | **PHASAR_CUSTOM_CONFIG_INSTALL_DIR** : PATH | If set, customizes the directory, where configuration files for PhASAR are installed (default is /usr/local/.phasar-config)|
-| **PHASAR_ENABLE_DYNAMIC_LOG** : BOOL|Makes it possible to switch the logger on and off at runtime (default is ON)|
-| **PHASAR_BUILD_DOC** : BOOL | Build PhASAR documentation (default is OFF) |
-| **PHASAR_BUILD_UNITTESTS** : BOOL | Build PhASAR unit tests (default is ON) |
+| **PHASAR_ENABLE_DYNAMIC_LOG** : BOOL|Makes it possible to switch the logger on and off at runtime, otherwise all log-statements are compiled-out (default is ON)|
+| **PHASAR_BUILD_DOC** : BOOL | Build PhASAR's Doxygen documentation (default is OFF) |
 | **PHASAR_BUILD_IR** : BOOL | Build PhASAR IR (required for running the unit tests) (default is ON) |
+| **PHASAR_BUILD_UNITTESTS** : BOOL | Build PhASAR unit tests. Requires `PHASAR_BUILD_IR` (default is ON) |
+| **PHASAR_ENABLE_INTEGRATIONTESTS** : BOOL | Build PhASAR LIT integration tests. Requires `PHASAR_BUILD_IR` (default is ON) |
 | **PHASAR_BUILD_OPENSSL_TS_UNITTESTS** : BOOL | Build PhASAR unit tests that require OpenSSL (default is OFF) |
 | **PHASAR_ENABLE_PAMM** : STRING | Enable the performance measurement mechanism ('Off', 'Core' or 'Full', default is Off) |
 | **PHASAR_ENABLE_PIC** : BOOL | Build Position-Independed Code (default is ON) |
 | **PHASAR_ENABLE_WARNINGS** : BOOL | Enable compiler warnings (default is ON) |
 | **CMAKE_CXX_STANDARD** : INT|Adapt the used C++ standard (minimum required is 20)|
 | **PHASAR_LLVM_VERSION** : VERSION|The LLVM major-version to use. Can be between 16 and 22.1 (default is 16)|
+| **PHASAR_USE_SVF** : BOOL| Enable using SVF points-to info from PhASAR. See [Use PhASAR with SVF](https://github.com/secure-software-engineering/phasar/wiki/FAQ#how-to-use-phasar-with-svf). Requires SVF installed (default OFF) |
 
 You can use these parameters either directly or modify the installer-script `bootstrap.sh`
 
