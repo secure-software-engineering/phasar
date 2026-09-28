@@ -13,6 +13,7 @@
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Pointer/AliasResult.h"
 #include "phasar/Pointer/RawAAResult.h"
+#include "phasar/Utils/MapUtils.h"
 #include "phasar/Utils/NonNullPtr.h"
 
 #include "llvm/IR/Instructions.h"

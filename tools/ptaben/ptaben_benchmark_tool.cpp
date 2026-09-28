@@ -90,6 +90,7 @@ ufaaTypeFromSupported(SupportedAnalysisTypes AT) {
   case SupportedAnalysisTypes::UFAABotCtxInd:
     return psr::UnionFindAliasAnalysisType::BotCtxIndSens;
   }
+  llvm_unreachable("All analysis types handled in the switch above"); // for gcc
 }
 
 static psr::AliasResult
