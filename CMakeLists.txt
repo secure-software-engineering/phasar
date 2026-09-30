@@ -272,6 +272,9 @@ include(add_nlohmann_json)
 add_nlohmann_json()
 add_json_schema_validator()
 
+# TBB
+find_package(TBB) # needed by GCC
+
 # Coverage
 if (CODE_COVERAGE)
   set(CODE_COVERAGE_SCRIPT "${CMAKE_CURRENT_BINARY_DIR}/code-coverage.cmake")
@@ -426,6 +429,9 @@ target_sources(phasar_interface INTERFACE
   BASE_DIRS "${PHASAR_SRC_DIR}/include" "${PHASAR_BINARY_DIR}/include"
   FILES ${PHASAR_PUBLIC_HEADERS} "${PHASAR_BINARY_DIR}/include/phasar/Config/phasar-config.h"
 )
+if (TARGET TBB::tbb)
+  target_link_libraries(phasar_interface INTERFACE TBB::tbb) # needed by GCC
+endif()
 
 # Some preprocessor symbols that need to be available in phasar sources, but should not be installed
 add_cxx_compile_definitions(PHASAR_SRC_DIR="${CMAKE_SOURCE_DIR}")

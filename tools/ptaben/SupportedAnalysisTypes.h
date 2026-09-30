@@ -10,6 +10,7 @@
  *****************************************************************************/
 
 #include "llvm/ADT/StringRef.h"
+#include "llvm/Support/ErrorHandling.h"
 
 #include <cstddef>
 
@@ -37,6 +38,7 @@ constexpr llvm::StringRef to_string(SupportedAnalysisTypes AT) noexcept {
     return #NAME "Result";
 #include "SupportedAnalysisTypes.def"
   }
+  llvm_unreachable("All analysis types handled in the switch above"); // for gcc
 }
 
 } // namespace psr::ptaben

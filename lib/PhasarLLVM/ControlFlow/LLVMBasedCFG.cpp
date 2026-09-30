@@ -111,6 +111,7 @@ auto detail::LLVMBasedCFGImpl<Derived>::getSuccsOfImpl(n_t I) const
       [IgnoreDbgInstructions{IgnoreDbgInstructions}](
           const llvm::BasicBlock *BB) {
         const llvm::Instruction *Succ = &BB->front();
+        (void)IgnoreDbgInstructions;
 #if LLVM_VERSION_MAJOR <= 18
         if (IgnoreDbgInstructions && llvm::isa<llvm::DbgInfoIntrinsic>(Succ)) {
           Succ = Succ->getNextNonDebugInstruction(
