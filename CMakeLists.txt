@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.23...3.28) # 3.23+ needed by FILE_SET (https://cmake.org/cmake/help/latest/command/target_sources.html#file-sets)
+cmake_minimum_required (VERSION 3.23...4.2) # 3.23+ needed by FILE_SET (https://cmake.org/cmake/help/latest/command/target_sources.html#file-sets)
 
 # Avoid IPO/LTO Warnings:
 cmake_policy(SET CMP0069 NEW)
