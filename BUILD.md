@@ -4,7 +4,7 @@
 It is recommended to compile PhASAR yourself in order to get the full C++ experience and to have full control over the build mode.
 However, you may also want to try out one of the pre-built versions of PhASAR or the Docker container.
 
-As a shortcut for the very first PhASAR build on your system, you can use our [bootstrap](./bootstrap.sh) script.<br>
+As a shortcut for the very first PhASAR build on your system, you can use our [bootstrap](./bootstrap.sh) script. It installs required dependencies and builds the libraries.<br>
 **For subsequent builds**, see [Compiling PhASAR](#compiling-phasar-if-not-already-done-using-the-bootstrap-script).
 
 Please note that you must have python installed for the script to work properly.
@@ -21,6 +21,18 @@ Note: If you want to do changes within PhASAR, it is recommended to build it in 
 
 The bootstrap script may ask for superuser permissions (to install the dependencies); however it is not recommended to start the whole script with `sudo`.
 
+### Requirements
+
+PhASAR requires the following system dependencies:
+- LLVM >=16
+  - We have tested PhASAR only with LLVM versions built with RTTI (runtime-type-info) enabled. Usually, this is no problem as the `llvm-dev` apt package ships with RTTI by default, but may be relevant if you wish to build LLVM from source.
+- C++20 compatible compiler, *we recommend clang >=20*
+- cmake >=3.23
+- some build system, *we recommend ninja*
+- depending on your LLVM configuration, you may need `zlib1g-dev`, `libzstd-dev`
+- *optional*: SVF >= 3.1, if you want to use SVF's points-to analyses from within PhASAR (`-DPHASAR_USE_SVF=ON` in cmake)
+
+If you are on a Debian-based system, you may use `./utils/InstallAptDependencies.sh` to install all required dependencies. If using the `bootstrap.sh` script, it does that for you.
 
 ### Compiling PhASAR (if not already done using the bootstrap script)
 
@@ -80,24 +92,42 @@ When using CMake to compile PhASAR the following optional parameters can be used
 | **BUILD_SHARED_LIBS** : BOOL | Build shared libraries -- Not recommended anymore. You may want to use PHASAR_BUILD_DYNLIB instead (default is OFF) |
 | **PHASAR_BUILD_DYNLIB** : BOOL | Build one fat shared library (default is OFF) |
 | **CMAKE_BUILD_TYPE** : STRING | Build PhASAR in 'Debug', 'RelWithDebInfo' or 'Release' mode (default is 'Debug') |
-| **CMAKE_INSTALL_PREFIX** : PATH | Path where PhASAR will be installed if "ninja install” is invoked or the “install” target is built (default is /usr/local/phasar) |
+| **CMAKE_INSTALL_PREFIX** : PATH | Path where PhASAR will be installed if "ninja install” is invoked or the “install” target is built (default is /usr/local/phasar or whatever is your system's default install location) |
 | **PHASAR_CUSTOM_CONFIG_INSTALL_DIR** : PATH | If set, customizes the directory, where configuration files for PhASAR are installed (default is /usr/local/.phasar-config)|
-| **PHASAR_ENABLE_DYNAMIC_LOG** : BOOL|Makes it possible to switch the logger on and off at runtime (default is ON)|
-| **PHASAR_BUILD_DOC** : BOOL | Build PhASAR documentation (default is OFF) |
-| **PHASAR_BUILD_UNITTESTS** : BOOL | Build PhASAR unit tests (default is ON) |
+| **PHASAR_ENABLE_DYNAMIC_LOG** : BOOL|Makes it possible to switch the logger on and off at runtime, otherwise all log-statements are compiled-out (default is ON)|
+| **PHASAR_BUILD_DOC** : BOOL | Build PhASAR's Doxygen documentation (default is OFF) |
 | **PHASAR_BUILD_IR** : BOOL | Build PhASAR IR (required for running the unit tests) (default is ON) |
+| **PHASAR_BUILD_UNITTESTS** : BOOL | Build PhASAR unit tests. Requires `PHASAR_BUILD_IR` (default is ON) |
+| **PHASAR_ENABLE_INTEGRATIONTESTS** : BOOL | Build PhASAR LIT integration tests. Requires `PHASAR_BUILD_IR` (default is ON) |
 | **PHASAR_BUILD_OPENSSL_TS_UNITTESTS** : BOOL | Build PhASAR unit tests that require OpenSSL (default is OFF) |
 | **PHASAR_ENABLE_PAMM** : STRING | Enable the performance measurement mechanism ('Off', 'Core' or 'Full', default is Off) |
 | **PHASAR_ENABLE_PIC** : BOOL | Build Position-Independed Code (default is ON) |
 | **PHASAR_ENABLE_WARNINGS** : BOOL | Enable compiler warnings (default is ON) |
 | **CMAKE_CXX_STANDARD** : INT|Adapt the used C++ standard (minimum required is 20)|
 | **PHASAR_LLVM_VERSION** : VERSION|The LLVM major-version to use. Can be between 16 and 22.1 (default is 16)|
+| **PHASAR_USE_SVF** : BOOL| Enable using SVF points-to info from PhASAR. See [Use PhASAR with SVF](https://github.com/secure-software-engineering/phasar/wiki/FAQ#how-to-use-phasar-with-svf). Requires SVF installed (default OFF) |
 
 You can use these parameters either directly or modify the installer-script `bootstrap.sh`
 
 #### A Remark on Compile Time
 
 C++'s long compile times are always a pain. As shown in the above, when using cmake the compilation can easily be run in parallel, resulting in shorter compilation times. Make use of it!
+
+### Using PhASAR with Conan v2
+
+To export the recipe and dependencies, execute from the repo root:
+
+- `conan export utils/conan/llvm-core/ --version 15.0.7 --user secure-software-engineering`
+- `conan export utils/conan/clang/ --version 15.0.7 --user secure-software-engineering`
+- `conan export .`
+- View exported: `conan list "phasar/*"`
+- [Consume the package](https://docs.conan.io/2/tutorial/consuming_packages.html)
+
+If you just want to use phasar-cli:
+
+- `conan install --tool-requires phasar/... --build=missing -of .`
+- `source conanbuild.sh`
+- `phasar-cli --help`
 
 ### Running a Test Solver
 
