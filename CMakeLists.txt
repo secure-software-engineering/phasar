@@ -271,7 +271,7 @@ add_nlohmann_json()
 add_json_schema_validator()
 
 # TBB
-find_package(TBB) # needed by GCC
+find_package(TBB QUIET) # needed by GCC
 
 # Coverage
 if (CODE_COVERAGE)
