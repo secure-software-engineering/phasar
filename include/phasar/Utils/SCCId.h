@@ -58,7 +58,17 @@ template <typename GraphNodeId> struct SCCId : detail::SCCIdBase {
   using detail::SCCIdBase::SCCIdBase;
 };
 
+// Overloads with the generic to_underlying from StrongTypeDef.h
+template <typename GraphNodeId>
+[[nodiscard]] constexpr auto
+// NOLINTNEXTLINE(readability-identifier-naming)
+to_underlying(SCCId<GraphNodeId> Scc) noexcept {
+  return Scc.Value;
+}
+
 static_assert(IdType<SCCId<uint32_t>>);
+static_assert(
+    std::same_as<uint32_t, decltype(to_underlying(SCCId<uint32_t>{}))>);
 
 } // namespace psr
 

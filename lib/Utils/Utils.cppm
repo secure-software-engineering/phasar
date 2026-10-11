@@ -11,6 +11,7 @@ module;
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/ChronoUtils.h"
 #include "phasar/Utils/Compressor.h"
+#include "phasar/Utils/CsrGraph.h"
 #include "phasar/Utils/DFAMinimizer.h"
 #include "phasar/Utils/DOTGraph.h"
 #include "phasar/Utils/DebugOutput.h"
@@ -24,6 +25,7 @@ module;
 #include "phasar/Utils/GraphTraits.h"
 #include "phasar/Utils/IO.h"
 #include "phasar/Utils/InitPhasar.h"
+#include "phasar/Utils/IntervalReachability.h"
 #include "phasar/Utils/IotaIterator.h"
 #include "phasar/Utils/JoinLattice.h"
 #include "phasar/Utils/LibCSummary.h"
@@ -100,6 +102,7 @@ using psr::computeSCCOrder;
 using psr::computeSCCs;
 using psr::computeSCCsAndTopologicalOrder;
 using psr::createTimeStamp;
+using psr::CsrGraph;
 using psr::DefaultConstruct;
 using psr::DefaultNodeTransform;
 using psr::DenseSet;
@@ -134,6 +137,9 @@ using psr::IdentityFn;
 using psr::IgnoreArgs;
 using psr::InitPhasar;
 using psr::intersectWith;
+using psr::IntervalReachabilityBuilder;
+using psr::IntervalReachabilityIndex;
+using psr::IntervalSetId;
 using psr::iota;
 using psr::IotaIterator;
 using psr::is_const_graph;
@@ -177,7 +183,10 @@ using psr::Overloaded;
 using psr::PAMM;
 using psr::PAMM_SEVERITY_LEVEL;
 using psr::parseSeverityLevel;
+using psr::PearceSCCData;
 using psr::printGraph;
+using psr::RankInterval;
+using psr::ReachRank;
 using psr::readFile;
 using psr::readFileOrErr;
 using psr::readFileOrNull;
@@ -215,6 +224,7 @@ using psr::UnorderedTable1d;
 using psr::unsetFlag;
 using psr::unwrapNullable;
 using psr::variant_idx;
+using psr::visitSCCsFrom;
 using psr::writeTextFile;
 
 } // namespace psr

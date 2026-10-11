@@ -93,11 +93,6 @@ public:
   [[nodiscard]] bool operator==(std::nullptr_t) const noexcept {
     return FF == nullptr;
   }
-  [[nodiscard]] bool
-  operator!=(GenericFlowFunctionView<D, Container> Other) const noexcept {
-    return !(*this == Other);
-  }
-  [[nodiscard]] bool operator!=(std::nullptr_t) const noexcept { return FF; }
 
 private:
   FlowFunctionPtrType FF;

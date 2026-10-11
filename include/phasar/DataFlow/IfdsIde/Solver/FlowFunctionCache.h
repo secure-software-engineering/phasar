@@ -263,17 +263,25 @@ public:
   decltype(auto) getSummaryFlowFunction(ProblemTy &Problem,
                                         ByConstRef<n_t> CallSite,
                                         ByConstRef<f_t> Callee,
-                                        uint64_t /*CSCalleeId*/) {
+                                        uint64_t CSCalleeId) {
+    // Note: summary-ff can ignore AutoAddZero because it is guaranteed that the
+    // ctr-ff will propagate 0
     if constexpr (needs_cache_v<summary_ff_t>) {
-      return GenericFlowFunction<d_t>(
-          Problem.getSummaryFlowFunction(CallSite, Callee));
+      // Most calls have no summary, i.e., a nullptr flow function. So, cannot
+      // just check for null as empty-marker
+      auto [It, Inserted] = SummaryFFCache.insert(CSCalleeId, summary_ff_t{});
+      if (Inserted) {
+        It->second = Problem.getSummaryFlowFunction(CallSite, Callee);
+      }
+
+      if constexpr (std::is_same_v<summary_ff_t, GenericFlowFunction<d_t>>) {
+        return GenericFlowFunctionView<d_t>(It->second);
+      } else {
+        return GenericFlowFunctionView(getPointerFrom(It->second));
+      }
     } else {
       return Problem.getSummaryFlowFunction(CallSite, Callee);
     }
-
-    /// XXX: The old FECache doesn't cache summary FFs, so refrain from doing
-    /// this here as well. Enable it, once the user-problems reliably return
-    /// std::nullptr_t such that caching can be disabled automatically
   }
 
   void clear() noexcept {
@@ -289,6 +297,7 @@ public:
     detail::IntraFlowFunctionsMixin<normal_ff_t, ctr_ff_t>::reserveIntraFFs(
         NumInsts, NumCalls);
     CallFFCache.reserve(NumCalls);
+    SummaryFFCache.reserve(NumCalls);
     RetFFCache.reserve(NumFuns);
     SimpleRetFFCache.reserve(NumFuns);
   }

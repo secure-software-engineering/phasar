@@ -12,6 +12,7 @@ set(UtilsSources
   OnTheFlyAnalysisPrinterTest.cpp
   SourceMgrPrinterTest.cpp
   SCCGenericTest.cpp
+  IntervalReachabilityTest.cpp
 )
 
 if(PHASAR_ENABLE_DYNAMIC_LOG)

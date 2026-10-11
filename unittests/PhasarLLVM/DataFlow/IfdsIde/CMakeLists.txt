@@ -7,6 +7,7 @@ set(IfdsIdeSources
   InteractiveIDESolverTest.cpp
   SparseIDESolverTest.cpp
   IterativeIDESolverTest.cpp
+  DFISolverTest.cpp
   CFLFieldSensTest.cpp
   WPDSSolverTest.cpp
 )
