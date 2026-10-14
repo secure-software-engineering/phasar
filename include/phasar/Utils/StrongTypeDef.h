@@ -22,6 +22,9 @@
 #define PHASAR_STRONG_TYPEDEF(NAMESPACE, TYPE, NAME, ...)                      \
   namespace NAMESPACE {                                                        \
   enum class PSR_ENUM_EXTENSIBILITY(open) NAME : TYPE { __VA_ARGS__ };         \
+  [[nodiscard]] inline auto hash_value(NAME Id) noexcept {                     \
+    return llvm::hash_value(TYPE(Id));                                         \
+  }                                                                            \
   }                                                                            \
   namespace llvm {                                                             \
   template <> struct DenseMapInfo<NAMESPACE::NAME> {                           \
@@ -36,9 +39,7 @@
                            ? std::numeric_limits<TYPE>::min() + 1              \
                            : std::numeric_limits<TYPE>::max() - 1);            \
     }                                                                          \
-    static auto getHashValue(QUAL_NAME Id) noexcept {                          \
-      return llvm::hash_value(TYPE(Id));                                       \
-    }                                                                          \
+    static auto getHashValue(QUAL_NAME Id) noexcept { return hash_value(Id); } \
     static constexpr bool isEqual(QUAL_NAME Id1, QUAL_NAME Id2) noexcept {     \
       return Id1 == Id2;                                                       \
     }                                                                          \

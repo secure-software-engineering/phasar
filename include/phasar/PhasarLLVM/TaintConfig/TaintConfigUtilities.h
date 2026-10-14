@@ -39,6 +39,9 @@ void forallGeneratedFacts(
     std::invoke(WithGenFact, CB);
   }
 
+  if (!Callee) {
+    return;
+  }
   for (unsigned I = 0, End = Callee->arg_size(); I < End; ++I) {
     if (Config.isSource(Callee->getArg(I))) {
       std::invoke(WithGenFact, CB->getArgOperand(I));
@@ -61,6 +64,9 @@ void collectGeneratedFacts(ContainerTy &Dest, const LLVMTaintConfig &Config,
     Dest.insert(CB);
   }
 
+  if (!Callee) {
+    return;
+  }
   for (unsigned I = 0, End = Callee->arg_size(); I < End; ++I) {
     if (Config.isSource(Callee->getArg(I))) {
       Dest.insert(CB->getArgOperand(I));
@@ -80,6 +86,9 @@ void forallLeakedFacts(const LLVMTaintConfig &Config, const llvm::CallBase *CB,
     llvm::for_each(llvm::make_filter_range(CBLeaks, LeakIf), WithLeakFact);
   }
 
+  if (!Callee) {
+    return;
+  }
   for (unsigned I = 0, End = Callee->arg_size(); I < End; ++I) {
     if (Config.isSink(Callee->getArg(I)) &&
         std::invoke(LeakIf, CB->getArgOperand(I))) {
@@ -101,6 +110,9 @@ void collectLeakedFacts(ContainerTy &Dest, const LLVMTaintConfig &Config,
                  std::inserter(Dest, Dest.end()), LeakIf);
   }
 
+  if (!Callee) {
+    return;
+  }
   for (unsigned I = 0, End = Callee->arg_size(); I < End; ++I) {
     if (Config.isSink(Callee->getArg(I)) && LeakIf(CB->getArgOperand(I))) {
       Dest.insert(CB->getArgOperand(I));
@@ -122,6 +134,9 @@ template <typename ContainerTy>
 void collectSanitizedFacts(ContainerTy &Dest, const LLVMTaintConfig &Config,
                            const llvm::CallBase *CB,
                            const llvm::Function *Callee) {
+  if (!Callee) {
+    return;
+  }
   for (unsigned I = 0, End = Callee->arg_size(); I < End; ++I) {
     if (Config.isSanitizer(Callee->getArg(I))) {
       Dest.insert(CB->getArgOperand(I));

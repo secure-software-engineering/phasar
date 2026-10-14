@@ -203,7 +203,7 @@ public:
 
   /// Move constructor. The allocator is move-constructed from \p Other.
   ValueIdMap(ValueIdMap &&Other) noexcept
-      : Alloc(std::move(Other.Alloc)), IsSet(std::move(Other.IsSet)),
+      : Alloc(std::move(Other.Alloc)), IsSet(std::exchange(Other.IsSet, {})),
         Capacity(std::exchange(Other.Capacity, 0)),
         Slots(std::exchange(Other.Slots, nullptr)) {}
 
@@ -479,6 +479,14 @@ public:
   }
   [[nodiscard]] constexpr const_iterator cend() const noexcept { return end(); }
 
+  [[nodiscard]] constexpr const BitSet<IdT> &keys() const & noexcept {
+    return IsSet;
+  }
+
+  [[nodiscard]] constexpr BitSet<IdT> keys() && noexcept {
+    return std::move(IsSet);
+  }
+
   auto foreach (std::invocable<IdT, ValueT &> auto Handler) {
     return foreachImpl(*this, std::move(Handler));
   }
@@ -527,7 +535,7 @@ private:
 
   /// Takes ownership of Other's storage (Other must have been cleared first).
   void stealFrom(ValueIdMap &Other) noexcept {
-    IsSet = std::move(Other.IsSet);
+    IsSet = std::exchange(Other.IsSet, {});
     Capacity = std::exchange(Other.Capacity, 0);
     Slots = std::exchange(Other.Slots, nullptr);
   }

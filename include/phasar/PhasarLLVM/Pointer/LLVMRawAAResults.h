@@ -26,7 +26,7 @@ namespace psr {
 constexpr std::invocable<ValueId> auto
 llvmRawAliasHandler(const ValueCompressor<PAGVariable> &VC,
                     std::invocable<const llvm::Value *> auto Callback) {
-  return [&VC, Callback{copyOrRef(Callback)}](ValueId Alias) {
+  return [&VC, Callback{std::move(Callback)}](ValueId Alias) {
     for (auto V : VC.id2vars(Alias)) {
       if (const auto *LLVMVar = V.valueOrNull()) [[likely]] {
         std::invoke(Callback, LLVMVar);

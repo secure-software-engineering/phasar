@@ -992,7 +992,7 @@ private:
         for (ByConstRef<d_t> RetFact : RetFacts) {
           auto RetFactId = FactCompressor.getOrInsert(RetFact);
 
-          auto EF = [&]() mutable {
+          auto EF = [&] {
             if constexpr (ComputeValues) {
               auto RetEF = FECache.getReturnEdgeFunction(
                   Problem, CallSite, Callee, ExitInst, SummaryFact, RetSite,

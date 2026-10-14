@@ -22,6 +22,10 @@ namespace psr {
 /// return the same pointer
 [[nodiscard]] bool isSingletonReturningFunction(llvm::StringRef FName) noexcept;
 
+/// Checks whether a function with the given (mangled) name may return the
+/// block its first argument points to, similar to realloc.
+[[nodiscard]] bool isReallocatingFunction(llvm::StringRef FName) noexcept;
+
 } // namespace psr
 
 #endif // PHASAR_UTILS_LIBRARY_SUMMARY_H
