@@ -45,7 +45,6 @@ set(PHASAR_LINK_LIBS
     phasar_llvm_typehierarchy
     phasar_llvm_utils
 
-    phasar_pass
     phasar_passes
     phasar_pointer
     phasar_taintconfig

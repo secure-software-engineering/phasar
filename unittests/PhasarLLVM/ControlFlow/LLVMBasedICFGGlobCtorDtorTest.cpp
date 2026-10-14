@@ -22,6 +22,8 @@
 
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/DenseSet.h"
+#include "llvm/ADT/STLExtras.h"
+#include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringMap.h"
 #include "llvm/ADT/TinyPtrVector.h"
 #include "llvm/IR/Dominators.h"
@@ -102,6 +104,45 @@ protected:
       }
     }
     return nullptr;
+  }
+
+  static const llvm::StoreInst *findStoreTo(const llvm::Function *F,
+                                            const llvm::Value *Pointer) {
+    for (const auto &Inst : llvm::instructions(F)) {
+      const auto *Store = llvm::dyn_cast<llvm::StoreInst>(&Inst);
+      if (Store && Store->getPointerOperand()->stripPointerCasts() == Pointer) {
+        return Store;
+      }
+    }
+    return nullptr;
+  }
+
+  static const llvm::CallBase *findCallTo(const llvm::Function *F,
+                                          llvm::StringRef CalleeName) {
+    for (const auto &Inst : llvm::instructions(F)) {
+      const auto *Call = llvm::dyn_cast<llvm::CallBase>(&Inst);
+      if (Call && Call->getCalledFunction() &&
+          Call->getCalledFunction()->getName() == CalleeName) {
+        return Call;
+      }
+    }
+    return nullptr;
+  }
+
+  static llvm::SmallVector<llvm::StringRef>
+  getCalleeNames(const llvm::Function *F) {
+    llvm::SmallVector<llvm::StringRef> Ret;
+    for (const auto &Inst : llvm::instructions(F)) {
+      const auto *Call = llvm::dyn_cast<llvm::CallBase>(&Inst);
+      if (Call && Call->getCalledFunction()) {
+        Ret.push_back(Call->getCalledFunction()->getName());
+      }
+    }
+    return Ret;
+  }
+
+  static llvm::Function *buildLibModel(LLVMProjectIRDB &IRDB) {
+    return GlobalCtorsDtorsModel::buildModel(IRDB, {"__ALL__"});
   }
 };
 
@@ -425,6 +466,108 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest5) {
   // However, it correctly considers foo=42 inside __PHASAR_DTOR_CALLER.
 
   // EXPECT_EQ(43, Solver.resultAt(BeforeDtorPrintF, Foo));
+}
+
+TEST_F(LLVMBasedICFGGlobCtorDtorTest, LibCtorTest1) {
+
+  LLVMProjectIRDB IRDB(PathToLLFiles + "globals_lib_ctor_1_cpp.ll");
+  DIBasedTypeHierarchy TH(IRDB);
+  LLVMAliasSet PT(&IRDB);
+  LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"__ALL__"}, &TH, &PT,
+                     Soundness::Soundy, /*IncludeGlobals*/ true);
+
+  auto *GlobModel = IRDB.getFunction(LLVMBasedICFG::GlobalCRuntimeModelName);
+  ASSERT_NE(nullptr, GlobModel);
+
+  // The library has no main, so the dtors run after the selected entry point
+  ensureFunctionOrdering(
+      GlobModel, ICFG,
+      {{"_GLOBAL__sub_I_globals_lib_ctor_1.cpp", "_Z6getValv"},
+       {"_Z6getValv", GlobalCtorsDtorsModel::DtorsCallerName.str() +
+                          ".globals_lib_ctor_1_cpp.ll"}});
+}
+
+TEST_F(LLVMBasedICFGGlobCtorDtorTest, LibArgsTest1) {
+
+  LLVMProjectIRDB IRDB(PathToLLFiles + "globals_lib_args_1_cpp.ll");
+  auto *GlobModel = buildLibModel(IRDB);
+  ASSERT_NE(nullptr, GlobModel);
+
+  const auto *Call = findCallTo(GlobModel, "_Z7processPKcm");
+  ASSERT_NE(nullptr, Call);
+  ASSERT_EQ(2U, Call->arg_size());
+
+  for (const auto &Arg : Call->args()) {
+    const auto *Producer = llvm::dyn_cast<llvm::CallBase>(Arg.get());
+    ASSERT_NE(nullptr, Producer)
+        << "Argument is not produced by a call: " << llvmIRToString(Arg.get());
+    const auto *ProducerFn = Producer->getCalledFunction();
+    ASSERT_NE(nullptr, ProducerFn);
+
+    EXPECT_TRUE(ProducerFn->getName().starts_with(
+        GlobalCtorsDtorsModel::NonDetValuePrefix))
+        << "Unexpected argument producer: " << ProducerFn->getName().str();
+    // The unknown value must stay unknown, so the producer has no body
+    EXPECT_TRUE(ProducerFn->isDeclaration());
+  }
+
+  EXPECT_NE(Call->getArgOperand(0), Call->getArgOperand(1));
+}
+
+TEST_F(LLVMBasedICFGGlobCtorDtorTest, LibByValTest1) {
+
+  LLVMProjectIRDB IRDB(PathToLLFiles + "globals_lib_byval_1_cpp.ll");
+  auto *GlobModel = buildLibModel(IRDB);
+  ASSERT_NE(nullptr, GlobModel);
+
+  const auto *Call = findCallTo(GlobModel, "_Z7consume7Payload");
+  ASSERT_NE(nullptr, Call);
+  ASSERT_EQ(1U, Call->arg_size());
+  ASSERT_NE(nullptr, Call->getCalledFunction()->getParamByValType(0))
+      << "Test premise: the payload is expected to be passed indirectly";
+
+  // A byval parameter is a copy owned by the caller, so it gets a real buffer
+  const auto *Buffer = llvm::dyn_cast<llvm::AllocaInst>(Call->getArgOperand(0));
+  ASSERT_NE(nullptr, Buffer);
+  EXPECT_NE(nullptr, findStoreTo(GlobModel, Buffer))
+      << "The buffer of a byval parameter must be initialized";
+}
+
+TEST_F(LLVMBasedICFGGlobCtorDtorTest, LibAllTest1) {
+
+  LLVMProjectIRDB IRDB(PathToLLFiles + "globals_lib_all_1_cpp.ll");
+  auto *GlobModel = buildLibModel(IRDB);
+  ASSERT_NE(nullptr, GlobModel);
+
+  auto CalleeNames = getCalleeNames(GlobModel);
+
+  EXPECT_EQ(1, llvm::count(CalleeNames, "_Z6apiOnev"));
+  EXPECT_EQ(1, llvm::count(CalleeNames, "_Z6apiTwov"));
+
+  // A global ctor is called by the model itself and must not additionally be
+  // treated as a user entry point
+  EXPECT_EQ(1,
+            llvm::count(CalleeNames, "_GLOBAL__sub_I_globals_lib_all_1.cpp"));
+
+  EXPECT_EQ(0, llvm::count_if(CalleeNames,
+                              [](llvm::StringRef Name) {
+                                return Name.contains("helper");
+                              }))
+      << "Functions with internal linkage are not entry points";
+}
+
+TEST_F(LLVMBasedICFGGlobCtorDtorTest, LibExitTest1) {
+
+  LLVMProjectIRDB IRDB(PathToLLFiles + "globals_lib_exit_1_cpp.ll");
+  ASSERT_NE(nullptr, buildLibModel(IRDB));
+
+  const auto *ExitFn = IRDB.getFunctionDefinition("exit");
+  ASSERT_NE(nullptr, ExitFn)
+      << "exit() should have been given a body that runs the global dtors";
+
+  EXPECT_NE(nullptr,
+            findCallTo(ExitFn, GlobalCtorsDtorsModel::DtorsCallerName.str() +
+                                   ".globals_lib_exit_1_cpp.ll"));
 }
 
 int main(int Argc, char **Argv) {

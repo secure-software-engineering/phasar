@@ -50,7 +50,7 @@ safe_cd "${build_dir}"/llvm-project/
 git checkout "${llvm_release}"
 mkdir -p build
 safe_cd build
-cmake -G "Ninja" -DLLVM_ENABLE_RUNTIMES='libcxx;libcxxabi;libunwind' -DLLVM_ENABLE_PROJECTS='clang;clang-tools-extra;lld;compiler-rt' -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_EH=ON -DLLVM_ENABLE_RTTI=ON -DLLVM_LINK_LLVM_DYLIB=ON -DLLVM_ENABLE_DUMP=ON -DLLVM_BUILD_EXAMPLES=OFF -DLLVM_INCLUDE_EXAMPLES=OFF -DLLVM_BUILD_TESTS=OFF -DLLVM_INCLUDE_TESTS=OFF ../llvm
+cmake -G "Ninja" -DLLVM_ENABLE_RUNTIMES='libcxx;libcxxabi;libunwind' -DLLVM_ENABLE_PROJECTS='clang;clang-tools-extra;lld;compiler-rt' -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_EH=ON -DLLVM_ENABLE_RTTI=ON -DLLVM_LINK_LLVM_DYLIB=ON -DLLVM_ENABLE_DUMP=ON -DLLVM_BUILD_EXAMPLES=OFF -DLLVM_INCLUDE_EXAMPLES=OFF -DLLVM_BUILD_TESTS=OFF -DLLVM_INCLUDE_TESTS=OFF -DLLVM_INSTALL_UTILS=ON ../llvm
 cmake --build .
 
 echo "Installing LLVM to ${dest_dir}"

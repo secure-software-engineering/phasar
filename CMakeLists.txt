@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.14...3.28)
+cmake_minimum_required (VERSION 3.23...4.2) # 3.23+ needed by FILE_SET (https://cmake.org/cmake/help/latest/command/target_sources.html#file-sets)
 
 # Avoid IPO/LTO Warnings:
 cmake_policy(SET CMP0069 NEW)
@@ -8,11 +8,9 @@ set(CMAKE_POLICY_DEFAULT_CMP0069 NEW)
 cmake_policy(SET CMP0077 NEW)
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
-if ("${CMAKE_VERSION}" GREATER_EQUAL "3.21")
-  # Allow overwriting cache variables of external projects from this CMakeLists file
-  cmake_policy(SET CMP0126 NEW)
-  set(CMAKE_POLICY_DEFAULT_CMP0126 NEW)
-endif()
+# Allow overwriting cache variables of external projects from this CMakeLists file
+cmake_policy(SET CMP0126 NEW)
+set(CMAKE_POLICY_DEFAULT_CMP0126 NEW)
 
 # Allow portable use of CMAKE_VISIBILITY_INLINES_HIDDEN not only for shared libraries
 cmake_policy(SET CMP0063 NEW)
@@ -161,6 +159,7 @@ if(PHASAR_ALLOW_LTO_IN_RELEASE_BUILD)
 endif()
 
 option(PHASAR_BUILD_UNITTESTS "Build all tests (default is ON)" ${PHASAR_BUILD_OPTIONAL_TARGETS_DEFAULT})
+option(PHASAR_ENABLE_INTEGRATIONTESTS "Enable LIT integration tests (default is ON)" ${PHASAR_BUILD_OPTIONAL_TARGETS_DEFAULT})
 
 option(PHASAR_BUILD_OPENSSL_TS_UNITTESTS "Build OPENSSL typestate tests (require OpenSSL, default is OFF)" OFF)
 
@@ -270,6 +269,9 @@ set(CMAKE_CXX_CLANG_TIDY "")
 include(add_nlohmann_json)
 add_nlohmann_json()
 add_json_schema_validator()
+
+# TBB
+find_package(TBB) # needed by GCC
 
 # Coverage
 if (CODE_COVERAGE)
@@ -425,6 +427,9 @@ target_sources(phasar_interface INTERFACE
   BASE_DIRS "${PHASAR_SRC_DIR}/include" "${PHASAR_BINARY_DIR}/include"
   FILES ${PHASAR_PUBLIC_HEADERS} "${PHASAR_BINARY_DIR}/include/phasar/Config/phasar-config.h"
 )
+if (TARGET TBB::tbb)
+  target_link_libraries(phasar_interface INTERFACE TBB::tbb) # needed by GCC
+endif()
 
 # Some preprocessor symbols that need to be available in phasar sources, but should not be installed
 add_cxx_compile_definitions(PHASAR_SRC_DIR="${CMAKE_SOURCE_DIR}")

@@ -67,6 +67,11 @@ private:
   }
 
   void doOnFinalize(llvm::raw_ostream &OS) override {
+    if (DbgResultsEntries.empty() && NonDbgResultsEntries.empty()) {
+      OS << "No leaks found!\n";
+      return;
+    }
+
     size_t Ctr = 0;
     for (const auto &[DbgLoc, Results] : DbgResultsEntries) {
       OS << '#' << ++Ctr << ": ";

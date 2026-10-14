@@ -54,6 +54,9 @@ PhASAR supports LLVM versions **between LLVM-16 and LLVM-22.1**, using LLVM-16 b
 We actively test PhASAR with LLVM-16 and LLVM-22.1, so if something does not work, try these versions instead.
 Specify the `PHASAR_LLVM_VERSION` cmake variable to change the LLVM version to use.
 
+> [!NOTE]
+> Since v18, LLVM uses minor versions, so use `-DPHASAR_LLVM_VERSION=17` for LLVM-17 but `-DPHASAR_LLVM_VERSION=22.1` for LLVM-22
+
 ## Breaking Changes
 
 To keep PhASAR in a state that is well suited for state-of-the-art research in static analysis, as well as for productive use, we have to make breaking changes. Please refer to [Breaking Changes](./BreakingChanges.md) for detailed information on what was broken recently and how to migrate.
@@ -117,22 +120,6 @@ Depending on your use of PhASAR you also may need to add LLVM to your build.
 For more information please consult our [PhASAR wiki pages](https://github.com/secure-software-engineering/phasar/wiki).
 
 If you have PhASAR *installed*, [Use-PhASAR-as-a-library](https://github.com/secure-software-engineering/phasar/wiki/Using-Phasar-as-a-Library) may be a good start.
-
-### Using PhASAR with Conan v2
-
-To export the recipe and dependencies, execute from the repo root:
-
-- `conan export utils/conan/llvm-core/ --version 15.0.7 --user secure-software-engineering`
-- `conan export utils/conan/clang/ --version 15.0.7 --user secure-software-engineering`
-- `conan export .`
-- View exported: `conan list "phasar/*"`
-- [Consume the package](https://docs.conan.io/2/tutorial/consuming_packages.html)
-
-If you just want to use phasar-cli:
-
-- `conan install --tool-requires phasar/... --build=missing -of .`
-- `source conanbuild.sh`
-- `phasar-cli --help`
 
 ## Contributing
 

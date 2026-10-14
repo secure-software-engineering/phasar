@@ -47,7 +47,7 @@ jobs:
     continue-on-error: false
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           submodules: recursive
@@ -60,7 +60,11 @@ jobs:
       - name: Install Phasar Dependencies
         shell: bash
         run: |
-          ./utils/InstallAptDependencies.sh --llvm-version ${{ matrix.llvm-major-version }} --noninteractive tzdata ccache ${{ matrix.compiler[2] }} ${{ matrix.extra_dependencies }}
+          ./utils/InstallAptDependencies.sh \
+            --llvm-version ${{ matrix.llvm-major-version }} \
+            --noninteractive \
+            tzdata ccache ${{ matrix.compiler[2] }} ${{ matrix.extra_dependencies }} \
+            llvm-${{ matrix.llvm-major-version }}-tools # For lit, FileCheck
 
       - name: Building Phasar in ${{ matrix.build }} with ${{ matrix.compiler[0] }}
         env:
@@ -84,7 +88,7 @@ jobs:
       - name: Run Unittests
         shell: bash
         run: |
-          cmake --build ./build --target check-phasar-unittests
+          cmake --build ./build --target check-phasar-unittests check-phasar-cli
 
       - name: Install PhASAR and Build Examples
         if: matrix.build == 'DebugLibdeps' # Circumvent conflicting ASAn flags

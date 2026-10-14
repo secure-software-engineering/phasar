@@ -78,9 +78,6 @@ void controller::executeIFDSCFLEnvTaint(AnalysisController &Data) {
           });
 
       Printer->onFinalize(OS);
-      if (!HasResults) {
-        OS << "No leaks found!\n";
-      }
     });
   }
 

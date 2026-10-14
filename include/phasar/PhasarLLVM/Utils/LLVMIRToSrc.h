@@ -65,9 +65,9 @@ struct DebugLocation {
 /// \brief A struct that contains information about a source code line, function
 /// name, file name corresponding to the IR statement.
 struct SourceCodeInfo {
-  std::string SourceCodeLine;
-  std::string SourceCodeFilename;
-  std::string SourceCodeFunctionName;
+  std::string SourceCodeLine{};
+  std::string SourceCodeFilename{};
+  std::string SourceCodeFunctionName{};
   unsigned Line = 0;
   unsigned Column = 0;
 
