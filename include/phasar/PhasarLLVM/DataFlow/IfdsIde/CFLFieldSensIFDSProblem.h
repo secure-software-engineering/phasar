@@ -140,7 +140,7 @@ public:
     }
 
     auto Kills = KillsCompressor[KS];
-    Kills.insert(Offs);
+    Kills.insertUnique(Offs);
     return KillsCompressor.getOrInsert(std::move(Kills));
   }
 

@@ -27,6 +27,7 @@
 #include "phasar/Utils/TypedVector.h"
 #include "phasar/Utils/ValueCompressor.h"
 
+#include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/Support/TypeName.h"
 
@@ -226,7 +227,8 @@ private:
     if (!Val->getType()->isPointerTy()) {
       return false;
     }
-    if (llvm::isa<llvm::AllocaInst, llvm::Argument>(Val)) {
+    if (llvm::isa<llvm::AllocaInst, llvm::Argument, llvm::GlobalVariable>(
+            Val)) {
       return true;
     }
     if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(Val)) {

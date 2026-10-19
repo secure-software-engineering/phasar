@@ -141,6 +141,24 @@ static constexpr llvm::StringLiteral SingletonReturningFunctions[] = {
     "zError",
 };
 
+static constexpr llvm::StringLiteral ReallocatingFunNames[] = {
+    // C functions:
+    "realloc",
+    "reallocarray",
+
+    // gnulib and libiberty:
+    "irealloc",
+    "ireallocarray",
+    "x2nrealloc",
+    "x2realloc",
+    "xirealloc",
+    "xireallocarray",
+    "xnrealloc",
+    "xpalloc",
+    "xrealloc",
+    "xreallocarray",
+};
+
 bool psr::isHeapAllocatingFunction(llvm::StringRef FName) noexcept {
   // Note: For a performance comparison of different search strategies, see
   // https://quick-bench.com/q/lNjDT6z-M-L08h372fbCfYjwM64
@@ -148,7 +166,7 @@ bool psr::isHeapAllocatingFunction(llvm::StringRef FName) noexcept {
   static const llvm::DenseSet<llvm::StringRef> HAFs(
       std::begin(HeapAllocatingFunNames), std::end(HeapAllocatingFunNames));
 
-  return HAFs.count(FName);
+  return HAFs.contains(FName);
 }
 
 bool psr::isSingletonReturningFunction(llvm::StringRef FName) noexcept {
@@ -156,5 +174,12 @@ bool psr::isSingletonReturningFunction(llvm::StringRef FName) noexcept {
       std::begin(SingletonReturningFunctions),
       std::end(SingletonReturningFunctions));
 
-  return SRFs.count(FName);
+  return SRFs.contains(FName);
+}
+
+bool psr::isReallocatingFunction(llvm::StringRef FName) noexcept {
+  static const llvm::DenseSet<llvm::StringRef> RFs(
+      std::begin(ReallocatingFunNames), std::end(ReallocatingFunNames));
+
+  return RFs.contains(FName);
 }

@@ -1214,8 +1214,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     if (const auto *CB = llvm::dyn_cast<llvm::CallBase>(V)) {
       const auto *Callee = llvm::dyn_cast_or_null<llvm::Function>(
           CB->getCalledOperand()->stripPointerCastsAndAliases());
-      if (!Callee ||
-          !(psr::isHeapAllocatingFunction(Callee) || isAllocWrapper(Callee))) {
+      if (!Callee || !isAllocWrapper(Callee)) {
         return false;
       }
       llvm::SmallPtrSet<const llvm::Value *, 8> EscVisited;
@@ -1266,6 +1265,13 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
   }
 
   bool isAllocWrapper(const llvm::Function *F) {
+    if (psr::isHeapAllocatingFunction(F)) {
+      // The allocator list wins over the body, which may hide the allocation,
+      // e.g., gnulib's xmalloc passes it through check_nonnull. A realloc-like
+      // allocator may return the block it got instead.
+      return !psr::isReallocatingFunction(F->getName());
+    }
+
     if (F->isDeclaration()) {
       return false; // real allocators are handled via isHeapAllocatingFunction
     }

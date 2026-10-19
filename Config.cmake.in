@@ -24,6 +24,10 @@ else()
   find_dependency(roaring REQUIRED CONFIG)
 endif()
 
+if (@PHASAR_USE_TBB@)
+  find_dependency(TBB)
+endif()
+
 if (PHASAR_USE_Z3)
   find_dependency(Z3 REQUIRED)
 endif()

@@ -115,12 +115,13 @@ int main(int Argc, char **Argv) {
   // Walk every function PhASAR's call-graph knows about, and ask it for all
   // known callers, writing (and forgetting) each result immediately instead of
   // accumulating all of them.
-  for (const llvm::Function *Fun : ICF.getAllVertexFunctions()) {
+  ICF.getCallGraph().iterateCallersView([&](const llvm::Function *Fun,
+                                            const auto &Callers) {
     auto FunName = Fun->getName();
     ++FnCount;
 
     ResolvedLoc CalleeLoc = resolveLocation(Fun);
-    for (const auto *CS : ICF.getCallersOf(Fun)) {
+    for (const auto *CS : Callers) {
       ResolvedLoc CallerLoc = resolveLocation(CS);
 
       OS.write_escaped(CS->getFunction()->getName()) << ',' << CallerLoc << ',';
@@ -137,7 +138,7 @@ int main(int Argc, char **Argv) {
             << ICF.getNumVertexFunctions() << " functions processed so far\n";
       }
     }
-  }
+  });
 
   OS.close();
 

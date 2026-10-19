@@ -63,7 +63,7 @@ public:
 
   [[nodiscard]] static SmallArraySet
   fromSorted(llvm::SmallVectorImpl<T> &&Vec) {
-    assert(std::ranges::is_sorted(Vec) && "Vec is not sorted");
+    assert(std::ranges::is_sorted(Vec, std::less<T>{}) && "Vec is not sorted");
     SmallArraySet Ret(std::move(Vec), /*PreSortedAndUniqued=*/std::true_type{});
 
     Ret.base().erase(std::unique(begin(), end()), end());
@@ -73,8 +73,8 @@ public:
 
   [[nodiscard]] static SmallArraySet
   fromSortedUniqued(llvm::SmallVectorImpl<T> &&Vec) {
-    assert(std::ranges::is_sorted(Vec) && "Vec is not sorted");
-    assert(std::ranges::adjacent_find(Vec) == Vec.end() &&
+    assert(std::ranges::is_sorted(Vec, std::less<T>{}) && "Vec is not sorted");
+    assert(std::ranges::adjacent_find(Vec, std::less<T>{}) == Vec.end() &&
            "Vec is not uniqued");
 
     SmallArraySet Ret(std::move(Vec), /*PreSortedAndUniqued=*/std::true_type{});
@@ -114,7 +114,7 @@ public:
       this->push_back(Val);
 
       if (Size + 1 == LinearThreshold) [[unlikely]] {
-        std::ranges::sort(base());
+        std::ranges::sort(base(), std::less<T>{});
       }
 
       return true;
@@ -154,7 +154,7 @@ public:
       }
       if (I == OtherSize) {
         if (this->size() == LinearThreshold) [[unlikely]] {
-          std::ranges::sort(base());
+          std::ranges::sort(base(), std::less<T>{});
         }
         return;
       }
@@ -221,8 +221,8 @@ public:
     SmallArraySet Merged{};
     Merged.resize_for_overwrite(std::min(Size, OtherSize));
 
-    auto [Unused1, Unused2, LastOut] =
-        std::ranges::set_intersection(*this, Other, Merged.begin());
+    auto [Unused1, Unused2, LastOut] = std::ranges::set_intersection(
+        *this, Other, Merged.begin(), std::less<T>{});
     Merged.base().erase(LastOut, Merged.end());
     *this = std::move(Merged);
     return Size != size();
@@ -245,8 +245,8 @@ public:
     SmallArraySet Merged{};
     Merged.resize_for_overwrite(std::min(Size, OtherSize));
 
-    auto [Unused1, Unused2, LastOut] =
-        std::ranges::set_intersection(*this, Other, Merged.begin());
+    auto [Unused1, Unused2, LastOut] = std::ranges::set_intersection(
+        *this, Other, Merged.begin(), std::less<T>{});
     Merged.base().erase(LastOut, Merged.end());
     return Merged;
   }
@@ -256,7 +256,7 @@ public:
       return llvm::is_contained(base(), Val);
     }
 
-    return std::ranges::binary_search(base(), Val);
+    return std::ranges::binary_search(base(), Val, std::less<T>{});
   }
 
   void sort() {
@@ -265,7 +265,7 @@ public:
       return;
     }
 
-    std::ranges::sort(base());
+    std::ranges::sort(base(), std::less<T>{});
   }
 
   LLVM_ATTRIBUTE_ALWAYS_INLINE auto foreach (
@@ -278,7 +278,7 @@ public:
       if constexpr (std::is_trivially_copyable_v<T>) {
         T Arr[LinearThreshold]{};
         memcpy(&Arr, Set.data(), Set.size_in_bytes());
-        std::ranges::sort(Arr, Arr + Set.size());
+        std::ranges::sort(Arr, Arr + Set.size(), std::less<T>{});
         return llvm::hash_combine_range(Arr, Arr + Set.size());
       } else {
         // Some reduction that ignores the order
@@ -322,7 +322,7 @@ private:
       : llvm::SmallVector<T, N>(std::move(Elems)) {}
 
   bool insertImpl(ByConstRef<T> Val) {
-    const auto It = std::ranges::lower_bound(base(), Val);
+    const auto It = std::ranges::lower_bound(base(), Val, std::less<T>{});
     if (It != this->end() && *It == Val) {
       return false;
     }
