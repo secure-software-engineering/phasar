@@ -1107,7 +1107,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00992" name="l00992"></a><span class="lineno">  992</span>        <span class="keywordflow">for</span> (ByConstRef&lt;d_t&gt; RetFact : RetFacts) {</div>
 <div class="line"><a id="l00993" name="l00993"></a><span class="lineno">  993</span>          <span class="keyword">auto</span> RetFactId = FactCompressor.getOrInsert(RetFact);</div>
 <div class="line"><a id="l00994" name="l00994"></a><span class="lineno">  994</span> </div>
-<div class="line"><a id="l00995" name="l00995"></a><span class="lineno">  995</span>          <span class="keyword">auto</span> EF = [&amp;]() <span class="keyword">mutable</span> {</div>
+<div class="line"><a id="l00995" name="l00995"></a><span class="lineno">  995</span>          <span class="keyword">auto</span> EF = [&amp;] {</div>
 <div class="line"><a id="l00996" name="l00996"></a><span class="lineno">  996</span>            <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (<a class="code hl_enumvalue" href="namespacepsr.html#a92b02d6b2a969583645d366406bc2ae6a4cbc8a387bcf2e808cd4516e4c08448d">ComputeValues</a>) {</div>
 <div class="line"><a id="l00997" name="l00997"></a><span class="lineno">  997</span>              <span class="keyword">auto</span> RetEF = FECache.getReturnEdgeFunction(</div>
 <div class="line"><a id="l00998" name="l00998"></a><span class="lineno">  998</span>                  Problem, CallSite, Callee, ExitInst, SummaryFact, RetSite,</div>
@@ -1607,7 +1607,7 @@ $(document).ready(function() { init_codefold(0); });
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Oct 19 2026 16:33:49 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Mon Oct 19 2026 17:46:28 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

@@ -119,7 +119,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="foldopen" id="foldopen00027" data-start="{" data-end="}">
 <div class="line"><a id="l00027" name="l00027"></a><span class="lineno"><a class="line" href="namespacepsr.html#ae7a1fd0bed17f6d7bb3b8a2a2f0a3369">   27</a></span><a class="code hl_function" href="namespacepsr.html#ae7a1fd0bed17f6d7bb3b8a2a2f0a3369">llvmRawAliasHandler</a>(<span class="keyword">const</span> <a class="code hl_class" href="classpsr_1_1ValueCompressor.html">ValueCompressor&lt;PAGVariable&gt;</a> &amp;VC,</div>
 <div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>                    std::invocable&lt;const llvm::Value *&gt; <span class="keyword">auto</span> Callback) {</div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>  <span class="keywordflow">return</span> [&amp;VC, Callback{<a class="code hl_function" href="namespacepsr.html#a78fcb9017f07967383d71d7a51216b9e">copyOrRef</a>(Callback)}](ValueId Alias) {</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>  <span class="keywordflow">return</span> [&amp;VC, Callback{std::move(Callback)}](ValueId Alias) {</div>
 <div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>    <span class="keywordflow">for</span> (<span class="keyword">auto</span> V : VC.<a class="code hl_function" href="classpsr_1_1ValueCompressor.html#a9182a879c9decfa408507b80a1e74758">id2vars</a>(Alias)) {</div>
 <div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>      <span class="keywordflow">if</span> (<span class="keyword">const</span> <span class="keyword">auto</span> *LLVMVar = V.valueOrNull()) [[likely]] {</div>
 <div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>        std::invoke(Callback, LLVMVar);</div>
@@ -503,7 +503,7 @@ $(document).ready(function() { init_codefold(0); });
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Oct 19 2026 16:33:50 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Mon Oct 19 2026 17:46:28 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

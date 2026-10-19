@@ -229,6 +229,10 @@ requires std::is_constructible_v&lt;ValueT, const V &amp;&gt;</td></tr>
 <tr class="separator:a86a861165d0d9920f208cf3a6a9105a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1bc46a1de317a999381029585025c046" id="r_a1bc46a1de317a999381029585025c046"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="classpsr_1_1ValueIdMap.html#a82708304b23955e2ac2b06a86ec7df1b">const_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1ValueIdMap.html#a1bc46a1de317a999381029585025c046">cend</a> () const noexcept</td></tr>
 <tr class="separator:a1bc46a1de317a999381029585025c046"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a12f1ec71f3e2514ebf65e106be647aa7" id="r_a12f1ec71f3e2514ebf65e106be647aa7"><td class="memItemLeft" align="right" valign="top">constexpr const <a class="el" href="classpsr_1_1BitSet.html">BitSet</a>&lt; IdT &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1ValueIdMap.html#a12f1ec71f3e2514ebf65e106be647aa7">keys</a> () const &amp;noexcept</td></tr>
+<tr class="separator:a12f1ec71f3e2514ebf65e106be647aa7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1cd2e3b4a4f4dcb456d571fd7b0ec41d" id="r_a1cd2e3b4a4f4dcb456d571fd7b0ec41d"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="classpsr_1_1BitSet.html">BitSet</a>&lt; IdT &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1ValueIdMap.html#a1cd2e3b4a4f4dcb456d571fd7b0ec41d">keys</a> () &amp;&amp;noexcept</td></tr>
+<tr class="separator:a1cd2e3b4a4f4dcb456d571fd7b0ec41d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3e05366a1755fa2e3ab1b09e9c0ec932" id="r_a3e05366a1755fa2e3ab1b09e9c0ec932"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1ValueIdMap.html#a3e05366a1755fa2e3ab1b09e9c0ec932">foreach</a> (std::invocable&lt; IdT, ValueT &amp; &gt; auto Handler)</td></tr>
 <tr class="separator:a3e05366a1755fa2e3ab1b09e9c0ec932"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8de3014fcf0a7204895cf069f6b924c9" id="r_a8de3014fcf0a7204895cf069f6b924c9"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1ValueIdMap.html#a8de3014fcf0a7204895cf069f6b924c9">foreach</a> (std::invocable&lt; IdT, const ValueT &amp; &gt; auto Handler) const</td></tr>
@@ -1380,7 +1384,7 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00485">485</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00493">493</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
 </div>
 </div>
@@ -1410,7 +1414,7 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00482">482</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00490">490</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
 </div>
 </div>
@@ -1520,6 +1524,64 @@ template&lt;typename M &gt; </div>
 <p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00428">428</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
 <p class="reference">References <a class="el" href="ValueIdMap_8h_source.html#l00410">psr::ValueIdMap&lt; IdT, ValueT, Allocator &gt;::try_emplace()</a>.</p>
+
+</div>
+</div>
+<a id="a1cd2e3b4a4f4dcb456d571fd7b0ec41d" name="a1cd2e3b4a4f4dcb456d571fd7b0ec41d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1cd2e3b4a4f4dcb456d571fd7b0ec41d">&#9670;&#160;</a></span>keys() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::allocator&lt;ValueT&gt;&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr <a class="el" href="classpsr_1_1BitSet.html">BitSet</a>&lt; IdT &gt; <a class="el" href="classpsr_1_1ValueIdMap.html">psr::ValueIdMap</a>&lt; IdT, ValueT, Allocator &gt;::keys </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> &amp;&amp;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00486">486</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
+
+</div>
+</div>
+<a id="a12f1ec71f3e2514ebf65e106be647aa7" name="a12f1ec71f3e2514ebf65e106be647aa7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a12f1ec71f3e2514ebf65e106be647aa7">&#9670;&#160;</a></span>keys() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::allocator&lt;ValueT&gt;&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr const <a class="el" href="classpsr_1_1BitSet.html">BitSet</a>&lt; IdT &gt; &amp; <a class="el" href="classpsr_1_1ValueIdMap.html">psr::ValueIdMap</a>&lt; IdT, ValueT, Allocator &gt;::keys </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const &amp;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="ValueIdMap_8h_source.html#l00482">482</a> of file <a class="el" href="ValueIdMap_8h_source.html">ValueIdMap.h</a>.</p>
 
 </div>
 </div>
@@ -1918,7 +1980,7 @@ template&lt;SmallIdType IdT, typename ValueT , typename Allocator  = std::alloca
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Oct 19 2026 16:33:51 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Mon Oct 19 2026 17:46:29 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

@@ -116,6 +116,10 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a0b63ebe26b81c7d033c042e696a5288a" id="r_a0b63ebe26b81c7d033c042e696a5288a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1CallGraph.html#a0b63ebe26b81c7d033c042e696a5288a">CallGraph</a> () noexcept=default</td></tr>
 <tr class="memdesc:a0b63ebe26b81c7d033c042e696a5288a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a new, empty call-graph.  <br /></td></tr>
 <tr class="separator:a0b63ebe26b81c7d033c042e696a5288a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a73442abd4e2beabe6dbf8488f1ff62c1" id="r_a73442abd4e2beabe6dbf8488f1ff62c1"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1CallGraph.html#a73442abd4e2beabe6dbf8488f1ff62c1">iterateCalleesView</a> (std::invocable&lt; <a class="el" href="classpsr_1_1CallGraphBase.html#aaafeac1743967e5f60404e80e803cc85">n_t</a>, llvm::ArrayRef&lt; <a class="el" href="classpsr_1_1CallGraphBase.html#ad6c9aa3e81b7a4c93fc51e7e40177b5e">f_t</a> &gt; &gt; auto Fn) const</td></tr>
+<tr class="separator:a73442abd4e2beabe6dbf8488f1ff62c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1d5e5e30d5323b99fec2a22acf1ba271" id="r_a1d5e5e30d5323b99fec2a22acf1ba271"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1CallGraph.html#a1d5e5e30d5323b99fec2a22acf1ba271">iterateCallersView</a> (std::invocable&lt; <a class="el" href="classpsr_1_1CallGraphBase.html#ad6c9aa3e81b7a4c93fc51e7e40177b5e">f_t</a>, llvm::ArrayRef&lt; <a class="el" href="classpsr_1_1CallGraphBase.html#aaafeac1743967e5f60404e80e803cc85">n_t</a> &gt; &gt; auto Fn) const</td></tr>
+<tr class="separator:a1d5e5e30d5323b99fec2a22acf1ba271"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a453557180c724875ce514d97fdc4cf8f" id="r_a453557180c724875ce514d97fdc4cf8f"><td class="memTemplParams" colspan="2">template&lt;typename FunctionIdGetter , typename InstIdGetter &gt; </td></tr>
 <tr class="memitem:a453557180c724875ce514d97fdc4cf8f"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1CallGraph.html#a453557180c724875ce514d97fdc4cf8f">printAsJson</a> (llvm::raw_ostream &amp;OS, FunctionIdGetter GetFunctionId, InstIdGetter GetInstructionId) const</td></tr>
 <tr class="separator:a453557180c724875ce514d97fdc4cf8f"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -173,7 +177,7 @@ Additional Inherited Members</h2></td></tr>
 class psr::CallGraph&lt; N, F &gt;</div><p>An explicit graph-representation of a call-graph. Only represents the data, not the call-graph analysis that creates it.</p>
 <p>This type is immutable. To incrementally build it from your call-graph analysis, use the <a class="el" href="classpsr_1_1CallGraphBuilder.html">CallGraphBuilder</a> </p>
 
-<p class="definition">Definition at line <a class="el" href="CallGraph_8h_source.html#l00041">41</a> of file <a class="el" href="CallGraph_8h_source.html">CallGraph.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CallGraph_8h_source.html#l00043">43</a> of file <a class="el" href="CallGraph_8h_source.html">CallGraph.h</a>.</p>
 </div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="a3fcffb0df6ed8a232db54ac134e4e4ff" name="a3fcffb0df6ed8a232db54ac134e4e4ff"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a3fcffb0df6ed8a232db54ac134e4e4ff">&#9670;&#160;</a></span>FunctionVertexTy</h2>
@@ -189,7 +193,7 @@ template&lt;typename N , typename F &gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="CallGraph_8h_source.html#l00049">49</a> of file <a class="el" href="CallGraph_8h_source.html">CallGraph.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CallGraph_8h_source.html#l00051">51</a> of file <a class="el" href="CallGraph_8h_source.html">CallGraph.h</a>.</p>
 
 </div>
 </div>
@@ -207,7 +211,7 @@ template&lt;typename N , typename F &gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="CallGraph_8h_source.html#l00050">50</a> of file <a class="el" href="CallGraph_8h_source.html">CallGraph.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CallGraph_8h_source.html#l00052">52</a> of file <a class="el" href="CallGraph_8h_source.html">CallGraph.h</a>.</p>
 
 </div>
 </div>
@@ -326,9 +330,73 @@ template&lt;typename FunctionGetter , typename InstructionGetter &gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="CallGraph_8h_source.html#l00248">248</a> of file <a class="el" href="CallGraph_8h_source.html">CallGraph.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CallGraph_8h_source.html#l00268">268</a> of file <a class="el" href="CallGraph_8h_source.html">CallGraph.h</a>.</p>
 
-<p class="reference">References <a class="el" href="CallGraph_8h_source.html#l00203">psr::CallGraphBuilder&lt; N, F &gt;::addCallEdge()</a>, <a class="el" href="CallGraph_8h_source.html#l00172">psr::CallGraphBuilder&lt; N, F &gt;::addFunctionVertex()</a>, <a class="el" href="CallGraph_8h_source.html#l00225">psr::CallGraphBuilder&lt; N, F &gt;::consumeCallGraph()</a>, <a class="el" href="CallGraphData_8h_source.html#l00028">psr::CallGraphData::FToFunctionVertexTy</a>, <a class="el" href="Logger_8h_source.html#l00117">PHASAR_LOG_LEVEL_CAT</a>, and <a class="el" href="CallGraph_8h_source.html#l00163">psr::CallGraphBuilder&lt; N, F &gt;::reserve()</a>.</p>
+<p class="reference">References <a class="el" href="CallGraph_8h_source.html#l00223">psr::CallGraphBuilder&lt; N, F &gt;::addCallEdge()</a>, <a class="el" href="CallGraph_8h_source.html#l00192">psr::CallGraphBuilder&lt; N, F &gt;::addFunctionVertex()</a>, <a class="el" href="CallGraph_8h_source.html#l00245">psr::CallGraphBuilder&lt; N, F &gt;::consumeCallGraph()</a>, <a class="el" href="CallGraphData_8h_source.html#l00028">psr::CallGraphData::FToFunctionVertexTy</a>, <a class="el" href="Logger_8h_source.html#l00117">PHASAR_LOG_LEVEL_CAT</a>, and <a class="el" href="CallGraph_8h_source.html#l00183">psr::CallGraphBuilder&lt; N, F &gt;::reserve()</a>.</p>
+
+</div>
+</div>
+<a id="a73442abd4e2beabe6dbf8488f1ff62c1" name="a73442abd4e2beabe6dbf8488f1ff62c1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a73442abd4e2beabe6dbf8488f1ff62c1">&#9670;&#160;</a></span>iterateCalleesView()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename N , typename F &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto <a class="el" href="classpsr_1_1CallGraph.html">psr::CallGraph</a>&lt; N, F &gt;::iterateCalleesView </td>
+          <td>(</td>
+          <td class="paramtype">std::invocable&lt; <a class="el" href="classpsr_1_1CallGraphBase.html#aaafeac1743967e5f60404e80e803cc85">n_t</a>, llvm::ArrayRef&lt; <a class="el" href="classpsr_1_1CallGraphBase.html#ad6c9aa3e81b7a4c93fc51e7e40177b5e">f_t</a> &gt; &gt; auto&#160;</td>
+          <td class="paramname"><em>Fn</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="CallGraph_8h_source.html#l00058">58</a> of file <a class="el" href="CallGraph_8h_source.html">CallGraph.h</a>.</p>
+
+<p class="reference">References <a class="el" href="Utilities_8h_source.html#l00285">psr::copyOrRef()</a>, <a class="el" href="Utilities_8h_source.html#l00386">psr::foreachInRange()</a>, and <a class="el" href="Utilities_8h_source.html#l00372">psr::invokeControlFlow()</a>.</p>
+
+</div>
+</div>
+<a id="a1d5e5e30d5323b99fec2a22acf1ba271" name="a1d5e5e30d5323b99fec2a22acf1ba271"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1d5e5e30d5323b99fec2a22acf1ba271">&#9670;&#160;</a></span>iterateCallersView()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename N , typename F &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto <a class="el" href="classpsr_1_1CallGraph.html">psr::CallGraph</a>&lt; N, F &gt;::iterateCallersView </td>
+          <td>(</td>
+          <td class="paramtype">std::invocable&lt; <a class="el" href="classpsr_1_1CallGraphBase.html#ad6c9aa3e81b7a4c93fc51e7e40177b5e">f_t</a>, llvm::ArrayRef&lt; <a class="el" href="classpsr_1_1CallGraphBase.html#aaafeac1743967e5f60404e80e803cc85">n_t</a> &gt; &gt; auto&#160;</td>
+          <td class="paramname"><em>Fn</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="CallGraph_8h_source.html#l00067">67</a> of file <a class="el" href="CallGraph_8h_source.html">CallGraph.h</a>.</p>
+
+<p class="reference">References <a class="el" href="Utilities_8h_source.html#l00285">psr::copyOrRef()</a>, <a class="el" href="Utilities_8h_source.html#l00386">psr::foreachInRange()</a>, and <a class="el" href="Utilities_8h_source.html#l00372">psr::invokeControlFlow()</a>.</p>
 
 </div>
 </div>
@@ -382,7 +450,7 @@ template&lt;typename FunctionLabelGetter , typename InstParentGetter , typename 
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="CallGraph_8h_source.html#l00083">83</a> of file <a class="el" href="CallGraph_8h_source.html">CallGraph.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CallGraph_8h_source.html#l00103">103</a> of file <a class="el" href="CallGraph_8h_source.html">CallGraph.h</a>.</p>
 
 <p class="reference">References <a class="el" href="CallGraphBase_8h_source.html#l00113">psr::CallGraphBase&lt; CallGraph&lt; N, F &gt; &gt;::getAllVertexFunctions()</a>.</p>
 
@@ -432,7 +500,7 @@ template&lt;typename FunctionIdGetter , typename InstIdGetter &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="CallGraph_8h_source.html#l00063">63</a> of file <a class="el" href="CallGraph_8h_source.html">CallGraph.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CallGraph_8h_source.html#l00083">83</a> of file <a class="el" href="CallGraph_8h_source.html">CallGraph.h</a>.</p>
 
 <p class="reference">References <a class="el" href="CallGraphData_8h_source.html#l00028">psr::CallGraphData::FToFunctionVertexTy</a>, and <a class="el" href="structpsr_1_1CallGraphData.html#ad96344e164603a8e7693abc735dd0c6b">psr::CallGraphData::printAsJson()</a>.</p>
 
@@ -461,7 +529,7 @@ template&lt;typename N , typename F &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="CallGraph_8h_source.html#l00043">43</a> of file <a class="el" href="CallGraph_8h_source.html">CallGraph.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CallGraph_8h_source.html#l00045">45</a> of file <a class="el" href="CallGraph_8h_source.html">CallGraph.h</a>.</p>
 
 </div>
 </div>
@@ -471,7 +539,7 @@ template&lt;typename N , typename F &gt; </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Oct 19 2026 16:33:50 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Mon Oct 19 2026 17:46:29 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

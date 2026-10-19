@@ -103,6 +103,8 @@ $(function() {
   <tr class="even"><td class="entry"><a class="el" href="classpsr_1_1CallGraphBase.html#a7dc5c5228315c4c5107833245e4cfadc">getNumVertexCallSites</a>() const noexcept</td><td class="entry"><a class="el" href="classpsr_1_1CallGraphBase.html">psr::CallGraphBase&lt; CallGraph&lt; N, F &gt; &gt;</a></td><td class="entry"><span class="mlabel">inline</span></td></tr>
   <tr class="odd"><td class="entry"><a class="el" href="classpsr_1_1CallGraphBase.html#a913f7fd687a21d31d02c06fbb389fcc8">getNumVertexFunctions</a>() const noexcept</td><td class="entry"><a class="el" href="classpsr_1_1CallGraphBase.html">psr::CallGraphBase&lt; CallGraph&lt; N, F &gt; &gt;</a></td><td class="entry"><span class="mlabel">inline</span></td></tr>
   <tr class="even"><td class="entry"><a class="el" href="classpsr_1_1CallGraph.html#a7d1dbfa8a67a9c45ccaf8782f0756122">InstructionVertexTy</a> typedef</td><td class="entry"><a class="el" href="classpsr_1_1CallGraph.html">psr::CallGraph&lt; N, F &gt;</a></td><td class="entry"></td></tr>
+  <tr class="odd"><td class="entry"><a class="el" href="classpsr_1_1CallGraph.html#a73442abd4e2beabe6dbf8488f1ff62c1">iterateCalleesView</a>(std::invocable&lt; n_t, llvm::ArrayRef&lt; f_t &gt; &gt; auto Fn) const</td><td class="entry"><a class="el" href="classpsr_1_1CallGraph.html">psr::CallGraph&lt; N, F &gt;</a></td><td class="entry"><span class="mlabel">inline</span></td></tr>
+  <tr class="even"><td class="entry"><a class="el" href="classpsr_1_1CallGraph.html#a1d5e5e30d5323b99fec2a22acf1ba271">iterateCallersView</a>(std::invocable&lt; f_t, llvm::ArrayRef&lt; n_t &gt; &gt; auto Fn) const</td><td class="entry"><a class="el" href="classpsr_1_1CallGraph.html">psr::CallGraph&lt; N, F &gt;</a></td><td class="entry"><span class="mlabel">inline</span></td></tr>
   <tr class="odd"><td class="entry"><a class="el" href="classpsr_1_1CallGraphBase.html#aaafeac1743967e5f60404e80e803cc85">n_t</a> typedef</td><td class="entry"><a class="el" href="classpsr_1_1CallGraphBase.html">psr::CallGraphBase&lt; CallGraph&lt; N, F &gt; &gt;</a></td><td class="entry"></td></tr>
   <tr class="even"><td class="entry"><a class="el" href="classpsr_1_1CallGraph.html#ab239061de2f1a4fe7683f325be1bb074">printAsDot</a>(llvm::raw_ostream &amp;OS, FunctionLabelGetter GetFunctionLabel, InstParentGetter GetFunctionFromInst, InstLabelGetter GetInstLabel) const</td><td class="entry"><a class="el" href="classpsr_1_1CallGraph.html">psr::CallGraph&lt; N, F &gt;</a></td><td class="entry"><span class="mlabel">inline</span></td></tr>
   <tr class="odd"><td class="entry"><a class="el" href="classpsr_1_1CallGraph.html#a453557180c724875ce514d97fdc4cf8f">printAsJson</a>(llvm::raw_ostream &amp;OS, FunctionIdGetter GetFunctionId, InstIdGetter GetInstructionId) const</td><td class="entry"><a class="el" href="classpsr_1_1CallGraph.html">psr::CallGraph&lt; N, F &gt;</a></td><td class="entry"><span class="mlabel">inline</span></td></tr>
@@ -113,7 +115,7 @@ $(function() {
 </table></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Oct 19 2026 16:33:50 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Mon Oct 19 2026 17:46:29 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

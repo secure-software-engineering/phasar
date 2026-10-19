@@ -2307,6 +2307,8 @@ requires std::is_default_constructible_v&lt;T&gt;</td></tr>
 <tr class="separator:a331c566718d6a9965c1840a1f4e04f44"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab7ec51ee0ea8932ab123996dab0a495d" id="r_ab7ec51ee0ea8932ab123996dab0a495d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#ab7ec51ee0ea8932ab123996dab0a495d">isSingletonReturningFunction</a> (llvm::StringRef FName) noexcept</td></tr>
 <tr class="separator:ab7ec51ee0ea8932ab123996dab0a495d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab5a881234679d2f9dee56e79b8120f79" id="r_ab5a881234679d2f9dee56e79b8120f79"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#ab5a881234679d2f9dee56e79b8120f79">isReallocatingFunction</a> (llvm::StringRef FName) noexcept</td></tr>
+<tr class="separator:ab5a881234679d2f9dee56e79b8120f79"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7813a5b01b217b93b918b5359cb3fb8f" id="r_a7813a5b01b217b93b918b5359cb3fb8f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#a1880efa590e8b7a06a8d283a38d5c7d0">SeverityLevel</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a7813a5b01b217b93b918b5359cb3fb8f">parseSeverityLevel</a> (llvm::StringRef Str) noexcept</td></tr>
 <tr class="separator:a7813a5b01b217b93b918b5359cb3fb8f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae78f2e264da049d7ddb0fd2b23eff4ac" id="r_ae78f2e264da049d7ddb0fd2b23eff4ac"><td class="memItemLeft" align="right" valign="top">llvm::StringRef&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#ae78f2e264da049d7ddb0fd2b23eff4ac">to_string</a> (<a class="el" href="namespacepsr.html#a1880efa590e8b7a06a8d283a38d5c7d0">SeverityLevel</a> Level) noexcept</td></tr>
@@ -4426,7 +4428,7 @@ template&lt;has_adl_join T&gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TypeTraits_8h_source.html#l00285">285</a> of file <a class="el" href="TypeTraits_8h_source.html">TypeTraits.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TypeTraits_8h_source.html#l00288">288</a> of file <a class="el" href="TypeTraits_8h_source.html">TypeTraits.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="LatticeDomain_8h_source.html#l00190">psr::JoinLatticeTraits&lt; LatticeDomain&lt; L &gt; &gt;::join()</a>.</p>
 
@@ -4450,7 +4452,7 @@ template&lt;has_adl_to_string_v T&gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TypeTraits_8h_source.html#l00279">279</a> of file <a class="el" href="TypeTraits_8h_source.html">TypeTraits.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TypeTraits_8h_source.html#l00282">282</a> of file <a class="el" href="TypeTraits_8h_source.html">TypeTraits.h</a>.</p>
 
 <p class="reference">References <a class="el" href="namespacepsr.html#a44202ae7e19e7ae3bd454149976c364a">to_string()</a>.</p>
 
@@ -5268,11 +5270,11 @@ requires std::is_same_v&lt;typename ContainerTy::value_type, const llvm::Value *
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TaintConfigUtilities_8h_source.html#l00051">51</a> of file <a class="el" href="TaintConfigUtilities_8h_source.html">TaintConfigUtilities.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TaintConfigUtilities_8h_source.html#l00054">54</a> of file <a class="el" href="TaintConfigUtilities_8h_source.html">TaintConfigUtilities.h</a>.</p>
 
 <p class="reference">References <a class="el" href="TaintConfigBase_8h_source.html#l00067">psr::TaintConfigBase&lt; Derived &gt;::getRegisteredSourceCallBack()</a>, and <a class="el" href="TaintConfigBase_8h_source.html#l00083">psr::TaintConfigBase&lt; Derived &gt;::isSource()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="TaintConfigUtilities_8h_source.html#l00136">getGeneratedFacts()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="TaintConfigUtilities_8h_source.html#l00151">getGeneratedFacts()</a>.</p>
 
 </div>
 </div>
@@ -5325,9 +5327,9 @@ requires std::is_same_v&lt;typename ContainerTy::value_type, const llvm::Value *
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TaintConfigUtilities_8h_source.html#l00113">113</a> of file <a class="el" href="TaintConfigUtilities_8h_source.html">TaintConfigUtilities.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TaintConfigUtilities_8h_source.html#l00125">125</a> of file <a class="el" href="TaintConfigUtilities_8h_source.html">TaintConfigUtilities.h</a>.</p>
 
-<p class="reference">References <a class="el" href="TaintConfigUtilities_8h_source.html#l00093">collectLeakedFacts()</a>.</p>
+<p class="reference">References <a class="el" href="TaintConfigUtilities_8h_source.html#l00102">collectLeakedFacts()</a>.</p>
 
 </div>
 </div>
@@ -5378,11 +5380,11 @@ requires std::is_same_v&lt;typename ContainerTy::value_type, const llvm::Value *
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TaintConfigUtilities_8h_source.html#l00093">93</a> of file <a class="el" href="TaintConfigUtilities_8h_source.html">TaintConfigUtilities.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TaintConfigUtilities_8h_source.html#l00102">102</a> of file <a class="el" href="TaintConfigUtilities_8h_source.html">TaintConfigUtilities.h</a>.</p>
 
 <p class="reference">References <a class="el" href="TaintConfigBase_8h_source.html#l00071">psr::TaintConfigBase&lt; Derived &gt;::getRegisteredSinkCallBack()</a>, and <a class="el" href="TaintConfigBase_8h_source.html#l00086">psr::TaintConfigBase&lt; Derived &gt;::isSink()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="TaintConfigUtilities_8h_source.html#l00113">collectLeakedFacts()</a>, <a class="el" href="TaintConfigUtilities_8h_source.html#l00157">getLeakedFacts()</a>, and <a class="el" href="TaintConfigUtilities_8h_source.html#l00147">getLeakedFacts()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="TaintConfigUtilities_8h_source.html#l00125">collectLeakedFacts()</a>, <a class="el" href="TaintConfigUtilities_8h_source.html#l00172">getLeakedFacts()</a>, and <a class="el" href="TaintConfigUtilities_8h_source.html#l00162">getLeakedFacts()</a>.</p>
 
 </div>
 </div>
@@ -5509,11 +5511,11 @@ requires std::is_same_v&lt;typename ContainerTy::value_type, const llvm::Value *
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TaintConfigUtilities_8h_source.html#l00122">122</a> of file <a class="el" href="TaintConfigUtilities_8h_source.html">TaintConfigUtilities.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TaintConfigUtilities_8h_source.html#l00134">134</a> of file <a class="el" href="TaintConfigUtilities_8h_source.html">TaintConfigUtilities.h</a>.</p>
 
 <p class="reference">References <a class="el" href="TaintConfigBase_8h_source.html#l00089">psr::TaintConfigBase&lt; Derived &gt;::isSanitizer()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="TaintConfigUtilities_8h_source.html#l00167">getSanitizedFacts()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="TaintConfigUtilities_8h_source.html#l00182">getSanitizedFacts()</a>.</p>
 
 </div>
 </div>
@@ -6879,7 +6881,7 @@ template&lt;typename T &gt; </div>
 
 <p class="definition">Definition at line <a class="el" href="Utilities_8h_source.html#l00285">285</a> of file <a class="el" href="Utilities_8h_source.html">Utilities.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="IntervalReachability_8h_source.html#l00274">psr::IntervalReachabilityBuilder&lt; VtxId &gt;::build()</a>, <a class="el" href="UnionFindAA_8h_source.html#l00135">psr::UnionFindAliasIterator&lt; AAResT, Var2IdMapper, Id2VarMapper &gt;::forallAliasesOf()</a>, <a class="el" href="LLVMRawAAResults_8h_source.html#l00073">psr::LLVMRawAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, <a class="el" href="LLVMRawAAResults_8h_source.html#l00213">psr::LLVMLocalRawAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, <a class="el" href="LLVMRawAAResults_8h_source.html#l00226">psr::LLVMLocalRawAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, <a class="el" href="LLVMRawAAResults_8h_source.html#l00232">psr::LLVMLocalRawAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, <a class="el" href="LLVMRawAAResults_8h_source.html#l00220">psr::LLVMLocalRawAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, <a class="el" href="LLVMRawAAResults_8h_source.html#l00066">psr::LLVMRawAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, <a class="el" href="LLVMRawAAResults_8h_source.html#l00198">psr::LLVMLocalRawAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, <a class="el" href="Utilities_8h_source.html#l00386">foreachInRange()</a>, <a class="el" href="LLVMRawAAResults_8h_source.html#l00027">llvmRawAliasHandler()</a>, <a class="el" href="SparseBitSet_8h_source.html#l00084">psr::SparseBitSet&lt; IdT &gt;::mergeWithDiff()</a>, and <a class="el" href="SparseBitSet_8h_source.html#l00112">psr::SparseBitSet&lt; IdT &gt;::mergeWithDiff()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="IntervalReachability_8h_source.html#l00274">psr::IntervalReachabilityBuilder&lt; VtxId &gt;::build()</a>, <a class="el" href="UnionFindAA_8h_source.html#l00135">psr::UnionFindAliasIterator&lt; AAResT, Var2IdMapper, Id2VarMapper &gt;::forallAliasesOf()</a>, <a class="el" href="LLVMRawAAResults_8h_source.html#l00073">psr::LLVMRawAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, <a class="el" href="LLVMRawAAResults_8h_source.html#l00213">psr::LLVMLocalRawAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, <a class="el" href="LLVMRawAAResults_8h_source.html#l00226">psr::LLVMLocalRawAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, <a class="el" href="LLVMRawAAResults_8h_source.html#l00232">psr::LLVMLocalRawAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, <a class="el" href="LLVMRawAAResults_8h_source.html#l00220">psr::LLVMLocalRawAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, <a class="el" href="LLVMRawAAResults_8h_source.html#l00066">psr::LLVMRawAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, <a class="el" href="LLVMRawAAResults_8h_source.html#l00198">psr::LLVMLocalRawAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, <a class="el" href="Utilities_8h_source.html#l00386">foreachInRange()</a>, <a class="el" href="CallGraph_8h_source.html#l00058">psr::CallGraph&lt; N, F &gt;::iterateCalleesView()</a>, <a class="el" href="CallGraph_8h_source.html#l00067">psr::CallGraph&lt; N, F &gt;::iterateCallersView()</a>, <a class="el" href="SparseBitSet_8h_source.html#l00084">psr::SparseBitSet&lt; IdT &gt;::mergeWithDiff()</a>, and <a class="el" href="SparseBitSet_8h_source.html#l00112">psr::SparseBitSet&lt; IdT &gt;::mergeWithDiff()</a>.</p>
 
 </div>
 </div>
@@ -7128,7 +7130,7 @@ template&lt;IdType IndexId, typename VtxId &gt; </div>
 
 <p class="definition">Definition at line <a class="el" href="CsrGraph_8h_source.html#l00033">33</a> of file <a class="el" href="CsrGraph_8h_source.html">CsrGraph.h</a>.</p>
 
-<p class="reference">References <a class="el" href="StrongTypeDef_8h_source.html#l00125">nextId()</a>.</p>
+<p class="reference">References <a class="el" href="StrongTypeDef_8h_source.html#l00126">nextId()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="CsrGraph_8h_source.html#l00108">psr::CsrGraph&lt; VtxId &gt;::succsOf()</a>.</p>
 
@@ -7178,7 +7180,7 @@ template&lt;IdType IndexId, typename VtxId &gt; </div>
 
 <p class="definition">Definition at line <a class="el" href="CsrGraph_8h_source.html#l00042">42</a> of file <a class="el" href="CsrGraph_8h_source.html">CsrGraph.h</a>.</p>
 
-<p class="reference">References <a class="el" href="StrongTypeDef_8h_source.html#l00125">nextId()</a>.</p>
+<p class="reference">References <a class="el" href="StrongTypeDef_8h_source.html#l00126">nextId()</a>.</p>
 
 </div>
 </div>
@@ -7888,7 +7890,7 @@ template&lt;std::invocable&lt; const llvm::Value * &gt; LeakIfFn = TrueFn&gt; </
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TaintConfigUtilities_8h_source.html#l00072">72</a> of file <a class="el" href="TaintConfigUtilities_8h_source.html">TaintConfigUtilities.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TaintConfigUtilities_8h_source.html#l00078">78</a> of file <a class="el" href="TaintConfigUtilities_8h_source.html">TaintConfigUtilities.h</a>.</p>
 
 </div>
 </div>
@@ -8049,7 +8051,7 @@ template&lt;typename FnT , typename RangeT &gt; </div>
 
 <p class="reference">References <a class="el" href="Utilities_8h_source.html#l00285">copyOrRef()</a>, and <a class="el" href="Macros_8h_source.html#l00016">PSR_FWD</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="SmallArraySet_8h_source.html#l00271">psr::SmallArraySet&lt; T, N &gt;::foreach()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="SmallArraySet_8h_source.html#l00271">psr::SmallArraySet&lt; T, N &gt;::foreach()</a>, <a class="el" href="CallGraph_8h_source.html#l00058">psr::CallGraph&lt; N, F &gt;::iterateCalleesView()</a>, and <a class="el" href="CallGraph_8h_source.html#l00067">psr::CallGraph&lt; N, F &gt;::iterateCallersView()</a>.</p>
 
 </div>
 </div>
@@ -8714,9 +8716,9 @@ requires std::is_same_v&lt;typename ContainerTy::value_type, const llvm::Value *
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TaintConfigUtilities_8h_source.html#l00136">136</a> of file <a class="el" href="TaintConfigUtilities_8h_source.html">TaintConfigUtilities.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TaintConfigUtilities_8h_source.html#l00151">151</a> of file <a class="el" href="TaintConfigUtilities_8h_source.html">TaintConfigUtilities.h</a>.</p>
 
-<p class="reference">References <a class="el" href="TaintConfigUtilities_8h_source.html#l00051">collectGeneratedFacts()</a>, and <a class="el" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">Ret</a>.</p>
+<p class="reference">References <a class="el" href="TaintConfigUtilities_8h_source.html#l00054">collectGeneratedFacts()</a>, and <a class="el" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">Ret</a>.</p>
 
 </div>
 </div>
@@ -8773,9 +8775,9 @@ requires std::is_same_v&lt;typename ContainerTy::value_type, const llvm::Value *
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TaintConfigUtilities_8h_source.html#l00157">157</a> of file <a class="el" href="TaintConfigUtilities_8h_source.html">TaintConfigUtilities.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TaintConfigUtilities_8h_source.html#l00172">172</a> of file <a class="el" href="TaintConfigUtilities_8h_source.html">TaintConfigUtilities.h</a>.</p>
 
-<p class="reference">References <a class="el" href="TaintConfigUtilities_8h_source.html#l00093">collectLeakedFacts()</a>, and <a class="el" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">Ret</a>.</p>
+<p class="reference">References <a class="el" href="TaintConfigUtilities_8h_source.html#l00102">collectLeakedFacts()</a>, and <a class="el" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">Ret</a>.</p>
 
 </div>
 </div>
@@ -8820,9 +8822,9 @@ requires std::is_same_v&lt;typename ContainerTy::value_type, const llvm::Value *
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TaintConfigUtilities_8h_source.html#l00147">147</a> of file <a class="el" href="TaintConfigUtilities_8h_source.html">TaintConfigUtilities.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TaintConfigUtilities_8h_source.html#l00162">162</a> of file <a class="el" href="TaintConfigUtilities_8h_source.html">TaintConfigUtilities.h</a>.</p>
 
-<p class="reference">References <a class="el" href="TaintConfigUtilities_8h_source.html#l00093">collectLeakedFacts()</a>, <a class="el" href="Macros_8h_source.html#l00016">PSR_FWD</a>, and <a class="el" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">Ret</a>.</p>
+<p class="reference">References <a class="el" href="TaintConfigUtilities_8h_source.html#l00102">collectLeakedFacts()</a>, <a class="el" href="Macros_8h_source.html#l00016">PSR_FWD</a>, and <a class="el" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">Ret</a>.</p>
 
 </div>
 </div>
@@ -10297,9 +10299,9 @@ requires std::is_same_v&lt;typename ContainerTy::value_type, const llvm::Value *
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TaintConfigUtilities_8h_source.html#l00167">167</a> of file <a class="el" href="TaintConfigUtilities_8h_source.html">TaintConfigUtilities.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TaintConfigUtilities_8h_source.html#l00182">182</a> of file <a class="el" href="TaintConfigUtilities_8h_source.html">TaintConfigUtilities.h</a>.</p>
 
-<p class="reference">References <a class="el" href="TaintConfigUtilities_8h_source.html#l00122">collectSanitizedFacts()</a>, and <a class="el" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">Ret</a>.</p>
+<p class="reference">References <a class="el" href="TaintConfigUtilities_8h_source.html#l00134">collectSanitizedFacts()</a>, and <a class="el" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">Ret</a>.</p>
 
 </div>
 </div>
@@ -10985,7 +10987,7 @@ requires (std::invocable&lt;FnT, ArgsT...&gt;)</div>
 
 <p class="reference">References <a class="el" href="Macros_8h_source.html#l00016">PSR_FWD</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="BitSet_8h_source.html#l00224">psr::BitSet&lt; IdT, BitVectorTy &gt;::foreach()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="BitSet_8h_source.html#l00224">psr::BitSet&lt; IdT, BitVectorTy &gt;::foreach()</a>, <a class="el" href="CallGraph_8h_source.html#l00058">psr::CallGraph&lt; N, F &gt;::iterateCalleesView()</a>, and <a class="el" href="CallGraph_8h_source.html#l00067">psr::CallGraph&lt; N, F &gt;::iterateCallersView()</a>.</p>
 
 </div>
 </div>
@@ -11414,7 +11416,7 @@ template&lt;typename IdT  = size_t&gt; </div>
 </div><div class="memdoc">
 <p>Utility function to check whether PotentialValue may be in the reachable allocation-sites of V, if V and PotentialValue alias. </p>
 
-<p class="reference">Referenced by <a class="el" href="LLVMRawAliasSet_8h_source.html#l00175">psr::LLVMRawAliasSet::isInReachableAllocationSites()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="LLVMRawAliasSet_8h_source.html#l00176">psr::LLVMRawAliasSet::isInReachableAllocationSites()</a>.</p>
 
 </div>
 </div>
@@ -11481,7 +11483,7 @@ template&lt;typename IdT  = size_t&gt; </div>
 
 <p class="definition">Definition at line <a class="el" href="LLVMPointsToUtils_8h_source.html#l00026">26</a> of file <a class="el" href="LLVMPointsToUtils_8h_source.html">LLVMPointsToUtils.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="LLVMRawAliasSet_8h_source.html#l00175">psr::LLVMRawAliasSet::isInReachableAllocationSites()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="LLVMRawAliasSet_8h_source.html#l00176">psr::LLVMRawAliasSet::isInReachableAllocationSites()</a>.</p>
 
 </div>
 </div>
@@ -11612,6 +11614,33 @@ template&lt;typename IdT  = size_t&gt; </div>
 <p class="reference">References <a class="el" href="LLVMShorthands_8h_source.html#l00304">definitelyContainsNoPointer()</a>, and <a class="el" href="LLVMPointerSemantics_8h_source.html#l00038">mayHidePointer()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="LLVMPointerSemantics_8h_source.html#l00103">asMemoryAccess()</a>.</p>
+
+</div>
+</div>
+<a id="ab5a881234679d2f9dee56e79b8120f79" name="ab5a881234679d2f9dee56e79b8120f79"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab5a881234679d2f9dee56e79b8120f79">&#9670;&#160;</a></span>isReallocatingFunction()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classbool.html">bool</a> psr::isReallocatingFunction </td>
+          <td>(</td>
+          <td class="paramtype">llvm::StringRef&#160;</td>
+          <td class="paramname"><em>FName</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Checks whether a function with the given (mangled) name may return the block its first argument points to, similar to realloc. </p>
 
 </div>
 </div>
@@ -11927,7 +11956,7 @@ template&lt;typename FF &gt; </div>
 
 <p class="definition">Definition at line <a class="el" href="LLVMRawAAResults_8h_source.html#l00027">27</a> of file <a class="el" href="LLVMRawAAResults_8h_source.html">LLVMRawAAResults.h</a>.</p>
 
-<p class="reference">References <a class="el" href="Utilities_8h_source.html#l00285">copyOrRef()</a>, and <a class="el" href="ValueCompressor_8h_source.html#l00057">psr::ValueCompressor&lt; T &gt;::id2vars()</a>.</p>
+<p class="reference">References <a class="el" href="ValueCompressor_8h_source.html#l00057">psr::ValueCompressor&lt; T &gt;::id2vars()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="LLVMRawAAResults_8h_source.html#l00066">psr::LLVMRawAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, and <a class="el" href="LLVMRawAAResults_8h_source.html#l00198">psr::LLVMLocalRawAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>.</p>
 
@@ -12583,7 +12612,7 @@ template&lt;typename IdT &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="StrongTypeDef_8h_source.html#l00125">125</a> of file <a class="el" href="StrongTypeDef_8h_source.html">StrongTypeDef.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="StrongTypeDef_8h_source.html#l00126">126</a> of file <a class="el" href="StrongTypeDef_8h_source.html">StrongTypeDef.h</a>.</p>
 
 <p class="reference">References <a class="el" href="SCCId_8h_source.html#l00065">to_underlying()</a>.</p>
 
@@ -13910,7 +13939,7 @@ template&lt;typename T &gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TypeTraits_8h_source.html#l00272">272</a> of file <a class="el" href="TypeTraits_8h_source.html">TypeTraits.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TypeTraits_8h_source.html#l00275">275</a> of file <a class="el" href="TypeTraits_8h_source.html">TypeTraits.h</a>.</p>
 
 </div>
 </div>
@@ -14538,7 +14567,7 @@ template&lt;<a class="el" href="classsize__t.html">size_t</a> N&gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="TypeTraits_8h_source.html#l00279">adl_to_string()</a>, <a class="el" href="IDESolver_8h_source.html#l01628">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::emitESGAsDot()</a>, <a class="el" href="PointerAssignmentGraph_8h_source.html#l00290">psr::pag::TracingPBStrategy::onAddEdge()</a>, <a class="el" href="AnalysisProperties_8h_source.html#l00028">operator&lt;&lt;()</a>, and <a class="el" href="CSTDFILEIOTypeStateDescription_8h_source.html#l00033">operator&lt;&lt;()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="TypeTraits_8h_source.html#l00282">adl_to_string()</a>, <a class="el" href="IDESolver_8h_source.html#l01628">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::emitESGAsDot()</a>, <a class="el" href="PointerAssignmentGraph_8h_source.html#l00290">psr::pag::TracingPBStrategy::onAddEdge()</a>, <a class="el" href="AnalysisProperties_8h_source.html#l00028">operator&lt;&lt;()</a>, and <a class="el" href="CSTDFILEIOTypeStateDescription_8h_source.html#l00033">operator&lt;&lt;()</a>.</p>
 
 </div>
 </div>
@@ -14841,7 +14870,7 @@ requires (std::is_enum_v&lt;EnumT&gt;)</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="StrongTypeDef_8h_source.html#l00112">112</a> of file <a class="el" href="StrongTypeDef_8h_source.html">StrongTypeDef.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="StrongTypeDef_8h_source.html#l00113">113</a> of file <a class="el" href="StrongTypeDef_8h_source.html">StrongTypeDef.h</a>.</p>
 
 </div>
 </div>
@@ -14872,7 +14901,7 @@ requires (std::is_integral_v&lt;EnumT&gt;)</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="StrongTypeDef_8h_source.html#l00119">119</a> of file <a class="el" href="StrongTypeDef_8h_source.html">StrongTypeDef.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="StrongTypeDef_8h_source.html#l00120">120</a> of file <a class="el" href="StrongTypeDef_8h_source.html">StrongTypeDef.h</a>.</p>
 
 </div>
 </div>
@@ -14904,7 +14933,7 @@ template&lt;typename GraphNodeId &gt; </div>
 
 <p class="definition">Definition at line <a class="el" href="SCCId_8h_source.html#l00065">65</a> of file <a class="el" href="SCCId_8h_source.html">SCCId.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="StrongTypeDef_8h_source.html#l00125">nextId()</a>, and <a class="el" href="IntervalReachability_8h_source.html#l00042">psr::RankInterval::size()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="StrongTypeDef_8h_source.html#l00126">nextId()</a>, and <a class="el" href="IntervalReachability_8h_source.html#l00042">psr::RankInterval::size()</a>.</p>
 
 </div>
 </div>
@@ -15834,7 +15863,7 @@ template&lt;typename T &gt; </div>
 <div class="line">    std::is_trivially_copyable_v&lt;T&gt;</div>
 </div><!-- fragment --><p>True if T can be relocated by copying its bytes (e.g. via memcpy) without invoking the move constructor or destructor on the source. Uses Clang's builtin trait when available (P1144 / P2786), which covers types like std::unique_ptr that are trivially relocatable but not trivially copyable. Falls back to std::is_trivially_copyable_v on other compilers. </p>
 
-<p class="definition">Definition at line <a class="el" href="TypeTraits_8h_source.html#l00307">307</a> of file <a class="el" href="TypeTraits_8h_source.html">TypeTraits.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TypeTraits_8h_source.html#l00311">311</a> of file <a class="el" href="TypeTraits_8h_source.html">TypeTraits.h</a>.</p>
 
 </div>
 </div>
@@ -15966,7 +15995,7 @@ template&lt;typename Var , typename T &gt; </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Oct 19 2026 16:33:50 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Mon Oct 19 2026 17:46:29 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
