@@ -17,9 +17,8 @@ You can find available literature on PhASAR [here](https://github.com/secure-sof
 ### Key Features
 
 - **IFDS/IDE solver**: Interprocedural data-flow solvers based on the IFDS/IDE algorithm
-- **WPDS solver (experimental)**: Data-flow solver based on weighted pushdown systems. Can solve any IFDS/IDE problem
 - **MonoIFDS solver**: High-performance data-flow solver for *bottom-up* IFDS analyses
-- **Sparse analysis**: SparseIFDS/SparseIDE/SparseWPDS for improved performance
+- **Sparse analysis**: SparseIFDS/SparseIDE for improved performance
 - **Call-graph construction**: Several algorithms (CHA, RTA, VTA, alias-based)
 - **Type-hierarchy construction**: Extract high-level C++ type information from LLVM IR
 - **Points-to/alias infrastructure**: High-performance alias analyses for LLVM IR. Integration with state-of-the-art alias/points-to information from SVF supported
@@ -29,14 +28,16 @@ You can find available literature on PhASAR [here](https://github.com/secure-sof
 - **Taint analysis**: Infrastructure for taint-configuration & IFDS/IDE-based taint analysis
 - **Modern C++20 API**: Modular, easy-to use interfaces, also for non C++ experts
 
+#### Experimental Features
+
+- **WPDS solver**: Data-flow solver based on weighted pushdown systems. Can solve any IFDS/IDE problem; supports sparsification
+- **DFI solver**: Data-flow solver based on DFS-interval reachability. Can solve any IFDS problem; supports sparsification
+
 ### How do I get started with PhASAR?
 
-We have some documentation on PhASAR in our [***Wiki***](https://github.com/secure-software-engineering/phasar/wiki). You probably would like to read
-this README first.
+We have some documentation on PhASAR in our [***Wiki***](https://github.com/secure-software-engineering/phasar/wiki). You probably would like to read this README first.
 
-Please also have a look at PhASAR's project directory, in particular the
-[examples](./examples/) directory and the custom tool
-`tools/example-tool/myphasartool.cpp`.
+Please also have a look at PhASAR's project directory, in particular the [examples](./examples/) directory and the custom tool `tools/example-tool/myphasartool.cpp`.
 
 You can find PhASAR's API reference [here](https://secure-software-engineering.github.io/phasar/).
 
@@ -55,7 +56,7 @@ We actively test PhASAR with LLVM-16 and LLVM-22.1, so if something does not wor
 Specify the `PHASAR_LLVM_VERSION` cmake variable to change the LLVM version to use.
 
 > [!NOTE]
-> Since v18, LLVM uses minor versions, so use `-DPHASAR_LLVM_VERSION=17` for LLVM-17 but `-DPHASAR_LLVM_VERSION=22.1` for LLVM-22
+> Since v18, LLVM uses minor versions, so use `-DPHASAR_LLVM_VERSION=17` for LLVM-17 but `-DPHASAR_LLVM_VERSION=18.1` for LLVM-18
 
 ## Breaking Changes
 

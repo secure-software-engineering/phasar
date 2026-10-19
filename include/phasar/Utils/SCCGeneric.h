@@ -25,6 +25,7 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include <cstdint>
+#include <functional>
 #include <type_traits>
 
 namespace psr {
@@ -238,36 +239,77 @@ computeSCCOrder(const SCCHolder<GraphNodeId> &SCCs,
   return Ret;
 }
 
-namespace detail {
-/// Data for Pearce's Algorithm.
-template <typename GraphNodeId> struct Pearce4Data {
+/// State of Pearce's SCC algorithm. Can be reused across multiple calls to
+/// visitSCCsFrom() on the same graph and, after reset(), on other graphs to
+/// avoid repeated allocations.
+template <typename GraphNodeId> struct PearceSCCData {
   TypedVector<GraphNodeId, uint32_t> RIndex; // only per-vertex array
   BitSet<GraphNodeId> Root;                  // root[v] in Algorithm 4
   uint32_t Index = 1;                        // DFS counter
-  uint32_t C;                                // SCC id counter
+  uint32_t C{};                              // SCC id counter
   llvm::SmallVector<GraphNodeId> Stack;
 
-  explicit Pearce4Data(size_t Num)
-      : RIndex(Num, 0), Root(Num), C(Num ? Num - 1 : 0) {}
+  PearceSCCData() noexcept = default;
+  explicit PearceSCCData(size_t Num) { reset(Num); }
+
+  /// Prepares the state for a fresh search on a graph with Num vertices.
+  void reset(size_t Num) {
+    RIndex.assign(Num, 0);
+    Root.clear();
+    Root.reserve(Num);
+    Index = 1;
+    C = Num ? uint32_t(Num - 1) : 0;
+    Stack.clear();
+  }
+
+  [[nodiscard]] bool isVisited(GraphNodeId Vtx) const noexcept {
+    return RIndex[Vtx] != 0;
+  }
 };
 
+namespace detail {
+
+/// Completes the SCC rooted at Root. The members are the stack elements with
+/// an rindex not smaller than the root's.
+template <typename GraphNodeId, typename OnSCCFn>
+void pearce4FinishSCC(PearceSCCData<GraphNodeId> &Data, GraphNodeId Root,
+                      OnSCCFn &OnSCC) {
+  auto RootIndex = Data.RIndex[Root];
+  size_t NumMembers = 1;
+  while (NumMembers <= Data.Stack.size() &&
+         RootIndex <= Data.RIndex[Data.Stack[Data.Stack.size() - NumMembers]]) {
+    ++NumMembers;
+  }
+  Data.Stack.push_back(Root);
+
+  auto Members = llvm::ArrayRef<GraphNodeId>(Data.Stack).take_back(NumMembers);
+  auto NewSCC = SCCId<GraphNodeId>(uint32_t(Data.RIndex.size() - 1 - Data.C));
+  std::invoke(OnSCC, NewSCC, Members);
+
+  for (auto W : Members) {
+    Data.RIndex[W] = Data.C;
+  }
+  Data.Index -= uint32_t(NumMembers);
+  Data.C--;
+  Data.Stack.truncate(Data.Stack.size() - NumMembers);
+}
+
 // Recursive variant of Pearce's algorithm (based on Algo 3 in the paper)
-template <typename G>
+template <typename G, typename OnDiscoverFn, typename OnSCCFn>
 static void
 pearce4VisitRec(const G &Graph, typename GraphTraits<G>::vertex_t V,
-                Pearce4Data<typename GraphTraits<G>::vertex_t> &Data,
-                SCCHolder<typename GraphTraits<G>::vertex_t> &Holder) {
+                PearceSCCData<typename GraphTraits<G>::vertex_t> &Data,
+                OnDiscoverFn &OnDiscover, OnSCCFn &OnSCC) {
   using GTraits = psr::GraphTraits<G>;
-  using Vertex = typename GTraits::vertex_t;
-  using SCCId = psr::SCCId<Vertex>;
 
   bool Root = true;
   Data.RIndex[V] = Data.Index++;
+  std::invoke(OnDiscover, V);
 
   for (const auto &Edge : GTraits::outEdges(Graph, V)) {
     auto W = GTraits::target(Edge);
     if (Data.RIndex[W] == 0) {
-      pearce4VisitRec(Graph, W, Data, Holder);
+      pearce4VisitRec(Graph, W, Data, OnDiscover, OnSCC);
     }
     if (Data.RIndex[W] < Data.RIndex[V]) {
       Data.RIndex[V] = Data.RIndex[W];
@@ -276,37 +318,20 @@ pearce4VisitRec(const G &Graph, typename GraphTraits<G>::vertex_t V,
   }
 
   if (Root) {
-    Data.Index--;
-    auto NewSCC = SCCId(Holder.NodesInSCC.size());
-    auto &Nodes = Holder.NodesInSCC.emplace_back();
-
-    while (!Data.Stack.empty() &&
-           Data.RIndex[V] <= Data.RIndex[Data.Stack.back()]) {
-      auto W = Data.Stack.pop_back_val();
-      Data.RIndex[W] = Data.C;
-      Data.Index--;
-
-      Holder.SCCOfNode[W] = NewSCC;
-      Nodes.push_back(W);
-    }
-    Nodes.push_back(V);
-    Holder.SCCOfNode[V] = NewSCC;
-    Data.RIndex[V] = Data.C;
-    Data.C--;
+    pearce4FinishSCC(Data, V, OnSCC);
   } else {
     Data.Stack.push_back(V);
   }
 }
 
 // Iterative variant of Pearce's algorithm (adapted from on Algo 4 in the paper)
-template <typename G>
+template <typename G, typename OnDiscoverFn, typename OnSCCFn>
 static void
 pearce4VisitIt(const G &Graph, typename GraphTraits<G>::vertex_t Start,
-               Pearce4Data<typename GraphTraits<G>::vertex_t> &Data,
-               SCCHolder<typename GraphTraits<G>::vertex_t> &Holder) {
+               PearceSCCData<typename GraphTraits<G>::vertex_t> &Data,
+               OnDiscoverFn &OnDiscover, OnSCCFn &OnSCC) {
   using GTraits = psr::GraphTraits<G>;
   using Vertex = typename GTraits::vertex_t;
-  using SCCId = psr::SCCId<Vertex>;
 
   using OutEdgeRange =
       decltype(GTraits::outEdges(Graph, std::declval<Vertex>()));
@@ -338,6 +363,7 @@ pearce4VisitIt(const G &Graph, typename GraphTraits<G>::vertex_t Start,
 
       Data.RIndex[W] = Data.Index++;
       Data.Root.insert(W);
+      std::invoke(OnDiscover, W);
 
       auto &&OutEdges = GTraits::outEdges(Graph, W);
       Frame = &CallStack.emplace_back(
@@ -366,24 +392,7 @@ pearce4VisitIt(const G &Graph, typename GraphTraits<G>::vertex_t Start,
     // finish visiting V and backtrack to the parent
 
     if (Data.Root.contains(V)) {
-      // Found a SCC
-
-      Data.Index--;
-      auto NewSCC = SCCId(Holder.NodesInSCC.size());
-      auto &Nodes = Holder.NodesInSCC.emplace_back();
-      while (!Data.Stack.empty() &&
-             Data.RIndex[V] <= Data.RIndex[Data.Stack.back()]) {
-        auto W = Data.Stack.pop_back_val();
-        Data.RIndex[W] = Data.C;
-        Data.Index--;
-
-        Holder.SCCOfNode[W] = NewSCC;
-        Nodes.push_back(W);
-      }
-      Nodes.push_back(V);
-      Holder.SCCOfNode[V] = NewSCC;
-      Data.RIndex[V] = Data.C;
-      Data.C--;
+      pearce4FinishSCC(Data, V, OnSCC);
     } else {
       Data.Stack.push_back(V);
     }
@@ -394,6 +403,7 @@ pearce4VisitIt(const G &Graph, typename GraphTraits<G>::vertex_t Start,
   // Initialize the callstack by pushing the initial frame
   Data.RIndex[Start] = Data.Index++;
   Data.Root.insert(Start);
+  std::invoke(OnDiscover, Start);
   {
     auto &&OutEdges = GTraits::outEdges(Graph, Start);
     static_assert(
@@ -426,6 +436,35 @@ pearce4VisitIt(const G &Graph, typename GraphTraits<G>::vertex_t Start,
 
 } // namespace detail
 
+/// Runs Pearce's SCC algorithm from Start, visiting all vertices reachable
+/// from Start that have not yet been visited with the same Data. Call it with
+/// multiple start vertices to cover more of the graph.
+///
+/// \param OnDiscover Called with each vertex when it is visited first, i.e.,
+/// in DFS pre-order.
+/// \param OnSCC Called with each SCC when it is complete, in reverse
+/// topological order. SCC ids are sequential, starting at 0 after
+/// Data.reset(). Members.back() is the first discovered member, i.e., the root
+/// of the SCC in the DFS tree. At this point, all SCCs reachable from this SCC
+/// are complete and the DFS subtree of the root is fully discovered.
+template <typename G, bool Iterative = true>
+void visitSCCsFrom(
+    const G &Graph, typename GraphTraits<G>::vertex_t Start,
+    PearceSCCData<typename GraphTraits<G>::vertex_t> &Data,
+    std::invocable<typename GraphTraits<G>::vertex_t> auto OnDiscover,
+    std::invocable<SCCId<typename GraphTraits<G>::vertex_t>,
+                   llvm::ArrayRef<typename GraphTraits<G>::vertex_t>> auto
+        OnSCC,
+    std::bool_constant<Iterative> /*Iterative*/ = {}) {
+  assert(!Data.isVisited(Start));
+  if constexpr (Iterative) {
+    detail::pearce4VisitIt(Graph, Start, Data, OnDiscover, OnSCC);
+  } else {
+    detail::pearce4VisitRec(Graph, Start, Data, OnDiscover, OnSCC);
+  }
+  assert(Data.Stack.empty() && "The start vertex must be an SCC root");
+}
+
 /// Compute SCCs adapted from the paper "A Space-Efficient Algorithm for Finding
 /// Strongly Connected Components", Pearce 2015, DOI:
 /// <https://doi.org/10.1016/j.ipl.2015.08.010>
@@ -448,27 +487,22 @@ computeSCCs(const G &Graph, std::bool_constant<Iterative> /*Iterative*/ = {}) {
 
   Ret.SCCOfNode.resize(N);
 
-  detail::Pearce4Data<Vertex> Data(N);
+  PearceSCCData<Vertex> Data(N);
 
-  // for all v ∈ V do if rindex[v]==0 then visit(v)
+  const auto OnSCC = [&Ret](SCCId<Vertex> SCC, llvm::ArrayRef<Vertex> Members) {
+    assert(size_t(SCC) == Ret.NodesInSCC.size());
+    Ret.NodesInSCC.emplace_back(Members.begin(), Members.end());
+    for (auto Member : Members) {
+      Ret.SCCOfNode[Member] = SCC;
+    }
+  };
+
+  // for all v in V do if rindex[v]==0 then visit(v)
   for (auto V : GTraits::vertices(Graph)) {
-    if (Data.RIndex[V] == 0) {
-      if constexpr (Iterative) {
-        detail::pearce4VisitIt(Graph, V, Data, Ret);
-      } else {
-        detail::pearce4VisitRec(Graph, V, Data, Ret);
-      }
-
-      if (!Data.Stack.empty()) {
-        auto NewSCC = SCCId<Vertex>(Ret.NodesInSCC.size());
-        auto &Nodes = Ret.NodesInSCC.emplace_back();
-        Nodes.reserve(Data.Stack.size());
-        for (auto Vtx : Data.Stack) {
-          Nodes.push_back(Vtx);
-          Ret.SCCOfNode[Vtx] = NewSCC;
-        }
-        Data.Stack.clear();
-      }
+    if (!Data.isVisited(V)) {
+      visitSCCsFrom(
+          Graph, V, Data, [](Vertex /*Vtx*/) {}, OnSCC,
+          std::bool_constant<Iterative>{});
     }
   }
 

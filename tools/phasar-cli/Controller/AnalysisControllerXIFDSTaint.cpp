@@ -17,6 +17,8 @@ void controller::executeIFDSTaint(AnalysisController &Data) {
   auto Config = makeTaintConfig(Data);
   // Note: Don't blindly generate argc and argv. Use a proper taint config
   // instead
-  executeIFDSAnalysis<IFDSTaintAnalysis>(Data, &Config, Data.getEntryPoints(),
-                                         false);
+  auto Problem = createAnalysisProblem<IFDSTaintAnalysis>(
+      Data.HA, &Config, Data.getEntryPoints(), false);
+  IFDSSolver Solver(&Problem, &Data.HA.getICFG(), Data.SolverConfig);
+  executeIfdsIdeAnalysisImpl(Solver, Data);
 }
