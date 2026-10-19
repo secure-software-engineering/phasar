@@ -70,6 +70,15 @@ public:
   IFDSSolver(ProblemTy *IFDSProblem, const ICFGTy *ICF)
       : Base(IFDSProblem, ICF) {}
 
+  /// Uses SolverConfig instead of the problem's solver config
+  template <IFDSProblem ProblemTy>
+    requires(std::same_as<
+             WithBinaryValueDomain<AnalysisDomainTy>,
+             WithBinaryValueDomain<typename ProblemTy::ProblemAnalysisDomain>>)
+  IFDSSolver(ProblemTy *IFDSProblem, const ICFGTy *ICF,
+             IFDSIDESolverConfig SolverConfig)
+      : Base(IFDSProblem, ICF, SolverConfig) {}
+
   ~IFDSSolver() override = default;
 
   /// Returns the data-flow results at the given statement.
@@ -127,6 +136,10 @@ IFDSSolver(Problem &, const ICF *)
                   typename Problem::container_type, ICF>;
 template <typename Problem, typename ICF>
 IFDSSolver(Problem *, const ICF *)
+    -> IFDSSolver<typename Problem::ProblemAnalysisDomain,
+                  typename Problem::container_type, ICF>;
+template <typename Problem, typename ICF>
+IFDSSolver(Problem *, const ICF *, IFDSIDESolverConfig)
     -> IFDSSolver<typename Problem::ProblemAnalysisDomain,
                   typename Problem::container_type, ICF>;
 

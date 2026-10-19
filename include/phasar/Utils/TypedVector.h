@@ -54,6 +54,10 @@ public:
 
   void resize(size_t Sz, ByConstRef<ValueT> Val) { Vec.resize(Sz, Val); }
 
+  void assign(size_t Sz, ByConstRef<ValueT> Val) { Vec.assign(Sz, Val); }
+
+  void clear() noexcept { Vec.clear(); }
+
   [[nodiscard]] bool empty() const noexcept { return Vec.empty(); }
   [[nodiscard]] bool any() const noexcept { return !Vec.empty(); }
   [[nodiscard]] size_t size() const noexcept { return Vec.size(); }

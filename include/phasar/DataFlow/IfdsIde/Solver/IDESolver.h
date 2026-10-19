@@ -106,6 +106,13 @@ protected:
       : ProblemOwner(
             std::make_unique<LegacyIDEProblemWrapper<ProblemTy>>(Problem)) {}
 
+  template <IFDSProblem ProblemTy>
+  IDESolverProblemWrapperStorage(ProblemTy *Problem,
+                                 IFDSIDESolverConfig SolverConfig)
+      : IDESolverProblemWrapperStorage(Problem) {
+    ProblemOwner->setIFDSIDESolverConfig(SolverConfig);
+  }
+
   std::unique_ptr<IDETabulationProblem<AnalysisDomainTy, Container>>
       ProblemOwner{};
 };
@@ -161,6 +168,23 @@ public:
   IDESolver(ProblemTy *Problem, const i_t *ICF)
       : detail::IDESolverProblemWrapperStorage<AnalysisDomainTy, Container>(
             Problem),
+        IDEProblem(*this->ProblemOwner), ZeroValue(Problem->getZeroValue()),
+        ICF(&assertNotNull(ICF)),
+        SolverConfig(this->ProblemOwner->getIFDSIDESolverConfig()),
+        CachedFlowEdgeFunctions(this->ProblemOwner.get()),
+        AllTop(this->ProblemOwner->allTopFunction()),
+        Seeds(Problem->initialSeeds()) {}
+
+  /// Uses SolverConfig instead of the problem's solver config
+  template <IFDSProblem ProblemTy>
+    requires(!std::derived_from<
+                ProblemTy,
+                IDETabulationProblem<typename ProblemTy::ProblemAnalysisDomain,
+                                     typename ProblemTy::container_type>>)
+  IDESolver(ProblemTy *Problem, const i_t *ICF,
+            IFDSIDESolverConfig SolverConfig)
+      : detail::IDESolverProblemWrapperStorage<AnalysisDomainTy, Container>(
+            Problem, SolverConfig),
         IDEProblem(*this->ProblemOwner), ZeroValue(Problem->getZeroValue()),
         ICF(&assertNotNull(ICF)),
         SolverConfig(this->ProblemOwner->getIFDSIDESolverConfig()),

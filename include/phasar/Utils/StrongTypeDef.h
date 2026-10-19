@@ -121,4 +121,9 @@ template <typename EnumT>
 {
   return Val;
 }
+
+template <typename IdT> [[nodiscard]] constexpr IdT nextId(IdT Id) noexcept {
+  return IdT(to_underlying(Id) + 1);
+}
+
 } // namespace psr

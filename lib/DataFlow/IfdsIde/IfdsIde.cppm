@@ -11,6 +11,7 @@ module;
 #include "phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h"
 #include "phasar/DataFlow/IfdsIde/IfdsIdeDomain.h"
 #include "phasar/DataFlow/IfdsIde/Solver/Compressor.h"
+#include "phasar/DataFlow/IfdsIde/Solver/DFISolver.h"
 #include "phasar/DataFlow/IfdsIde/Solver/EdgeFunctionCache.h"
 #include "phasar/DataFlow/IfdsIde/Solver/FlowEdgeFunctionCacheNG.h"
 #include "phasar/DataFlow/IfdsIde/Solver/FlowFunctionCache.h"
@@ -47,6 +48,13 @@ using psr::checkSREquality;
 using psr::Compressor;
 using psr::defaultJoinOrNull;
 using psr::DefaultMapKeyCompressor;
+using psr::DFIIndexDirection;
+using psr::DFIReachability;
+using psr::DFISolver;
+using psr::DFISolverConfig;
+using psr::DFISolverConfigBackward;
+using psr::DFISolverConfigNoIndex;
+using psr::DFISolverResults;
 using psr::EdgeFunctionCache;
 using psr::EdgeFunctionCacheStats;
 using psr::EdgeFunctionComposer;
@@ -80,7 +88,9 @@ using psr::LLVMMapKeyCompressor;
 using psr::MapKeyCompressorCombinator;
 using psr::NodeCompressorTraits;
 using psr::NoneCompressor;
+using psr::OwningDFISolverResults;
 using psr::OwningSolverResults;
+using psr::solveDFIProblem;
 using psr::SolverConfigOptions;
 using psr::SolverResults;
 using psr::ValCompressorTraits;
