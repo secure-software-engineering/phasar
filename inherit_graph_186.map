@@ -1,3 +1,7 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$structpsr_1_1DOTNode.html" title=" " alt="" coords="5,5,117,31"/>
+<area shape="rect" id="Node000000" href="$structpsr_1_1DFISolverConfig.html" title="Static configuration of the DFISolver. Derive from it to change options." alt="" coords="5,31,160,56"/>
+<area shape="rect" id="Node000001" href="$structpsr_1_1DFISolverConfigBackward.html" title=" " alt="" coords="208,5,427,31"/>
+<area shape="poly" id="edge186_Node000000_Node000001" title=" " alt="" coords="174,31,208,27,208,32,174,36"/>
+<area shape="rect" id="Node000002" href="$structpsr_1_1DFISolverConfigNoIndex.html" title=" " alt="" coords="213,55,421,80"/>
+<area shape="poly" id="edge187_Node000000_Node000002" title=" " alt="" coords="174,50,213,54,213,59,174,55"/>
 </map>

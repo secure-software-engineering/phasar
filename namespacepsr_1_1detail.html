@@ -107,6 +107,12 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>DefaultCast</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><b>DFIExplodedSupergraph</b></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>DFIResultsData</b></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><b>DFISolverResultsBase</b></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>DummyTransform</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>EdgeFunctionStatsData</b></td></tr>
@@ -164,9 +170,6 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><b>MaybeUniquePtrBase&lt; T, true &gt;</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>Pearce4Data</b></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Data for Pearce's Algorithm. <br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>SCCIdBase</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><b>SolverResultsBase</b></td></tr>
@@ -220,6 +223,9 @@ Functions</h2></td></tr>
 <tr class="memitem:a310e8a4c7323bdbc8608cd3fd1786a9a" id="r_a310e8a4c7323bdbc8608cd3fd1786a9a"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
 <tr class="memitem:a310e8a4c7323bdbc8608cd3fd1786a9a"><td class="memTemplItemLeft" align="right" valign="top">decltype(auto)&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr_1_1detail.html#a310e8a4c7323bdbc8608cd3fd1786a9a">printSomehow</a> (const T &amp;Val)</td></tr>
 <tr class="separator:a310e8a4c7323bdbc8608cd3fd1786a9a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af47b1a208d9c377c49f1086018dec65e" id="r_af47b1a208d9c377c49f1086018dec65e"><td class="memTemplParams" colspan="2">template&lt;typename GraphNodeId , typename OnSCCFn &gt; </td></tr>
+<tr class="memitem:af47b1a208d9c377c49f1086018dec65e"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr_1_1detail.html#af47b1a208d9c377c49f1086018dec65e">pearce4FinishSCC</a> (<a class="el" href="structpsr_1_1PearceSCCData.html">PearceSCCData</a>&lt; GraphNodeId &gt; &amp;Data, GraphNodeId Root, OnSCCFn &amp;OnSCC)</td></tr>
+<tr class="separator:af47b1a208d9c377c49f1086018dec65e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A class that implements a control flow graph. Conforms to the <a class="el" href="classpsr_1_1CFGBase.html">CFGBase</a> CRTP interface. </p>
@@ -429,6 +435,47 @@ template&lt;typename EntryRange , CFG C, typename ICFGorIRDB , typename HandlerF
 
 </div>
 </div>
+<a id="af47b1a208d9c377c49f1086018dec65e" name="af47b1a208d9c377c49f1086018dec65e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af47b1a208d9c377c49f1086018dec65e">&#9670;&#160;</a></span>pearce4FinishSCC()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename GraphNodeId , typename OnSCCFn &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">void psr::detail::pearce4FinishSCC </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structpsr_1_1PearceSCCData.html">PearceSCCData</a>&lt; GraphNodeId &gt; &amp;&#160;</td>
+          <td class="paramname"><em>Data</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">GraphNodeId&#160;</td>
+          <td class="paramname"><em>Root</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">OnSCCFn &amp;&#160;</td>
+          <td class="paramname"><em>OnSCC</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Completes the SCC rooted at Root. The members are the stack elements with an rindex not smaller than the root's. </p>
+
+<p class="definition">Definition at line <a class="el" href="SCCGeneric_8h_source.html#l00275">275</a> of file <a class="el" href="SCCGeneric_8h_source.html">SCCGeneric.h</a>.</p>
+
+<p class="reference">References <a class="el" href="SCCGeneric_8h_source.html#l00249">psr::PearceSCCData&lt; GraphNodeId &gt;::C</a>, <a class="el" href="SCCGeneric_8h_source.html#l00248">psr::PearceSCCData&lt; GraphNodeId &gt;::Index</a>, <a class="el" href="SCCGeneric_8h_source.html#l00246">psr::PearceSCCData&lt; GraphNodeId &gt;::RIndex</a>, <a class="el" href="TypedVector_8h_source.html#l00063">psr::TypedVector&lt; IdT, ValueT, SmallSize &gt;::size()</a>, and <a class="el" href="SCCGeneric_8h_source.html#l00250">psr::PearceSCCData&lt; GraphNodeId &gt;::Stack</a>.</p>
+
+</div>
+</div>
 <a id="a907a9c49b531820bab5374909f0426fe" name="a907a9c49b531820bab5374909f0426fe"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a907a9c49b531820bab5374909f0426fe">&#9670;&#160;</a></span>printHelper()</h2>
 
@@ -627,7 +674,7 @@ template&lt;typename OS_t , typename... Args, size_t... Idx&gt; </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Sep 30 2026 09:29:29 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Mon Oct 19 2026 16:33:51 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

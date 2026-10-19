@@ -208,22 +208,15 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>    <span class="keywordflow">return</span> FF == <span class="keyword">nullptr</span>;</div>
 <div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>  }</div>
 </div>
-<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>  [[nodiscard]] <span class="keywordtype">bool</span></div>
-<div class="foldopen" id="foldopen00097" data-start="{" data-end="}">
-<div class="line"><a id="l00097" name="l00097"></a><span class="lineno"><a class="line" href="classpsr_1_1GenericFlowFunction.html#ae6a750119b01ff315bb5927d6ea9873a">   97</a></span>  <a class="code hl_function" href="classpsr_1_1GenericFlowFunction.html#ae6a750119b01ff315bb5927d6ea9873a">operator!=</a>(<a class="code hl_class" href="classpsr_1_1GenericFlowFunctionView.html">GenericFlowFunctionView&lt;D, Container&gt;</a> Other) <span class="keyword">const</span> <span class="keyword">noexcept</span> {</div>
-<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>    <span class="keywordflow">return</span> !(*<span class="keyword">this</span> == Other);</div>
-<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>  }</div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span> </div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>  <a class="code hl_class" href="classpsr_1_1MaybeUniquePtr.html">FlowFunctionPtrType</a> FF;</div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>};</div>
 </div>
-<div class="line"><a id="l00100" name="l00100"></a><span class="lineno"><a class="line" href="classpsr_1_1GenericFlowFunction.html#a284a0ebcd6151c1cfea4a6309de779ba">  100</a></span>  [[nodiscard]] <span class="keywordtype">bool</span> <a class="code hl_function" href="classpsr_1_1GenericFlowFunction.html#a284a0ebcd6151c1cfea4a6309de779ba">operator!=</a>(std::nullptr_t) <span class="keyword">const</span> <span class="keyword">noexcept</span> { <span class="keywordflow">return</span> FF; }</div>
-<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span> </div>
-<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span><span class="keyword">private</span>:</div>
-<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>  <a class="code hl_class" href="classpsr_1_1MaybeUniquePtr.html">FlowFunctionPtrType</a> FF;</div>
-<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>};</div>
-</div>
-<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span> </div>
-<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>} <span class="comment">// namespace psr</span></div>
-<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span> </div>
-<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span><span class="preprocessor">#endif </span><span class="comment">// PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_GENERICFLOWFUNCTION_H</span></div>
+<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span> </div>
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>} <span class="comment">// namespace psr</span></div>
+<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span> </div>
+<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span><span class="preprocessor">#endif </span><span class="comment">// PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_GENERICFLOWFUNCTION_H</span></div>
 <div class="ttc" id="aFlowFunctions_8h_html"><div class="ttname"><a href="FlowFunctions_8h.html">FlowFunctions.h</a></div></div>
 <div class="ttc" id="aclassbool_html"><div class="ttname"><a href="classbool.html">bool</a></div></div>
 <div class="ttc" id="aclasspsr_1_1FlowFunction_html"><div class="ttname"><a href="classpsr_1_1FlowFunction.html">psr::FlowFunction</a></div><div class="ttdef"><b>Definition</b> <a href="FlowFunctions_8h_source.html#l00044">FlowFunctions.h:44</a></div></div>
@@ -244,7 +237,6 @@ $(document).ready(function() { init_codefold(0); });
 <div class="ttc" id="aclasspsr_1_1GenericFlowFunctionView_html_ae925c7fc3e700bbc477fbd1872537533"><div class="ttname"><a href="classpsr_1_1GenericFlowFunctionView.html#ae925c7fc3e700bbc477fbd1872537533">psr::GenericFlowFunctionView::~GenericFlowFunctionView</a></div><div class="ttdeci">~GenericFlowFunctionView()=default</div></div>
 <div class="ttc" id="aclasspsr_1_1GenericFlowFunctionView_html_aeb4503a724ebce1c57aab703b317b0ec"><div class="ttname"><a href="classpsr_1_1GenericFlowFunctionView.html#aeb4503a724ebce1c57aab703b317b0ec">psr::GenericFlowFunctionView::value_type</a></div><div class="ttdeci">typename container_type::value_type value_type</div><div class="ttdef"><b>Definition</b> <a href="GenericFlowFunction_8h_source.html#l00015">GenericFlowFunction.h:15</a></div></div>
 <div class="ttc" id="aclasspsr_1_1GenericFlowFunction_html"><div class="ttname"><a href="classpsr_1_1GenericFlowFunction.html">psr::GenericFlowFunction</a></div><div class="ttdoc">Encapsulates a managed pointer to a FlowFunction.</div><div class="ttdef"><b>Definition</b> <a href="GenericFlowFunction_8h_source.html#l00050">GenericFlowFunction.h:50</a></div></div>
-<div class="ttc" id="aclasspsr_1_1GenericFlowFunction_html_a284a0ebcd6151c1cfea4a6309de779ba"><div class="ttname"><a href="classpsr_1_1GenericFlowFunction.html#a284a0ebcd6151c1cfea4a6309de779ba">psr::GenericFlowFunction::operator!=</a></div><div class="ttdeci">bool operator!=(std::nullptr_t) const noexcept</div><div class="ttdef"><b>Definition</b> <a href="GenericFlowFunction_8h_source.html#l00100">GenericFlowFunction.h:100</a></div></div>
 <div class="ttc" id="aclasspsr_1_1GenericFlowFunction_html_a3ab625fb76296090b9f0af3a55d32601"><div class="ttname"><a href="classpsr_1_1GenericFlowFunction.html#a3ab625fb76296090b9f0af3a55d32601">psr::GenericFlowFunction::GenericFlowFunction</a></div><div class="ttdeci">GenericFlowFunction(GenericFlowFunction &amp;&amp;) noexcept=default</div></div>
 <div class="ttc" id="aclasspsr_1_1GenericFlowFunction_html_a3df97d0db14881b85a64b5f18865b382"><div class="ttname"><a href="classpsr_1_1GenericFlowFunction.html#a3df97d0db14881b85a64b5f18865b382">psr::GenericFlowFunction::GenericFlowFunction</a></div><div class="ttdeci">GenericFlowFunction(std::in_place_type_t&lt; T &gt;, ArgTys &amp;&amp;...Args)</div><div class="ttdef"><b>Definition</b> <a href="GenericFlowFunction_8h_source.html#l00066">GenericFlowFunction.h:66</a></div></div>
 <div class="ttc" id="aclasspsr_1_1GenericFlowFunction_html_a554b4b2d9267dcee15609a549699b194"><div class="ttname"><a href="classpsr_1_1GenericFlowFunction.html#a554b4b2d9267dcee15609a549699b194">psr::GenericFlowFunction::operator==</a></div><div class="ttdeci">bool operator==(std::nullptr_t) const noexcept</div><div class="ttdef"><b>Definition</b> <a href="GenericFlowFunction_8h_source.html#l00093">GenericFlowFunction.h:93</a></div></div>
@@ -255,7 +247,6 @@ $(document).ready(function() { init_codefold(0); });
 <div class="ttc" id="aclasspsr_1_1GenericFlowFunction_html_aac6adba5c2a8316b8544ee9932ead861"><div class="ttname"><a href="classpsr_1_1GenericFlowFunction.html#aac6adba5c2a8316b8544ee9932ead861">psr::GenericFlowFunction::container_type</a></div><div class="ttdeci">Container container_type</div><div class="ttdef"><b>Definition</b> <a href="GenericFlowFunction_8h_source.html#l00055">GenericFlowFunction.h:55</a></div></div>
 <div class="ttc" id="aclasspsr_1_1GenericFlowFunction_html_ab9376aacfc1b9beb1babc1d774d9254c"><div class="ttname"><a href="classpsr_1_1GenericFlowFunction.html#ab9376aacfc1b9beb1babc1d774d9254c">psr::GenericFlowFunction::GenericFlowFunction</a></div><div class="ttdeci">GenericFlowFunction(T &amp;&amp;FF)</div><div class="ttdef"><b>Definition</b> <a href="GenericFlowFunction_8h_source.html#l00062">GenericFlowFunction.h:62</a></div></div>
 <div class="ttc" id="aclasspsr_1_1GenericFlowFunction_html_ad5329979a3ccef24e9222ae2e8baf5ce"><div class="ttname"><a href="classpsr_1_1GenericFlowFunction.html#ad5329979a3ccef24e9222ae2e8baf5ce">psr::GenericFlowFunction::FlowFunctionPtrType</a></div><div class="ttdeci">typename FlowFunctionType::FlowFunctionPtrType FlowFunctionPtrType</div><div class="ttdef"><b>Definition</b> <a href="GenericFlowFunction_8h_source.html#l00053">GenericFlowFunction.h:53</a></div></div>
-<div class="ttc" id="aclasspsr_1_1GenericFlowFunction_html_ae6a750119b01ff315bb5927d6ea9873a"><div class="ttname"><a href="classpsr_1_1GenericFlowFunction.html#ae6a750119b01ff315bb5927d6ea9873a">psr::GenericFlowFunction::operator!=</a></div><div class="ttdeci">bool operator!=(GenericFlowFunctionView&lt; D, Container &gt; Other) const noexcept</div><div class="ttdef"><b>Definition</b> <a href="GenericFlowFunction_8h_source.html#l00097">GenericFlowFunction.h:97</a></div></div>
 <div class="ttc" id="aclasspsr_1_1MaybeUniquePtr_html"><div class="ttname"><a href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a></div><div class="ttdef"><b>Definition</b> <a href="MaybeUniquePtr_8h_source.html#l00064">MaybeUniquePtr.h:65</a></div></div>
 <div class="ttc" id="anamespacepsr_html"><div class="ttname"><a href="namespacepsr.html">psr</a></div><div class="ttdef"><b>Definition</b> <a href="AnalysisSetup_8h_source.html#l00013">AnalysisSetup.h:13</a></div></div>
 <div class="ttc" id="anamespacepsr_html_aff032377459da673c2e7dfa583735d58af31bbdd1b3e85bccd652680e16935819"><div class="ttname"><a href="namespacepsr.html#aff032377459da673c2e7dfa583735d58af31bbdd1b3e85bccd652680e16935819">psr::TaintCategory::Source</a></div><div class="ttdeci">@ Source</div></div>
@@ -263,7 +254,7 @@ $(document).ready(function() { init_codefold(0); });
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Sep 30 2026 09:29:27 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Mon Oct 19 2026 16:33:49 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

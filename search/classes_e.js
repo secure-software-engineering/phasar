@@ -7,6 +7,7 @@ var searchData=
   ['opensslsecurememorydescription_4',['OpenSSLSecureMemoryDescription',['../classpsr_1_1OpenSSLSecureMemoryDescription.html',1,'psr']]],
   ['otfresolver_5',['OTFResolver',['../classpsr_1_1OTFResolver.html',1,'psr']]],
   ['overloaded_6',['Overloaded',['../structpsr_1_1Overloaded.html',1,'psr']]],
-  ['owningidbasedsolverresults_7',['OwningIdBasedSolverResults',['../classpsr_1_1OwningIdBasedSolverResults.html',1,'psr']]],
-  ['owningsolverresults_8',['owningsolverresults',['../classpsr_1_1OwningSolverResults.html',1,'psr::OwningSolverResults&lt; N, D, L &gt;'],['../classpsr_1_1wpds_1_1OwningSolverResults.html',1,'psr::wpds::OwningSolverResults&lt; CLTy, SETy, WeightTy &gt;']]]
+  ['owningdfisolverresults_7',['OwningDFISolverResults',['../classpsr_1_1OwningDFISolverResults.html',1,'psr']]],
+  ['owningidbasedsolverresults_8',['OwningIdBasedSolverResults',['../classpsr_1_1OwningIdBasedSolverResults.html',1,'psr']]],
+  ['owningsolverresults_9',['owningsolverresults',['../classpsr_1_1OwningSolverResults.html',1,'psr::OwningSolverResults&lt; N, D, L &gt;'],['../classpsr_1_1wpds_1_1OwningSolverResults.html',1,'psr::wpds::OwningSolverResults&lt; CLTy, SETy, WeightTy &gt;']]]
 ];

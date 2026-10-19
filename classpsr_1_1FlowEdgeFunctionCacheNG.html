@@ -122,8 +122,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a6833531606cea64f7f45990945dd82ca inherit pub_methods_classpsr_1_1FlowFunctionCache" id="r_a6833531606cea64f7f45990945dd82ca"><td class="memItemLeft" align="right" valign="top">decltype(auto)&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1FlowFunctionCache.html#a6833531606cea64f7f45990945dd82ca">getRetFlowFunction</a> (ProblemTy &amp;Problem, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef</a>&lt; n_t &gt; CallSite, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef</a>&lt; f_t &gt; Callee, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef</a>&lt; n_t &gt; ExitInst, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef</a>&lt; n_t &gt; RetSite, uint64_t CSExitId, uint64_t CalleeRSId)</td></tr>
 <tr class="memdesc:a6833531606cea64f7f45990945dd82ca inherit pub_methods_classpsr_1_1FlowFunctionCache"><td class="mdescLeft">&#160;</td><td class="mdescRight">CAUTION: Keep the ID definitions in mind!  <br /></td></tr>
 <tr class="separator:a6833531606cea64f7f45990945dd82ca inherit pub_methods_classpsr_1_1FlowFunctionCache"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aebcdfe09ef13fb16d3d424e70123fecd inherit pub_methods_classpsr_1_1FlowFunctionCache" id="r_aebcdfe09ef13fb16d3d424e70123fecd"><td class="memItemLeft" align="right" valign="top">decltype(auto)&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1FlowFunctionCache.html#aebcdfe09ef13fb16d3d424e70123fecd">getSummaryFlowFunction</a> (ProblemTy &amp;Problem, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef</a>&lt; n_t &gt; CallSite, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef</a>&lt; f_t &gt; Callee, uint64_t)</td></tr>
-<tr class="separator:aebcdfe09ef13fb16d3d424e70123fecd inherit pub_methods_classpsr_1_1FlowFunctionCache"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8e91e625f0adad135d3b37d46a0c6dbf inherit pub_methods_classpsr_1_1FlowFunctionCache" id="r_a8e91e625f0adad135d3b37d46a0c6dbf"><td class="memItemLeft" align="right" valign="top">decltype(auto)&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1FlowFunctionCache.html#a8e91e625f0adad135d3b37d46a0c6dbf">getSummaryFlowFunction</a> (ProblemTy &amp;Problem, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef</a>&lt; n_t &gt; CallSite, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef</a>&lt; f_t &gt; Callee, uint64_t CSCalleeId)</td></tr>
+<tr class="separator:a8e91e625f0adad135d3b37d46a0c6dbf inherit pub_methods_classpsr_1_1FlowFunctionCache"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abba025e8dc6d7aa17a8f69f844a42ebd inherit pub_methods_classpsr_1_1FlowFunctionCache" id="r_abba025e8dc6d7aa17a8f69f844a42ebd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1FlowFunctionCache.html#abba025e8dc6d7aa17a8f69f844a42ebd">clear</a> () noexcept</td></tr>
 <tr class="separator:abba025e8dc6d7aa17a8f69f844a42ebd inherit pub_methods_classpsr_1_1FlowFunctionCache"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a86710e0df280e77a51d897dabc329f2d inherit pub_methods_classpsr_1_1FlowFunctionCache" id="r_a86710e0df280e77a51d897dabc329f2d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1FlowFunctionCache.html#a86710e0df280e77a51d897dabc329f2d">reserve</a> (<a class="el" href="classsize__t.html">size_t</a> NumInsts, <a class="el" href="classsize__t.html">size_t</a> NumCalls, <a class="el" href="classsize__t.html">size_t</a> NumFuns)</td></tr>
@@ -221,7 +221,7 @@ template&lt;typename ProblemTy , <a class="el" href="classbool.html">bool</a> Au
 
 <p class="definition">Definition at line <a class="el" href="FlowEdgeFunctionCacheNG_8h_source.html#l00025">25</a> of file <a class="el" href="FlowEdgeFunctionCacheNG_8h_source.html">FlowEdgeFunctionCacheNG.h</a>.</p>
 
-<p class="reference">References <a class="el" href="EdgeFunctionCache_8h_source.html#l00110">psr::EdgeFunctionCache&lt; ProblemTy &gt;::clear()</a>, and <a class="el" href="FlowFunctionCache_8h_source.html#l00279">psr::FlowFunctionCache&lt; ProblemTy, AutoAddZero &gt;::clear()</a>.</p>
+<p class="reference">References <a class="el" href="EdgeFunctionCache_8h_source.html#l00110">psr::EdgeFunctionCache&lt; ProblemTy &gt;::clear()</a>, and <a class="el" href="FlowFunctionCache_8h_source.html#l00287">psr::FlowFunctionCache&lt; ProblemTy, AutoAddZero &gt;::clear()</a>.</p>
 
 </div>
 </div>
@@ -252,7 +252,7 @@ template&lt;typename ProblemTy , <a class="el" href="classbool.html">bool</a> Au
 
 <p class="definition">Definition at line <a class="el" href="FlowEdgeFunctionCacheNG_8h_source.html#l00021">21</a> of file <a class="el" href="FlowEdgeFunctionCacheNG_8h_source.html">FlowEdgeFunctionCacheNG.h</a>.</p>
 
-<p class="reference">References <a class="el" href="FlowFunctionCache_8h_source.html#l00279">psr::FlowFunctionCache&lt; ProblemTy, AutoAddZero &gt;::clear()</a>.</p>
+<p class="reference">References <a class="el" href="FlowFunctionCache_8h_source.html#l00287">psr::FlowFunctionCache&lt; ProblemTy, AutoAddZero &gt;::clear()</a>.</p>
 
 </div>
 </div>
@@ -315,7 +315,7 @@ template&lt;typename ProblemTy , <a class="el" href="classbool.html">bool</a> Au
 
 <p class="definition">Definition at line <a class="el" href="FlowEdgeFunctionCacheNG_8h_source.html#l00036">36</a> of file <a class="el" href="FlowEdgeFunctionCacheNG_8h_source.html">FlowEdgeFunctionCacheNG.h</a>.</p>
 
-<p class="reference">References <a class="el" href="EdgeFunctionCache_8h_source.html#l00121">psr::EdgeFunctionCache&lt; ProblemTy &gt;::getStats()</a>, and <a class="el" href="FlowFunctionCache_8h_source.html#l00298">psr::FlowFunctionCache&lt; ProblemTy, AutoAddZero &gt;::getStats()</a>.</p>
+<p class="reference">References <a class="el" href="EdgeFunctionCache_8h_source.html#l00121">psr::EdgeFunctionCache&lt; ProblemTy &gt;::getStats()</a>, and <a class="el" href="FlowFunctionCache_8h_source.html#l00307">psr::FlowFunctionCache&lt; ProblemTy, AutoAddZero &gt;::getStats()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="FlowEdgeFunctionCacheNG_8h_source.html#l00041">psr::FlowEdgeFunctionCacheNG&lt; ProblemTy, AutoAddZero &gt;::dumpStats()</a>.</p>
 
@@ -366,7 +366,7 @@ template&lt;typename ProblemTy , <a class="el" href="classbool.html">bool</a> Au
 
 <p class="definition">Definition at line <a class="el" href="FlowEdgeFunctionCacheNG_8h_source.html#l00030">30</a> of file <a class="el" href="FlowEdgeFunctionCacheNG_8h_source.html">FlowEdgeFunctionCacheNG.h</a>.</p>
 
-<p class="reference">References <a class="el" href="FlowFunctionCache_8h_source.html#l00288">psr::FlowFunctionCache&lt; ProblemTy, AutoAddZero &gt;::reserve()</a>.</p>
+<p class="reference">References <a class="el" href="FlowFunctionCache_8h_source.html#l00296">psr::FlowFunctionCache&lt; ProblemTy, AutoAddZero &gt;::reserve()</a>.</p>
 
 </div>
 </div>
@@ -376,7 +376,7 @@ template&lt;typename ProblemTy , <a class="el" href="classbool.html">bool</a> Au
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Sep 30 2026 09:29:28 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Mon Oct 19 2026 16:33:50 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

@@ -12,7 +12,8 @@ var searchData=
   ['globalinitcache_9',['GlobalInitCache',['../structpsr_1_1GlobalInitCache.html',1,'psr']]],
   ['graphtraits_10',['GraphTraits',['../structpsr_1_1GraphTraits.html',1,'psr']]],
   ['graphtraits_3c_20adjacencylist_3c_20t_2c_20vtxid_2c_20edgety_20_3e_20_3e_11',['GraphTraits&lt; AdjacencyList&lt; T, VtxId, EdgeTy &gt; &gt;',['../structpsr_1_1GraphTraits_3_01AdjacencyList_3_01T_00_01VtxId_00_01EdgeTy_01_4_01_4.html',1,'psr']]],
-  ['graphtraits_3c_20reversecggraph_3c_20callgraphty_2c_20db_20_3e_20_3e_12',['GraphTraits&lt; ReverseCGGraph&lt; CallGraphTy, DB &gt; &gt;',['../structpsr_1_1GraphTraits_3_01ReverseCGGraph_3_01CallGraphTy_00_01DB_01_4_01_4.html',1,'psr']]],
-  ['graphtraits_3c_20sccdependencygraph_3c_20graphnodeid_20_3e_20_3e_13',['GraphTraits&lt; SCCDependencyGraph&lt; GraphNodeId &gt; &gt;',['../structpsr_1_1GraphTraits_3_01SCCDependencyGraph_3_01GraphNodeId_01_4_01_4.html',1,'psr']]],
-  ['graphtraits_3c_20vta_3a_3atypeassignmentgraph_20_3e_14',['GraphTraits&lt; vta::TypeAssignmentGraph &gt;',['../structpsr_1_1GraphTraits_3_01vta_1_1TypeAssignmentGraph_01_4.html',1,'psr']]]
+  ['graphtraits_3c_20csrgraph_3c_20vtxid_20_3e_20_3e_12',['GraphTraits&lt; CsrGraph&lt; VtxId &gt; &gt;',['../structpsr_1_1GraphTraits_3_01CsrGraph_3_01VtxId_01_4_01_4.html',1,'psr']]],
+  ['graphtraits_3c_20reversecggraph_3c_20callgraphty_2c_20db_20_3e_20_3e_13',['GraphTraits&lt; ReverseCGGraph&lt; CallGraphTy, DB &gt; &gt;',['../structpsr_1_1GraphTraits_3_01ReverseCGGraph_3_01CallGraphTy_00_01DB_01_4_01_4.html',1,'psr']]],
+  ['graphtraits_3c_20sccdependencygraph_3c_20graphnodeid_20_3e_20_3e_14',['GraphTraits&lt; SCCDependencyGraph&lt; GraphNodeId &gt; &gt;',['../structpsr_1_1GraphTraits_3_01SCCDependencyGraph_3_01GraphNodeId_01_4_01_4.html',1,'psr']]],
+  ['graphtraits_3c_20vta_3a_3atypeassignmentgraph_20_3e_15',['GraphTraits&lt; vta::TypeAssignmentGraph &gt;',['../structpsr_1_1GraphTraits_3_01vta_1_1TypeAssignmentGraph_01_4.html',1,'psr']]]
 ];

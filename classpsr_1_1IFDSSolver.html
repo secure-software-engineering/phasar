@@ -142,6 +142,11 @@ requires (std::same_as&lt; <a class="el" href="namespacepsr.html#a48b26a7172bbfb
 requires (std::same_as&lt; <a class="el" href="namespacepsr.html#a48b26a7172bbfb937dacf397c444af59">WithBinaryValueDomain</a>&lt;<a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a>&gt;, <a class="el" href="namespacepsr.html#a48b26a7172bbfb937dacf397c444af59">WithBinaryValueDomain</a>&lt;typename <a class="el" href="classpsr_1_1IFDSTabulationProblem.html#af495fb489201f950580cddb310fc4b13">ProblemTy::ProblemAnalysisDomain</a>&gt;&gt;)</td></tr>
 <tr class="memitem:a714ea1b5ffe46fb35411b7c7a2bc5e0c"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1IFDSSolver.html#a714ea1b5ffe46fb35411b7c7a2bc5e0c">IFDSSolver</a> (<a class="el" href="classpsr_1_1IFDSSolver.html#a87b4a9ae5da6a9fd08fd5733a36f4241">ProblemTy</a> *IFDSProblem, const ICFGTy *ICF)</td></tr>
 <tr class="separator:a714ea1b5ffe46fb35411b7c7a2bc5e0c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac0817a1f045cfba436490c023ce6fb9a" id="r_ac0817a1f045cfba436490c023ce6fb9a"><td class="memTemplParams" colspan="2">template&lt;IFDSProblem ProblemTy&gt; <br />
+requires (std::same_as&lt; <a class="el" href="namespacepsr.html#a48b26a7172bbfb937dacf397c444af59">WithBinaryValueDomain</a>&lt;<a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a>&gt;, <a class="el" href="namespacepsr.html#a48b26a7172bbfb937dacf397c444af59">WithBinaryValueDomain</a>&lt;typename <a class="el" href="classpsr_1_1IFDSTabulationProblem.html#af495fb489201f950580cddb310fc4b13">ProblemTy::ProblemAnalysisDomain</a>&gt;&gt;)</td></tr>
+<tr class="memitem:ac0817a1f045cfba436490c023ce6fb9a"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1IFDSSolver.html#ac0817a1f045cfba436490c023ce6fb9a">IFDSSolver</a> (<a class="el" href="classpsr_1_1IFDSSolver.html#a87b4a9ae5da6a9fd08fd5733a36f4241">ProblemTy</a> *IFDSProblem, const ICFGTy *ICF, <a class="el" href="classpsr_1_1IFDSIDESolverConfig.html">IFDSIDESolverConfig</a> SolverConfig)</td></tr>
+<tr class="memdesc:ac0817a1f045cfba436490c023ce6fb9a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Uses SolverConfig instead of the problem's solver config.  <br /></td></tr>
+<tr class="separator:ac0817a1f045cfba436490c023ce6fb9a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa63d07194b777a812e0f680558114bc3" id="r_aa63d07194b777a812e0f680558114bc3"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IFDSSolver.html#aa63d07194b777a812e0f680558114bc3">~IFDSSolver</a> () override=default</td></tr>
 <tr class="separator:aa63d07194b777a812e0f680558114bc3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa24b880017380e41fbf7f5ce19e889b7" id="r_aa24b880017380e41fbf7f5ce19e889b7"><td class="memItemLeft" align="right" valign="top">virtual std::set&lt; <a class="el" href="classpsr_1_1IFDSSolver.html#a923f3a8412a99865f598745e3fa925e6">d_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IFDSSolver.html#aa24b880017380e41fbf7f5ce19e889b7">ifdsResultsAt</a> (<a class="el" href="classpsr_1_1IFDSSolver.html#abb153ab319161d786f8d4b5fd9fec646">n_t</a> Inst)</td></tr>
@@ -159,6 +164,11 @@ requires (std::same_as&lt; <a class="el" href="namespacepsr.html#a48b26a7172bbfb
 requires (!std::derived_from&lt; <a class="el" href="classpsr_1_1IDESolver.html#ae2381df450e79eb954766538ee420738">ProblemTy</a>, <a class="el" href="classpsr_1_1IDETabulationProblem.html">IDETabulationProblem</a>&lt;typename <a class="el" href="classpsr_1_1IDETabulationProblem.html#af495fb489201f950580cddb310fc4b13">ProblemTy::ProblemAnalysisDomain</a>, typename <a class="el" href="classpsr_1_1FlowFunctions.html#a3c3c17edba5bc387e39e38d1165fdc99">ProblemTy::container_type</a>&gt;&gt;)</td></tr>
 <tr class="memitem:a16174327b34ba909d71e1734fcd88ef3 inherit pub_methods_classpsr_1_1IDESolver"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1IDESolver.html#a16174327b34ba909d71e1734fcd88ef3">IDESolver</a> (<a class="el" href="classpsr_1_1IDESolver.html#ae2381df450e79eb954766538ee420738">ProblemTy</a> *Problem, const <a class="el" href="classpsr_1_1IDESolver.html#a4cdc7978fc27431b1a2371bb7413a3aa">i_t</a> *ICF)</td></tr>
 <tr class="separator:a16174327b34ba909d71e1734fcd88ef3 inherit pub_methods_classpsr_1_1IDESolver"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6a5518a8f3ce9ba4e3801eb89331b891 inherit pub_methods_classpsr_1_1IDESolver" id="r_a6a5518a8f3ce9ba4e3801eb89331b891"><td class="memTemplParams" colspan="2">template&lt;IFDSProblem ProblemTy&gt; <br />
+requires (!std::derived_from&lt; <a class="el" href="classpsr_1_1IDESolver.html#ae2381df450e79eb954766538ee420738">ProblemTy</a>, <a class="el" href="classpsr_1_1IDETabulationProblem.html">IDETabulationProblem</a>&lt;typename <a class="el" href="classpsr_1_1IDETabulationProblem.html#af495fb489201f950580cddb310fc4b13">ProblemTy::ProblemAnalysisDomain</a>, typename <a class="el" href="classpsr_1_1FlowFunctions.html#a3c3c17edba5bc387e39e38d1165fdc99">ProblemTy::container_type</a>&gt;&gt;)</td></tr>
+<tr class="memitem:a6a5518a8f3ce9ba4e3801eb89331b891 inherit pub_methods_classpsr_1_1IDESolver"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1IDESolver.html#a6a5518a8f3ce9ba4e3801eb89331b891">IDESolver</a> (<a class="el" href="classpsr_1_1IDESolver.html#ae2381df450e79eb954766538ee420738">ProblemTy</a> *Problem, const <a class="el" href="classpsr_1_1IDESolver.html#a4cdc7978fc27431b1a2371bb7413a3aa">i_t</a> *ICF, <a class="el" href="classpsr_1_1IFDSIDESolverConfig.html">IFDSIDESolverConfig</a> SolverConfig)</td></tr>
+<tr class="memdesc:a6a5518a8f3ce9ba4e3801eb89331b891 inherit pub_methods_classpsr_1_1IDESolver"><td class="mdescLeft">&#160;</td><td class="mdescRight">Uses SolverConfig instead of the problem's solver config.  <br /></td></tr>
+<tr class="separator:a6a5518a8f3ce9ba4e3801eb89331b891 inherit pub_methods_classpsr_1_1IDESolver"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af8e26d40b1b022d2cd9e36a7c109159a inherit pub_methods_classpsr_1_1IDESolver" id="r_af8e26d40b1b022d2cd9e36a7c109159a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IDESolver.html#af8e26d40b1b022d2cd9e36a7c109159a">IDESolver</a> (const <a class="el" href="classpsr_1_1IDESolver.html">IDESolver</a> &amp;)=delete</td></tr>
 <tr class="separator:af8e26d40b1b022d2cd9e36a7c109159a inherit pub_methods_classpsr_1_1IDESolver"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a171cb8071a0fd89cdbbfb31781cdd2af inherit pub_methods_classpsr_1_1IDESolver" id="r_a171cb8071a0fd89cdbbfb31781cdd2af"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classpsr_1_1IDESolver.html">IDESolver</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IDESolver.html#a171cb8071a0fd89cdbbfb31781cdd2af">operator=</a> (const <a class="el" href="classpsr_1_1IDESolver.html">IDESolver</a> &amp;)=delete</td></tr>
@@ -409,7 +419,7 @@ template&lt;typename <a class="el" href="classAnalysisDomainTy.html">AnalysisDom
 </div>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a5444b2313e3990fb6670913fb594e75d" name="a5444b2313e3990fb6670913fb594e75d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5444b2313e3990fb6670913fb594e75d">&#9670;&#160;</a></span>IFDSSolver() <span class="overload">[1/2]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a5444b2313e3990fb6670913fb594e75d">&#9670;&#160;</a></span>IFDSSolver() <span class="overload">[1/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -452,7 +462,7 @@ requires (std::same_as&lt; <a class="el" href="namespacepsr.html#a48b26a7172bbfb
 </div>
 </div>
 <a id="a714ea1b5ffe46fb35411b7c7a2bc5e0c" name="a714ea1b5ffe46fb35411b7c7a2bc5e0c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a714ea1b5ffe46fb35411b7c7a2bc5e0c">&#9670;&#160;</a></span>IFDSSolver() <span class="overload">[2/2]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a714ea1b5ffe46fb35411b7c7a2bc5e0c">&#9670;&#160;</a></span>IFDSSolver() <span class="overload">[2/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -491,6 +501,57 @@ requires (std::same_as&lt; <a class="el" href="namespacepsr.html#a48b26a7172bbfb
 </div><div class="memdoc">
 
 <p class="definition">Definition at line <a class="el" href="IFDSSolver_8h_source.html#l00070">70</a> of file <a class="el" href="IFDSSolver_8h_source.html">IFDSSolver.h</a>.</p>
+
+</div>
+</div>
+<a id="ac0817a1f045cfba436490c023ce6fb9a" name="ac0817a1f045cfba436490c023ce6fb9a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac0817a1f045cfba436490c023ce6fb9a">&#9670;&#160;</a></span>IFDSSolver() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename <a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a> , typename Container  = std::set&lt;typename AnalysisDomainTy::d_t&gt;, ICFG ICFGTy = typename AnalysisDomainTy::i_t&gt; </div>
+<div class="memtemplate">
+template&lt;IFDSProblem ProblemTy&gt; <br />
+requires (std::same_as&lt; <a class="el" href="namespacepsr.html#a48b26a7172bbfb937dacf397c444af59">WithBinaryValueDomain</a>&lt;<a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a>&gt;, <a class="el" href="namespacepsr.html#a48b26a7172bbfb937dacf397c444af59">WithBinaryValueDomain</a>&lt;typename <a class="el" href="classpsr_1_1IFDSTabulationProblem.html#af495fb489201f950580cddb310fc4b13">ProblemTy::ProblemAnalysisDomain</a>&gt;&gt;)</div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classpsr_1_1IFDSSolver.html">psr::IFDSSolver</a>&lt; <a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a>, Container, ICFGTy &gt;::IFDSSolver </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classpsr_1_1IFDSSolver.html#a87b4a9ae5da6a9fd08fd5733a36f4241">ProblemTy</a> *&#160;</td>
+          <td class="paramname"><em>IFDSProblem</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const ICFGTy *&#160;</td>
+          <td class="paramname"><em>ICF</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classpsr_1_1IFDSIDESolverConfig.html">IFDSIDESolverConfig</a>&#160;</td>
+          <td class="paramname"><em>SolverConfig</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Uses SolverConfig instead of the problem's solver config. </p>
+
+<p class="definition">Definition at line <a class="el" href="IFDSSolver_8h_source.html#l00078">78</a> of file <a class="el" href="IFDSSolver_8h_source.html">IFDSSolver.h</a>.</p>
 
 </div>
 </div>
@@ -550,9 +611,9 @@ template&lt;typename <a class="el" href="classAnalysisDomainTy.html">AnalysisDom
 
 <p>Returns the data-flow results at the given statement. </p>
 
-<p class="definition">Definition at line <a class="el" href="IFDSSolver_8h_source.html#l00076">76</a> of file <a class="el" href="IFDSSolver_8h_source.html">IFDSSolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IFDSSolver_8h_source.html#l00085">85</a> of file <a class="el" href="IFDSSolver_8h_source.html">IFDSSolver.h</a>.</p>
 
-<p class="reference">References <a class="el" href="IDESolver_8h_source.html#l00239">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::resultsAt()</a>.</p>
+<p class="reference">References <a class="el" href="IDESolver_8h_source.html#l00263">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::resultsAt()</a>.</p>
 
 </div>
 </div>
@@ -586,9 +647,9 @@ template&lt;typename <a class="el" href="classAnalysisDomainTy.html">AnalysisDom
 <p>%0 = load i32, i32* i, align 4</p>
 <p>This result accessor function returns the results at the successor instruction(s) reflecting that the expression on the left-hand side holds if the expression on the right-hand side holds. </p>
 
-<p class="definition">Definition at line <a class="el" href="IFDSSolver_8h_source.html#l00101">101</a> of file <a class="el" href="IFDSSolver_8h_source.html">IFDSSolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IFDSSolver_8h_source.html#l00110">110</a> of file <a class="el" href="IFDSSolver_8h_source.html">IFDSSolver.h</a>.</p>
 
-<p class="reference">References <a class="el" href="IDESolver_8h_source.html#l00239">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::resultsAt()</a>.</p>
+<p class="reference">References <a class="el" href="IDESolver_8h_source.html#l00263">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::resultsAt()</a>.</p>
 
 </div>
 </div>
@@ -598,7 +659,7 @@ template&lt;typename <a class="el" href="classAnalysisDomainTy.html">AnalysisDom
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Sep 30 2026 09:29:28 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Mon Oct 19 2026 16:33:51 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

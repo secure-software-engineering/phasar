@@ -1,7 +1,11 @@
 <map id="psr::BitSet&lt; IdT, BitVectorTy &gt;" name="psr::BitSet&lt; IdT, BitVectorTy &gt;">
-<area shape="rect" id="Node000001" title="A set&#45;type that can compactly store sets of sequential integer&#45;like types." alt="" coords="100,5,320,31"/>
-<area shape="rect" id="Node000002" href="$classpsr_1_1BitSet.html" title=" " alt="" coords="5,108,196,148"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="144,39,120,56,107,82,103,108,98,108,102,80,116,53,141,34"/>
-<area shape="rect" id="Node000003" href="$classpsr_1_1BitSet.html" title=" " alt="" coords="220,115,421,141"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="266,34,293,53,313,84,321,114,316,116,308,86,289,56,263,38"/>
+<area shape="rect" id="Node000001" title="A set&#45;type that can compactly store sets of sequential integer&#45;like types." alt="" coords="5,85,225,111"/>
+<area shape="rect" id="Node000002" href="$classpsr_1_1BitSet.html" title=" " alt="" coords="472,5,625,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="164,78,249,54,365,34,471,22,472,27,366,39,250,59,165,83"/>
+<area shape="rect" id="Node000003" href="$classpsr_1_1BitSet.html" title=" " alt="" coords="447,55,651,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="239,87,446,72,447,77,239,92"/>
+<area shape="rect" id="Node000004" href="$classpsr_1_1BitSet.html" title=" " alt="" coords="453,107,644,147"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="179,111,250,123,355,130,453,129,453,134,355,135,249,129,178,116"/>
+<area shape="rect" id="Node000005" href="$classpsr_1_1BitSet.html" title=" " alt="" coords="448,172,649,197"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="155,114,200,134,250,150,351,169,448,178,448,184,351,174,249,155,198,139,153,119"/>
 </map>

@@ -16,9 +16,13 @@ var searchData=
   ['defaultvalue_2eh_13',['DefaultValue.h',['../DefaultValue_8h.html',1,'']]],
   ['demanddrivenanalysis_2eh_14',['DemandDrivenAnalysis.h',['../DemandDrivenAnalysis_8h.html',1,'']]],
   ['dfaminimizer_2eh_15',['DFAMinimizer.h',['../DFAMinimizer_8h.html',1,'']]],
-  ['dibasedtypehierarchy_2eh_16',['DIBasedTypeHierarchy.h',['../DIBasedTypeHierarchy_8h.html',1,'']]],
-  ['dibasedtypehierarchydata_2eh_17',['DIBasedTypeHierarchyData.h',['../DIBasedTypeHierarchyData_8h.html',1,'']]],
-  ['domain_2eh_18',['domain.h',['../PhasarLLVM_2Domain_8h.html',1,'(Global Namespace)'],['../Domain_8h.html',1,'(Global Namespace)']]],
-  ['dotgraph_2eh_19',['DOTGraph.h',['../DOTGraph_8h.html',1,'']]],
-  ['doublefreeconfig_2eh_20',['DoubleFreeConfig.h',['../DoubleFreeConfig_8h.html',1,'']]]
+  ['dfiexplodedsupergraph_2eh_16',['DFIExplodedSupergraph.h',['../DFIExplodedSupergraph_8h.html',1,'']]],
+  ['dfisolver_2eh_17',['DFISolver.h',['../DFISolver_8h.html',1,'']]],
+  ['dfisolverconfig_2eh_18',['DFISolverConfig.h',['../DFISolverConfig_8h.html',1,'']]],
+  ['dfisolverresults_2eh_19',['DFISolverResults.h',['../DFISolverResults_8h.html',1,'']]],
+  ['dibasedtypehierarchy_2eh_20',['DIBasedTypeHierarchy.h',['../DIBasedTypeHierarchy_8h.html',1,'']]],
+  ['dibasedtypehierarchydata_2eh_21',['DIBasedTypeHierarchyData.h',['../DIBasedTypeHierarchyData_8h.html',1,'']]],
+  ['domain_2eh_22',['domain.h',['../Domain_8h.html',1,'(Global Namespace)'],['../PhasarLLVM_2Domain_8h.html',1,'(Global Namespace)']]],
+  ['dotgraph_2eh_23',['DOTGraph.h',['../DOTGraph_8h.html',1,'']]],
+  ['doublefreeconfig_2eh_24',['DoubleFreeConfig.h',['../DoubleFreeConfig_8h.html',1,'']]]
 ];

@@ -25,7 +25,7 @@ var searchData=
   ['arguments_22',['Arguments',['../TaintConfigBase_8h.html#a50fa1bfac38a7f85614717c5f4f28d98',1,'TaintConfigBase.h']]],
   ['atinstruction_23',['AtInstruction',['../structpsr_1_1IterIDEPropagationJob.html#a962859cfd631b96f259d18957df033c0',1,'psr::IterIDEPropagationJob']]],
   ['atype_24',['AType',['../structpsr_1_1LLVMRawAliasSetBase_1_1Config.html#a6feb1f39b8580f749aa3b945de36974d',1,'psr::LLVMRawAliasSetBase::Config']]],
-  ['autoaddzero_25',['AutoAddZero',['../structpsr_1_1IDESolverConfigBase.html#a602a8c06b4a04dd0f7706fdbf4d95dfe',1,'psr::IDESolverConfigBase']]],
+  ['autoaddzero_25',['autoaddzero',['../structpsr_1_1DFISolverConfig.html#ae9f1d6cfabecd87ca9c5a99f0d29fdef',1,'psr::DFISolverConfig::AutoAddZero'],['../structpsr_1_1IDESolverConfigBase.html#a602a8c06b4a04dd0f7706fdbf4d95dfe',1,'psr::IDESolverConfigBase::AutoAddZero']]],
   ['autoglobalsupport_26',['AutoGlobalSupport',['../structpsr_1_1HelperAnalysisConfig.html#ad714db8e28290ae2b021f51cc7ac555a',1,'psr::HelperAnalysisConfig']]],
   ['avgefperedge_27',['AvgEFPerEdge',['../structpsr_1_1EdgeFunctionCacheStats.html#a915ad21870e95469b8e8092893b3ba12',1,'psr::EdgeFunctionCacheStats']]],
   ['avgesgedgesperinst_28',['AvgESGEdgesPerInst',['../structpsr_1_1IterativeIDESolverStats.html#aae96514713897e4d96bab87a747de1f6',1,'psr::IterativeIDESolverStats']]]

@@ -9,5 +9,6 @@ var searchData=
   ['bottomvalue_6',['BottomValue',['../structpsr_1_1AllBottom.html#a1343d3b9d439dba6e687d6f7c17061b0',1,'psr::AllBottom']]],
   ['branches_7',['Branches',['../structpsr_1_1GeneralStatistics.html#ac5ce8bef5bce31e7cf286a8451cf95f5',1,'psr::GeneralStatistics']]],
   ['buf_8',['Buf',['../structpsr_1_1TemplateString.html#ae48c6f64ab6ab31e8c56c07e1f6c0d5f',1,'psr::TemplateString']]],
-  ['byteoffset_9',['ByteOffset',['../structpsr_1_1vta_1_1Field.html#a736e8444f3758d8405b959f2e8f2a379',1,'psr::vta::Field']]]
+  ['buildqueryindex_9',['buildqueryindex',['../structpsr_1_1DFISolverConfig.html#a72eeaf4a355947dda220de449eb89163',1,'psr::DFISolverConfig::BuildQueryIndex'],['../structpsr_1_1DFISolverConfigNoIndex.html#a6e7152c290417434deac7ebc594911bd',1,'psr::DFISolverConfigNoIndex::BuildQueryIndex']]],
+  ['byteoffset_10',['ByteOffset',['../structpsr_1_1vta_1_1Field.html#a736e8444f3758d8405b959f2e8f2a379',1,'psr::vta::Field']]]
 ];

@@ -7,6 +7,8 @@ var searchData=
   ['retresinstructions_4',['RetResInstructions',['../structpsr_1_1GeneralStatistics.html#a9fc04bbff8c9ec8060dbbf54378f96f9',1,'psr::GeneralStatistics']]],
   ['returncat_5',['ReturnCat',['../structpsr_1_1FunctionData.html#aa340027e8e4342b02bae2b38b285a88a',1,'psr::FunctionData']]],
   ['returnffcachesize_6',['ReturnFFCacheSize',['../structpsr_1_1FlowFunctionCacheStats.html#abbe5333ebe96dddf35dd04f9e17189e1',1,'psr::FlowFunctionCacheStats']]],
-  ['roots_7',['roots',['../structpsr_1_1AdjacencyList.html#a5926317ef6707edfa0fe4a5584a51da0',1,'psr::AdjacencyList::Roots'],['../structpsr_1_1AdjacencyList_3_01EmptyType_00_01VtxId_00_01EdgeTy_01_4.html#a10805899307066984dc3a98c1bb53065',1,'psr::AdjacencyList&lt; EmptyType, VtxId, EdgeTy &gt;::Roots']]],
-  ['row_8',['Row',['../structpsr_1_1Table_1_1Cell.html#a09d26af9b379984e903ff42ffce27ed7',1,'psr::Table::Cell']]]
+  ['rindex_7',['RIndex',['../structpsr_1_1PearceSCCData.html#af6f03e4ed9634a7e2de14eef75594757',1,'psr::PearceSCCData']]],
+  ['root_8',['Root',['../structpsr_1_1PearceSCCData.html#a1b42233bf20552510d1c90a3f7771973',1,'psr::PearceSCCData']]],
+  ['roots_9',['roots',['../structpsr_1_1AdjacencyList.html#a5926317ef6707edfa0fe4a5584a51da0',1,'psr::AdjacencyList::Roots'],['../structpsr_1_1AdjacencyList_3_01EmptyType_00_01VtxId_00_01EdgeTy_01_4.html#a10805899307066984dc3a98c1bb53065',1,'psr::AdjacencyList&lt; EmptyType, VtxId, EdgeTy &gt;::Roots']]],
+  ['row_10',['Row',['../structpsr_1_1Table_1_1Cell.html#a09d26af9b379984e903ff42ffce27ed7',1,'psr::Table::Cell']]]
 ];
