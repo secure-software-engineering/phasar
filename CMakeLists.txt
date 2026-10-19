@@ -272,6 +272,7 @@ add_json_schema_validator()
 
 # TBB
 find_package(TBB QUIET) # needed by GCC
+set(PHASAR_USE_TBB ${TBB_FOUND})
 
 # Coverage
 if (CODE_COVERAGE)
