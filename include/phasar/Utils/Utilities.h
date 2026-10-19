@@ -290,7 +290,7 @@ template <typename T> constexpr auto copyOrRef(T &Val) noexcept {
   }
 }
 
-struct identity {
+struct [[deprecated("Use IdentityFn from TypeTraits.h instead")]] identity {
   template <typename T> decltype(auto) operator()(T &&Val) const noexcept {
     return std::forward<T>(Val);
   }
