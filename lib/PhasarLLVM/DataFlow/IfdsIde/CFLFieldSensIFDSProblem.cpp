@@ -667,6 +667,18 @@ static void klimitPaths(auto &Paths, FieldStringManager &Mgr) {
   ToInsert.reserve(Paths.size()); // retained across .clear() calls below
 
   // Merge stores
+#if LLVM_VERSION_MAJOR >= 23
+  Paths.remove_if([&](const AccessPath &AP) {
+    if (AP.Stores == FieldStringNodeId::None) {
+      return false;
+    }
+    AccessPath Approx = AP;
+    auto StoresHead = Mgr[Approx.Stores];
+    Approx.Stores = Mgr.prepend(AccessPath::TopOffset, StoresHead.Next);
+    ToInsert[Approx].push_back(AP);
+    return true;
+  });
+#else
   for (auto IIt = Paths.begin(), End = Paths.end(); IIt != End;) {
     auto It = IIt++;
     if (It->Stores != FieldStringNodeId::None) {
@@ -677,6 +689,7 @@ static void klimitPaths(auto &Paths, FieldStringManager &Mgr) {
       Paths.erase(It);
     }
   }
+#endif
   for (auto &&[Approx, OrigPaths] : ToInsert) {
     if (OrigPaths.size() > 2) {
       Paths.insert(Approx);
@@ -703,6 +716,18 @@ static void klimitPaths(auto &Paths, FieldStringManager &Mgr) {
 
   // Merge loads
   ToInsert.clear();
+#if LLVM_VERSION_MAJOR >= 23
+  Paths.remove_if([&](const AccessPath &AP) {
+    if (AP.Loads == FieldStringNodeId::None) {
+      return false;
+    }
+    AccessPath Approx = AP;
+    auto LoadsHead = Mgr[Approx.Loads];
+    Approx.Loads = Mgr.prepend(AccessPath::TopOffset, LoadsHead.Next);
+    ToInsert[Approx].push_back(AP);
+    return true;
+  });
+#else
   for (auto IIt = Paths.begin(), End = Paths.end(); IIt != End;) {
     auto It = IIt++;
     if (It->Loads != FieldStringNodeId::None) {
@@ -713,6 +738,7 @@ static void klimitPaths(auto &Paths, FieldStringManager &Mgr) {
       Paths.erase(It);
     }
   }
+#endif
   for (auto &&[Approx, OrigPaths] : ToInsert) {
     if (OrigPaths.size() > 2) {
       Paths.insert(Approx);
@@ -723,6 +749,14 @@ static void klimitPaths(auto &Paths, FieldStringManager &Mgr) {
 
   // Merge Kills
   ToInsert.clear();
+#if LLVM_VERSION_MAJOR >= 23
+  Paths.remove_if([&](const AccessPath &AP) {
+    AccessPath Approx = AP;
+    Approx.Kills = {};
+    ToInsert[Approx].push_back(AP);
+    return true;
+  });
+#else
   for (auto IIt = Paths.begin(), End = Paths.end(); IIt != End;) {
     auto It = IIt++;
 
@@ -731,6 +765,7 @@ static void klimitPaths(auto &Paths, FieldStringManager &Mgr) {
     ToInsert[Approx].push_back(*It);
     Paths.erase(It);
   }
+#endif
   for (auto &&[Approx, OrigPaths] : ToInsert) {
     if (OrigPaths.size() > 2) {
       auto KillSet = Mgr.kills(OrigPaths.front().Kills);

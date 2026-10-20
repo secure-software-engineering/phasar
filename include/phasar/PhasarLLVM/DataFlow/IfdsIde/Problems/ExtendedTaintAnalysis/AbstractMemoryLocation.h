@@ -209,6 +209,7 @@ llvm::hash_code hash_value(psr::AbstractMemoryLocation Val);
 namespace llvm {
 
 template <> struct DenseMapInfo<psr::AbstractMemoryLocation> {
+#if LLVM_VERSION_MAJOR < 23
   static inline psr::AbstractMemoryLocation getEmptyKey() {
     return {
         DenseMapInfo<psr::detail::AbstractMemoryLocationImpl *>::getEmptyKey()};
@@ -217,6 +218,7 @@ template <> struct DenseMapInfo<psr::AbstractMemoryLocation> {
     return {DenseMapInfo<
         psr::detail::AbstractMemoryLocationImpl *>::getTombstoneKey()};
   }
+#endif
   static unsigned getHashValue(psr::AbstractMemoryLocation Val) {
     return hash_value(Val);
   }

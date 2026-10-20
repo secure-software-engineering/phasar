@@ -68,6 +68,7 @@ private:
       if (LHS == RHS) {
         return true;
       }
+#if LLVM_VERSION_MAJOR < 23
       const auto *Empty =
           llvm::DenseMapInfo<const EdgeFunctionTy *>::getEmptyKey();
       const auto *Tombstone =
@@ -76,15 +77,16 @@ private:
           RHS == Tombstone) {
         return false;
       }
-
+#endif
       return *LHS == *RHS;
     }
 
     static auto getHashValue(const EdgeFunctionTy *EF) noexcept {
+#if LLVM_VERSION_MAJOR < 23
       assert(EF != llvm::DenseMapInfo<const EdgeFunctionTy *>::getEmptyKey());
       assert(EF !=
              llvm::DenseMapInfo<const EdgeFunctionTy *>::getTombstoneKey());
-
+#endif
       return hash_value(*EF);
     }
   };

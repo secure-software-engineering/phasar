@@ -456,6 +456,13 @@ public:
   using iterator = typename llvm::DenseMap<K, V>::iterator;
   using const_iterator = typename llvm::DenseMap<K, V>::const_iterator;
 
+#if LLVM_VERSION_MAJOR >= 23
+  /// Erases all cells for which P(Cell) returns true.
+  template <typename Pred> void eraseIf(Pred P) {
+    Map.remove_if(std::move(P));
+  }
+#endif
+
   DenseTable1d() noexcept = default;
   /// Dummy ctor for compatibility with UnorderedTable1d
   template <typename Allocator>

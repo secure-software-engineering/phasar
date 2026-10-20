@@ -274,6 +274,7 @@ namespace llvm {
 
 // Specialize DenseMapInfo for OffsetValue.
 template <> struct DenseMapInfo<OffsetValue> {
+#if LLVM_VERSION_MAJOR < 23
   static OffsetValue getEmptyKey() {
     return OffsetValue{DenseMapInfo<const Value *>::getEmptyKey(),
                        DenseMapInfo<int64_t>::getEmptyKey()};
@@ -283,6 +284,7 @@ template <> struct DenseMapInfo<OffsetValue> {
     return OffsetValue{DenseMapInfo<const Value *>::getTombstoneKey(),
                        DenseMapInfo<int64_t>::getEmptyKey()};
   }
+#endif
 
   static unsigned getHashValue(const OffsetValue &OVal) {
     return DenseMapInfo<std::pair<const Value *, int64_t>>::getHashValue(
@@ -296,6 +298,7 @@ template <> struct DenseMapInfo<OffsetValue> {
 
 // Specialize DenseMapInfo for OffsetInstantiatedValue.
 template <> struct DenseMapInfo<OffsetInstantiatedValue> {
+#if LLVM_VERSION_MAJOR < 23
   static OffsetInstantiatedValue getEmptyKey() {
     return OffsetInstantiatedValue{
         DenseMapInfo<InstantiatedValue>::getEmptyKey(),
@@ -307,6 +310,7 @@ template <> struct DenseMapInfo<OffsetInstantiatedValue> {
         DenseMapInfo<InstantiatedValue>::getTombstoneKey(),
         DenseMapInfo<int64_t>::getEmptyKey()};
   }
+#endif
 
   static unsigned getHashValue(const OffsetInstantiatedValue &OVal) {
     return DenseMapInfo<std::pair<InstantiatedValue, int64_t>>::getHashValue(

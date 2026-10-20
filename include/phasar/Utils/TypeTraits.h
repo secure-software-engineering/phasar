@@ -212,8 +212,10 @@ concept has_isInteresting_v = requires(
 
 template <typename T>
 constexpr bool has_llvm_dense_map_info = requires(const T &Val) {
+#if LLVM_VERSION_MAJOR < 23
   { llvm::DenseMapInfo<T>::getEmptyKey() } -> std::same_as<T>;
   { llvm::DenseMapInfo<T>::getTombstoneKey() } -> std::same_as<T>;
+#endif
   { llvm::DenseMapInfo<T>::getHashValue(Val) } -> std::convertible_to<size_t>;
   { llvm::DenseMapInfo<T>::isEqual(Val, Val) } -> std::convertible_to<bool>;
 };

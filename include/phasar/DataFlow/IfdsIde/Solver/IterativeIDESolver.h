@@ -199,9 +199,7 @@ private:
       this->base_results_t::ValTab.emplace_back().reserve(16);
     }
     if constexpr (EnableJumpFunctionGC != JumpFunctionGCMode::Disabled) {
-      RefCountPerFunction = llvm::OwningArrayRef<size_t>(NumFuns);
-      std::uninitialized_fill_n(RefCountPerFunction.data(),
-                                RefCountPerFunction.size(), 0);
+      RefCountPerFunction.resize(NumFuns, 0);
       CandidateFunctionsForGC.resize(NumFuns);
     }
 
@@ -1283,6 +1281,11 @@ private:
   }
 
   void cleanupInterJobsFor(unsigned FunId) {
+#if LLVM_VERSION_MAJOR >= 23
+    SourceFactAndFuncToInterJob.eraseIf([FunId](const auto &Cell) {
+      return splitId(Cell.first).second == FunId;
+    });
+#else
     auto Cells = SourceFactAndFuncToInterJob.cells();
     for (auto Iter = Cells.begin(), End = Cells.end(); Iter != End;) {
       auto It = Iter++;
@@ -1291,6 +1294,7 @@ private:
         SourceFactAndFuncToInterJob.erase(It);
       }
     }
+#endif
   }
 
   void collectFunction(unsigned FunId) {
@@ -1377,7 +1381,7 @@ private:
                      EmptyType>
       EndSummaryTab;
 
-  llvm::OwningArrayRef<size_t> RefCountPerFunction{};
+  llvm::SmallVector<size_t, 0> RefCountPerFunction{};
   llvm::BitVector CandidateFunctionsForGC{};
 
   flow_edge_function_cache_t FECache{Problem};

@@ -131,23 +131,27 @@ struct FieldWriteKey {
 
 namespace llvm {
 template <> struct DenseMapInfo<AndersenVar> {
+#if LLVM_VERSION_MAJOR < 23
   static AndersenVar getEmptyKey() noexcept {
     return {DenseMapInfo<psr::PAGVariable>::getEmptyKey(), false};
   }
   static AndersenVar getTombstoneKey() noexcept {
     return {DenseMapInfo<psr::PAGVariable>::getTombstoneKey(), false};
   }
+#endif
   static unsigned getHashValue(AndersenVar V) noexcept { return hash_value(V); }
   static bool isEqual(AndersenVar A, AndersenVar B) noexcept { return A == B; }
 };
 
 template <> struct DenseMapInfo<ContextualVar> {
+#if LLVM_VERSION_MAJOR < 23
   static ContextualVar getEmptyKey() noexcept {
     return {DenseMapInfo<AndersenVar>::getEmptyKey(), {}};
   }
   static ContextualVar getTombstoneKey() noexcept {
     return {DenseMapInfo<AndersenVar>::getTombstoneKey(), {}};
   }
+#endif
   static unsigned getHashValue(ContextualVar V) noexcept {
     return hash_value(V);
   }
@@ -157,23 +161,27 @@ template <> struct DenseMapInfo<ContextualVar> {
 };
 
 template <> struct DenseMapInfo<ObjectKey> {
+#if LLVM_VERSION_MAJOR < 23
   static ObjectKey getEmptyKey() noexcept {
     return {DenseMapInfo<const Value *>::getEmptyKey(), {}};
   }
   static ObjectKey getTombstoneKey() noexcept {
     return {DenseMapInfo<const Value *>::getTombstoneKey(), {}};
   }
+#endif
   static unsigned getHashValue(ObjectKey K) noexcept { return hash_value(K); }
   static bool isEqual(ObjectKey A, ObjectKey B) noexcept { return A == B; }
 };
 
 template <> struct DenseMapInfo<FieldWriteKey> {
+#if LLVM_VERSION_MAJOR < 23
   static FieldWriteKey getEmptyKey() noexcept {
     return {DenseMapInfo<ObjectKey>::getEmptyKey(), {}};
   }
   static FieldWriteKey getTombstoneKey() noexcept {
     return {DenseMapInfo<ObjectKey>::getTombstoneKey(), {}};
   }
+#endif
   static unsigned getHashValue(const FieldWriteKey &K) noexcept {
     auto H1 = llvm::hash_combine_range(K.Indices.begin(), K.Indices.end());
     return llvm::hash_combine(H1, hash_value(K.Obj));
