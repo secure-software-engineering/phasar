@@ -104,7 +104,7 @@ concept is_iterable_v = requires(T &Val) {
 
 template <typename T, typename Over>
 concept is_iterable_over_v = is_iterable_v<T> && requires(T &Val) {
-  { *llvm::adl_begin(Val) } -> same_as_decay<Over>;
+  { *llvm::adl_begin(Val) } -> std::convertible_to<Over>;
 };
 
 template <typename T>
@@ -238,26 +238,19 @@ constexpr size_t variant_idx = detail::variant_idx<Var, T>::value;
 
 template <typename Container>
 using ElementType = typename detail::ElementType<Container>::type;
-template <typename T, typename Enable = void>
-struct [[deprecated("getAsJson should not be used anymore. Use printAsJson "
-                    "instead")]] has_getAsJson : std::false_type {}; // NOLINT
-template <typename T>
-struct [[deprecated(
-    "getAsJson should not be used anymore. Use printAsJson "
-    "instead")]] has_getAsJson<T, std::void_t<decltype(std::declval<const T>()
-                                                           .getAsJson())>>
-    : std::true_type {}; // NOLINT
 
 struct TrueFn {
   template <typename... Args>
-  [[nodiscard]] bool operator()(const Args &.../*unused*/) const noexcept {
+  [[nodiscard]] constexpr bool
+  operator()(const Args &.../*unused*/) const noexcept {
     return true;
   }
 };
 
 struct FalseFn {
   template <typename... Args>
-  [[nodiscard]] bool operator()(const Args &.../*unused*/) const noexcept {
+  [[nodiscard]] constexpr bool
+  operator()(const Args &.../*unused*/) const noexcept {
     return false;
   }
 };
@@ -265,14 +258,15 @@ struct FalseFn {
 /// Delegates to the ctor of T
 template <typename T> struct DefaultConstruct {
   template <typename... U>
-  [[nodiscard]] T
-  operator()(U &&...Val) noexcept(std::is_nothrow_constructible_v<T, U...>) {
+  [[nodiscard]] constexpr T operator()(U &&...Val) const
+      noexcept(std::is_nothrow_constructible_v<T, U...>) {
     return T(std::forward<U>(Val)...);
   }
 };
 
 struct IgnoreArgs {
-  template <typename... U> void operator()(U &&.../*Val*/) noexcept {}
+  template <typename... U>
+  constexpr void operator()(U &&.../*Val*/) const noexcept {}
 };
 
 template <typename T>
@@ -298,13 +292,14 @@ template <has_adl_join T>
 }
 
 struct IdentityFn {
-  template <typename T> decltype(auto) operator()(T &&Val) const noexcept {
+  template <typename T>
+  constexpr decltype(auto) operator()(T &&Val) const noexcept {
     return std::forward<decltype(Val)>(Val);
   }
 };
 
-template <typename ArgT> struct DummyFn {
-  void operator()(ArgT Arg) const noexcept {}
+template <typename... ArgsT> struct DummyFn {
+  constexpr void operator()(ArgsT... Arg) const noexcept {}
 };
 
 /// True if T can be relocated by copying its bytes (e.g. via memcpy) without

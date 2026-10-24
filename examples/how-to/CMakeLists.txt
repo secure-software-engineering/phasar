@@ -11,3 +11,8 @@ foreach(child ${children})
     add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/${child})
   endif()
 endforeach()
+
+find_package(phasar REQUIRED CONFIG)
+
+message("PHASAR_LLVM_VERSION LLVM-${PHASAR_LLVM_VERSION}")
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/../llvm-hello-world ${CMAKE_CURRENT_BINARY_DIR}/llvm-hello-world)

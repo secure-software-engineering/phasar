@@ -9,22 +9,16 @@
 
 #include "phasar/Utils/Utilities.h"
 
-#include "phasar/Utils/Logger.h"
-
-#include "llvm/ADT/StringExtras.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Demangle/Demangle.h"
-#include "llvm/IR/DerivedTypes.h"
 
 #include <algorithm>
 #include <chrono>
+#include <string>
 
-using namespace std;
 using namespace psr;
 
-namespace psr {
-
-std::string createTimeStamp() {
+std::string psr::createTimeStamp() {
   auto Now = std::chrono::system_clock::now();
   auto NowTime = std::chrono::system_clock::to_time_t(Now);
   std::string TimeStr(std::ctime(&NowTime));
@@ -34,7 +28,7 @@ std::string createTimeStamp() {
   return TimeStr;
 }
 
-bool isConstructor(llvm::StringRef MangledName) {
+bool psr::isConstructor(llvm::StringRef MangledName) {
   // WARNING: Doesn't work for templated classes, should
   // the best way to do it I can think of is to use a lexer
   // on the name to detect the constructor point explained
@@ -61,7 +55,7 @@ bool isConstructor(llvm::StringRef MangledName) {
   return false;
 }
 
-bool isMangled(llvm::StringRef Name) {
+bool psr::isMangled(llvm::StringRef Name) {
   // See llvm/Demangle/Demangle.cpp
   if (Name.starts_with("_Z") || Name.starts_with("___Z")) {
     // Itanium ABI
@@ -98,4 +92,11 @@ bool StringIDLess::operator()(const std::string &Lhs,
   return LhsVal < RhsVal;
 }
 
-} // namespace psr
+std::string psr::locToString(std::source_location Loc) {
+  std::string Ret = Loc.file_name();
+  Ret += ':';
+  Ret += std::to_string(Loc.line());
+  Ret += ':';
+  Ret += std::to_string(Loc.column());
+  return Ret;
+}

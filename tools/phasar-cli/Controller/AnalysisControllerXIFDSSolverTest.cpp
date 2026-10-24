@@ -14,5 +14,5 @@
 using namespace psr;
 
 void controller::executeIFDSSolverTest(AnalysisController &Data) {
-  executeIFDSAnalysis<IFDSSolverTest>(Data, Data.EntryPoints);
+  executeIFDSAnalysis<IFDSSolverTest>(Data, Data.getEntryPoints());
 }

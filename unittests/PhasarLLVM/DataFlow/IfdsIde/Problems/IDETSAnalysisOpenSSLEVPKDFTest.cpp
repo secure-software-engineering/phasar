@@ -64,7 +64,7 @@ protected:
 
     KdfSolver = std::make_unique<
         IDESolver<IDETypeStateAnalysisDomain<OpenSSLEVPKDFDescription>>>(
-        *TSKDFProblem, &HA->getICFG());
+        &*TSKDFProblem, &HA->getICFG());
 
     OpenSSLEVPKeyDerivationDesc.emplace(*KdfSolver);
 
@@ -74,7 +74,7 @@ protected:
 
     Llvmtssolver = std::make_unique<
         IDESolver<IDETypeStateAnalysisDomain<OpenSSLEVPKDFCTXDescription>>>(
-        *TSProblem, &HA->getICFG());
+        &*TSProblem, &HA->getICFG());
     KdfSolver->solve();
     Llvmtssolver->solve();
   }

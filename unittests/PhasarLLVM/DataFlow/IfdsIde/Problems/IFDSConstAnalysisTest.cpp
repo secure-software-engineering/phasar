@@ -8,7 +8,9 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/DebugOutput.h"
 
+#include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/Support/Casting.h"
@@ -56,44 +58,45 @@ protected:
   }
 
   void compareResultsImpl(const std::set<const llvm::Value *> &GroundTruth,
-                          IFDSSolver_P<IFDSConstAnalysis> &Solver) {
+                          auto &&SR) {
     std::set<const llvm::Value *> AllMutableAllocas;
 
     for (const auto *RR : getRetOrResInstructions()) {
-      std::set<const llvm::Value *> Facts = Solver.ifdsResultsAt(RR);
+      std::set<const llvm::Value *> Facts = SR.ifdsResultsAt(RR);
       for (const auto *Fact : Facts) {
         if (isAllocaInstOrHeapAllocaFunction(Fact) ||
             (llvm::isa<llvm::GlobalValue>(Fact) &&
-             !Constproblem->isZeroValue(Fact))) {
+             !llvm::cast<llvm::GlobalVariable>(Fact)->isConstant())) {
           llvm::outs() << "Found *Fact: " << *Fact << "\n";
           AllMutableAllocas.insert(Fact);
         }
       }
     }
 
-    EXPECT_EQ(GroundTruth, AllMutableAllocas);
+    EXPECT_EQ(GroundTruth, AllMutableAllocas)
+        << " Expected " << PrettyPrinter{GroundTruth};
   }
 
   void compareResults(const std::set<TestingSrcLocation> &GroundTruth,
-                      IFDSSolver_P<IFDSConstAnalysis> &Solver) {
+                      auto &Solver) {
     auto GroundTruthEntries =
         convertTestingLocationSetInIR(GroundTruth, HA->getProjectIRDB());
 
-    compareResultsImpl(GroundTruthEntries, Solver);
+    compareResultsImpl(GroundTruthEntries, Solver.getSolverResults());
   }
   void compareResults(std::initializer_list<TestingSrcLocation> GroundTruth,
-                      IFDSSolver_P<IFDSConstAnalysis> &Solver) {
+                      auto &Solver) {
     auto GroundTruthEntries =
         convertTestingLocationSetInIR(GroundTruth, HA->getProjectIRDB());
 
-    compareResultsImpl(GroundTruthEntries, Solver);
+    compareResultsImpl(GroundTruthEntries, Solver.getSolverResults());
   }
 };
 
 /* ============== BASIC TESTS ============== */
 TEST_F(IFDSConstAnalysisTest, HandleBasicTest_01) {
   initialize({PathToLlFiles + "basic/basic_01_cpp_dbg.ll"});
-  IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
+  IFDSSolver Llvmconstsolver(&*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
   std::set<TestingSrcLocation> GroundTruth;
   compareResults(GroundTruth, Llvmconstsolver);
@@ -101,7 +104,7 @@ TEST_F(IFDSConstAnalysisTest, HandleBasicTest_01) {
 
 TEST_F(IFDSConstAnalysisTest, HandleBasicTest_02) {
   initialize({PathToLlFiles + "basic/basic_02_cpp_dbg.ll"});
-  IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
+  IFDSSolver Llvmconstsolver(&*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
   auto Entry = LineColFun{3, 0, "main"};
   std::set<TestingSrcLocation> GroundTruth{Entry};
@@ -110,7 +113,7 @@ TEST_F(IFDSConstAnalysisTest, HandleBasicTest_02) {
 
 TEST_F(IFDSConstAnalysisTest, HandleBasicTest_03) {
   initialize({PathToLlFiles + "basic/basic_03_cpp_dbg.ll"});
-  IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
+  IFDSSolver Llvmconstsolver(&*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
   auto Entry = LineColFun{3, 0, "main"};
   std::set<TestingSrcLocation> GroundTruth{Entry};
@@ -119,7 +122,7 @@ TEST_F(IFDSConstAnalysisTest, HandleBasicTest_03) {
 
 TEST_F(IFDSConstAnalysisTest, HandleBasicTest_04) {
   initialize({PathToLlFiles + "basic/basic_04_cpp_dbg.ll"});
-  IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
+  IFDSSolver Llvmconstsolver(&*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
   auto Entry = LineColFun{3, 0, "main"};
   std::set<TestingSrcLocation> GroundTruth{Entry};
@@ -129,7 +132,7 @@ TEST_F(IFDSConstAnalysisTest, HandleBasicTest_04) {
 /* ============== CONTROL FLOW TESTS ============== */
 TEST_F(IFDSConstAnalysisTest, HandleCFForTest_01) {
   initialize({PathToLlFiles + "control_flow/cf_for_01_cpp_m2r_dbg.ll"});
-  IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
+  IFDSSolver Llvmconstsolver(&*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
   auto Entry = LineColFun{3, 12, "main"};
   std::set<TestingSrcLocation> GroundTruth{Entry};
@@ -138,7 +141,7 @@ TEST_F(IFDSConstAnalysisTest, HandleCFForTest_01) {
 
 TEST_F(IFDSConstAnalysisTest, HandleCFForTest_02) {
   initialize({PathToLlFiles + "control_flow/cf_for_02_cpp_m2r_dbg.ll"});
-  IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
+  IFDSSolver Llvmconstsolver(&*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
   auto Entry = LineColFun{4, 12, "main"};
   std::set<TestingSrcLocation> GroundTruth{Entry};
@@ -147,7 +150,7 @@ TEST_F(IFDSConstAnalysisTest, HandleCFForTest_02) {
 
 TEST_F(IFDSConstAnalysisTest, HandleCFIfTest_01) {
   initialize({PathToLlFiles + "control_flow/cf_if_01_cpp_m2r_dbg.ll"});
-  IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
+  IFDSSolver Llvmconstsolver(&*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
   auto Entry = LineColFun{4, 12, "main"};
   std::set<TestingSrcLocation> GroundTruth{Entry};
@@ -156,7 +159,7 @@ TEST_F(IFDSConstAnalysisTest, HandleCFIfTest_01) {
 
 TEST_F(IFDSConstAnalysisTest, HandleCFIfTest_02) {
   initialize({PathToLlFiles + "control_flow/cf_if_02_cpp_m2r_dbg.ll"});
-  IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
+  IFDSSolver Llvmconstsolver(&*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
   std::set<TestingSrcLocation> GroundTruth{};
   compareResults(GroundTruth, Llvmconstsolver);
@@ -164,7 +167,7 @@ TEST_F(IFDSConstAnalysisTest, HandleCFIfTest_02) {
 
 TEST_F(IFDSConstAnalysisTest, HandleCFWhileTest_01) {
   initialize({PathToLlFiles + "control_flow/cf_while_01_cpp_m2r_dbg.ll"});
-  IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
+  IFDSSolver Llvmconstsolver(&*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
   auto Entry = LineColFun{5, 12, "main"};
   std::set<TestingSrcLocation> GroundTruth{Entry};
@@ -174,7 +177,7 @@ TEST_F(IFDSConstAnalysisTest, HandleCFWhileTest_01) {
 /* ============== POINTER TESTS ============== */
 TEST_F(IFDSConstAnalysisTest, HandlePointerTest_01) {
   initialize({PathToLlFiles + "pointer/pointer_01_cpp_dbg.ll"});
-  IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
+  IFDSSolver Llvmconstsolver(&*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
   auto Entry = LineColFun{3, 0, "main"};
   std::set<TestingSrcLocation> GroundTruth{Entry};
@@ -183,7 +186,7 @@ TEST_F(IFDSConstAnalysisTest, HandlePointerTest_01) {
 
 TEST_F(IFDSConstAnalysisTest, HandlePointerTest_02) {
   initialize({PathToLlFiles + "pointer/pointer_02_cpp_dbg.ll"});
-  IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
+  IFDSSolver Llvmconstsolver(&*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
   auto Entry = LineColFun{3, 0, "main"};
   std::set<TestingSrcLocation> GroundTruth{Entry};
@@ -194,7 +197,7 @@ TEST_F(IFDSConstAnalysisTest, DISABLED_HandlePointerTest_03) {
   // Guaranteed to fail - enable, once we have more precise points-to
   // information
   initialize({PathToLlFiles + "pointer/pointer_03_cpp_dbg.ll"});
-  IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
+  IFDSSolver Llvmconstsolver(&*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
   auto Entry = LineColFun{4, 0, "main"};
   std::set<TestingSrcLocation> GroundTruth{Entry};
@@ -203,7 +206,7 @@ TEST_F(IFDSConstAnalysisTest, DISABLED_HandlePointerTest_03) {
 
 TEST_F(IFDSConstAnalysisTest, HandlePointerTest_04) {
   initialize({PathToLlFiles + "pointer/pointer_04_cpp_m2r_dbg.ll"});
-  IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
+  IFDSSolver Llvmconstsolver(&*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
   auto Entry = LineColFun{5, 7, "main"};
   std::set<TestingSrcLocation> GroundTruth{Entry};
@@ -213,7 +216,7 @@ TEST_F(IFDSConstAnalysisTest, HandlePointerTest_04) {
 /* ============== GLOBAL TESTS ============== */
 TEST_F(IFDSConstAnalysisTest, HandleGlobalTest_01) {
   initialize({PathToLlFiles + "global/global_01_cpp_m2r_dbg.ll"});
-  IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
+  IFDSSolver Llvmconstsolver(&*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
   auto Entry = GlobalVar{"g1"};
   std::set<TestingSrcLocation> GroundTruth{Entry};
@@ -222,7 +225,7 @@ TEST_F(IFDSConstAnalysisTest, HandleGlobalTest_01) {
 
 TEST_F(IFDSConstAnalysisTest, HandleGlobalTest_02) {
   initialize({PathToLlFiles + "global/global_02_cpp_m2r_dbg.ll"});
-  IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
+  IFDSSolver Llvmconstsolver(&*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
   auto Entry = GlobalVar{"g"};
   auto EntryTwo = LineColFun{4, 7, "main"};
@@ -232,7 +235,7 @@ TEST_F(IFDSConstAnalysisTest, HandleGlobalTest_02) {
 
 TEST_F(IFDSConstAnalysisTest, HandleGlobalTest_03) {
   initialize({PathToLlFiles + "global/global_03_cpp_m2r_dbg.ll"});
-  IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
+  IFDSSolver Llvmconstsolver(&*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
 
   auto Entry = LineColFun{6, 10, "__cxx_global_var_init"};
@@ -246,7 +249,7 @@ TEST_F(IFDSConstAnalysisTest, DISABLED_HandleGlobalTest_04) {
   // Guaranteed to fail - enable, once we have more precise points-to
   // information
   initialize({PathToLlFiles + "global/global_04_cpp_m2r_dbg.ll"});
-  IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
+  IFDSSolver Llvmconstsolver(&*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
   auto Entry = GlobalVar{"g1"};
   std::set<TestingSrcLocation> GroundTruth{Entry};
@@ -256,7 +259,7 @@ TEST_F(IFDSConstAnalysisTest, DISABLED_HandleGlobalTest_04) {
 /* ============== CALL TESTS ============== */
 TEST_F(IFDSConstAnalysisTest, HandleCallParamTest_01) {
   initialize({PathToLlFiles + "call/param/call_param_01_cpp_m2r_dbg.ll"});
-  IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
+  IFDSSolver Llvmconstsolver(&*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
   auto Entry = LineColFun{5, 0, "main"};
   std::set<TestingSrcLocation> GroundTruth{Entry};
@@ -265,7 +268,7 @@ TEST_F(IFDSConstAnalysisTest, HandleCallParamTest_01) {
 
 TEST_F(IFDSConstAnalysisTest, HandleCallParamTest_02) {
   initialize({PathToLlFiles + "call/param/call_param_02_cpp_m2r_dbg.ll"});
-  IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
+  IFDSSolver Llvmconstsolver(&*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
   auto Entry = LineColFun{5, 0, "main"};
   std::set<TestingSrcLocation> GroundTruth{Entry};
@@ -274,7 +277,7 @@ TEST_F(IFDSConstAnalysisTest, HandleCallParamTest_02) {
 
 TEST_F(IFDSConstAnalysisTest, HandleCallParamTest_03) {
   initialize({PathToLlFiles + "call/param/call_param_03_cpp_m2r_dbg.ll"});
-  IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
+  IFDSSolver Llvmconstsolver(&*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
   // auto Entry = LineColFun{, , "main"};
   // std::set<TestingSrcLocation> GroundTruth{Entry};
@@ -286,7 +289,7 @@ TEST_F(IFDSConstAnalysisTest, DISABLED_HandleCallParamTest_04) {
   // Guaranteed to fail - enable, once we have more precise points-to
   // information
   initialize({PathToLlFiles + "call/param/call_param_04_cpp_m2r_dbg.ll"});
-  IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
+  IFDSSolver Llvmconstsolver(&*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
   compareResults({}, Llvmconstsolver);
 }
@@ -295,21 +298,21 @@ TEST_F(IFDSConstAnalysisTest, DISABLED_HandleCallParamTest_05) {
   // Guaranteed to fail - enable, once we have more precise points-to
   // information
   initialize({PathToLlFiles + "call/param/call_param_05_cpp_m2r_dbg.ll"});
-  IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
+  IFDSSolver Llvmconstsolver(&*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
   compareResults({}, Llvmconstsolver);
 }
 
 TEST_F(IFDSConstAnalysisTest, HandleCallParamTest_06) {
   initialize({PathToLlFiles + "call/param/call_param_06_cpp_m2r_dbg.ll"});
-  IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
+  IFDSSolver Llvmconstsolver(&*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
   compareResults({}, Llvmconstsolver);
 }
 
 TEST_F(IFDSConstAnalysisTest, HandleCallParamTest_07) {
   initialize({PathToLlFiles + "call/param/call_param_07_cpp_m2r_dbg.ll"});
-  IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
+  IFDSSolver Llvmconstsolver(&*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
   auto Entry = LineColFun{6, 12, "main"};
   std::set<TestingSrcLocation> GroundTruth{Entry};
@@ -318,7 +321,7 @@ TEST_F(IFDSConstAnalysisTest, HandleCallParamTest_07) {
 
 TEST_F(IFDSConstAnalysisTest, HandleCallParamTest_08) {
   initialize({PathToLlFiles + "call/param/call_param_08_cpp_m2r_dbg.ll"});
-  IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
+  IFDSSolver Llvmconstsolver(&*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
   auto Entry = LineColFun{9, 0, "main"};
   std::set<TestingSrcLocation> GroundTruth{Entry};
@@ -327,14 +330,14 @@ TEST_F(IFDSConstAnalysisTest, HandleCallParamTest_08) {
 
 TEST_F(IFDSConstAnalysisTest, HandleCallReturnTest_01) {
   initialize({PathToLlFiles + "call/return/call_ret_01_cpp_m2r_dbg.ll"});
-  IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
+  IFDSSolver Llvmconstsolver(&*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
   compareResults({}, Llvmconstsolver);
 }
 
 TEST_F(IFDSConstAnalysisTest, HandleCallReturnTest_02) {
   initialize({PathToLlFiles + "call/return/call_ret_02_cpp_m2r_dbg.ll"});
-  IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
+  IFDSSolver Llvmconstsolver(&*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
   auto Entry = LineColFun{3, 12, "_Z3foov"};
   std::set<TestingSrcLocation> GroundTruth{Entry};
@@ -343,7 +346,7 @@ TEST_F(IFDSConstAnalysisTest, HandleCallReturnTest_02) {
 
 TEST_F(IFDSConstAnalysisTest, HandleCallReturnTest_03) {
   initialize({PathToLlFiles + "call/return/call_ret_03_cpp_m2r_dbg.ll"});
-  IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
+  IFDSSolver Llvmconstsolver(&*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
   auto Entry = LineColFun{3, 12, "_Z3foov"};
   std::set<TestingSrcLocation> GroundTruth{Entry};
@@ -353,21 +356,21 @@ TEST_F(IFDSConstAnalysisTest, HandleCallReturnTest_03) {
 /* ============== ARRAY TESTS ============== */
 TEST_F(IFDSConstAnalysisTest, HandleArrayTest_01) {
   initialize({PathToLlFiles + "array/array_01_cpp_m2r_dbg.ll"});
-  IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
+  IFDSSolver Llvmconstsolver(&*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
   compareResults({}, Llvmconstsolver);
 }
 
 TEST_F(IFDSConstAnalysisTest, HandleArrayTest_02) {
   initialize({PathToLlFiles + "array/array_02_cpp_m2r_dbg.ll"});
-  IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
+  IFDSSolver Llvmconstsolver(&*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
   compareResults({}, Llvmconstsolver);
 }
 
 TEST_F(IFDSConstAnalysisTest, HandleArrayTest_03) {
   initialize({PathToLlFiles + "array/array_03_cpp_m2r_dbg.ll"});
-  IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
+  IFDSSolver Llvmconstsolver(&*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
   compareResults({}, Llvmconstsolver);
 }
@@ -376,14 +379,14 @@ TEST_F(IFDSConstAnalysisTest, DISABLED_HandleArrayTest_04) {
   // Guaranteed to fail - enable, once we have more precise points-to
   // information
   initialize({PathToLlFiles + "array/array_04_cpp_m2r_dbg.ll"});
-  IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
+  IFDSSolver Llvmconstsolver(&*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
   compareResults({}, Llvmconstsolver);
 }
 
 TEST_F(IFDSConstAnalysisTest, HandleArrayTest_05) {
   initialize({PathToLlFiles + "array/array_05_cpp_m2r_dbg.ll"});
-  IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
+  IFDSSolver Llvmconstsolver(&*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
   auto Entry = LineColFun{3, 0, "main"};
   std::set<TestingSrcLocation> GroundTruth{Entry};
@@ -392,7 +395,7 @@ TEST_F(IFDSConstAnalysisTest, HandleArrayTest_05) {
 
 TEST_F(IFDSConstAnalysisTest, HandleArrayTest_06) {
   initialize({PathToLlFiles + "array/array_06_cpp_m2r_dbg.ll"});
-  IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
+  IFDSSolver Llvmconstsolver(&*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
   HA->getAliasInfo().print(llvm::errs());
   auto Entry = LineColFun{3, 0, "main"};
@@ -404,21 +407,21 @@ TEST_F(IFDSConstAnalysisTest, DISABLED_HandleArrayTest_07) {
   // Guaranteed to fail - enable, once we have more precise points-to
   // information
   initialize({PathToLlFiles + "array/array_07_cpp_m2r_dbg.ll"});
-  IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
+  IFDSSolver Llvmconstsolver(&*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
   compareResults({}, Llvmconstsolver);
 }
 
 TEST_F(IFDSConstAnalysisTest, HandleArrayTest_08) {
   initialize({PathToLlFiles + "array/array_08_cpp_m2r_dbg.ll"});
-  IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
+  IFDSSolver Llvmconstsolver(&*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
   compareResults({}, Llvmconstsolver);
 }
 
 TEST_F(IFDSConstAnalysisTest, HandleArrayTest_09) {
   initialize({PathToLlFiles + "array/array_09_cpp_m2r_dbg.ll"});
-  IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
+  IFDSSolver Llvmconstsolver(&*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
   auto Entry = LineColFun{3, 0, "main"};
   std::set<TestingSrcLocation> GroundTruth{Entry};
@@ -428,18 +431,18 @@ TEST_F(IFDSConstAnalysisTest, HandleArrayTest_09) {
 /* ============== STL ARRAY TESTS ============== */
 TEST_F(IFDSConstAnalysisTest, HandleSTLArrayTest_01) {
   initialize({PathToLlFiles + "array/stl_array/stl_array_01_cpp_m2r_dbg.ll"});
-  IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
+  IFDSSolver Llvmconstsolver(&*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
   compareResults({}, Llvmconstsolver);
 }
 
 TEST_F(IFDSConstAnalysisTest, HandleSTLArrayTest_02) {
   initialize({PathToLlFiles + "array/stl_array/stl_array_02_cpp_m2r_dbg.ll"});
-  IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
+  IFDSSolver Llvmconstsolver(&*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
   std::set<TestingSrcLocation> GroundTruth = {
       LineColFun{4, 0, "main"},
-      GlobalVar{"__const.main.a"},
+      // GlobalVar{"__const.main.a"}, -- not portable across libstdc++ versions
   };
 
   compareResults(GroundTruth, Llvmconstsolver);
@@ -450,12 +453,13 @@ PHASAR_SKIP_TEST(TEST_F(IFDSConstAnalysisTest, HandleSTLArrayTest_03) {
   LIBCPP_GTEST_SKIP;
 
   initialize({PathToLlFiles + "array/stl_array/stl_array_03_cpp_m2r_dbg.ll"});
-  IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
+  IFDSSolver Llvmconstsolver(&*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
   compareResults(
       {
-          GlobalVar{"__const.main.a"},
-          GlobalVar{".str"},
+          // GlobalVar{"__const.main.a"},-- not portable across libstdc++
+          // versions
+          // GlobalVar{".str"},-- not portable across libstdc++ versions
           LineColFun{4, 0, "main"},
       },
       Llvmconstsolver);
@@ -465,21 +469,21 @@ TEST_F(IFDSConstAnalysisTest, DISABLED_HandleSTLArrayTest_04) {
   // Guaranteed to fail - enable, once we have more precise points-to
   // information
   initialize({PathToLlFiles + "array/stl_array/stl_array_04_cpp_m2r_dbg.ll"});
-  IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
+  IFDSSolver Llvmconstsolver(&*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
   compareResults({}, Llvmconstsolver);
 }
 
 TEST_F(IFDSConstAnalysisTest, HandleSTLArrayTest_05) {
   initialize({PathToLlFiles + "array/stl_array/stl_array_05_cpp_m2r_dbg.ll"});
-  IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
+  IFDSSolver Llvmconstsolver(&*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
   compareResults({}, Llvmconstsolver);
 }
 
 TEST_F(IFDSConstAnalysisTest, HandleSTLArrayTest_06) {
   initialize({PathToLlFiles + "array/stl_array/stl_array_06_cpp_m2r_dbg.ll"});
-  IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
+  IFDSSolver Llvmconstsolver(&*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
   auto Entry = LineColFun{4, 0, "main"};
   std::set<TestingSrcLocation> GroundTruth{Entry};
@@ -489,7 +493,7 @@ TEST_F(IFDSConstAnalysisTest, HandleSTLArrayTest_06) {
 /* ============== CSTRING TESTS ============== */
 TEST_F(IFDSConstAnalysisTest, HandleCStringTest_01) {
   initialize({PathToLlFiles + "array/cstring/cstring_01_cpp_m2r_dbg.ll"});
-  IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
+  IFDSSolver Llvmconstsolver(&*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
   compareResults({}, Llvmconstsolver);
 }
@@ -498,7 +502,7 @@ TEST_F(IFDSConstAnalysisTest, DISABLED_HandleCStringTest_02) {
   // Guaranteed to fail - enable, once we have more precise points-to
   // information
   initialize({PathToLlFiles + "array/cstring/cstring_02_cpp_m2r_dbg.ll"});
-  IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
+  IFDSSolver Llvmconstsolver(&*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
   auto Entry = LineColFun{4, 0, "main"};
   std::set<TestingSrcLocation> GroundTruth{Entry};

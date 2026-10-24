@@ -38,6 +38,20 @@ concept HasJoinLatticeTraits = requires(const L &Val) {
   { JoinLatticeTraits<L>::join(Val, Val) } -> std::convertible_to<L>;
 };
 
+template <typename T>
+concept IsJoinLattice = requires(T &Lat, const typename T::l_t &Val) {
+  typename T::l_t;
+
+  { Lat.topElement() } -> std::convertible_to<typename T::l_t>;
+  { Lat.bottomElement() } -> std::convertible_to<typename T::l_t>;
+  { Lat.join(Val, Val) } -> std::convertible_to<typename T::l_t>;
+};
+
+template <typename T, typename L>
+concept IsJoinLatticeFor = IsJoinLattice<T> && requires {
+  requires std::convertible_to<typename T::l_t, L>;
+};
+
 template <typename AnalysisDomainTy> class JoinLattice {
 public:
   using l_t = typename AnalysisDomainTy::l_t;
@@ -62,10 +76,32 @@ public:
   };
 };
 
+template <typename L> class DerivedJoinLattice {
+public:
+  using l_t = L;
+
+  [[nodiscard]] constexpr l_t topElement()
+    requires HasJoinLatticeTraits<L>
+  {
+    return JoinLatticeTraits<l_t>::top();
+  }
+  [[nodiscard]] constexpr l_t bottomElement()
+    requires HasJoinLatticeTraits<L>
+  {
+    return JoinLatticeTraits<l_t>::bottom();
+  }
+  [[nodiscard]] constexpr l_t join(l_t Lhs, l_t Rhs)
+    requires HasJoinLatticeTraits<L>
+  {
+    return JoinLatticeTraits<l_t>::join(std::move(Lhs), std::move(Rhs));
+  }
+};
+
 template <typename L> struct NonTopBotValue {
   using type = L;
 
-  static L unwrap(L Value) noexcept(std::is_nothrow_move_constructible_v<L>) {
+  constexpr static L
+  unwrap(L Value) noexcept(std::is_nothrow_move_constructible_v<L>) {
     return Value;
   }
 };

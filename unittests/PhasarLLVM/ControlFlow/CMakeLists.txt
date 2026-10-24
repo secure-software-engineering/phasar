@@ -8,6 +8,7 @@ set(ControlFlowSources
   LLVMBasedBackwardCFGTest.cpp
   LLVMBasedBackwardICFGTest.cpp
   LLVMBasedICFGExportTest.cpp
+  LLVMBasedICFGExternCallbackTest.cpp
   LLVMBasedICFGGlobCtorDtorTest.cpp
   LLVMBasedICFGSerializationTest.cpp
   LLVMVFTableProviderTest.cpp

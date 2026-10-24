@@ -29,6 +29,7 @@
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DebugInfo.h"
 #include "llvm/IR/DebugInfoMetadata.h"
@@ -37,56 +38,16 @@
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/IntrinsicInst.h"
+#include "llvm/IR/Operator.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <memory>
 #include <optional>
+#include <tuple>
 
 using namespace psr;
-
-std::optional<unsigned> psr::getVFTIndex(const llvm::CallBase *CallSite) {
-  // deal with a virtual member function
-  // retrieve the vtable entry that is called
-  const auto *Load =
-      llvm::dyn_cast<llvm::LoadInst>(CallSite->getCalledOperand());
-  if (Load == nullptr) {
-    return std::nullopt;
-  }
-  const auto *GEP =
-      llvm::dyn_cast<llvm::GetElementPtrInst>(Load->getPointerOperand());
-  if (GEP == nullptr) {
-    return std::nullopt;
-  }
-  if (auto *CI = llvm::dyn_cast<llvm::ConstantInt>(GEP->getOperand(1))) {
-    return CI->getZExtValue();
-  }
-  return std::nullopt;
-}
-
-std::optional<std::pair<const llvm::Value *, uint64_t>>
-psr::getVFTIndexAndVT(const llvm::CallBase *CallSite) {
-  // deal with a virtual member function
-  // retrieve the vtable entry that is called
-  const auto *Load =
-      llvm::dyn_cast<llvm::LoadInst>(CallSite->getCalledOperand());
-  if (Load == nullptr) {
-    return std::nullopt;
-  }
-
-  const auto *GEP =
-      llvm::dyn_cast<llvm::GetElementPtrInst>(Load->getPointerOperand());
-  if (GEP == nullptr) {
-    return std::nullopt;
-  }
-
-  if (auto *CI = llvm::dyn_cast<llvm::ConstantInt>(GEP->getOperand(1))) {
-    return {{GEP->getPointerOperand(), CI->getZExtValue()}};
-  }
-
-  return std::nullopt;
-}
 
 const llvm::DIType *psr::getReceiverType(const llvm::CallBase *CallSite) {
   if (!CallSite || CallSite->arg_empty() ||
@@ -136,20 +97,6 @@ std::string psr::getReceiverTypeName(const llvm::CallBase *CallSite) {
     return RT->getName().str();
   }
   return "";
-}
-
-bool psr::isConsistentCall(const llvm::CallBase *CallSite,
-                           const llvm::Function *DestFun) {
-  if (CallSite->arg_size() < DestFun->arg_size()) {
-    return false;
-  }
-  if (CallSite->arg_size() != DestFun->arg_size() && !DestFun->isVarArg()) {
-    return false;
-  }
-  if (!matchesSignature(DestFun, CallSite->getFunctionType(), false)) {
-    return false;
-  }
-  return true;
 }
 
 bool psr::isVirtualCall(const llvm::Instruction *Inst,

@@ -2,6 +2,7 @@
 
 #include "phasar/ControlFlow/CallGraphAnalysisType.h"
 #include "phasar/PhasarLLVM/ControlFlow/EntryFunctionUtils.h"
+#include "phasar/PhasarLLVM/ControlFlow/ExternCallbackModel.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCallGraph.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/RTAResolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
@@ -22,6 +23,12 @@
 
 namespace {
 using namespace psr;
+
+PAMM_CATEGORY(CallGraphBuilder);
+
+PAMM_COUNTER(CGFunctions, Full);
+PAMM_COUNTER(CGCallSites, Full);
+
 struct Builder {
   const LLVMProjectIRDB *IRDB = nullptr;
   Resolver *Res = nullptr;
@@ -93,11 +100,6 @@ auto Builder::buildCallGraph(Soundness S) -> LLVMBasedCallGraph {
     }
   }
 
-  PAMM_GET_INSTANCE;
-  REG_COUNTER("CG Functions", CGBuilder.viewCallGraph().getNumVertexFunctions(),
-              Full);
-  REG_COUNTER("CG CallSites", CGBuilder.viewCallGraph().getNumVertexCallSites(),
-              Full);
   PHASAR_LOG_LEVEL_CAT(INFO, "LLVMBasedICFG",
                        "Call graph has been constructed");
   return CGBuilder.consumeCallGraph();
@@ -142,6 +144,8 @@ bool Builder::processFunction(const llvm::Function *F) {
     return true;
   }
 
+  ++CGFunctions;
+
   assert(Res != nullptr);
 
   // add a node for function F to the call graph (if not present already)
@@ -156,6 +160,8 @@ bool Builder::processFunction(const llvm::Function *F) {
     if (!CS) {
       continue;
     }
+
+    ++CGCallSites;
 
     FixpointReached &=
         fillPossibleTargets(PossibleTargets, *Res, CS, IndirectCalls);
@@ -257,11 +263,22 @@ auto psr::buildLLVMBasedCallGraph(
   return B.buildCallGraph(S);
 }
 
+auto psr::buildLLVMBasedCallGraphWithExternCallbackModels(
+    LLVMProjectIRDB &IRDB, Resolver &CGResolver,
+    llvm::ArrayRef<const llvm::Function *> EntryPoints, Soundness S)
+    -> LLVMBasedCallGraph {
+  ExternCallbackModel::rewriteCalls(IRDB);
+  return buildLLVMBasedCallGraph(static_cast<const LLVMProjectIRDB &>(IRDB),
+                                 CGResolver, EntryPoints, S);
+}
+
 auto psr::buildLLVMBasedCallGraph(
     LLVMProjectIRDB &IRDB, CallGraphAnalysisType CGType,
     llvm::ArrayRef<const llvm::Function *> EntryPoints,
-    DIBasedTypeHierarchy &TH, LLVMVFTableProvider &VTP, LLVMAliasInfoRef PT,
+    DIBasedTypeHierarchy *TH, LLVMVFTableProvider &VTP, LLVMAliasInfoRef PT,
     Soundness S) -> LLVMBasedCallGraph {
+
+  ExternCallbackModel::rewriteCalls(IRDB);
 
   LLVMAliasInfo PTOwn;
   if (!PT && CGType == CallGraphAnalysisType::OTF) {
@@ -269,8 +286,27 @@ auto psr::buildLLVMBasedCallGraph(
     PT = PTOwn.asRef();
   }
 
-  auto Res = Resolver::create(CGType, &IRDB, &VTP, &TH, PT);
-  return buildLLVMBasedCallGraph(IRDB, *Res, EntryPoints, S);
+  auto Res = Resolver::create(CGType, &IRDB, &VTP, TH, PT);
+  return buildLLVMBasedCallGraph(static_cast<const LLVMProjectIRDB &>(IRDB),
+                                 *Res, EntryPoints, S);
+}
+
+auto psr::buildLLVMBasedCallGraph(
+    LLVMProjectIRDB &IRDB, CallGraphAnalysisType CGType,
+    llvm::ArrayRef<const llvm::Function *> EntryPoints,
+    DIBasedTypeHierarchy &TH, LLVMVFTableProvider &VTP, LLVMAliasInfoRef PT,
+    Soundness S) -> LLVMBasedCallGraph {
+  return buildLLVMBasedCallGraph(IRDB, CGType, EntryPoints, &TH, VTP, PT, S);
+}
+
+auto psr::buildLLVMBasedCallGraph(LLVMProjectIRDB &IRDB,
+                                  CallGraphAnalysisType CGType,
+                                  llvm::ArrayRef<std::string> EntryPoints,
+                                  DIBasedTypeHierarchy *TH,
+                                  LLVMVFTableProvider &VTP, LLVMAliasInfoRef PT,
+                                  Soundness S) -> LLVMBasedCallGraph {
+  auto EntryPointFns = getEntryFunctions(IRDB, EntryPoints);
+  return buildLLVMBasedCallGraph(IRDB, CGType, EntryPointFns, TH, VTP, PT, S);
 }
 
 auto psr::buildLLVMBasedCallGraph(LLVMProjectIRDB &IRDB,
@@ -279,8 +315,7 @@ auto psr::buildLLVMBasedCallGraph(LLVMProjectIRDB &IRDB,
                                   DIBasedTypeHierarchy &TH,
                                   LLVMVFTableProvider &VTP, LLVMAliasInfoRef PT,
                                   Soundness S) -> LLVMBasedCallGraph {
-  auto EntryPointFns = getEntryFunctions(IRDB, EntryPoints);
-  return buildLLVMBasedCallGraph(IRDB, CGType, EntryPointFns, TH, VTP, PT, S);
+  return buildLLVMBasedCallGraph(IRDB, CGType, EntryPoints, &TH, VTP, PT, S);
 }
 
 auto psr::buildLLVMBasedCallGraph(const LLVMProjectIRDB &IRDB,
@@ -289,4 +324,13 @@ auto psr::buildLLVMBasedCallGraph(const LLVMProjectIRDB &IRDB,
                                   Soundness S) -> LLVMBasedCallGraph {
   auto EntryPointFns = getEntryFunctions(IRDB, EntryPoints);
   return buildLLVMBasedCallGraph(IRDB, CGResolver, EntryPointFns, S);
+}
+
+auto psr::buildLLVMBasedCallGraphWithExternCallbackModels(
+    LLVMProjectIRDB &IRDB, Resolver &CGResolver,
+    llvm::ArrayRef<std::string> EntryPoints, Soundness S)
+    -> LLVMBasedCallGraph {
+  auto EntryPointFns = getEntryFunctions(IRDB, EntryPoints);
+  return buildLLVMBasedCallGraphWithExternCallbackModels(IRDB, CGResolver,
+                                                         EntryPointFns, S);
 }

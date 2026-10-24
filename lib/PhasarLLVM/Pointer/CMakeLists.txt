@@ -9,6 +9,7 @@ add_phasar_library(phasar_llvm_pointer
     phasar_controlflow
     phasar_llvm_utils
     phasar_llvm_db
+    phasar_llvm_typehierarchy
 
   LLVM_LINK_COMPONENTS
     Core

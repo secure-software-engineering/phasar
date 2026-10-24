@@ -30,7 +30,7 @@ protected:
     HelperAnalyses HA(PathToLlFiles + LlvmFilePath, EntryPoints);
     auto LCAProblem =
         createAnalysisProblem<IDELinearConstantAnalysis>(HA, EntryPoints);
-    IDESolver LCASolver(LCAProblem, &HA.getICFG());
+    IDESolver LCASolver(&LCAProblem, &HA.getICFG());
     LCASolver.solve();
     if (EmitESG) {
       Logger::enable();
@@ -406,8 +406,11 @@ TEST_F(IDELinearConstantAnalysisTest, HandleCallTest_08) {
   GroundTruth.emplace("main", 6, "i", 10);
   GroundTruth.emplace("main", 7, "i", 10);
   GroundTruth.emplace("main", 7, "j", 1);
+#if LLVM_VERSION_MAJOR <= 18
+  // With >18 there is no llvm::Instruction for line 8
   GroundTruth.emplace("main", 8, "i", 10);
   GroundTruth.emplace("main", 8, "j", 1);
+#endif
   GroundTruth.emplace("main", 9, "i", 10);
   GroundTruth.emplace("main", 9, "j", 1);
   GroundTruth.emplace("main", 10, "i", 10);

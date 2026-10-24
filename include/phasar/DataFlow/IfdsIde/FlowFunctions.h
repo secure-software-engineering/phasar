@@ -18,10 +18,12 @@
 #define PHASAR_DATAFLOW_IFDSIDE_FLOWFUNCTIONS_H
 
 #include "phasar/Utils/Macros.h"
+#include "phasar/Utils/MaybeUniquePtr.h"
 #include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/ADT/ArrayRef.h"
 
+#include <concepts>
 #include <functional>
 #include <initializer_list>
 #include <iterator>
@@ -45,10 +47,11 @@ template <typename D, typename Container = std::set<D>> class FlowFunction {
 
 public:
   using FlowFunctionType = FlowFunction<D, Container>;
-  using FlowFunctionPtrType = std::shared_ptr<FlowFunctionType>;
+  using FlowFunctionPtrType = MaybeUniquePtr<FlowFunctionType>;
 
   using container_type = Container;
   using value_type = typename container_type::value_type;
+  using d_t = D;
 
   virtual ~FlowFunction() = default;
 
@@ -66,10 +69,49 @@ public:
   virtual container_type computeTargets(D Source) = 0;
 };
 
+template <typename T>
+concept IsFlowFunctionLike = requires(T &FF, typename T::d_t Source) {
+  typename T::d_t;
+  typename T::container_type;
+  requires is_iterable_over_v<typename T::container_type, typename T::d_t>;
+  {
+    FF.computeTargets(Source)
+  } -> std::convertible_to<typename T::container_type>;
+};
+
+template <typename T>
+concept IsFlowFunctionPtr =
+    IsFlowFunctionLike<std::remove_reference_t<decltype(*std::declval<T>())>>;
+
+template <typename T, typename D>
+concept IsFlowFunctionOf =
+    IsFlowFunctionLike<T> && std::same_as<D, typename T::d_t>;
+
+template <typename T, typename D>
+concept IsFlowFunctionPtrOf =
+    IsFlowFunctionOf<std::remove_reference_t<decltype(*std::declval<T>())>, D>;
+
+template <typename T>
+concept IsFlowFunctionOrFFPtr = IsFlowFunctionLike<T> || IsFlowFunctionPtr<T>;
+
+template <typename T, typename D>
+concept IsFlowFunctionOrFFPtrOf =
+    IsFlowFunctionOf<T, D> || IsFlowFunctionPtrOf<T, D>;
+
+template <IsFlowFunctionOrFFPtr T>
+using FFContainerType = typename decltype([] {
+  if constexpr (IsFlowFunctionLike<T>) {
+    return std::type_identity<typename T::container_type>{};
+  } else {
+    return std::type_identity<typename std::remove_reference_t<
+        decltype(*std::declval<T>())>::container_type>{};
+  }
+}())::type;
+
 /// Helper template to check at compile-time whether a type implements the
 /// FlowFunction interface, no matter which data-flow fact type it uses.
 ///
-/// Use is_flowfunction_v instead.
+/// Use IsFlowFunctionLike instead.
 template <typename FF> struct IsFlowFunction {
   template <typename D, typename Container>
   static std::true_type test(const FlowFunction<D, Container> &);
@@ -83,11 +125,13 @@ template <typename FF> struct IsFlowFunction {
 /// Helper template to check at compile-time whether a type implements the
 /// FlowFunction interface, no matter which data-flow fact type it uses.
 template <typename FF>
-concept is_flowfunction_v = IsFlowFunction<FF>::value; // NOLINT
+concept is_flowfunction_v
+    [[deprecated("Use IsFlowFunctionLike instead. It is more flexible")]] =
+        IsFlowFunction<FF>::value; // NOLINT
 
 /// Given a flow-function type FF, returns a (smart) pointer type pointing to FF
-template <is_flowfunction_v FF>
-using FlowFunctionPtrTypeOf = std::shared_ptr<FF>;
+template <IsFlowFunctionLike FF>
+using FlowFunctionPtrTypeOf = MaybeUniquePtr<FF>;
 
 /// Given a dataflow-fact type and optionally a container-type, returns a
 /// (smart) pointer type pointing to a FlowFunction with the specified
@@ -147,6 +191,8 @@ public:
   using d_t = D;
   using container_type = Container;
 
+  using FlowFunctionPtrType = psr::FlowFunctionPtrType<d_t, container_type>;
+
   /// A flow function that propagates all incoming facts unchanged.
   ///
   /// Given a flow-function f = identityFlow(), then for all incoming
@@ -160,15 +206,18 @@ public:
   ///                   v   v   v  ...
   ///                   x1  x2  x3 ...
   /// \endcode
-  static auto identityFlow() {
+  /// \note Returns a non-owning pointer to a function-static singleton
+  /// (owns()==false). The pointee has program lifetime. Most other factory
+  /// functions in this class return owning unique_ptrs.
+  static FlowFunctionPtrType identityFlow() {
     struct IdFF final : public FlowFunction<d_t, container_type> {
       container_type computeTargets(d_t Source) override {
         return {std::move(Source)};
       }
     };
-    static auto TheIdentity = std::make_shared<IdFF>();
+    static auto TheIdentity = IdFF();
 
-    return TheIdentity;
+    return &TheIdentity;
   }
 
   /// The most generic flow function. Invokes the passed function object F to
@@ -186,7 +235,7 @@ public:
   ///          v  v   v   v  v
   ///          x1 x2  x  x3 x4
   /// \endcode
-  template <typename Fn> static auto lambdaFlow(Fn &&F) {
+  template <typename Fn> static FlowFunctionPtrType lambdaFlow(Fn &&F) {
     struct LambdaFlow final : public FlowFunction<d_t, container_type> {
       LambdaFlow(Fn &&F) : Flow(std::forward<Fn>(F)) {}
       container_type computeTargets(d_t Source) override {
@@ -196,7 +245,7 @@ public:
       [[no_unique_address]] std::decay_t<Fn> Flow;
     };
 
-    return std::make_shared<LambdaFlow>(std::forward<Fn>(F));
+    return std::make_unique<LambdaFlow>(std::forward<Fn>(F));
   }
 
   //===----------------------------------------------------------------------===//
@@ -225,7 +274,7 @@ public:
   /// no difference, but in the case of IDE, the corresponding edge functions
   /// are being joined together potentially lowering precision. If that is an
   /// issue, use transferFlow instead.
-  static auto generateFlow(d_t FactToGenerate, d_t From) {
+  static FlowFunctionPtrType generateFlow(d_t FactToGenerate, d_t From) {
     struct GenFrom final : public FlowFunction<d_t, container_type> {
       GenFrom(d_t GenValue, d_t FromValue)
           : GenValue(std::move(GenValue)), FromValue(std::move(FromValue)) {}
@@ -241,7 +290,7 @@ public:
       d_t FromValue;
     };
 
-    return std::make_shared<GenFrom>(std::move(FactToGenerate),
+    return std::make_unique<GenFrom>(std::move(FactToGenerate),
                                      std::move(From));
   }
 
@@ -257,7 +306,7 @@ public:
   /// \endcode
   template <typename Fn = psr::TrueFn>
     requires std::is_invocable_r_v<bool, Fn, d_t>
-  static auto generateFlowIf(d_t FactToGenerate, Fn Predicate) {
+  static FlowFunctionPtrType generateFlowIf(d_t FactToGenerate, Fn Predicate) {
     struct GenFlowIf final : public FlowFunction<d_t, container_type> {
       GenFlowIf(d_t GenValue, Fn &&Predicate)
           : GenValue(std::move(GenValue)),
@@ -274,7 +323,7 @@ public:
       [[no_unique_address]] std::decay_t<Fn> Predicate;
     };
 
-    return std::make_shared<GenFlowIf>(std::move(FactToGenerate),
+    return std::make_unique<GenFlowIf>(std::move(FactToGenerate),
                                        std::forward<Fn>(Predicate));
   }
 
@@ -296,7 +345,8 @@ public:
   ///       x  w  v1 v2 ... vN  u
   /// \endcode
   template <is_iterable_over_v<d_t> Range = std::initializer_list<d_t>>
-  static auto generateManyFlows(Range &&FactsToGenerate, d_t From) {
+  static FlowFunctionPtrType generateManyFlows(Range &&FactsToGenerate,
+                                               d_t From) {
     struct GenMany final : public FlowFunction<d_t, container_type> {
       GenMany(container_type &&GenValues, d_t FromValue)
           : GenValues(std::move(GenValues)), FromValue(std::move(FromValue)) {}
@@ -314,7 +364,7 @@ public:
       d_t FromValue;
     };
 
-    return std::make_shared<GenMany>(detail::makeContainer<container_type>(
+    return std::make_unique<GenMany>(detail::makeContainer<container_type>(
                                          std::forward<Range>(FactsToGenerate)),
                                      std::move(From));
   }
@@ -338,7 +388,7 @@ public:
   ///           v     v
   ///           u  v  w ...
   /// \endcode
-  static auto killFlow(d_t FactToKill) {
+  static FlowFunctionPtrType killFlow(d_t FactToKill) {
     struct KillFlow final : public FlowFunction<d_t, container_type> {
       KillFlow(d_t KillValue) : KillValue(std::move(KillValue)) {}
       container_type computeTargets(d_t Source) override {
@@ -350,7 +400,7 @@ public:
       d_t KillValue;
     };
 
-    return std::make_shared<KillFlow>(std::move(FactToKill));
+    return std::make_unique<KillFlow>(std::move(FactToKill));
   }
 
   /// A flow function similar to killFlow that stops propagating all dataflow
@@ -364,7 +414,7 @@ public:
   /// \endcode
   template <typename Fn = psr::TrueFn>
     requires std::is_invocable_r_v<bool, Fn, d_t>
-  static auto killFlowIf(Fn Predicate) {
+  static FlowFunctionPtrType killFlowIf(Fn Predicate) {
     struct KillFlowIf final : public FlowFunction<d_t, container_type> {
       KillFlowIf(Fn &&Predicate) : Predicate(std::forward<Fn>(Predicate)) {}
 
@@ -378,7 +428,7 @@ public:
       [[no_unique_address]] std::decay_t<Fn> Predicate;
     };
 
-    return std::make_shared<KillFlowIf>(std::forward<Fn>(Predicate));
+    return std::make_unique<KillFlowIf>(std::forward<Fn>(Predicate));
   }
 
   /// A flow function that stops propagating a specific set of dataflow facts
@@ -402,7 +452,7 @@ public:
   ///           u  v1  v2 ... vN  w ...
   /// \endcode
   template <is_iterable_over_v<d_t> Range = std::initializer_list<d_t>>
-  static auto killManyFlows(Range &&FactsToKill) {
+  static FlowFunctionPtrType killManyFlows(Range &&FactsToKill) {
     struct KillMany final : public FlowFunction<d_t, container_type> {
       KillMany(Container &&KillValues) : KillValues(std::move(KillValues)) {}
 
@@ -416,7 +466,7 @@ public:
       container_type KillValues;
     };
 
-    return std::make_shared<KillMany>(detail::makeContainer<container_type>(
+    return std::make_unique<KillMany>(detail::makeContainer<container_type>(
         std::forward<Range>(FactsToKill)));
   }
 
@@ -426,13 +476,16 @@ public:
   /// \code
   /// x, f(x) = {}.
   /// \endcode
-  static auto killAllFlows() {
+  /// \note Returns a non-owning pointer to a function-static singleton
+  /// (owns()==false). The pointee has program lifetime. Most other factory
+  /// functions in this class return owning unique_ptrs.
+  static FlowFunctionPtrType killAllFlows() {
     struct KillAllFF final : public FlowFunction<d_t, container_type> {
       Container computeTargets(d_t /*Source*/) override { return Container(); }
     };
-    static auto TheKillAllFlow = std::make_shared<KillAllFF>();
+    static auto TheKillAllFlow = KillAllFF();
 
-    return TheKillAllFlow;
+    return &TheKillAllFlow;
   }
 
   //===----------------------------------------------------------------------===//
@@ -460,7 +513,8 @@ public:
   ///            v  v
   ///         x  w  v  u
   /// \endcode
-  static auto generateFlowAndKillAllOthers(d_t FactToGenerate, d_t From) {
+  static FlowFunctionPtrType generateFlowAndKillAllOthers(d_t FactToGenerate,
+                                                          d_t From) {
     struct GenFlowAndKillAllOthers final
         : public FlowFunction<d_t, container_type> {
       GenFlowAndKillAllOthers(d_t GenValue, d_t FromValue)
@@ -477,7 +531,7 @@ public:
       d_t FromValue;
     };
 
-    return std::make_shared<GenFlowAndKillAllOthers>(std::move(FactToGenerate),
+    return std::make_unique<GenFlowAndKillAllOthers>(std::move(FactToGenerate),
                                                      std::move(From));
   }
 
@@ -500,8 +554,8 @@ public:
   ///       x  w  v1 v2 ... vN  u
   /// \endcode
   template <is_iterable_over_v<d_t> Range = std::initializer_list<d_t>>
-  static auto generateManyFlowsAndKillAllOthers(Range &&FactsToGenerate,
-                                                d_t From) {
+  static FlowFunctionPtrType
+  generateManyFlowsAndKillAllOthers(Range &&FactsToGenerate, d_t From) {
     struct GenManyAndKillAllOthers final
         : public FlowFunction<d_t, container_type> {
       GenManyAndKillAllOthers(Container &&GenValues, d_t FromValue)
@@ -520,7 +574,7 @@ public:
       d_t FromValue;
     };
 
-    return std::make_shared<GenManyAndKillAllOthers>(
+    return std::make_unique<GenManyAndKillAllOthers>(
         detail::makeContainer<container_type>(
             std::forward<Range>(FactsToGenerate)),
         std::move(From));
@@ -553,7 +607,7 @@ public:
   ///       v  v   v  v ...
   ///       x  w   v  u
   /// \endcode
-  static auto transferFlow(d_t FactToGenerate, d_t From) {
+  static FlowFunctionPtrType transferFlow(d_t FactToGenerate, d_t From) {
     struct TransferFlow final : public FlowFunction<d_t, container_type> {
       TransferFlow(d_t GenValue, d_t FromValue)
           : GenValue(std::move(GenValue)), FromValue(std::move(FromValue)) {}
@@ -572,7 +626,7 @@ public:
       d_t FromValue;
     };
 
-    return std::make_shared<TransferFlow>(std::move(FactToGenerate),
+    return std::make_unique<TransferFlow>(std::move(FactToGenerate),
                                           std::move(From));
   }
 
@@ -590,8 +644,8 @@ public:
              std::is_same_v<container_type, typename F2::container_type> &&
              std::is_same_v<typename F1::container_type,
                             typename F2::container_type>)
-  auto unionFlows(FlowFunctionPtrTypeOf<F1> OneFF,
-                  FlowFunctionPtrTypeOf<F2> OtherFF) {
+  FlowFunctionPtrType unionFlows(FlowFunctionPtrTypeOf<F1> OneFF,
+                                 FlowFunctionPtrTypeOf<F2> OtherFF) {
     struct UnionFlow final : public FlowFunction<d_t, container_type> {
       UnionFlow(FlowFunctionPtrTypeOf<F1> OneFF,
                 FlowFunctionPtrTypeOf<F2> OtherFF) noexcept
@@ -613,7 +667,7 @@ public:
       FlowFunctionPtrTypeOf<F2> OtherFF;
     };
 
-    return std::make_shared<UnionFlow>(std::move(OneFF), std::move(OtherFF));
+    return std::make_unique<UnionFlow>(std::move(OneFF), std::move(OtherFF));
   }
 };
 
@@ -873,6 +927,275 @@ public:
                                                      f_t /*CalleeFun*/) {
     return nullptr;
   }
+};
+
+template <typename T>
+concept FlowFunctionFactory =
+    requires(T &FFF, typename T::n_t Curr, typename T::n_t Succ,
+             typename T::n_t ExitInst, typename T::n_t CallSite,
+             typename T::n_t RetSite, typename T::f_t CalleeFun,
+             llvm::ArrayRef<typename T::f_t> Callees) {
+      typename T::FlowFunctionPtrType;
+      typename T::d_t;
+      typename T::f_t;
+      typename T::n_t;
+      typename T::container_type;
+
+      requires is_iterable_over_v<typename T::container_type, typename T::d_t>;
+      requires IsFlowFunctionPtrOf<typename T::FlowFunctionPtrType,
+                                   typename T::d_t>;
+      requires std::same_as<typename T::container_type,
+                            FFContainerType<typename T::FlowFunctionPtrType>>;
+
+      ///
+      /// Describes the effects of the current instruction, i.e. data-flows,
+      /// along normal (non-call, non-return) instructions. Analysis writers are
+      /// free to inspect the successor instructions, too, as a lookahead.
+      ///
+      /// Let instruction_1 := Curr, instruction_2 := Succ, and 0 the
+      /// tautological lambda fact.
+      ///
+      /// The returned flow function implementation f
+      /// (FlowFunction::computeTargets()) is applied to each data-flow fact d_i
+      /// that holds before the current statement under analysis. f's return
+      /// type is a set of (target) facts that have to be generated from the
+      /// source fact d_i by the data-flow solver. Each combination of input
+      /// fact d_i (given as an input to f) and respective output facts (f(d_i))
+      /// represents an edge that must be "drawn" to construct the exploded
+      /// supergraph for the analysis problem to be solved.
+      ///
+      /// The concrete implementation of f is depending on the analysis problem.
+      /// In the following, we present a brief, contrived example:
+      ///
+      /// f is applied to each data-flow fact d_i that holds before
+      /// instruction_1. We assume that f is implemented to produce the
+      /// following outputs.
+      /// \code
+      ///    f(0) -> {0}       // pass the lambda (or zero fact) as identity
+      ///    f(o) -> {o, x}    // generate a new fact x from o
+      ///    f(.) -> {.}       // pass all other facts that hold before
+      ///                      // instruction_1 as identity
+      /// \endcode
+      /// The above implementation corresponds to the following edges in the
+      /// exploded supergraph.
+      /// \code
+      ///                         0  o      ...
+      ///                         |  |\     ...
+      /// x = instruction_1 o p   |  | \    ...
+      ///                         |  |  |   ...
+      ///                         v  v  v   ...
+      ///                         0  o  x   ...
+      ///
+      /// y = instruction_2 q r
+      /// \endcode
+      {
+        FFF.getNormalFlowFunction(Curr, Succ)
+      } -> std::convertible_to<typename T::FlowFunctionPtrType>;
+
+      ///
+      /// Handles call flows: describes the effects of a function call at
+      /// callInst to the callee target destFun. If a call instruction has
+      /// multiple callee targets, for instance, because it is an indirect
+      /// function call that cannot be analyzed precisely in a static manner,
+      /// the call flow function will be queried for each callee target.
+      ///
+      /// This flow function usually handles parameter passing and maps actual
+      /// to formal parameters. If an analysis writer does not wish to analyze a
+      /// given callee target they can return a flow function implementation
+      /// that kills all data-flow facts (e.g. KillAll) such that call is not
+      /// followed. A commonly used trick to model the effects of functions that
+      /// are not present (e.g. library functions such as malloc(), free(),
+      /// etc.) is to kill all facts at the call to the respective target and
+      /// plugin the semantics in the call-to-return flow function. In the
+      /// call-to-return flow function, an analysis writer can check if the
+      /// function of interest is one of the possible targets and then, return a
+      /// flow function implementation that describes the special semantics of
+      /// that function call.
+      ///
+      /// Let start_point be the starting point of the callee target CalleeFun.
+      ///
+      /// The returned flow function implementation f
+      /// (FlowFunction::computeTargets()) is applied to each data-flow fact d_i
+      /// that holds right before the CallInst. f's return type is a set of
+      /// (target) facts that have to be generated from the source fact d_i by
+      /// the data-flow solver. Each target fact that is generated will hold
+      /// before start_point.
+      ///
+      /// The concrete implementation of f is depending on the analysis problem.
+      /// In the following, we present a brief, contrived example:
+      ///
+      /// f is applied to each data-flow fact d_i that holds before CallInst. We
+      /// assume that f is implemented to produce the following outputs.
+      /// \code
+      ///    f(0) -> {0}       // pass as identity into the callee target
+      ///    f(o) -> {q}       // map actual o into formal q
+      ///    f(p) -> {r}       // map actual p into formal r
+      ///    f(.) -> {}        // kill all other facts that are not visible to
+      ///    the
+      ///                      // callee target
+      /// \endcode
+      /// The above implementation corresponds to the following edges in the
+      /// exploded supergraph.
+      /// \code
+      ///                            0  o  p   ...
+      ///                             \  \  \  ...
+      /// x = CalleeFun(o, p, ...)     \  \  +----------------+
+      ///                               \  +----------------  |
+      ///                                 +-------------+  +  |
+      ///                                      ...      |  |  |
+      ///                                      ...      |  |  |
+      ///                            0  o  p   ...      |  |  |
+      ///                                               |  |  |
+      ///                                               |  |  |
+      ///                                               |  |  |
+      ///                     Ty CalleeFun(q, r, ...)   |  |  |
+      ///                                               v  v  v
+      ///                                               0  q  r   ...
+      ///
+      ///                                 start point
+      /// \endcode
+      {
+        FFF.getCallFlowFunction(Curr, CalleeFun)
+      } -> std::convertible_to<typename T::FlowFunctionPtrType>;
+
+      ///
+      /// Handles return flows: describes the data-flows from an ExitInst to the
+      /// corresponding RetSite.
+      ///
+      /// This flow function usually handles the returned value of the callee
+      /// target as well as the parameter mapping back to the caller of
+      /// CalleeFun for pointer parameters as modifications made by CalleeFun
+      /// are visible to the caller. Data-flow facts that are not returned or
+      /// escape via function pointer parameters (or global variables) are
+      /// usually killed.
+      ///
+      /// The returned flow function implementation f
+      /// (FlowFunction::computeTargets()) is applied to each data-flow fact d_i
+      /// that holds right before the ExitInst. f's return type is a set of
+      /// (target) facts that have to be generated from the source fact d_i by
+      /// the data-flow solver. Each target fact that is generated will hold
+      /// after CallSite.
+      ///
+      /// The concrete implementation of f is depending on the analysis problem.
+      /// In the following, we present a brief, contrived example:
+      ///
+      /// f is applied to each data-flow fact d_i that holds before ExitInst. We
+      /// assume that f is implemented to produce the following outputs.
+      /// \code
+      ///    f(0) -> {0}       // pass as identity into the callee target
+      ///    f(r) -> {x}       // map return value to lhs variable at CallSite
+      ///    f(q) -> {o}       // map pointer-typed formal q to actual o
+      ///    f(.) -> {}        // kill all other facts that are not visible to
+      ///    the
+      ///                      // caller
+      /// \endcode
+      /// The above implementation corresponds to the following edges in the
+      /// exploded supergraph.
+      /// \code
+      ///                         0  o   ...
+      ///
+      /// x = CalleeFun(o, ...)
+      ///                               +------------------+
+      ///                            +--|---------------+  |
+      ///                         +--|--|------------+  |  |
+      ///                         v  v  v   ...      |  |  |
+      ///                         0  o  x   ...      |  |  |
+      ///                                            |  |  |
+      ///                                            |  |  |
+      ///                                            |  |  |
+      ///                     Ty CalleeFun(q, ...)   |  |  |
+      ///                                            |  |  |
+      ///                                            0  q  r   ...
+      ///
+      ///                                 return r
+      /// \endcode
+      {
+        FFF.getRetFlowFunction(CallSite, CalleeFun, ExitInst, RetSite)
+      } -> std::convertible_to<typename T::FlowFunctionPtrType>;
+
+      ///
+      /// Describes the data-flows alongsite a CallSite.
+      ///
+      /// This flow function usually passes all data-flow facts that are not
+      /// involved in the function call alongsite the CallSite. Data-flow facts
+      /// that are not actual parameters or passed by value, modifications to
+      /// those within a callee are not visible in the caller context, are
+      /// mostly passed as identity. The call-to-return flow function may also
+      /// be used to describe special semantics (cf. getCallFlowFunction()).
+      ///
+      /// The returned flow function implementation f
+      /// (FlowFunction::computeTargets()) is applied to each data-flow fact d_i
+      /// that holds right before the CallSite. f's return type is a set of
+      /// (target) facts that have to be generated from the source fact d_i by
+      /// the data-flow solver. Each target fact that is generated will hold
+      /// after CallSite.
+      ///
+      /// The concrete implementation of f is depending on the analysis problem.
+      /// In the following, we present a brief, contrived example:
+      ///
+      /// f is applied to each data-flow fact d_i that holds before CallSite. We
+      /// assume that f is implemented to produce the following outputs.
+      /// \code
+      ///    f(0) -> {0}       // pass lambda as identity alongsite the CallSite
+      ///    f(o) -> {o}       // assuming that o is passed by value, it is
+      ///    passed
+      ///                      // alongsite the CallSite
+      ///    f(p) -> {}        // assuming that p is a pointer-typed value, we
+      ///    need
+      ///                      // to kill p, as it will be handled by the call-
+      ///                      and
+      ///                      // return-flow functions
+      ///    f(.) -> {.}       // pass everything that is not involved in the
+      ///    call
+      ///                      // as identity
+      /// \endcode
+      /// The above implementation corresponds to the following edges in the
+      /// exploded supergraph.
+      /// \code
+      ///                            0  o   ...
+      ///                            |  |
+      ///                            |  +-------+
+      ///                            +--------+ |
+      ///                                     | |
+      /// x = CalleeFun(o, p, ...)            | |
+      ///                                     | |
+      ///                            +--------+ |
+      ///                            |  +-------+
+      ///                            v  v
+      ///                            0  o  x   ...
+      /// \endcode
+      {
+        FFF.getCallToRetFlowFunction(CallSite, RetSite, Callees)
+      } -> std::convertible_to<typename T::FlowFunctionPtrType>;
+
+      ///
+      /// May be used to encode special sementics of a given callee target
+      /// (whose call should not be directly followed by the data-flow solver)
+      /// similar to the getCallFlowFunction() --> getCallToRetFlowFunction()
+      /// trick (cf. getCallFlowFunction()).
+      ///
+      /// The default implementation returns a nullptr to indicate that the
+      /// mechanism should not be used.
+      ///
+      {
+        FFF.getSummaryFlowFunction(Curr, CalleeFun)
+      } -> std::convertible_to<typename T::FlowFunctionPtrType>;
+    };
+
+template <typename T>
+concept UnbalancedRetSideEffectProvider = requires(
+    T &FFF, typename T::n_t ExitInst, typename T::n_t CallSite,
+    typename T::f_t CalleeFun, typename T::d_t Source) {
+  /// Performs any side-effects of a return-flow-function
+  ///
+  /// In case of unbalanced returns (if the option `followReturnsPastSeeds` is
+  /// activated in the IfdsIdeSolverConfig), we will eventually reach a function
+  /// that is not called from other functions. Still, we may want to apply a
+  /// return-flow-function -- just for its side-effects, such as registering a
+  /// taint
+  {
+    FFF.applyUnbalancedRetFlowFunctionSideEffects(CalleeFun, ExitInst, Source)
+  };
 };
 
 } // namespace psr

@@ -192,7 +192,13 @@ public:
       return pathsDagToAll(Inst, llvm::ArrayRef(&Fact, 1), Config, PFilter);
     }
 
-    if (auto Next = Inst->getNextNonDebugInstruction()) {
+    if (auto Next =
+#if LLVM_VERSION_MAJOR <= 18
+            Inst->getNextNonDebugInstruction()
+#else
+            Inst->getNextNode()
+#endif
+    ) {
       return pathsDagToAll(Next, llvm::ArrayRef(&Fact, 1), Config, PFilter);
     }
 
@@ -203,9 +209,11 @@ public:
 
     for (const auto *BB : llvm::successors(Inst)) {
       const auto *First = &BB->front();
+#if LLVM_VERSION_MAJOR <= 18
       if (llvm::isa<llvm::DbgInfoIntrinsic>(First)) {
         First = First->getNextNonDebugInstruction();
       }
+#endif
       if (ESG.getNodeOrNull(First, Fact)) {
         return pathsDagToAll(First, llvm::ArrayRef(&Fact, 1), Config, PFilter);
       }

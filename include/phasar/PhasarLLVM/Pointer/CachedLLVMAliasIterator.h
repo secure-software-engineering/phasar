@@ -12,8 +12,10 @@
 
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/Pointer/AliasAnalysisType.h"
+#include "phasar/Pointer/AliasInfoBase.h"
 #include "phasar/Pointer/AliasInfoTraits.h"
 #include "phasar/Pointer/AliasSetOwner.h"
+#include "phasar/Utils/AnalysisProperties.h"
 
 #include "llvm/IR/Function.h"
 
@@ -31,7 +33,8 @@ struct AliasInfoTraits<CachedLLVMAliasIterator>
 /// \note Currently assumes that the underlying alias information is
 /// flow-insensitive and the granularity of different alias-information per
 /// instruction is actually at function-level
-class CachedLLVMAliasIterator {
+class CachedLLVMAliasIterator
+    : public AnalysisPropertiesMixin<CachedLLVMAliasIterator> {
 public:
   using alias_traits_t = AliasInfoTraits<CachedLLVMAliasIterator>;
   using n_t = alias_traits_t::n_t;
@@ -44,11 +47,12 @@ public:
 
   // --- API Functions:
 
-  [[nodiscard]] inline bool isInterProcedural() const noexcept {
+  [[nodiscard]] constexpr bool isInterProcedural() const noexcept {
     return false; // No idea, so be conservative here
   };
 
-  [[nodiscard]] AliasAnalysisType getAliasAnalysisType() const noexcept {
+  [[nodiscard]] constexpr AliasAnalysisType
+  getAliasAnalysisType() const noexcept {
     return AliasAnalysisType::Invalid; // No idea
   }
 
@@ -83,7 +87,8 @@ public:
 
   void printAsJson(llvm::raw_ostream &OS = llvm::outs()) const;
 
-  [[nodiscard]] AnalysisProperties getAnalysisProperties() const noexcept {
+  [[nodiscard]] constexpr AnalysisProperties
+  getAnalysisProperties() const noexcept {
     return AnalysisProperties::None;
   }
 
@@ -98,18 +103,18 @@ private:
   };
 
   struct ReachableAllocationSitesKeyDMI {
-    inline static ReachableAllocationSitesKey getEmptyKey() noexcept {
+    static ReachableAllocationSitesKey getEmptyKey() noexcept {
       return {{}, llvm::DenseMapInfo<v_t>::getEmptyKey()};
     }
-    inline static ReachableAllocationSitesKey getTombstoneKey() noexcept {
+    static ReachableAllocationSitesKey getTombstoneKey() noexcept {
       return {{}, llvm::DenseMapInfo<v_t>::getTombstoneKey()};
     }
-    inline static auto getHashValue(ReachableAllocationSitesKey Key) noexcept {
+    static auto getHashValue(ReachableAllocationSitesKey Key) noexcept {
       return llvm::hash_combine(Key.FunAndIntraProcOnly.getOpaqueValue(),
                                 Key.Value);
     }
-    inline static bool isEqual(ReachableAllocationSitesKey Key1,
-                               ReachableAllocationSitesKey Key2) noexcept {
+    static bool isEqual(ReachableAllocationSitesKey Key1,
+                        ReachableAllocationSitesKey Key2) noexcept {
       return Key1.FunAndIntraProcOnly == Key2.FunAndIntraProcOnly &&
              Key1.Value == Key2.Value;
     }
@@ -124,6 +129,8 @@ private:
                  ReachableAllocationSitesKeyDMI>
       ReachableAllocationSitesMap;
 };
+
+static_assert(IsAliasInfo<CachedLLVMAliasIterator>);
 } // namespace psr
 
 #endif // PHASAR_PHASARLLVM_POINTER_CACHEDALIASITERATOR_H

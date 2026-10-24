@@ -65,9 +65,9 @@ struct DebugLocation {
 /// \brief A struct that contains information about a source code line, function
 /// name, file name corresponding to the IR statement.
 struct SourceCodeInfo {
-  std::string SourceCodeLine;
-  std::string SourceCodeFilename;
-  std::string SourceCodeFunctionName;
+  std::string SourceCodeLine{};
+  std::string SourceCodeFilename{};
+  std::string SourceCodeFunctionName{};
   unsigned Line = 0;
   unsigned Column = 0;
 
@@ -122,6 +122,19 @@ void to_json(nlohmann::json &J, const SourceCodeInfo &Info);
 
 [[nodiscard]] std::optional<DebugLocation>
 getDebugLocation(const llvm::Value *V);
+
+/// Call \p Callback(DILocalVariable *, Value *) for every dbg.declare record
+/// attached to \p I. Handles both the legacy intrinsic form and the
+/// DbgVariableRecord form introduced in LLVM 19.
+void forEachDbgDeclare(
+    const llvm::Instruction &I,
+    llvm::function_ref<void(const llvm::DILocalVariable *, const llvm::Value *)>
+        Callback);
+
+/// Strip DW_TAG_typedef chains from \p Ty and return the underlying
+/// DICompositeType if it is a DW_TAG_structure_type; return null otherwise.
+[[nodiscard]] const llvm::DICompositeType *
+stripTypedefsToStruct(const llvm::DIType *Ty);
 
 } // namespace psr
 

@@ -53,16 +53,16 @@ public:
       // be wasteful to only allow one, e.g., int16
       llvm::SmallVector<T, std::max(size_t(1), sizeof(void *) / sizeof(T))>>;
 
-  [[nodiscard]] constexpr const auto &id2vars() const noexcept
-      [[clang::lifetimebound]] {
+  [[nodiscard]] constexpr const auto &
+  id2vars() const noexcept PSR_LIFETIMEBOUND {
     return Id2Vars;
   }
-  [[nodiscard]] constexpr const auto &id2vars(ValueId Id) const noexcept
-      [[clang::lifetimebound]] {
+  [[nodiscard]] constexpr const auto &
+  id2vars(ValueId Id) const noexcept PSR_LIFETIMEBOUND {
     return Id2Vars[Id];
   }
-  [[nodiscard]] constexpr const auto &var2id() const noexcept
-      [[clang::lifetimebound]] {
+  [[nodiscard]] constexpr const auto &
+  var2id() const noexcept PSR_LIFETIMEBOUND {
     return Var2Id;
   }
 

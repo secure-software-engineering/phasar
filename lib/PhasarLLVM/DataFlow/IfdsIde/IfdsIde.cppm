@@ -96,7 +96,6 @@ using psr::SecureHeapFact;
 using psr::SecureHeapValue;
 using psr::strongUpdateStore;
 using psr::operator<<;
-using psr::operator==;
 using psr::CSTDFILEIOState;
 using psr::EdgeFunctionBase;
 using psr::IDEGeneralizedLCA;

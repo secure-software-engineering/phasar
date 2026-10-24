@@ -43,7 +43,7 @@ int main(int Argc, const char **Argv) {
     // IFDS template parametrization test
     llvm::outs() << "Testing IFDS:\n";
     auto L = createAnalysisProblem<IFDSSolverTest>(HA, EntryPoints);
-    IFDSSolver S(L, &HA.getICFG());
+    IFDSSolver S(&L, &HA.getICFG());
     auto IFDSResults = S.solve();
     IFDSResults.dumpResults(HA.getICFG());
 

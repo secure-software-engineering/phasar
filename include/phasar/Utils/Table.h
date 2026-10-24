@@ -46,7 +46,8 @@ public:
 
     friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
                                          const Cell &Cell) {
-      return OS << "Cell: " << Cell.r << ", " << Cell.c << ", " << Cell.v;
+      return OS << "Cell: " << Cell.Row << ", " << Cell.Column << ", "
+                << Cell.Value;
     }
     friend bool operator<(const Cell &Lhs, const Cell &Rhs) noexcept {
       return std::tie(Lhs.Row, Lhs.Column, Lhs.Value) <

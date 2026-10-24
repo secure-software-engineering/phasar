@@ -70,9 +70,7 @@ function(generate_ll_file)
     set(user_compiled_llvm "/usr/local/llvm-${PHASAR_LLVM_VERSION}/bin")
     set(package_manager_llvm "/usr/lib/llvm-${PHASAR_LLVM_VERSION}/bin/")
     foreach(hint ${default_llvm} ${fallback_llvm} ${user_compiled_llvm} ${package_manager_llvm})
-      if ("${CMAKE_VERSION}" VERSION_GREATER_EQUAL "3.20")
-        cmake_path(NORMAL_PATH hint OUTPUT_VARIABLE hint)
-      endif()
+      cmake_path(NORMAL_PATH hint OUTPUT_VARIABLE hint)
       list(APPEND binary_hint_paths "${hint}")
     endforeach()
     message(STATUS "HINTS to find clang/clang++/opt: ${binary_hint_paths}")
@@ -277,9 +275,20 @@ function(add_phasar_library name)
   add_library(phasar::${component_name} ALIAS ${name})
   set_target_properties(${name} PROPERTIES
     EXPORT_NAME ${component_name}
+    VERSION ${PHASAR_VERSION}
+    SOVERSION ${PHASAR_VERSION}
   )
 
   target_compile_features(${name} PUBLIC cxx_std_20)
+
+  if (BUILD_SHARED_LIBS AND UNIX)
+    target_link_options(${name} INTERFACE "LINKER:-rpath,\$ORIGIN/../${CMAKE_INSTALL_LIBDIR}:\$ORIGIN/../${PHASAR_DEPS_INSTALL_DESTINATION}/lib")
+
+    set_target_properties(${name} PROPERTIES
+      INSTALL_RPATH
+        "\$ORIGIN/../${CMAKE_INSTALL_LIBDIR};\$ORIGIN/../${PHASAR_DEPS_INSTALL_DESTINATION}/lib"
+    )
+  endif()
 
   set(install_module)
   if(PHASAR_LIB_MODULE_FILES)

@@ -30,6 +30,7 @@
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallVector.h"
 
+#include <cassert>
 #include <cstdint>
 #include <optional>
 #include <unordered_map>
@@ -140,6 +141,7 @@ public:
   }
 
   void onAddValue(ByConstRef<v_t> Var, ValueId VId) {
+    assert(size_t(VId) == SCCOfVal.size() && "Expect ascending VIds");
     auto &SccPlace = SCCOfVal.emplace_back(InvalidSCC);
     if (auto &&Fun = getFunction(Var)) {
       if (auto FunVtx = RevCG.FC.getOrNull(Fun)) {
@@ -150,7 +152,9 @@ public:
     Base.onAddValue(Var, VId);
   }
 
-  [[nodiscard]] BasicUnionFindAAResult consumeAAResults(size_t NumVars) && {
+  template <std::predicate<ValueId> FilterFn = TrueFn>
+  [[nodiscard]] BasicUnionFindAAResult
+  consumeAAResults(size_t NumVars, FilterFn ShouldInclude = {}) && {
 
     bottomupPropagation(NumVars);
 
@@ -159,7 +163,8 @@ public:
       topdownPropagation();
     }
 
-    return std::move(Base).consumeAAResults(NumVars);
+    return std::move(Base).consumeAAResults(NumVars, IdentityFn{},
+                                            std::move(ShouldInclude));
   }
 
 private:

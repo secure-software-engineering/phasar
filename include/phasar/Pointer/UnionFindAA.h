@@ -12,6 +12,7 @@
 #include "phasar/ControlFlow/CallGraph.h"
 #include "phasar/Pointer/CallingContextConstructor.h"
 #include "phasar/Pointer/PointerAssignmentGraph.h"
+#include "phasar/Pointer/RawAAResult.h"
 #include "phasar/Pointer/RawAliasSet.h"
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/IotaIterator.h"
@@ -33,51 +34,19 @@
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/Support/ErrorHandling.h"
 
+#include <cassert>
 #include <concepts>
 #include <functional>
 #include <type_traits>
 
 namespace psr {
 
-/// Base interface for results of a union-find alias-analysis.
+/// For backwards-compatibility only
 template <typename T>
-concept UnionFindAAResult = requires(const T &Result, ValueId Var) {
-  { T::isCached() } noexcept -> std::convertible_to<bool>;
-  { Result.getRawAliasSet(Var) } -> std::convertible_to<RawAliasSet<ValueId>>;
-  { Result.mayAlias(Var, Var) } -> std::convertible_to<bool>;
-  { Result.size() } noexcept -> std::convertible_to<size_t>;
-};
+concept UnionFindAAResult = RawAAResult<T>;
 
-/// The intersection of two (different) independent union-find alias-analysis
-/// results.
-/// Use this to achieve better precision than feasible with a single analysis.
-template <UnionFindAAResult FirstT, UnionFindAAResult SecondT>
-struct UnionFindAAResultIntersection {
-  [[nodiscard]] static constexpr bool isCached() noexcept {
-    // The set-intersection is not cached
-    return false;
-  }
-
-  [[nodiscard]] constexpr size_t size() const noexcept {
-    assert(
-        First.size() == Second.size() &&
-        "Only alias-results on the same ValueCompressor should be intersected");
-    return First.size();
-  }
-
-  [[nodiscard]] RawAliasSet<ValueId> getRawAliasSet(ValueId Var) const {
-    auto ResultSet = First.getRawAliasSet(Var);
-    ResultSet &= Second.getRawAliasSet(Var);
-    return ResultSet;
-  }
-
-  [[nodiscard]] constexpr bool mayAlias(ValueId Var1, ValueId Var2) const {
-    return First.mayAlias(Var1, Var2) && Second.mayAlias(Var1, Var2);
-  }
-
-  [[no_unique_address]] FirstT First;
-  [[no_unique_address]] SecondT Second;
-};
+template <RawAAResult FirstT, RawAAResult SecondT>
+using UnionFindAAResultIntersection = RawAAResultIntersection<FirstT, SecondT>;
 
 /// Specialization of \c PBStrategyCombinator for two union-find analyses whose
 /// results should be intersected for better precision.  Both analyses must
@@ -96,10 +65,13 @@ struct UnionFindAACombinator
       : pag::PBStrategyCombinator<FirstT, SecondT>{PSR_FWD(First),
                                                    PSR_FWD(Second)} {}
 
-  [[nodiscard]] UnionFindAAResult auto consumeAAResults(size_t NumVars) && {
-    return UnionFindAAResultIntersection{
-        std::move(this->First).consumeAAResults(NumVars),
-        std::move(this->Second).consumeAAResults(NumVars),
+  template <std::predicate<ValueId> FilterFn = TrueFn>
+  [[nodiscard]] RawAAResult auto
+  consumeAAResults(size_t NumVars, FilterFn ShouldInclude = {}) && {
+    return RawAAResultIntersection{
+        std::move(this->First).consumeAAResults(NumVars, ShouldInclude),
+        std::move(this->Second)
+            .consumeAAResults(NumVars, std::move(ShouldInclude)),
     };
   }
 };
@@ -108,7 +80,7 @@ template <typename FirstT, typename SecondT>
 UnionFindAACombinator(FirstT, SecondT)
     -> UnionFindAACombinator<FirstT, SecondT>;
 
-/// Lazy cache that wraps any \c UnionFindAAResult and memoises
+/// Lazy cache that wraps any \c RawAAResult and memoises
 /// \c getRawAliasSet() results in a \c ValueIdMap.
 ///
 /// Not thread-safe. Each unique \p ValueId is computed at most once on first
@@ -119,7 +91,7 @@ UnionFindAACombinator(FirstT, SecondT)
 ///   \c mayAlias() is forwarded directly to the underlying result without
 ///   materializing a set, which can be faster for analyses whose
 ///   \c mayAlias() implementation is already O(1).
-template <UnionFindAAResult AAResT, bool ShouldCacheMayAlias = true>
+template <RawAAResult AAResT, bool ShouldCacheMayAlias = true>
 class CachedUnionFindAAResult {
 public:
   explicit CachedUnionFindAAResult(AAResT &&AARes) : AARes(std::move(AARes)) {
@@ -154,7 +126,7 @@ private:
 
 /// Implements the AliasIterator interface on union-find alias-analysis results.
 template <typename AAResT, typename Var2IdMapper, typename Id2VarMapper>
-  requires UnionFindAAResult<std::remove_cvref_t<AAResT>>
+  requires RawAAResult<std::remove_cvref_t<AAResT>>
 struct UnionFindAliasIterator {
   [[no_unique_address]] AAResT AARes;
   [[no_unique_address]] Var2IdMapper Var2Id;
@@ -191,9 +163,7 @@ struct BasicUnionFindAAResult : UnionFindAAResultBase {
   TypedVector<ValueId, ObjectRepId> Var2Rep;
 
   [[nodiscard]] static constexpr bool isCached() noexcept { return true; }
-  [[nodiscard]] constexpr size_t size() const noexcept {
-    return Var2Rep.size();
-  }
+  [[nodiscard]] size_t size() const noexcept { return Var2Rep.size(); }
 
   [[nodiscard]] const RawAliasSet<ValueId> &
   getRawAliasSet(ValueId Var) const noexcept {
@@ -227,9 +197,7 @@ struct CallingContextSensUnionFindAAResult : UnionFindAAResultBase {
   TypedVector<ValueId, llvm::SmallVector<ObjectRepId, 2>> Var2Rep{};
 
   [[nodiscard]] static constexpr bool isCached() noexcept { return false; }
-  [[nodiscard]] constexpr size_t size() const noexcept {
-    return Var2Rep.size();
-  }
+  [[nodiscard]] size_t size() const noexcept { return Var2Rep.size(); }
 
   [[nodiscard]] RawAliasSet<ValueId> getRawAliasSet(ValueId Var) const {
     RawAliasSet<ValueId> ResultSet;
@@ -275,6 +243,13 @@ struct BasicUnionFindAA {
   using f_t = typename AnalysisDomainT::f_t;
   using db_t = typename AnalysisDomainT::db_t;
 
+  /// Joins \p From and \p To unconditionally, ignoring the edge type.
+  /// This is intentional: a flow-insensitive union-find without an indirection
+  /// dimension must merge across Store/Load boundaries to stay sound.  The
+  /// resulting imprecision (pointers merged with pointees) is recovered when
+  /// this analysis is intersected with \c IndirectionSensUnionFindAA via
+  /// \c UnionFindAACombinator.  Do not use \c BasicUnionFindAA standalone
+  /// where pointer/pointee distinction matters.
   void onAddEdge(ObjectId From, ObjectId To, pag::Edge /*E*/,
                  Nullable<n_t> /*AtInstruction*/) {
     AliasSets.join(From, To);
@@ -284,9 +259,11 @@ struct BasicUnionFindAA {
     AliasSets.grow(size_t(VId) + 1);
   }
 
-  template <std::invocable<ValueId> Var2ObjFn = IdentityFn>
+  template <std::invocable<ValueId> Var2ObjFn = IdentityFn,
+            std::predicate<ValueId> FilterFn = TrueFn>
   [[nodiscard]] BasicUnionFindAAResult
-  consumeAAResults(size_t NumVars, Var2ObjFn Var2Obj = {}) && {
+  consumeAAResults(size_t NumVars, Var2ObjFn Var2Obj = {},
+                   FilterFn ShouldInclude = {}) && {
     auto Equiv = std::move(AliasSets)
                      .template compress<BasicUnionFindAAResult::ObjectRepId>();
 
@@ -298,13 +275,14 @@ struct BasicUnionFindAA {
     Result.Var2Rep.resize(NumVars, InvalidRep);
 
     for (auto VId : iota<ValueId>(NumVars)) {
-      // XXX: We should skip only-ret val-ids
       auto ObjId = std::invoke(Var2Obj, VId);
       auto Rep = Equiv[ObjId];
       assert(Result.Var2Rep[VId] == InvalidRep &&
              "Mapping from ValueId to AliasSet-Id must be injective!");
       Result.Var2Rep[VId] = Rep;
-      Result.BackwardView[Rep].insert(VId);
+      if (std::invoke(ShouldInclude, VId)) {
+        Result.BackwardView[Rep].insert(VId);
+      }
     }
 
     return Result;
@@ -330,8 +308,8 @@ public:
   using db_t = typename AnalysisDomainT::db_t;
 
   constexpr CallingContextSensUnionFindAA(
-      NonNullPtr<const CallGraph<n_t, f_t>> CG,
-      NonNullPtr<const db_t> IRDB) noexcept
+      NonNullPtr<const CallGraph<n_t, f_t>> CG PSR_LIFETIMEBOUND,
+      NonNullPtr<const db_t> IRDB PSR_LIFETIMEBOUND) noexcept
       : CG(CG), IRDB(IRDB) {}
 
   void onAddEdge(ValueId From, ValueId To, pag::Edge E,
@@ -373,6 +351,7 @@ public:
   }
 
   void onAddValue(ByConstRef<v_t> Var, ValueId VId) {
+    assert(size_t(VId) == Var2Obj.size() && "Expect ascending VIds");
     Var2Obj.emplace_back();
     if (const auto &Fun = getFunction(Var)) {
       CC.visitAllCallingContexts(
@@ -397,8 +376,9 @@ public:
   }
 
   /// Retrieve the analysis results after buildPAG() has returned.
+  template <std::predicate<ValueId> FilterFn = TrueFn>
   [[nodiscard]] CallingContextSensUnionFindAAResult
-  consumeAAResults(size_t NumVars) && {
+  consumeAAResults(size_t NumVars, FilterFn ShouldInclude = {}) && {
     auto Equiv = std::move(Base.AliasSets)
                      .template compress<BasicUnionFindAAResult::ObjectRepId>();
 
@@ -407,11 +387,14 @@ public:
     Result.Var2Rep.resize(NumVars);
 
     for (const auto &[ValId, Objects] : Var2Obj.enumerate()) {
-      // XXX: We should skip only-ret val-ids
-
+      const bool Include = std::invoke(ShouldInclude, ValId);
       for (const auto &[_, Obj] : Objects) {
         auto Rep = Equiv[Obj];
-        if (Result.BackwardView[Rep].tryInsert(ValId)) {
+        if (Include) {
+          if (Result.BackwardView[Rep].tryInsert(ValId)) {
+            Result.Var2Rep[ValId].push_back(Rep);
+          }
+        } else if (!llvm::is_contained(Result.Var2Rep[ValId], Rep)) {
           Result.Var2Rep[ValId].push_back(Rep);
         }
       }
@@ -531,24 +514,33 @@ public:
   }
 
   void onAddValue(ByConstRef<v_t> /*Var*/, ValueId VId) {
+    assert(size_t(VId) == Var2Obj.size() && "Expect ascending VIds");
     auto Obj = Obj2Var.size();
     Base.AliasSets.grow(Obj + K);
     Var2Obj.emplace_back(generate_tag, [Obj](IndDepth Depth) {
       return IndObjectId(Obj + size_t(Depth));
     });
-    // XXX: For some values, we can already see that depth>=2 does not make
-    // sense, so we could exit the below loop early
+    // Always allocate K depth slots per value. Lazy/reduced allocation would
+    // require TypedArray to become dynamically-sized, which is a larger
+    // structural change. A two-pass variant that counts max observed depth
+    // first would be an opt-in improvement but is not needed for correctness.
     for (auto Depth : iota<IndDepth>(K)) {
       Obj2Var.emplace_back(VId, Depth);
     }
   }
 
   /// Retrieve the analysis results after buildPAG() has returned.
-  [[nodiscard]] BasicUnionFindAAResult consumeAAResults(size_t NumVars) && {
-    return std::move(Base).consumeAAResults(NumVars, [this](ValueId VId) {
-      // When presenting the results, we only care about the values at depth 0
-      return Var2Obj[VId][IndDepth{}];
-    });
+  template <std::predicate<ValueId> FilterFn = TrueFn>
+  [[nodiscard]] BasicUnionFindAAResult
+  consumeAAResults(size_t NumVars, FilterFn ShouldInclude = {}) && {
+    return std::move(Base).consumeAAResults(
+        NumVars,
+        [this](ValueId VId) {
+          // When presenting the results, we only care about the values at depth
+          // 0
+          return Var2Obj[VId][IndDepth{}];
+        },
+        std::move(ShouldInclude));
   }
 
 private:

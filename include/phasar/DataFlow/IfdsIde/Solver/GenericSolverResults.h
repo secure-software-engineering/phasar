@@ -1,6 +1,7 @@
 #ifndef PHASAR_DATAFLOW_IFDSIDE_SOLVER_GENERICSOLVERRESULTS_H
 #define PHASAR_DATAFLOW_IFDSIDE_SOLVER_GENERICSOLVERRESULTS_H
 
+#include "phasar/Domain/AnalysisDomain.h"
 #include "phasar/Domain/BinaryDomain.h"
 #include "phasar/Utils/ByRef.h"
 
@@ -161,6 +162,11 @@ private:
   const VTableTy *VT{};
   alignas(alignof(void *)) std::array<std::byte, 3 * sizeof(void *)> Buffer{};
 };
+
+template <typename AnalysisDomainTy>
+using GenericSolverResultsFor = GenericSolverResults<
+    typename AnalysisDomainTy::n_t, typename AnalysisDomainTy::d_t,
+    typename detail::ValueDomainAdder<AnalysisDomainTy>::l_t>;
 
 template <typename SR1, typename SR2>
 bool ifdsEqual(const SR1 &LHS, const SR2 &RHS) {

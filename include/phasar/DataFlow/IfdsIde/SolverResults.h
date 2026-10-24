@@ -40,8 +40,15 @@ namespace psr {
 std::string getMetaDataID(const llvm::Value *V);
 
 namespace detail {
+
+struct SolverResultsRoot {
+  PAMM_CATEGORY(SolverResults);
+  PAMM_TIMER(ResultsDumping, Full);
+};
+
 template <typename Derived, typename N, typename D, typename L>
-class SolverResultsBase {
+class SolverResultsBase : private SolverResultsRoot {
+
 public:
   using n_t = N;
   using d_t = D;
@@ -160,8 +167,8 @@ public:
                    llvm::raw_ostream &OS = llvm::outs()) const {
     using f_t = typename ICFGTy::f_t;
 
-    PAMM_GET_INSTANCE;
-    START_TIMER("DFA IDE Result Dumping", Full);
+    PAMM_SCOPED_TIMER(ResultsDumping);
+
     OS << "\n***************************************************************\n"
        << "*                  Raw IDESolver results                      *\n"
        << "***************************************************************\n";
@@ -202,7 +209,6 @@ public:
       }
     }
     OS << '\n';
-    STOP_TIMER("DFA IDE Result Dumping", Full);
   }
 
   template <typename HandlerFn>

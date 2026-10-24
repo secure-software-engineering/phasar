@@ -6,6 +6,9 @@ add_phasar_library(phasar_llvm_domain
   MODULE_FILES
     Domain.cppm
 
+  LLVM_LINK_COMPONENTS
+    Support
+
   LINK_PRIVATE
     nlohmann_json::nlohmann_json
 )

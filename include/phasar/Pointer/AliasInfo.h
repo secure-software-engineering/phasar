@@ -58,7 +58,7 @@ struct AliasInfoTraits<AliasInfo<V, N>> : DefaultAATraits<V, N> {};
 /// NOTE: AliasInfoRef::mergeWith() only works if supplied with a compatible
 /// other AliasInfo. Otherwise, it asserts out
 template <typename V, typename N>
-class [[gsl::Pointer]] AliasInfoRef
+class PSR_POINTER() AliasInfoRef
     : public AnalysisPropertiesMixin<AliasInfoRef<V, N>> {
   friend class AliasInfo<V, N>;
 
@@ -96,7 +96,6 @@ public:
     assert(VT != nullptr);
     return AliasIteratorRef<V, N>(AA, VT->ForallAliasesOf);
   }
-  constexpr operator AliasIteratorRef<V, N>() && noexcept = delete;
 
   // -- Impl for IsAliasInfo:
 
@@ -307,8 +306,7 @@ private:
 /// \endcode
 ///
 template <typename V, typename N>
-class [[clang::trivial_abi, gsl::Owner]] AliasInfo final
-    : public AliasInfoRef<V, N> {
+class PSR_TRIVIAL_ABI PSR_OWNER() AliasInfo final : public AliasInfoRef<V, N> {
   using base_t = AliasInfoRef<V, N>;
 
 public:
@@ -359,6 +357,9 @@ public:
   [[nodiscard]] base_t get() & noexcept { return asRef(); }
   [[nodiscard]] AliasInfoRef<V, N> get() const & noexcept { return asRef(); }
   [[nodiscard]] AliasInfoRef<V, N> get() && = delete;
+
+  using base_t::operator psr::AliasIteratorRef<V, N>;
+  constexpr operator AliasIteratorRef<V, N>() && noexcept = delete;
 };
 
 extern template class AliasInfoRef<const llvm::Value *,

@@ -14,5 +14,5 @@
 using namespace psr;
 
 void controller::executeIDELinearConst(AnalysisController &Data) {
-  executeIDEAnalysis<IDELinearConstantAnalysis>(Data, Data.EntryPoints);
+  executeIDEAnalysis<IDELinearConstantAnalysis>(Data, Data.getEntryPoints());
 }

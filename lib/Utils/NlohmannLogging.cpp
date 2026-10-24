@@ -32,7 +32,7 @@ public:
   template <typename AllocatorType = std::allocator<char>>
 
   LLVMOutputAdapter(llvm::raw_ostream &OS)
-      : OA(std::make_shared<LLVMOutputStreamAdapter>(OS)) {}
+      : OA(std::make_unique<LLVMOutputStreamAdapter>(OS)) {}
 
   operator nlohmann::detail::output_adapter_t<char>() { return OA; }
 

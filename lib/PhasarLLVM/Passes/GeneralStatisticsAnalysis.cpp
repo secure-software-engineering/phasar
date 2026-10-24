@@ -14,7 +14,6 @@
 #include "phasar/Utils/AlignNum.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/NlohmannLogging.h"
-#include "phasar/Utils/PAMMMacros.h"
 
 #include "llvm/IR/CFG.h"
 #include "llvm/IR/Function.h"
@@ -29,7 +28,7 @@
 
 #include <string>
 
-namespace psr {
+using namespace psr;
 
 static bool isAddressTaken(const llvm::Function &Fun) noexcept {
   for (const auto &Use : Fun.uses()) {
@@ -188,16 +187,7 @@ GeneralStatisticsAnalysis::runOnModule(const llvm::Module &M) {
   // For performance reasons (and out of sheer convenience) we simply initialize
   // the counter with the values of the counter varibles, i.e. PAMM simply
   // holds the results.
-  PAMM_GET_INSTANCE;
-  REG_COUNTER("GS Instructions", Stats.Instructions, Core);
-  REG_COUNTER("GS Allocated Types", Stats.AllocatedTypes.size(), Full);
-  REG_COUNTER("GS Basic Blocks", Stats.BasicBlocks, Full);
-  REG_COUNTER("GS Call-Sites", Stats.CallSites, Full);
-  REG_COUNTER("GS Functions", Stats.Functions, Full);
-  REG_COUNTER("GS Globals", Stats.Globals, Full);
-  REG_COUNTER("GS Memory Intrinsics", Stats.MemIntrinsics, Full);
-  REG_COUNTER("GS Store Instructions", Stats.StoreInstructions, Full);
-  REG_COUNTER("GS Load Instructions", Stats.LoadInstructions, Full);
+
   // Using the logging guard explicitly since we are printing allocated types
   // manually
   IF_LOG_LEVEL_ENABLED(INFO, {
@@ -268,8 +258,6 @@ void GeneralStatistics::printAsJson(llvm::raw_ostream &OS) const {
 
   OS << Json << '\n';
 }
-
-} // namespace psr
 
 llvm::raw_ostream &psr::operator<<(llvm::raw_ostream &OS,
                                    const GeneralStatistics &Statistics) {

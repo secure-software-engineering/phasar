@@ -51,6 +51,9 @@ template <typename K> struct Hasher {
   size_t operator()(ByConstRef<K> Key) const noexcept {
     if constexpr (has_getHashCode<K>::value) {
       return Key.getHashCode();
+    } else if constexpr (is_llvm_hashable_v<K>) {
+      using llvm::hash_value;
+      return hash_value(Key);
     } else {
       return std::hash<K>{}(Key);
     }
@@ -396,7 +399,7 @@ public:
 
   void
   clear() noexcept(std::is_nothrow_default_constructible_v<decltype(Set)>) {
-    std::unordered_set<T, Hasher> Empty{};
+    std::unordered_set<T, detail::Hasher<T>> Empty{};
     swap(Set, Empty);
   }
 
@@ -443,17 +446,7 @@ public:
   }
 
 private:
-  struct Hasher {
-    size_t operator()(ByConstRef<T> Key) const noexcept {
-      if constexpr (has_getHashCode<T>::value) {
-        return Key.getHashCode();
-      } else {
-        return std::hash<T>{}(Key);
-      }
-    }
-  };
-
-  std::unordered_set<T, Hasher> Set;
+  std::unordered_set<T, detail::Hasher<T>> Set;
 };
 
 template <typename K, typename V> class DenseTable1d {

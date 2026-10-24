@@ -20,8 +20,10 @@ namespace psr::ptaben {
 struct PTAResult {
   QueryId Query{};
   AliasResult Result{};
-};
 
-llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, PTAResult Res);
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, PTAResult Res) {
+    return OS << uint64_t(Res.Query) << ", " << to_string(Res.Result);
+  }
+};
 
 } // namespace psr::ptaben

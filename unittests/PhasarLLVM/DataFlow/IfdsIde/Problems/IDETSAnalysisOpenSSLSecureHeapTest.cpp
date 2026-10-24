@@ -71,7 +71,7 @@ protected:
                                                             EntryPoints);
     Llvmtssolver = std::make_unique<
         IDESolver<IDETypeStateAnalysisDomain<OpenSSLSecureHeapDescription>>>(
-        *TSProblem, &HA->getICFG());
+        &*TSProblem, &HA->getICFG());
 
     SecureHeapPropagationResults->solve();
     Llvmtssolver->solve();

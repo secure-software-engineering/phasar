@@ -90,7 +90,7 @@ IFDSUninitializedVariables::getNormalFlowFunction(
         return {};
       }
     };
-    return make_shared<UVFF>(func, zerovalue);
+    return make_unique<UVFF>(func, zerovalue);
   }
   */
 
@@ -165,7 +165,7 @@ IFDSUninitializedVariables::getNormalFlowFunction(
         return {Source};
       }
     };
-    return std::make_shared<UVFF>(Store, UndefValueUses, getZeroValue());
+    return std::make_unique<UVFF>(Store, UndefValueUses, getZeroValue());
   }
   if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
 
@@ -292,7 +292,7 @@ IFDSUninitializedVariables::getCallFlowFunction(
         return {Source};
       }
     };
-    return std::make_shared<UVFF>(DestFun, CS, getZeroValue());
+    return std::make_unique<UVFF>(DestFun, CS, getZeroValue());
   }
   return identityFlow();
 }
@@ -336,7 +336,7 @@ IFDSUninitializedVariables::getRetFlowFunction(
         return Ret;
       }
     };
-    return std::make_shared<UVFF>(CS, ExitStmt);
+    return std::make_unique<UVFF>(CS, ExitStmt);
   }
   // kill everything else
   return killAllFlows();

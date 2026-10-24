@@ -18,9 +18,17 @@
 
 namespace psr {
 class LLVMProjectIRDB;
+class LLVMBasedICFG;
+
+/// Returns true, if F is a definition that a client outside the module under
+/// analysis is able to call. Used to expand the special entry point "__ALL__".
+[[nodiscard]] bool isExternallyCallable(const llvm::Function &F) noexcept;
 
 [[nodiscard]] std::vector<const llvm::Function *>
 getEntryFunctions(const LLVMProjectIRDB &IRDB,
+                  llvm::ArrayRef<std::string> EntryPoints);
+[[nodiscard]] std::vector<const llvm::Function *>
+getEntryFunctions(const LLVMBasedICFG &ICF,
                   llvm::ArrayRef<std::string> EntryPoints);
 
 [[nodiscard]] std::vector<llvm::Function *>

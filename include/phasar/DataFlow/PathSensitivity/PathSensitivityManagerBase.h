@@ -12,6 +12,7 @@
 
 #include "phasar/Utils/AdjacencyList.h"
 #include "phasar/Utils/Logger.h"
+#include "phasar/Utils/TypeTraits.h"
 #include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/BitVector.h"
@@ -180,7 +181,7 @@ private:
   [[nodiscard]] static graph_type reverseDAG(graph_type &&Dag,
                                              size_t MaxDepth) {
     auto Sz = graph_traits_t::size(Dag);
-    return reverseDAG(std::move(Dag), identity{}, Sz, MaxDepth);
+    return reverseDAG(std::move(Dag), IdentityFn{}, Sz, MaxDepth);
   }
 };
 

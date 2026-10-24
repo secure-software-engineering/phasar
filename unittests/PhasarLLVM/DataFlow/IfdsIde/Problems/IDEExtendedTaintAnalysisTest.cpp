@@ -9,6 +9,7 @@
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEExtendedTaintAnalysis.h"
 
+#include "phasar/DataFlow/IfdsIde/Solver/GenericSolverResults.h"
 #include "phasar/DataFlow/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
@@ -25,9 +26,10 @@
 #include "TestConfig.h"
 #include "gtest/gtest.h"
 
-#include <tuple>
 #include <utility>
 #include <variant>
+
+namespace {
 
 using namespace psr;
 using namespace psr::unittest;
@@ -72,7 +74,7 @@ protected:
     auto TaintProblem =
         createAnalysisProblem<IDEExtendedTaintAnalysis<>>(HA, TC, EntryPoints);
 
-    IDESolver Solver(TaintProblem, &HA.getICFG());
+    IDESolver Solver(&TaintProblem, &HA.getICFG());
     Solver.solve();
     // Solver.printAnnotatedIR();
     if (DumpResults) {
@@ -81,12 +83,11 @@ protected:
 
     TaintProblem.emitTextReport(Solver.getSolverResults());
 
-    compareResults(TaintProblem, Solver, GroundTruth);
+    compareResults(TaintProblem, Solver.getSolverResults(), GroundTruth);
   }
 
   void
-  compareResults(IDEExtendedTaintAnalysis<> &TaintProblem,
-                 IDESolver_P<IDEExtendedTaintAnalysis<>> &Solver,
+  compareResults(IDEExtendedTaintAnalysis<> &TaintProblem, auto &&SR,
                  const std::map<TestingSrcLocation, TaintSetT> &GroundTruth) {
     auto GroundTruthEntries = convertTestingLocationSetMapInIR(
         GroundTruth, *TaintProblem.getProjectIRDB());
@@ -94,8 +95,7 @@ protected:
     std::map<const llvm::Instruction *, std::set<const llvm::Value *>>
         FoundLeaks;
 
-    for (const auto &[LeakInst, LeakVals] :
-         TaintProblem.getAllLeaks(Solver.getSolverResults())) {
+    for (const auto &[LeakInst, LeakVals] : TaintProblem.getAllLeaks(SR)) {
       FoundLeaks[LeakInst].insert(LeakVals.begin(), LeakVals.end());
     }
 
@@ -321,6 +321,7 @@ TEST_F(IDETaintAnalysisTest, XTaint21) {
   doAnalysis("xtaint21_cpp_dbg.ll", GroundTruth,
              CallBackPairTy{std::move(SourceCB), std::move(SinkCB)});
 }
+} // namespace
 
 int main(int Argc, char **Argv) {
   ::testing::InitGoogleTest(&Argc, Argv);

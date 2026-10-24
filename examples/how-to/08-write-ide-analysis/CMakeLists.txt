@@ -12,8 +12,8 @@ target_link_libraries(write-ide-analysis-simple PRIVATE phasar::phasar)
 
 if (TARGET run_sample_programs)
   add_custom_target(run_write_ide_analysis
-    DEPENDS write-ide-analysis-simple
-    COMMAND $<TARGET_FILE:write-ide-analysis-simple> "${CMAKE_CURRENT_LIST_DIR}/../../llvm-hello-world/target/taint.ll"
+    DEPENDS write-ide-analysis-simple LLFileGeneration
+    COMMAND $<TARGET_FILE:write-ide-analysis-simple> "${CMAKE_CURRENT_BINARY_DIR}/../llvm-hello-world/target/taint_cpp_dbg.ll"
   )
 
   add_dependencies(run_sample_programs run_write_ide_analysis)

@@ -31,7 +31,15 @@
 #include <memory>
 #include <utility>
 
-namespace psr {
+using namespace psr;
+
+namespace {
+PAMM_CATEGORY(IFDSConstAnalysis);
+
+PAMM_COUNTER(Calls_getContextRelevantAliasSet, Full); // NOLINT
+PAMM_HISTOGRAM(ContextRelevantPointer, Full);
+PAMM_TIMER(ContextRelevantAliasComputationTm, Full);
+} // namespace
 
 IFDSConstAnalysis::IFDSConstAnalysis(const LLVMProjectIRDB *IRDB,
                                      LLVMAliasInfoRef PT,
@@ -39,9 +47,6 @@ IFDSConstAnalysis::IFDSConstAnalysis(const LLVMProjectIRDB *IRDB,
     : IFDSTabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()),
       PT(PT) {
   assert(PT);
-  PAMM_GET_INSTANCE;
-  REG_HISTOGRAM("Context-relevant Pointer", Full);
-  REG_COUNTER("[Calls] getContextRelevantAliasSet", 0, Full);
 }
 
 IFDSConstAnalysis::FlowFunctionPtrType
@@ -191,9 +196,8 @@ void IFDSConstAnalysis::printInitMemoryLocations() {
 std::set<IFDSConstAnalysis::d_t> IFDSConstAnalysis::getContextRelevantAliasSet(
     std::set<IFDSConstAnalysis::d_t> &AliasSet,
     IFDSConstAnalysis::f_t CurrentContext) {
-  PAMM_GET_INSTANCE;
-  INC_COUNTER("[Calls] getContextRelevantAliasSet", 1, Full);
-  START_TIMER("Context-Relevant-Alias-Set Computation", Full);
+  Calls_getContextRelevantAliasSet++;
+  PAMM_SCOPED_TIMER(ContextRelevantAliasComputationTm);
   std::set<IFDSConstAnalysis::d_t> ToGenerate;
   for (const auto *Alias : AliasSet) {
     PHASAR_LOG_LEVEL(DEBUG, "Alias: " << llvmIRToString(Alias));
@@ -221,13 +225,12 @@ std::set<IFDSConstAnalysis::d_t> IFDSConstAnalysis::getContextRelevantAliasSet(
       }
     } // ignore everything else
   }
-  PAUSE_TIMER("Context-Relevant-Alias-Set Computation", Full);
-  ADD_TO_HISTOGRAM("Context-relevant Pointer", ToGenerate.size(), 1, Full);
+  ContextRelevantPointer.add(ToGenerate.size(), 1);
   return ToGenerate;
 }
 
 bool IFDSConstAnalysis::isInitialized(IFDSConstAnalysis::d_t Fact) const {
-  return llvm::isa<llvm::GlobalValue>(Fact) || Initialized.count(Fact);
+  return llvm::isa<llvm::GlobalValue>(Fact) || Initialized.contains(Fact);
 }
 
 void IFDSConstAnalysis::markAsInitialized(IFDSConstAnalysis::d_t Fact) {
@@ -288,5 +291,3 @@ void IFDSConstAnalysis::emitTextReport(
   }
   OS << "\n===================================================\n";
 }
-
-} // namespace psr

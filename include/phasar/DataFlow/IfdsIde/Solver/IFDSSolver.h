@@ -17,6 +17,7 @@
 #ifndef PHASAR_DATAFLOW_IFDSIDE_SOLVER_IFDSSOLVER_H
 #define PHASAR_DATAFLOW_IFDSIDE_SOLVER_IFDSSOLVER_H
 
+#include "phasar/DataFlow/IfdsIde/IFDSProblem.h"
 #include "phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h"
 #include "phasar/DataFlow/IfdsIde/Solver/IDESolver.h"
 #include "phasar/Domain/BinaryDomain.h"
@@ -37,26 +38,46 @@ namespace psr {
 /// IFDSIDESolverConfig#setComputeValues(bool) to disable IDE's
 /// phase 2.
 template <typename AnalysisDomainTy,
-          typename Container = std::set<typename AnalysisDomainTy::d_t>>
-class IFDSSolver
-    : public IDESolver<WithBinaryValueDomain<AnalysisDomainTy>, Container> {
+          typename Container = std::set<typename AnalysisDomainTy::d_t>,
+          ICFG ICFGTy = typename AnalysisDomainTy::i_t>
+class IFDSSolver : public IDESolver<WithBinaryValueDomain<AnalysisDomainTy>,
+                                    Container, ICFGTy> {
+  using Base =
+      IDESolver<WithBinaryValueDomain<AnalysisDomainTy>, Container, ICFGTy>;
+
 public:
   using ProblemTy = IFDSTabulationProblem<AnalysisDomainTy>;
   using d_t = typename AnalysisDomainTy::d_t;
   using n_t = typename AnalysisDomainTy::n_t;
-  using i_t = typename AnalysisDomainTy::i_t;
+  using i_t = ICFGTy;
 
-  template <std::derived_from<AnalysisDomainTy> IfdsDomainTy,
-            std::convertible_to<const i_t &> I>
-  IFDSSolver(IFDSTabulationProblem<IfdsDomainTy, Container> &IFDSProblem,
-             const I *ICF)
-      : IDESolver<WithBinaryValueDomain<AnalysisDomainTy>>(IFDSProblem, ICF) {}
+  template <IFDSProblem ProblemTy>
+    requires(std::same_as<
+             WithBinaryValueDomain<AnalysisDomainTy>,
+             WithBinaryValueDomain<typename ProblemTy::ProblemAnalysisDomain>>)
+  [[deprecated(
+      "Use the other overload of IFDSSolver() instead, which takes the "
+      "ifds-problem by pointer. This documents better that the solver captures "
+      "the address without taking ownership")]] IFDSSolver(ProblemTy
+                                                               &IFDSProblem,
+                                                           const ICFGTy *ICF)
+      : Base(IFDSProblem, ICF) {}
 
-  template <std::derived_from<AnalysisDomainTy> IfdsDomainTy,
-            std::convertible_to<const i_t &> I>
-  IFDSSolver(IFDSTabulationProblem<IfdsDomainTy, Container> *IFDSProblem,
-             const I *ICF)
-      : IDESolver<WithBinaryValueDomain<AnalysisDomainTy>>(IFDSProblem, ICF) {}
+  template <IFDSProblem ProblemTy>
+    requires(std::same_as<
+             WithBinaryValueDomain<AnalysisDomainTy>,
+             WithBinaryValueDomain<typename ProblemTy::ProblemAnalysisDomain>>)
+  IFDSSolver(ProblemTy *IFDSProblem, const ICFGTy *ICF)
+      : Base(IFDSProblem, ICF) {}
+
+  /// Uses SolverConfig instead of the problem's solver config
+  template <IFDSProblem ProblemTy>
+    requires(std::same_as<
+             WithBinaryValueDomain<AnalysisDomainTy>,
+             WithBinaryValueDomain<typename ProblemTy::ProblemAnalysisDomain>>)
+  IFDSSolver(ProblemTy *IFDSProblem, const ICFGTy *ICF,
+             IFDSIDESolverConfig SolverConfig)
+      : Base(IFDSProblem, ICF, SolverConfig) {}
 
   ~IFDSSolver() override = default;
 
@@ -110,26 +131,31 @@ public:
 };
 
 template <typename Problem, typename ICF>
-IFDSSolver(Problem &, ICF *)
+IFDSSolver(Problem &, const ICF *)
     -> IFDSSolver<typename Problem::ProblemAnalysisDomain,
-                  typename Problem::container_type>;
+                  typename Problem::container_type, ICF>;
 template <typename Problem, typename ICF>
-IFDSSolver(Problem *, ICF *)
+IFDSSolver(Problem *, const ICF *)
     -> IFDSSolver<typename Problem::ProblemAnalysisDomain,
-                  typename Problem::container_type>;
+                  typename Problem::container_type, ICF>;
+template <typename Problem, typename ICF>
+IFDSSolver(Problem *, const ICF *, IFDSIDESolverConfig)
+    -> IFDSSolver<typename Problem::ProblemAnalysisDomain,
+                  typename Problem::container_type, ICF>;
 
 template <typename Problem>
-using IFDSSolver_P = IFDSSolver<typename Problem::ProblemAnalysisDomain,
-                                typename Problem::container_type>;
+using IFDSSolver_P
+    [[deprecated("Let C++ deduce the template arguments of IFDSSolver, or call "
+                 "solveIFDSProblem() instead")]] =
+        IFDSSolver<typename Problem::ProblemAnalysisDomain,
+                   typename Problem::container_type>;
 
-template <typename AnalysisDomainTy, typename Container>
-OwningSolverResults<typename AnalysisDomainTy::n_t,
-                    typename AnalysisDomainTy::d_t, BinaryDomain>
-solveIFDSProblem(
-    IFDSTabulationProblem<AnalysisDomainTy, Container> &Problem,
-    const std::convertible_to<const typename AnalysisDomainTy::i_t &> auto
-        &ICF) {
-  IFDSSolver<AnalysisDomainTy, Container> Solver(Problem, &ICF);
+template <IFDSProblem ProblemTy>
+auto solveIFDSProblem(ProblemTy &Problem, const ICFG auto &ICF)
+    -> OwningSolverResults<typename ProblemTy::ProblemAnalysisDomain::n_t,
+                           typename ProblemTy::ProblemAnalysisDomain::d_t,
+                           BinaryDomain> {
+  IFDSSolver Solver(&Problem, &ICF);
   Solver.solve();
   return Solver.consumeSolverResults();
 }

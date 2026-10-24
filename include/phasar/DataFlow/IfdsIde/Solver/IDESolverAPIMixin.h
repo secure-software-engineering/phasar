@@ -422,6 +422,9 @@ public:
   }
 
 private:
+  friend Derived;
+  constexpr IDESolverAPIMixin() noexcept = default;
+
   [[nodiscard]] constexpr Derived &self() & noexcept {
     static_assert(std::is_base_of_v<IDESolverAPIMixin, Derived>,
                   "Invalid CRTP instantiation");

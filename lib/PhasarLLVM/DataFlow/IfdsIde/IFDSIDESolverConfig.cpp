@@ -9,66 +9,20 @@
 
 #include "phasar/DataFlow/IfdsIde/IFDSIDESolverConfig.h"
 
-#include <ostream>
+#include "llvm/Support/raw_ostream.h"
 
-using namespace std;
 using namespace psr;
 
-namespace psr {
-
-IFDSIDESolverConfig::IFDSIDESolverConfig(SolverConfigOptions Options) noexcept
-    : Options(Options) {}
-
-bool IFDSIDESolverConfig::followReturnsPastSeeds() const {
-  return hasFlag(Options, SolverConfigOptions::FollowReturnsPastSeeds);
-}
-bool IFDSIDESolverConfig::autoAddZero() const {
-  return hasFlag(Options, SolverConfigOptions::AutoAddZero);
-}
-bool IFDSIDESolverConfig::computeValues() const {
-  return hasFlag(Options, SolverConfigOptions::ComputeValues);
-}
-bool IFDSIDESolverConfig::recordEdges() const {
-  return hasFlag(Options, SolverConfigOptions::RecordEdges);
-}
-bool IFDSIDESolverConfig::emitESG() const {
-  return hasFlag(Options, SolverConfigOptions::EmitESG);
-}
-bool IFDSIDESolverConfig::computePersistedSummaries() const {
-  return hasFlag(Options, SolverConfigOptions::ComputePersistedSummaries);
-}
-
-void IFDSIDESolverConfig::setFollowReturnsPastSeeds(bool Set) {
-  setFlag(Options, SolverConfigOptions::FollowReturnsPastSeeds, Set);
-}
-void IFDSIDESolverConfig::setAutoAddZero(bool Set) {
-  setFlag(Options, SolverConfigOptions::AutoAddZero, Set);
-}
-void IFDSIDESolverConfig::setComputeValues(bool Set) {
-  setFlag(Options, SolverConfigOptions::ComputeValues, Set);
-}
-void IFDSIDESolverConfig::setRecordEdges(bool Set) {
-  setFlag(Options, SolverConfigOptions::RecordEdges, Set);
-}
-void IFDSIDESolverConfig::setEmitESG(bool Set) {
-  setFlag(Options, SolverConfigOptions::EmitESG, Set);
-}
-void IFDSIDESolverConfig::setComputePersistedSummaries(bool Set) {
-  setFlag(Options, SolverConfigOptions::ComputePersistedSummaries, Set);
-}
-
-void IFDSIDESolverConfig::setConfig(SolverConfigOptions Opt) { Options = Opt; }
-
-ostream &operator<<(ostream &OS, const IFDSIDESolverConfig &SC) {
+llvm::raw_ostream &psr::operator<<(llvm::raw_ostream &OS,
+                                   IFDSIDESolverConfig SC) {
+  const auto BoolAlpha = [](bool B) { return B ? "true" : "false"; };
   return OS << "IFDSIDESolverConfig:\n"
-            << "\tfollowReturnsPastSeeds: " << SC.followReturnsPastSeeds()
-            << "\n"
-            << "\tautoAddZero: " << std::boolalpha << SC.autoAddZero() << "\n"
-            << "\tcomputeValues: " << SC.computeValues() << "\n"
-            << "\trecordEdges: " << SC.recordEdges() << "\n"
-            << "\tcomputePersistedSummaries: " << SC.computePersistedSummaries()
-            << "\n"
-            << "\temitESG: " << SC.emitESG();
+            << "\tfollowReturnsPastSeeds: "
+            << BoolAlpha(SC.followReturnsPastSeeds()) << '\n'
+            << "\tautoAddZero: " << BoolAlpha(SC.autoAddZero()) << '\n'
+            << "\tcomputeValues: " << BoolAlpha(SC.computeValues()) << '\n'
+            << "\trecordEdges: " << BoolAlpha(SC.recordEdges()) << '\n'
+            << "\tcomputePersistedSummaries: "
+            << BoolAlpha(SC.computePersistedSummaries()) << '\n'
+            << "\temitESG: " << BoolAlpha(SC.emitESG());
 }
-
-} // namespace psr

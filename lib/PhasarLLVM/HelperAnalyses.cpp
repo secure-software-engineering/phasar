@@ -1,20 +1,39 @@
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
 
+#include "phasar/ControlFlow/CGSCCs.h"
+#include "phasar/DataFlow/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/ControlFlow/EntryFunctionUtils.h"
+#include "phasar/PhasarLLVM/ControlFlow/FunctionCompressor.h"
+#include "phasar/PhasarLLVM/ControlFlow/GlobalCtorsDtorsModel.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCallGraphBuilder.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/RTAResolver.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/Pointer/AndersenOTFAA.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSetData.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointerAssignmentGraph.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMRawAliasSet.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMUnionFindAliasSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
+#include "phasar/PhasarLLVM/Utils/UsedGlobals.h"
 #include "phasar/Pointer/AliasAnalysisType.h"
+#include "phasar/Utils/AnalysisProperties.h"
+#include "phasar/Utils/ValueCompressor.h"
 
 #include <memory>
 #include <string>
 
-namespace psr {
+using namespace psr;
+
+static_assert(CanGetICFG<HelperAnalyses>);
+static_assert(CanGetICFGOf<HelperAnalyses, const llvm::Instruction *,
+                           const llvm::Function *>);
+static_assert(
+    CanGetCompressedFunctionsOf<HelperAnalyses, const llvm::Function *>);
+static_assert(CanGetCGSCCs<HelperAnalyses>);
+
 HelperAnalyses::HelperAnalyses(std::string IRFile,
                                std::optional<LLVMAliasSetData> PrecomputedPTS,
                                AliasAnalysisType PTATy, bool AllowLazyPTS,
@@ -63,12 +82,23 @@ HelperAnalyses::HelperAnalyses(std::unique_ptr<llvm::Module> IRModule,
   this->IRDB = std::make_unique<LLVMProjectIRDB>(
       std::move(IRModule), Config.PreprocessExistingModule);
 }
+HelperAnalyses::HelperAnalyses(std::unique_ptr<LLVMProjectIRDB> IRDB,
+                               std::vector<std::string> EntryPoints,
+                               HelperAnalysisConfig Config)
+    : HelperAnalyses(std::string(), std::move(EntryPoints), std::move(Config)) {
+  this->IRDB = std::move(IRDB);
+}
 
 HelperAnalyses::~HelperAnalyses() noexcept = default;
 
 LLVMProjectIRDB &HelperAnalyses::getProjectIRDB() {
   if (!IRDB) {
     IRDB = std::make_unique<LLVMProjectIRDB>(IRFile);
+  }
+  if (AutoGlobalSupport) {
+    AutoGlobalSupport = false;
+    GlobalCtorsDtorsModel::buildModel(*IRDB, EntryPoints);
+    EntryPoints = {GlobalCtorsDtorsModel::ModelName.str()};
   }
   return *IRDB;
 }
@@ -89,6 +119,30 @@ LLVMAliasInfoRef HelperAnalyses::getAliasInfo() {
               .AType = UFAATy,
               .ALocality = LLVMUnionFindAliasSet::AnalysisLocality::Global,
           });
+    } else if (isAndersenOTFAA(PTATy)) {
+      auto &IRDB = getProjectIRDB();
+      auto VC = std::make_unique<ValueCompressor<PAGVariable>>();
+      auto AARes = computeAndersenOTFRaw(
+          IRDB, getEntryFunctions(IRDB, EntryPoints), VC.get(), SoundnessLevel,
+          {.SelectionMode = [PTATy{PTATy}] {
+            if (PTATy == AliasAnalysisType::AndersenOTFCtx) {
+              return ContextSensitivityOptions::Mode::All;
+            }
+            if (PTATy == AliasAnalysisType::AndersenOTFDynCtx) {
+              return ContextSensitivityOptions::Mode::Dynamic;
+            }
+            return ContextSensitivityOptions::Mode::Off;
+          }()});
+
+      if (!ICF) {
+        ICF = std::make_unique<LLVMBasedICFG>(std::move(AARes.CG), &IRDB);
+      }
+
+      PT = std::make_unique<LLVMRawAliasSet>(
+          std::move(AARes), std::move(VC),
+          PTATy != AliasAnalysisType::AndersenOTF
+              ? AnalysisProperties::ContextSensitive
+              : AnalysisProperties::None);
     } else {
       PT = std::make_unique<LLVMAliasSet>(&getProjectIRDB(), AllowLazyPTS,
                                           PTATy);
@@ -109,10 +163,15 @@ LLVMBasedICFG &HelperAnalyses::getICFG() {
     if (PrecomputedCG.has_value()) {
       ICF = std::make_unique<LLVMBasedICFG>(&getProjectIRDB(), *PrecomputedCG);
     } else {
-      ICF = std::make_unique<LLVMBasedICFG>(
-          &getProjectIRDB(), CGTy, std::move(EntryPoints), &getTypeHierarchy(),
-          needsAliasInfo(CGTy) ? getAliasInfo() : nullptr, SoundnessLevel,
-          AutoGlobalSupport);
+
+      LLVMAliasInfoRef AI = needsAliasInfo(CGTy) ? getAliasInfo() : nullptr;
+      // getAliasInfo() may compute the call-graph already (e.g., AndersenOTFAA)
+      if (!ICF) {
+        // Note: AutoGlobals already handled in getProjectIRDB()
+        ICF = std::make_unique<LLVMBasedICFG>(
+            &getProjectIRDB(), CGTy, EntryPoints, &getTypeHierarchy(), AI,
+            SoundnessLevel, /*IncludeGlobals*/ false);
+      }
     }
   }
 
@@ -129,4 +188,46 @@ LLVMBasedCFG &HelperAnalyses::getCFG() {
   return *CFG;
 }
 
-} // namespace psr
+FunctionCompressor<const llvm::Function *> &
+HelperAnalyses::getCompressedFunctions() {
+  if (!FC) {
+    auto Funs = compressFunctions(
+        getICFG().getCallGraph(),
+        psr::getEntryFunctions(getProjectIRDB(), EntryPoints));
+    FC = std::make_unique<FunctionCompressor<const llvm::Function *>>(
+        std::move(Funs));
+  }
+
+  return *FC;
+}
+
+const SCCHolder<FunctionId> &HelperAnalyses::getCGSCCs() {
+  if (!SCCs) {
+    auto &ICF = getICFG();
+    auto CGSCCs = computeCGSCCs(ICF, getCompressedFunctions());
+    SCCs = std::make_unique<SCCHolder<FunctionId>>(std::move(CGSCCs));
+  }
+  return *SCCs;
+}
+
+const SCCDependencyGraph<FunctionId> &HelperAnalyses::getCGSCCCallers() {
+  if (!SCCCallers) {
+    auto SCCC =
+        computeCGSCCCallers(getICFG(), getCompressedFunctions(), getCGSCCs());
+    SCCCallers =
+        std::make_unique<SCCDependencyGraph<FunctionId>>(std::move(SCCC));
+  }
+  return *SCCCallers;
+}
+
+const UsedGlobalsHolder<const llvm::GlobalVariable *> &
+HelperAnalyses::getUsedGlobals() {
+  if (!UsedGlobals) {
+    auto UG = computeUsedGlobals(getProjectIRDB(), getCompressedFunctions(),
+                                 getCGSCCs(), getCGSCCCallers());
+    UsedGlobals =
+        std::make_unique<UsedGlobalsHolder<const llvm::GlobalVariable *>>(
+            std::move(UG));
+  }
+  return *UsedGlobals;
+}

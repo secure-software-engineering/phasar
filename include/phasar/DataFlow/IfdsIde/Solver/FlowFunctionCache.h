@@ -1,6 +1,7 @@
 #ifndef PHASAR_DATAFLOW_IFDSIDE_SOLVER_FLOWFUNCTIONCACHE_H
 #define PHASAR_DATAFLOW_IFDSIDE_SOLVER_FLOWFUNCTIONCACHE_H
 
+#include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
 #include "phasar/DataFlow/IfdsIde/GenericFlowFunction.h"
 #include "phasar/DataFlow/IfdsIde/Solver/FlowFunctionCacheStats.h"
 #include "phasar/Utils/ByRef.h"
@@ -20,15 +21,6 @@
 
 namespace psr {
 namespace detail {
-template <typename T, typename D>
-concept IsFlowFunction = requires(T &FF, D Fact) {
-  { FF.computeTargets(Fact) } -> is_iterable_over_v<D>;
-};
-
-template <typename T, typename D>
-concept IsFlowFunctionPtr = requires(T FF, D Fact) {
-  { FF->computeTargets(Fact) } -> is_iterable_over_v<D>;
-};
 
 template <typename D, typename FFTy> struct AutoAddZeroFF {
   FFTy FF;
@@ -109,23 +101,18 @@ template <typename ProblemTy> struct FlowFunctionCacheBase {
       std::decay_t<decltype(std::declval<ProblemTy>().getSummaryFlowFunction(
           std::declval<n_t>(), std::declval<f_t>()))>;
 
-  static_assert(detail::IsFlowFunction<normal_ff_t, d_t> ||
-                detail::IsFlowFunctionPtr<normal_ff_t, d_t>);
-  static_assert(detail::IsFlowFunction<call_ff_t, d_t> ||
-                detail::IsFlowFunctionPtr<call_ff_t, d_t>);
-  static_assert(detail::IsFlowFunction<ret_ff_t, d_t> ||
-                detail::IsFlowFunctionPtr<ret_ff_t, d_t>);
-  static_assert(detail::IsFlowFunction<ctr_ff_t, d_t> ||
-                detail::IsFlowFunctionPtr<ctr_ff_t, d_t>);
-  static_assert(detail::IsFlowFunction<summary_ff_t, d_t> ||
-                detail::IsFlowFunctionPtr<summary_ff_t, d_t> ||
+  static_assert(IsFlowFunctionOrFFPtrOf<normal_ff_t, d_t>);
+  static_assert(IsFlowFunctionOrFFPtrOf<call_ff_t, d_t>);
+  static_assert(IsFlowFunctionOrFFPtrOf<ret_ff_t, d_t>);
+  static_assert(IsFlowFunctionOrFFPtrOf<ctr_ff_t, d_t>);
+  static_assert(IsFlowFunctionOrFFPtrOf<summary_ff_t, d_t> ||
                 std::is_same_v<summary_ff_t, std::nullptr_t>);
 
   template <typename T>
   static constexpr bool needs_cache_v =
-      std::is_same_v<std::shared_ptr<FlowFunction<d_t>>, T> ||
+      std::is_same_v<std::unique_ptr<FlowFunction<d_t>>, T> ||
       std::is_same_v<GenericFlowFunction<d_t>, T> ||
-      (detail::IsFlowFunctionPtr<T, d_t> && !std::is_pointer_v<T>);
+      (IsFlowFunctionPtrOf<T, d_t> && !std::is_pointer_v<T>);
 };
 
 } // namespace detail
@@ -163,7 +150,7 @@ class FlowFunctionCache
     using ff_t = std::decay_t<FFTy>;
 
     if constexpr (AutoAddZero) {
-      if constexpr (detail::IsFlowFunctionPtr<ff_t, d_t>) {
+      if constexpr (IsFlowFunctionPtrOf<ff_t, d_t>) {
         if constexpr (needs_cache_v<ff_t>) {
           return detail::AutoAddZeroFF{
               GenericFlowFunctionView(getPointerFrom(FF)),
@@ -178,7 +165,7 @@ class FlowFunctionCache
                                      Problem.getZeroValue()};
       }
     } else {
-      if constexpr (detail::IsFlowFunctionPtr<ff_t, d_t>) {
+      if constexpr (IsFlowFunctionPtrOf<ff_t, d_t>) {
         if constexpr (needs_cache_v<ff_t>) {
           return GenericFlowFunctionView(getPointerFrom(FF));
         } else {
@@ -276,17 +263,25 @@ public:
   decltype(auto) getSummaryFlowFunction(ProblemTy &Problem,
                                         ByConstRef<n_t> CallSite,
                                         ByConstRef<f_t> Callee,
-                                        uint64_t /*CSCalleeId*/) {
+                                        uint64_t CSCalleeId) {
+    // Note: summary-ff can ignore AutoAddZero because it is guaranteed that the
+    // ctr-ff will propagate 0
     if constexpr (needs_cache_v<summary_ff_t>) {
-      return GenericFlowFunction<d_t>(
-          Problem.getSummaryFlowFunction(CallSite, Callee));
+      // Most calls have no summary, i.e., a nullptr flow function. So, cannot
+      // just check for null as empty-marker
+      auto [It, Inserted] = SummaryFFCache.insert(CSCalleeId, summary_ff_t{});
+      if (Inserted) {
+        It->second = Problem.getSummaryFlowFunction(CallSite, Callee);
+      }
+
+      if constexpr (std::is_same_v<summary_ff_t, GenericFlowFunction<d_t>>) {
+        return GenericFlowFunctionView<d_t>(It->second);
+      } else {
+        return GenericFlowFunctionView(getPointerFrom(It->second));
+      }
     } else {
       return Problem.getSummaryFlowFunction(CallSite, Callee);
     }
-
-    /// XXX: The old FECache doesn't cache summary FFs, so refrain from doing
-    /// this here as well. Enable it, once the user-problems reliably return
-    /// std::nullptr_t such that caching can be disabled automatically
   }
 
   void clear() noexcept {
@@ -302,6 +297,7 @@ public:
     detail::IntraFlowFunctionsMixin<normal_ff_t, ctr_ff_t>::reserveIntraFFs(
         NumInsts, NumCalls);
     CallFFCache.reserve(NumCalls);
+    SummaryFFCache.reserve(NumCalls);
     RetFFCache.reserve(NumFuns);
     SimpleRetFFCache.reserve(NumFuns);
   }

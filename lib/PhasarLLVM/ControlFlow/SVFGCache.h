@@ -10,9 +10,12 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_SVFGCACHE_H
 #define PHASAR_PHASARLLVM_CONTROLFLOW_SVFGCACHE_H
 
+#include "phasar/ControlFlow/SparseCFGProvider.h"
 #include "phasar/PhasarLLVM/ControlFlow/SparseLLVMBasedCFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/SparseLLVMControlFlow.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 
+#include "llvm/ADT/DenseMap.h"
 #include "llvm/IR/Function.h"
 #include "llvm/Support/Compiler.h"
 
@@ -29,11 +32,25 @@ struct FVHasher {
 struct SVFGCache {
   using f_t = const llvm::Function *;
   using v_t = const llvm::Value *;
+  using n_t = const llvm::Instruction *;
   std::unordered_map<std::pair<f_t, v_t>, SparseLLVMBasedCFG, FVHasher> Cache{};
+  llvm::DenseMap<std::pair<n_t, v_t>, n_t> SameOrNextUserCache{};
 
-  LLVM_LIBRARY_VISIBILITY const SparseLLVMBasedCFG &
+  [[nodiscard]] LLVM_LIBRARY_VISIBILITY const SparseLLVMBasedCFG &
   getOrCreate(const LLVMBasedCFG &CFG, const llvm::Function *Fun,
               const llvm::Value *Val, LLVMAliasInfoRef AliasAnalysis);
+
+  [[nodiscard]] static n_t advanceToNextUser(n_t Succ, const auto &Fact,
+                                             LLVMAliasInfoRef AliasAnalysis) {
+    using psr::valueOf;
+
+    // Not memoized: the forward scan skips only very few instructions on
+    // average, which is cheaper than a lookup in a multi-million-entry map.
+    // On a small coreutils benchmark, it was about ~11% *faster* to skip the
+    // cache.
+
+    return SparseLLVMControlFlow::advanceToNextUser(Succ, Fact, AliasAnalysis);
+  }
 };
 
 } // namespace psr

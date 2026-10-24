@@ -9,6 +9,8 @@
 
 #include "AnalysisController.h"
 
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysis.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
@@ -22,7 +24,7 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
   auto WithResultFileOrStdout = [&ResultDirectory = this->ResultDirectory](
                                     const auto &FileName, auto Callback) {
     if (!ResultDirectory.empty()) {
-      if (auto OFS = openFileStream(ResultDirectory.string() + FileName)) {
+      if (auto OFS = openFileStream(ResultDirectory + llvm::Twine(FileName))) {
         Callback(*OFS);
       }
     } else {
@@ -31,7 +33,7 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
   };
 
   auto EmitterOptions = this->EmitterOptions;
-  auto &HA = *this->HA;
+  auto &HA = this->HA;
 
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitIR) {
     WithResultFileOrStdout("/psr-preprocess-ir.ll", [&HA](auto &OS) {
@@ -131,8 +133,14 @@ static void executeWholeProgram(AnalysisController &Data) {
     case DataFlowAnalysisType::IFDSCFLEnvTaintAnalysis:
       executeIFDSCFLEnvTaint(Data);
       continue;
+    case DataFlowAnalysisType::MonoIFDSTaintAnalysis:
+      executeMonoIFDSTaint(Data);
+      continue;
     case DataFlowAnalysisType::SparseIFDSTaintAnalysis:
       executeSparseIFDSTaint(Data);
+      continue;
+    case DataFlowAnalysisType::DFITaintAnalysis:
+      executeDFITaint(Data);
       continue;
     case DataFlowAnalysisType::IDEExtendedTaintAnalysis:
       executeIDEXTaint(Data);
@@ -208,9 +216,9 @@ LLVMTaintConfig controller::makeTaintConfig(AnalysisController &Data) {
   std::string AnalysisConfigPath =
       !Data.AnalysisConfigs.empty() ? Data.AnalysisConfigs[0] : "";
   return !AnalysisConfigPath.empty()
-             ? LLVMTaintConfig(Data.HA->getProjectIRDB(),
+             ? LLVMTaintConfig(Data.HA.getProjectIRDB(),
                                parseTaintConfig(AnalysisConfigPath))
-             : LLVMTaintConfig(Data.HA->getProjectIRDB());
+             : LLVMTaintConfig(Data.HA.getProjectIRDB());
 }
 
 } // namespace psr

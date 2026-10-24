@@ -12,6 +12,5 @@
 
 #include "phasar/Config/phasar-config.h"
 #include "phasar/DB/ProjectIRDB.h"
-#include "phasar/DB/ProjectIRDBBase.h"
 
 #endif // PHASAR_DB_H

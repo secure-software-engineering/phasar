@@ -78,8 +78,6 @@ public:
     return PointsToIteratorRef<v_t, o_t, n_t>(PT, VT);
   }
 
-  constexpr operator PointsToIteratorRef<v_t, o_t, n_t>() && noexcept = delete;
-
 private:
   struct VTableBase : public PointsToIteratorRef<v_t, o_t, n_t>::VTable {
 
@@ -219,7 +217,7 @@ private:
 /// Implicitly convertible to PointsToInfoRef.
 ///
 template <is_PointsToTraits_v PTATraits>
-class [[clang::trivial_abi]] PointsToInfo<PTATraits> final
+class PSR_TRIVIAL_ABI PointsToInfo<PTATraits> final
     : public PointsToInfoRef<PTATraits> {
   using base_t = PointsToInfoRef<PTATraits>;
 
@@ -267,6 +265,9 @@ public:
       this->PT = nullptr;
     }
   }
+
+  using base_t::operator PointsToIteratorRef<v_t, o_t, n_t>;
+  constexpr operator PointsToIteratorRef<v_t, o_t, n_t>() && noexcept = delete;
 };
 
 } // namespace psr

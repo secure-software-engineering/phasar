@@ -31,5 +31,7 @@
 #include "phasar/PhasarLLVM/DataFlow/Mono/Problems/IntraMonoFullConstantPropagation.h"
 #include "phasar/PhasarLLVM/DataFlow/Mono/Problems/IntraMonoSolverTest.h"
 #include "phasar/PhasarLLVM/DataFlow/Mono/Problems/IntraMonoUninitVariables.h"
+#include "phasar/PhasarLLVM/DataFlow/MonoIfds/AliasCache.h"
+#include "phasar/PhasarLLVM/DataFlow/MonoIfds/Problems/MonoIFDSTaintAnalysis.h"
 
 #endif // PHASAR_PHASARLLVM_DATAFLOW_H

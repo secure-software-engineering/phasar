@@ -17,8 +17,10 @@
 #include "phasar/Utils/StableVector.h"
 #include "phasar/Utils/Utilities.h"
 
+#include "llvm/ADT/ArrayRef.h"
 #include "llvm/IR/Function.h"
 
+#include <concepts>
 #include <functional>
 #include <utility>
 #include <vector>
@@ -51,6 +53,24 @@ public:
 
   /// Creates a new, empty call-graph
   CallGraph() noexcept = default;
+
+  auto
+  iterateCalleesView(std::invocable<n_t, llvm::ArrayRef<f_t>> auto Fn) const {
+    return psr::foreachInRange(
+        CalleesAt, [Fn = copyOrRef(Fn)](const auto &Elem) {
+          const auto &[CS, Callees] = Elem;
+          return psr::invokeControlFlow(Fn, CS, llvm::ArrayRef<f_t>(*Callees));
+        });
+  }
+
+  auto
+  iterateCallersView(std::invocable<f_t, llvm::ArrayRef<n_t>> auto Fn) const {
+    return psr::foreachInRange(
+        CallersOf, [Fn = copyOrRef(Fn)](const auto &Elem) {
+          const auto &[CS, Callers] = Elem;
+          return psr::invokeControlFlow(Fn, CS, llvm::ArrayRef<n_t>(*Callers));
+        });
+  }
 
   /// Deserializes a previously computed call-graph
   template <typename FunctionGetter, typename InstructionGetter>

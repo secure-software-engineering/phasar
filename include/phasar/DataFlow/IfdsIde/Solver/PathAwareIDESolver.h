@@ -16,11 +16,15 @@
 #include "phasar/DataFlow/PathSensitivity/ExplodedSuperGraph.h"
 #include "phasar/Utils/Logger.h"
 
+#include <concepts>
+
 namespace psr {
 template <typename AnalysisDomainTy,
-          typename Container = std::set<typename AnalysisDomainTy::d_t>>
-class PathAwareIDESolver : public IDESolver<AnalysisDomainTy, Container> {
-  using base_t = IDESolver<AnalysisDomainTy, Container>;
+          typename Container = std::set<typename AnalysisDomainTy::d_t>,
+          ICFG ICFGTy = typename AnalysisDomainTy::i_t>
+class PathAwareIDESolver
+    : public IDESolver<AnalysisDomainTy, Container, ICFGTy> {
+  using base_t = IDESolver<AnalysisDomainTy, Container, ICFGTy>;
 
 public:
   using domain_t = AnalysisDomainTy;
@@ -29,17 +33,31 @@ public:
   using i_t = typename base_t::i_t;
   using container_type = typename base_t::container_type;
 
-  explicit PathAwareIDESolver(
-      IDETabulationProblem<domain_t, container_type> &Problem, const i_t *ICF)
-      : base_t(Problem, ICF), ESG(Problem.getZeroValue()) {
+  template <IFDSProblem ProblemTy>
+    requires(std::same_as<domain_t,
+                          typename ProblemTy::ProblemAnalysisDomain> &&
+             std::same_as<container_type, typename ProblemTy::container_type>)
+  explicit PathAwareIDESolver(ProblemTy *Problem, const i_t *ICF)
+      : base_t(Problem, ICF), ESG(Problem->getZeroValue()) {
 
-    if (Problem.getIFDSIDESolverConfig().autoAddZero()) {
+    if (getProblemSolverConfig(*Problem).autoAddZero()) {
       PHASAR_LOG_LEVEL(
           WARNING,
           "The PathAwareIDESolver is initialized with the option 'autoAddZero' "
           "being set. This might degrade the quality of the computed paths!");
     }
   }
+
+  template <IFDSProblem ProblemTy>
+    requires(
+        std::same_as<domain_t, typename ProblemTy::ProblemAnalysisDomain> &&
+        std::same_as<container_type, typename ProblemTy::container_type>)
+  [[deprecated(
+      "Use the other overload of PathAwareIDESolver() instead, which takes the "
+      "ide-problem by pointer. This documents better that the solver "
+      "captures the address without taking ownership")]]
+  explicit PathAwareIDESolver(ProblemTy &Problem, const i_t *ICF)
+      : PathAwareIDESolver(&Problem, ICF) {}
 
   [[nodiscard]] const ExplodedSuperGraph<domain_t> &
   getExplicitESG() const & noexcept {
@@ -60,9 +78,15 @@ private:
   ExplodedSuperGraph<domain_t> ESG;
 };
 
-template <typename ProblemTy>
-PathAwareIDESolver(ProblemTy &)
-    -> PathAwareIDESolver<typename ProblemTy::ProblemAnalysisDomain>;
+template <typename ProblemTy, ICFG ICFGTy>
+PathAwareIDESolver(ProblemTy &, const ICFGTy *)
+    -> PathAwareIDESolver<typename ProblemTy::ProblemAnalysisDomain,
+                          typename ProblemTy::container_type, ICFGTy>;
+
+template <typename ProblemTy, ICFG ICFGTy>
+PathAwareIDESolver(ProblemTy *, const ICFGTy *)
+    -> PathAwareIDESolver<typename ProblemTy::ProblemAnalysisDomain,
+                          typename ProblemTy::container_type, ICFGTy>;
 
 } // namespace psr
 

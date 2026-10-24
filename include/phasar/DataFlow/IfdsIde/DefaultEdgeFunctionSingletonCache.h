@@ -13,6 +13,8 @@
 #include "phasar/DataFlow/IfdsIde/EdgeFunction.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionSingletonCache.h"
 
+#include <concepts>
+
 namespace psr {
 
 /// Default implementation of EdgeFunctionSingletonCache.
@@ -53,6 +55,7 @@ public:
   void erase(const EdgeFunctionTy &EF) noexcept override { Cache.erase(&EF); }
 
   template <typename... ArgTys>
+    requires std::constructible_from<EdgeFunctionTy, ArgTys...>
   [[nodiscard]] EdgeFunction<L> createEdgeFunction(ArgTys &&...Args) {
     return CachedEdgeFunction<EdgeFunctionTy>{
         EdgeFunctionTy{std::forward<ArgTys>(Args)...}, this};

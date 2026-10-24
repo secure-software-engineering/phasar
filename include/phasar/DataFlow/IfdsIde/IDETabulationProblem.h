@@ -14,6 +14,7 @@
 #include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
 #include "phasar/DataFlow/IfdsIde/EntryPointUtils.h"
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
+#include "phasar/DataFlow/IfdsIde/IDEProblem.h"
 #include "phasar/DataFlow/IfdsIde/IFDSIDESolverConfig.h"
 #include "phasar/DataFlow/IfdsIde/IfdsIdeDomain.h"
 #include "phasar/DataFlow/IfdsIde/InitialSeeds.h"
@@ -40,24 +41,6 @@ namespace psr {
 
 struct HasNoConfigurationType;
 
-template <IdeAnalysisDomain AnalysisDomainTy> class AllTopFnProvider {
-public:
-  virtual ~AllTopFnProvider() = default;
-  /// Returns an edge function that represents the top element of the analysis.
-  virtual EdgeFunction<typename AnalysisDomainTy::l_t> allTopFunction() = 0;
-};
-
-template <IdeAnalysisDomain AnalysisDomainTy>
-  requires HasJoinLatticeTraits<typename AnalysisDomainTy::l_t>
-class AllTopFnProvider<AnalysisDomainTy> {
-public:
-  virtual ~AllTopFnProvider() = default;
-  /// Returns an edge function that represents the top element of the analysis.
-  virtual EdgeFunction<typename AnalysisDomainTy::l_t> allTopFunction() {
-    return AllTop<typename AnalysisDomainTy::l_t>{};
-  }
-};
-
 /// \brief The analysis problem interface for IDE problems (solvable by the
 /// IDESolver). Create a subclass from this and override all pure-virtual
 /// functions to create your own IDE analysis.
@@ -69,8 +52,7 @@ template <IdeAnalysisDomain AnalysisDomainTy,
 class IDETabulationProblem : public FlowFunctions<AnalysisDomainTy, Container>,
                              public EdgeFunctions<AnalysisDomainTy>,
                              public JoinLattice<AnalysisDomainTy>,
-                             public SemiRing<AnalysisDomainTy>,
-                             public AllTopFnProvider<AnalysisDomainTy> {
+                             public SemiRing<AnalysisDomainTy> {
 public:
   using ProblemAnalysisDomain = AnalysisDomainTy;
   using d_t = typename AnalysisDomainTy::d_t;
@@ -104,6 +86,8 @@ public:
         Printer(std::make_unique<typename DefaultAnalysisPrinterSelector<
                     AnalysisDomainTy>::type>()) {
     assert(IRDB != nullptr);
+
+    static_assert(IDEProblem<IDETabulationProblem>);
   }
 
   IDETabulationProblem(IDETabulationProblem &&) noexcept = default;

@@ -65,7 +65,7 @@ concept IsAliasIterator = requires {
 /// LLVMAliasIteratorRef AA = &ASet;
 /// \endcode
 template <typename V, typename N>
-class [[gsl::Pointer]] AliasIteratorRef : private TypeErasureUtils {
+class PSR_POINTER() AliasIteratorRef : private TypeErasureUtils {
 public:
   using n_t = N;
   using v_t = V;
@@ -127,8 +127,13 @@ public:
   template <typename SetT = std::set<v_t>>
   [[nodiscard]] SetT asSet(ByConstRef<v_t> Of, ByConstRef<n_t> At) {
     SetT Set;
-    forallAliasesOf(Of, At,
-                    [&Set](v_t Alias) { Set.insert(std::move(Alias)); });
+    forallAliasesOf(Of, At, [&Set](v_t Alias) {
+      if constexpr (requires() { Set.push_back(std::move(Alias)); }) {
+        Set.push_back(std::move(Alias));
+      } else {
+        Set.insert(std::move(Alias));
+      }
+    });
     return Set;
   }
 

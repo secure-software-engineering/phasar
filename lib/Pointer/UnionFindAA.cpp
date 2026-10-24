@@ -7,7 +7,7 @@ using namespace psr;
 
 void psr::UnionFindAAResultBase::dump(llvm::raw_ostream &OS,
                                       uint32_t Indent) const {
-  OS.indent(Indent) << "UnionFindAAResult {\n";
+  OS.indent(Indent) << "RawAAResult {\n";
 
   for (const auto &[RepId, Aliases] : BackwardView.enumerate()) {
     OS.indent(Indent + 2) << "#" << psr::to_underlying(RepId) << ": <";

@@ -10,6 +10,10 @@
 #ifndef PHASAR_UTILS_EQUIVALENCECLASSMAP_H
 #define PHASAR_UTILS_EQUIVALENCECLASSMAP_H
 
+#include "phasar/Utils/Macros.h"
+#include "phasar/Utils/PointerProxy.h"
+#include "phasar/Utils/TypeTraits.h"
+
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallVector.h"
@@ -61,11 +65,9 @@ public:
     this->insert(Vals.begin(), Vals.end());
   }
 
-  [[nodiscard]] inline const_iterator begin() const {
-    return StoredData.begin();
-  }
-  [[nodiscard]] inline const_iterator end() const { return StoredData.end(); }
-  [[nodiscard]] inline llvm::iterator_range<const_iterator>
+  [[nodiscard]] const_iterator begin() const { return StoredData.begin(); }
+  [[nodiscard]] const_iterator end() const { return StoredData.end(); }
+  [[nodiscard]] llvm::iterator_range<const_iterator>
   equivalenceClasses() const {
     return llvm::make_range(begin(), end());
   }
@@ -135,8 +137,32 @@ public:
     return std::make_pair(StoredData.back().first.begin(), true);
   }
 
+  template <typename KK = KeyT, std::invocable<> VCtor,
+            std::invocable<> OnHitFn = psr::TrueFn>
+  const ValueT &getOrInsertLazy(KK &&Key, VCtor &&MakeV, OnHitFn &&OnHit = {}) {
+    for (auto &[StoredKeySet, StoredVal] : StoredData) {
+      if (StoredKeySet.count(Key)) {
+        std::invoke(PSR_FWD(OnHit));
+        return StoredVal;
+      }
+    }
+    ValueT Val = std::invoke(PSR_FWD(MakeV));
+
+    for (auto &KVPair : StoredData) {
+      if (KVPair.second == Val) {
+        KVPair.first.insert(PSR_FWD(Key));
+        // Don't call OnHit() here, since we already needed to construct the
+        // Val; this is not really a cache hit...
+        return KVPair.second;
+      }
+    }
+
+    StoredData.emplace_back(SetType<KeyT>{Key}, std::move(Val));
+    return StoredData.back().second;
+  }
+
   /// Return 1 if the specified key is in the map, 0 otherwise.
-  [[nodiscard]] inline size_type count(const KeyT &Key) const {
+  [[nodiscard]] size_type count(const KeyT &Key) const {
     for (auto &KVPair : StoredData) {
       if (KVPair.first.count(Key) >= 1) {
         return 1;
@@ -145,14 +171,12 @@ public:
     return 0;
   }
 
-  [[nodiscard]] inline size_type numEquivalenceClasses() const {
+  [[nodiscard]] size_type numEquivalenceClasses() const {
     return StoredData.size();
   }
 
   /// Returns the size of the map, i.e., the number of equivalence classes.
-  [[nodiscard]] inline size_type size() const {
-    return numEquivalenceClasses();
-  }
+  [[nodiscard]] size_type size() const { return numEquivalenceClasses(); }
 
   [[nodiscard]] const_iterator find(key_type Key) const {
     return llvm::find_if(StoredData,
@@ -169,7 +193,7 @@ public:
     return std::nullopt;
   }
 
-  inline void clear() { StoredData.clear(); }
+  void clear() { StoredData.clear(); }
 
 private:
   StorageT StoredData{};
@@ -183,11 +207,10 @@ class EquivalenceClassMapNG {
 public:
   // NOLINTNEXTLINE(readability-identifier-naming)
   class const_iterator {
-
   public:
     using value_type = std::pair<SetTy, TValue>;
     using reference = std::pair<const SetTy &, const TValue &>;
-    using pointer = reference *;
+    using pointer = PointerProxy<reference>;
     using difference_type = ptrdiff_t;
     using iterator_category = std::forward_iterator_tag;
 
@@ -199,10 +222,7 @@ public:
 
     reference operator*() noexcept { return reference(*Ky, *Val); }
 
-    pointer operator->() noexcept {
-      TempStorage.emplace(*Ky, *Val);
-      return &*TempStorage;
-    }
+    pointer operator->() noexcept { return pointer{**this}; }
 
     bool operator==(const const_iterator &Other) const noexcept {
       return Val == Other.Val;
@@ -220,8 +240,6 @@ public:
 
     const TValue *Val;
     const SetTy *Ky;
-
-    std::optional<reference> TempStorage;
   };
 
   EquivalenceClassMapNG() noexcept = default;
@@ -236,23 +254,25 @@ public:
     ValueComparator VComp;
     for (size_t I = 0, End = Values.size(); I != End; ++I) {
       if (VComp(Values[I], Value)) {
-        return {getIterator(I), Keys[I].insert(std::forward<KK>(Key)).second};
+        return {getIterator(I), Keys[I].insert(PSR_FWD(Key)).second};
       }
     }
 
-    Values.emplace_back(std::forward<VV>(Value));
-    Keys.emplace_back().insert(std::forward<KK>(Key));
+    Values.emplace_back(PSR_FWD(Value));
+    Keys.emplace_back().insert(PSR_FWD(Key));
     return {getIterator(Values.size() - 1), true};
   }
 
-  template <typename KK, typename VCtor>
-  const TValue &getOrInsertLazy(KK &&Key, VCtor &&MakeV) {
+  template <typename KK, std::invocable<> VCtor,
+            std::invocable<> OnHitFn = psr::TrueFn>
+  const TValue &getOrInsertLazy(KK &&Key, VCtor &&MakeV, OnHitFn &&OnHit = {}) {
     for (size_t I = 0, End = Keys.size(); I != End; ++I) {
       if (Keys[I].count(Key)) {
+        std::invoke(PSR_FWD(OnHit));
         return Values[I];
       }
     }
-    return (*insert(std::forward<KK>(Key), std::invoke(MakeV)).first).second;
+    return (*insert(PSR_FWD(Key), std::invoke(PSR_FWD(MakeV))).first).second;
   }
 
   const_iterator begin() const noexcept {
@@ -270,14 +290,12 @@ public:
     return end();
   }
 
-  [[nodiscard]] inline size_t numEquivalenceClasses() const noexcept {
+  [[nodiscard]] size_t numEquivalenceClasses() const noexcept {
     return Values.size();
   }
 
   /// Returns the size of the map, i.e., the number of equivalence classes.
-  [[nodiscard]] inline size_t size() const noexcept {
-    return numEquivalenceClasses();
-  }
+  [[nodiscard]] size_t size() const noexcept { return numEquivalenceClasses(); }
 
   [[nodiscard]] bool empty() const noexcept { return Values.empty(); }
 

@@ -11,6 +11,7 @@
 #define PHASAR_PHASARLLVM_TAINTCONFIG_TAINTCONFIGBASE_H
 
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfigData.h"
+#include "phasar/Utils/Macros.h"
 #include "phasar/Utils/Nullable.h"
 
 #include "llvm/ADT/FunctionExtras.h"
@@ -40,8 +41,9 @@ public:
 
   using TaintDescriptionCallBackTy =
       llvm::unique_function<std::set<v_t>(n_t) const>;
+  using SkipSeedsCallBackTy = llvm::unique_function<bool(v_t) const>;
 
-  enum class [[clang::flag_enum]] SeedConfig {
+  enum class PSR_FLAG_ENUM SeedConfig {
     Arguments = 1,
     Instructions = 2,
 
@@ -57,6 +59,9 @@ public:
   void registerSanitizerCallBack(TaintDescriptionCallBackTy CB) noexcept {
     SanitizerCallBack = std::move(CB);
   }
+  void registerSkipSeedsCallBack(SkipSeedsCallBackTy CB) noexcept {
+    SkipSeedsCallBack = std::move(CB);
+  }
 
   [[nodiscard]] const TaintDescriptionCallBackTy &
   getRegisteredSourceCallBack() const noexcept {
@@ -70,6 +75,10 @@ public:
   getRegisteredSanitizerCallBack() const noexcept {
     return SanitizerCallBack;
   }
+  [[nodiscard]] const SkipSeedsCallBackTy &
+  getRegisteredSkipSeedsCallBack() const noexcept {
+    return SkipSeedsCallBack;
+  }
 
   [[nodiscard]] bool isSource(v_t Val) const {
     return self().isSourceImpl(std::move(Val));
@@ -79,6 +88,10 @@ public:
   }
   [[nodiscard]] bool isSanitizer(v_t Val) const {
     return self().isSanitizerImpl(std::move(Val));
+  }
+
+  [[nodiscard]] bool skipSeed(v_t Val) const {
+    return SkipSeedsCallBack && SkipSeedsCallBack(Val);
   }
 
   /// \brief Calls Handler for all operands of Inst (maybe including Inst
@@ -161,6 +174,7 @@ protected:
   TaintDescriptionCallBackTy SourceCallBack{};
   TaintDescriptionCallBackTy SinkCallBack{};
   TaintDescriptionCallBackTy SanitizerCallBack{};
+  SkipSeedsCallBackTy SkipSeedsCallBack{};
 };
 
 //===----------------------------------------------------------------------===//

@@ -39,14 +39,13 @@ public:
   virtual void print(llvm::raw_ostream &OS = llvm::outs()) const = 0;
 
   virtual void printAsJson(llvm::raw_ostream &OS) const = 0;
-};
 
-template <typename T, typename F>
-inline llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
-                                     const TypeHierarchy<T, F> &TH) {
-  TH.print(OS);
-  return OS;
-}
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const TypeHierarchy &TH) {
+    TH.print(OS);
+    return OS;
+  }
+};
 
 } // namespace psr
 

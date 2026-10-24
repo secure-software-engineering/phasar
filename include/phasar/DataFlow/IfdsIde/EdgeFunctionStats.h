@@ -10,7 +10,8 @@
 #ifndef PHASAR_DATAFLOW_IFDSIDE_EDGEFUNCTIONSTATS_H
 #define PHASAR_DATAFLOW_IFDSIDE_EDGEFUNCTIONSTATS_H
 
-#include "llvm/ADT/StringRef.h"
+#include "phasar/ControlFlow/ICFG.h"
+
 #include "llvm/Support/raw_ostream.h"
 
 #include <array>
@@ -72,7 +73,7 @@ public:
                                        const EdgeFunctionStats &S);
 
 private:
-  template <typename AnalysisDomainTy, typename Container>
+  template <typename AnalysisDomainTy, typename Container, ICFG I>
   friend class IDESolver;
 
   constexpr EdgeFunctionStats(

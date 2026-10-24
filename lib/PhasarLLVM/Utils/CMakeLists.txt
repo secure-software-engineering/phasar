@@ -10,6 +10,7 @@ add_phasar_library(phasar_llvm_utils
   LLVM_LINK_COMPONENTS
     Core
     Support
+    Analysis
     BitWriter
     Demangle
 

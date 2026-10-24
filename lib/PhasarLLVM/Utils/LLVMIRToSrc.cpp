@@ -15,6 +15,7 @@
 #include "llvm/ADT/SmallString.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringRef.h"
+#include "llvm/BinaryFormat/Dwarf.h"
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DebugInfoMetadata.h"
@@ -24,6 +25,9 @@
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/IntrinsicInst.h"
+#if LLVM_VERSION_MAJOR > 18
+#include "llvm/IR/DebugProgramInstruction.h"
+#endif
 #include "llvm/IR/Metadata.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Operator.h"
@@ -42,6 +46,23 @@
 
 using namespace psr;
 
+// If mem2reg is not activated, formal parameters will be stored in
+// registers at the beginning of function call. Debug info linked to
+// those allocas instead of the arguments itself.
+static const llvm::AllocaInst *getArgumentAlloca(const llvm::Argument *Arg) {
+  for (const auto *User : Arg->users()) {
+    if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(User)) {
+      if (Store->getValueOperand() == Arg) {
+        if (const auto *Alloca =
+                llvm::dyn_cast<llvm::AllocaInst>(Store->getPointerOperand())) {
+          return Alloca;
+        }
+      }
+    }
+  }
+  return nullptr;
+}
+
 static llvm::DbgVariableIntrinsic *getDbgVarIntrinsic(const llvm::Value *V) {
   if (auto *VAM = llvm::ValueAsMetadata::getIfExists(
           const_cast<llvm::Value *>(V))) { // NOLINT FIXME when LLVM supports it
@@ -53,22 +74,24 @@ static llvm::DbgVariableIntrinsic *getDbgVarIntrinsic(const llvm::Value *V) {
       }
     }
   } else if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(V)) {
-    /* If mem2reg is not activated, formal parameters will be stored in
-     * registers at the beginning of function call. Debug info will be linked to
-     * those alloca's instead of the arguments itself. */
-    for (const auto *User : Arg->users()) {
-      if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(User)) {
-        if (Store->getValueOperand() == Arg &&
-            llvm::isa<llvm::AllocaInst>(Store->getPointerOperand())) {
-          return getDbgVarIntrinsic(Store->getPointerOperand());
-        }
-      }
+    if (const auto *Alloca = getArgumentAlloca(Arg)) {
+      return getDbgVarIntrinsic(Alloca);
     }
   }
   return nullptr;
 }
 
 llvm::DILocalVariable *psr::getDILocalVariable(const llvm::Value *V) {
+#if LLVM_VERSION_MAJOR > 18
+  if (auto *VAM = llvm::ValueAsMetadata::getIfExists(
+          const_cast<llvm::Value *>(V))) { // NOLINT FIXME when LLVM supports it
+    for (const auto &Use : VAM->getAllDbgVariableRecordUsers()) {
+      if (auto *Var = Use->getVariable()) {
+        return Var;
+      }
+    }
+  }
+#else
   if (auto *DbgIntr = getDbgVarIntrinsic(V)) {
     if (auto *DDI = llvm::dyn_cast<llvm::DbgDeclareInst>(DbgIntr)) {
       return DDI->getVariable();
@@ -77,6 +100,7 @@ llvm::DILocalVariable *psr::getDILocalVariable(const llvm::Value *V) {
       return DVI->getVariable();
     }
   }
+#endif
   return nullptr;
 }
 
@@ -99,14 +123,50 @@ static llvm::DISubprogram *getDISubprogram(const llvm::Value *V) {
   return nullptr;
 }
 
+#if LLVM_VERSION_MAJOR > 18
+static llvm::DILocation *findLocInDbgRecords(const llvm::Value *V) {
+  if (auto *VAM = llvm::ValueAsMetadata::getIfExists(
+          const_cast<llvm::Value *>(V))) { // NOLINT FIXME when LLVM supports it
+    for (const auto &DbgRec : VAM->getAllDbgVariableRecordUsers()) {
+      if (const auto &Loc = DbgRec->getDebugLoc()) {
+        return Loc;
+      }
+    }
+  }
+  return nullptr;
+}
+#endif
+
 llvm::DILocation *psr::getDILocation(const llvm::Value *V) {
   // Arguments and Instruction such as AllocaInst
 
   if (const auto *I = llvm::dyn_cast<llvm::Instruction>(V)) {
-    if (auto *MN = I->getMetadata(llvm::LLVMContext::MD_dbg)) {
-      return llvm::dyn_cast<llvm::DILocation>(MN);
+    if (const auto &DbgLoc = I->getDebugLoc()) {
+      return DbgLoc;
+    }
+
+#if LLVM_VERSION_MAJOR > 18
+    if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(I);
+        Store && llvm::isa<llvm::Argument>(Store->getValueOperand())) {
+      // For each argument, clang creates an alloca + store; both have no !dbg
+      // metadata attached
+      return findLocInDbgRecords(Store->getPointerOperand());
+    }
+    if (llvm::isa<llvm::AllocaInst>(I)) {
+      return findLocInDbgRecords(I);
+    }
+#endif
+  }
+
+#if LLVM_VERSION_MAJOR > 18
+  if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(V)) {
+    if (const auto *Alloca = getArgumentAlloca(Arg)) {
+      if (auto *Loc = findLocInDbgRecords(Alloca)) {
+        return Loc;
+      }
     }
   }
+#endif
 
   if (auto *DbgIntr = getDbgVarIntrinsic(V)) {
     if (auto *MN = DbgIntr->getMetadata(llvm::LLVMContext::MD_dbg)) {
@@ -137,7 +197,8 @@ static llvm::DIType *getVarTypeFromIRImpl(const llvm::Value *V) {
   if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(V)) {
     if (const auto *Callee = llvm::dyn_cast<llvm::Function>(
             Call->getCalledOperand()->stripPointerCastsAndAliases())) {
-      if (auto *DICallee = Callee->getSubprogram()) {
+      if (auto *DICallee = Callee->getSubprogram();
+          DICallee && DICallee->getType()) {
         auto Types = DICallee->getType()->getTypeArray();
         if (Types.size()) {
           return Types[0];
@@ -264,7 +325,7 @@ std::string psr::getFunctionNameFromIR(const llvm::Value *V) {
   if (const auto *I = llvm::dyn_cast<llvm::Instruction>(V)) {
     return I->getFunction()->getName().str();
   }
-  return "";
+  return {};
 }
 
 std::string psr::getFilePathFromIR(const llvm::Value *V) {
@@ -272,10 +333,10 @@ std::string psr::getFilePathFromIR(const llvm::Value *V) {
     return getFilePathFromIR(DIF);
   }
   /* As a fallback solution, we will return 'source_filename' info from
-   * module. However, it is not guaranteed to contain the absoult path, and it
+   * module. However, it is not guaranteed to contain the absoulte path, and it
    * will return 'llvm-link' for linked modules. */
-  if (const auto *F = llvm::dyn_cast<llvm::Function>(V)) {
-    return F->getParent()->getSourceFileName();
+  if (const auto *GO = llvm::dyn_cast<llvm::GlobalObject>(V)) {
+    return GO->getParent()->getSourceFileName();
   }
   if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(V)) {
     return Arg->getParent()->getParent()->getSourceFileName();
@@ -288,6 +349,9 @@ std::string psr::getFilePathFromIR(const llvm::Value *V) {
 }
 
 std::string psr::getFilePathFromIR(const llvm::DIFile *DIF) {
+  if (!DIF) {
+    return {};
+  }
   auto FileName = DIF->getFilename();
   auto DirName = DIF->getDirectory();
 
@@ -307,45 +371,37 @@ std::string psr::getFilePathFromIR(const llvm::DIFile *DIF) {
   return FileName.str();
 }
 
+static llvm::DISubprogram *getEnclosingSubprogram(const llvm::Value *V) {
+  if (const auto *I = llvm::dyn_cast<llvm::Instruction>(V)) {
+    return I->getFunction()->getSubprogram();
+  }
+  if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(V)) {
+    return Arg->getParent()->getSubprogram();
+  }
+  return nullptr;
+}
+
 const llvm::DIFile *psr::getDIFileFromIR(const llvm::Value *V) {
-  if (const auto *GO = llvm::dyn_cast<llvm::GlobalObject>(V)) {
-    if (auto *MN = GO->getMetadata(llvm::LLVMContext::MD_dbg)) {
-      if (auto *Subpr = llvm::dyn_cast<llvm::DISubprogram>(MN)) {
-        return Subpr->getFile();
-      }
-      if (auto *GVExpr = llvm::dyn_cast<llvm::DIGlobalVariableExpression>(MN)) {
-        return GVExpr->getVariable()->getFile();
-      }
-    }
-  } else if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(V)) {
-    if (auto *LocVar = getDILocalVariable(Arg)) {
-      return LocVar->getFile();
-    }
-  } else if (const auto *I = llvm::dyn_cast<llvm::Instruction>(V)) {
-    if (I->isUsedByMetadata()) {
-      if (auto *LocVar = getDILocalVariable(I)) {
-        return LocVar->getFile();
-      }
-    } else if (I->getMetadata(llvm::LLVMContext::MD_dbg)) {
-      return I->getDebugLoc()->getFile();
-    }
-    if (const auto *DIFun = I->getFunction()->getSubprogram()) {
-      return DIFun->getFile();
-    }
+  // Argument and Instruction
+  if (auto *DILoc = getDILocation(V)) {
+    return DILoc->getFile();
+  }
+  if (auto *DISubpr =
+          getEnclosingSubprogram(V)) { // Instruction/Argument fallback
+    return DISubpr->getFile();
+  }
+  if (auto *DISubpr = getDISubprogram(V)) { // Function
+    return DISubpr->getFile();
+  }
+  if (auto *DIGV = getDIGlobalVariable(V)) { // Globals
+    return DIGV->getFile();
   }
   return nullptr;
 }
 
 std::string psr::getDirectoryFromIR(const llvm::Value *V) {
-  // Argument and Instruction
-  if (auto *DILoc = getDILocation(V)) {
-    return DILoc->getDirectory().str();
-  }
-  if (auto *DISubpr = getDISubprogram(V)) { // Function
-    return DISubpr->getDirectory().str();
-  }
-  if (auto *DIGV = getDIGlobalVariable(V)) { // Globals
-    return DIGV->getDirectory().str();
+  if (const auto *DIF = getDIFileFromIR(V)) {
+    return DIF->getDirectory().str();
   }
   return "";
 }
@@ -354,6 +410,10 @@ unsigned int psr::getLineFromIR(const llvm::Value *V) {
   // Argument and Instruction
   if (auto *DILoc = getDILocation(V)) {
     return DILoc->getLine();
+  }
+  if (auto *DISubpr =
+          getEnclosingSubprogram(V)) { // Instruction/Argument fallback
+    return DISubpr->getLine();
   }
   if (auto *DISubpr = getDISubprogram(V)) { // Function
     return DISubpr->getLine();
@@ -377,10 +437,9 @@ std::pair<unsigned, unsigned> psr::getLineAndColFromIR(const llvm::Value *V) {
   if (auto *DILoc = getDILocation(V)) {
     return {DILoc->getLine(), DILoc->getColumn()};
   }
-  if (const auto *I = llvm::dyn_cast<llvm::Instruction>(V)) {
-    if (const auto *DIFun = I->getFunction()->getSubprogram()) {
-      return {DIFun->getLine(), 0};
-    }
+  if (auto *DISubpr =
+          getEnclosingSubprogram(V)) { // Instruction/Argument fallback
+    return {DISubpr->getLine(), 0};
   }
   if (auto *DISubpr = getDISubprogram(V)) { // Function
     return {DISubpr->getLine(), 0};
@@ -482,32 +541,84 @@ void psr::to_json(nlohmann::json &J, const SourceCodeInfo &Info) {
 }
 
 SourceCodeInfo psr::getSrcCodeInfoFromIR(const llvm::Value *V) {
-  return SourceCodeInfo{
-      getSrcCodeFromIR(V),
-      getFilePathFromIR(V),
-      llvm::demangle(getFunctionNameFromIR(V)),
-      getLineFromIR(V),
-      getColumnFromIR(V),
+  auto Loc = getDebugLocation(V);
+  auto FName = llvm::demangle(getFunctionNameFromIR(V));
+  if (!Loc) {
+    return {
+        .SourceCodeFilename = getFilePathFromIR(V),
+        .SourceCodeFunctionName = std::move(FName),
+    };
+  }
+  return {
+      .SourceCodeLine = getSrcCodeFromIR(*Loc),
+      .SourceCodeFilename = getFilePathFromIR(Loc->File),
+      .SourceCodeFunctionName = std::move(FName),
+      .Line = Loc->Line,
+      .Column = Loc->Column,
   };
 }
 
 std::optional<DebugLocation> psr::getDebugLocation(const llvm::Value *V) {
   // Argument and Instruction
   if (auto *DILoc = getDILocation(V)) {
-    return DebugLocation{DILoc->getLine(), DILoc->getColumn(),
-                         DILoc->getFile()};
+    return DebugLocation{
+        .Line = DILoc->getLine(),
+        .Column = DILoc->getColumn(),
+        .File = DILoc->getFile(),
+    };
   }
-  if (const auto *I = llvm::dyn_cast<llvm::Instruction>(V)) {
-    if (const auto *DIFun = I->getFunction()->getSubprogram()) {
-      return DebugLocation{DIFun->getLine(), 0, DIFun->getFile()};
-    }
+  if (auto *DIFun =
+          getEnclosingSubprogram(V)) { // Instruction/Argument fallback
+    return DebugLocation{
+        .Line = DIFun->getLine(),
+        .Column = 0,
+        .File = DIFun->getFile(),
+    };
   }
   if (auto *DISubpr = getDISubprogram(V)) { // Function
-    return DebugLocation{DISubpr->getLine(), 0, DISubpr->getFile()};
+    return DebugLocation{
+        .Line = DISubpr->getLine(),
+        .Column = 0,
+        .File = DISubpr->getFile(),
+    };
   }
   if (auto *DIGV = getDIGlobalVariable(V)) { // Globals
-    return DebugLocation{DIGV->getLine(), 0, DIGV->getFile()};
+    return DebugLocation{
+        .Line = DIGV->getLine(),
+        .Column = 0,
+        .File = DIGV->getFile(),
+    };
   }
 
   return std::nullopt;
+}
+
+void psr::forEachDbgDeclare(
+    const llvm::Instruction &I,
+    llvm::function_ref<void(const llvm::DILocalVariable *, const llvm::Value *)>
+        Callback) {
+#if LLVM_VERSION_MAJOR > 18
+  for (const llvm::DbgVariableRecord &DbR :
+       llvm::filterDbgVars(I.getDbgRecordRange())) {
+    if (DbR.isDbgDeclare()) {
+      Callback(DbR.getVariable(), DbR.getAddress());
+    }
+  }
+#endif
+  if (const auto *D = llvm::dyn_cast<llvm::DbgDeclareInst>(&I)) {
+    Callback(D->getVariable(), D->getAddress());
+  }
+}
+
+const llvm::DICompositeType *
+psr::stripTypedefsToStruct(const llvm::DIType *Ty) {
+  while (const auto *D = llvm::dyn_cast_or_null<llvm::DIDerivedType>(Ty)) {
+    if (D->getTag() != llvm::dwarf::DW_TAG_typedef) {
+      return nullptr;
+    }
+    Ty = D->getBaseType();
+  }
+  const auto *CT = llvm::dyn_cast_or_null<llvm::DICompositeType>(Ty);
+  return (CT && CT->getTag() == llvm::dwarf::DW_TAG_structure_type) ? CT
+                                                                    : nullptr;
 }

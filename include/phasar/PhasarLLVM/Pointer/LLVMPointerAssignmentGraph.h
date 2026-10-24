@@ -13,10 +13,13 @@
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/Pointer/PointerAssignmentGraph.h"
 
+#include "llvm/ADT/FunctionExtras.h"
+
 namespace llvm {
 class Instruction;
 class Value;
 class Function;
+class MemorySSA;
 } // namespace llvm
 
 namespace psr {
@@ -103,19 +106,40 @@ struct LLVMPAGDomain : LLVMAnalysisDomainDefault {
 /// Traverses all functions in the given \c LLVMProjectIRDB and emits PAG
 /// nodes and edges to the provided \c PBStrategyRef.
 ///
-/// Achieves basic field sensitivity by handlking constant GEPs in an ad-hoc
+/// Achieves basic field sensitivity by handling constant GEPs in an ad-hoc
 /// manner.
 ///
 /// An optional \c LLVMFunctionDataFlowFacts object can be supplied to apply
 /// pre-computed library summaries at potentially declaration-only calls.
+///
+/// An optional \c MemSSAProviderFn enables flow-sensitive load edges: for each
+/// load instruction the builder queries the provider for the function's
+/// \c MemorySSA and connects only the reaching stores rather than all stores to
+/// the same base pointer.  Use \c withBuiltinMemSSA() when no external analysis
+/// manager is available.
 class LLVMPAGBuilder : public PAGBuilder<LLVMPAGDomain> {
 public:
+  /// Callback that maps a function to its \c MemorySSA. The returned pointer
+  /// must remain valid for the duration of \c buildPAG. Returning null
+  /// disables flow-sensitivity for that function.
+  using MemSSAProviderFn =
+      llvm::unique_function<llvm::MemorySSA *(const llvm::Function &)>;
+
   constexpr LLVMPAGBuilder() noexcept = default;
-  /// \param MLSum Pre-computed library summary facts. If non-null, callee
+
+  /// \param MLSum  Pre-computed library summary facts. If non-null, callee
   ///   analysis for matched library functions is replaced by these summaries.
-  constexpr LLVMPAGBuilder(
-      const library_summary::LLVMFunctionDataFlowFacts *MLSum) noexcept
-      : MLSum(MLSum) {}
+  /// \param MemSSAProvider  Optional per-function MemorySSA provider for
+  ///   flow-sensitive load handling.
+  LLVMPAGBuilder(const library_summary::LLVMFunctionDataFlowFacts *MLSum,
+                 MemSSAProviderFn MemSSAProvider = nullptr) noexcept
+      : MLSum(MLSum), MemSSAProvider(std::move(MemSSAProvider)) {}
+
+  /// Returns a builder that constructs \c DominatorTree + \c BasicAA +
+  /// \c MemorySSA internally for each function on demand. No prior alias
+  /// analysis or \c FunctionAnalysisManager required.
+  [[nodiscard]] static LLVMPAGBuilder withBuiltinMemSSA(
+      const library_summary::LLVMFunctionDataFlowFacts *MLSum = nullptr);
 
   void buildPAG(const LLVMProjectIRDB &IRDB, ValueCompressor<v_t> &VC,
                 pag::PBStrategyRef<LLVMPAGDomain> Strategy) override;
@@ -124,6 +148,7 @@ private:
   struct PAGBuildData;
 
   const library_summary::LLVMFunctionDataFlowFacts *MLSum{};
+  MemSSAProviderFn MemSSAProvider{};
 };
 
 } // namespace psr

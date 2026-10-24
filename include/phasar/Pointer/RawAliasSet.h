@@ -9,9 +9,8 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
+#include "phasar/Utils/SparseBitSet.h"
 #include "phasar/Utils/TypeTraits.h"
-
-#include "llvm/ADT/SparseBitVector.h"
 
 #include <concepts>
 
@@ -33,72 +32,36 @@ concept IsRawAliasSet = requires(ASet &MutSet, const ASet &ConstSet,
   { ConstSet.contains(ValId) } -> std::convertible_to<bool>;
   // ConstSet.begin();
   // ConstSet.end();
+
+  /// Iteration must be in ascending order
   ConstSet.foreach (DummyFn<typename ASet::value_type>{});
   MutSet |= ConstSet;
   MutSet &= ConstSet;
   MutSet -= ConstSet;
+  { ConstSet - ConstSet } -> std::convertible_to<ASet>;
   { ConstSet == ConstSet } noexcept -> std::convertible_to<bool>;
   { ConstSet != ConstSet } noexcept -> std::convertible_to<bool>;
   { MutSet.tryMergeWith(ConstSet) } -> std::convertible_to<bool>;
   { MutSet.clear() } noexcept;
   { ConstSet.empty() } noexcept -> std::convertible_to<bool>;
   { ConstSet.size() } noexcept -> std::convertible_to<size_t>;
+  {
+    // Merges the ConstSet into MutSet, as with tryMergeWith, but invokes a
+    // callback for each element that was newly inserted.The Diff will be
+    // materialized and merged into that out-param
+    MutSet.mergeWithDiff(ConstSet, DummyFn<typename ASet::value_type>{}, MutSet)
+  } -> std::convertible_to<bool>;
+  {
+    // Merges the ConstSet into MutSet, as with tryMergeWith, but invokes a
+    // callback for each element that was newly inserted.
+    MutSet.mergeWithDiff(ConstSet, DummyFn<typename ASet::value_type>{})
+  } -> std::convertible_to<bool>;
 };
 
-/// Sparse bit-set used to represent alias sets in union-find analyses.
-///
-/// Currently backed by \c llvm::SparseBitVector for compact storage when ids
-/// are scattered in a large range and dense storage when ids are clustered.
-/// Satisfies \c IsRawAliasSet.
-///
-/// \tparam IdT Integer-like id type (e.g., \c ValueId).
-template <SmallIdType IdT> class RawAliasSet {
-public:
-  using value_type = IdT;
+/// For backwards-compatibility only
+template <SmallIdType IdT> using RoaringAliasSet = SparseBitSet<IdT>;
 
-  RawAliasSet() = default;
+/// The default type used for alias/points-to sets
+template <SmallIdType IdT> using RawAliasSet = RoaringAliasSet<IdT>;
 
-  void insert(IdT Id) { Bits.set(uint32_t(Id)); }
-
-  [[nodiscard]] bool tryInsert(IdT Id) {
-    return Bits.test_and_set(uint32_t(Id));
-  }
-
-  [[nodiscard]] bool contains(IdT Id) const { return Bits.test(uint32_t(Id)); }
-
-  LLVM_ATTRIBUTE_ALWAYS_INLINE void foreach (
-      std::invocable<IdT> auto Handler) const {
-    for (auto Bit : Bits) {
-      std::invoke(Handler, IdT(Bit));
-    }
-  }
-
-  void operator|=(const RawAliasSet &Other) { Bits |= Other.Bits; }
-  void operator&=(const RawAliasSet &Other) { Bits &= Other.Bits; }
-  void operator-=(const RawAliasSet &Other) {
-    Bits.intersectWithComplement(Other.Bits);
-  }
-
-  [[nodiscard]] bool empty() const noexcept { return Bits.empty(); }
-  [[nodiscard]] size_t size() const noexcept { return Bits.count(); }
-
-  void clear() noexcept { Bits.clear(); }
-
-  [[nodiscard]] auto begin() const noexcept { return Bits.begin(); }
-  [[nodiscard]] auto end() const noexcept { return Bits.end(); }
-
-  [[nodiscard]] bool tryMergeWith(const RawAliasSet &Other) {
-    return Bits |= Other.Bits;
-  }
-
-  void erase(IdT Id) { Bits.reset(uint32_t(Id)); }
-
-  [[nodiscard]] bool operator==(const RawAliasSet &Other) const noexcept {
-    return Bits == Other.Bits;
-  }
-
-private:
-  llvm::SparseBitVector<> Bits;
-  // TODO: roaring::Roaring Bits;
-};
 } // namespace psr

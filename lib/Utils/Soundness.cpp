@@ -10,6 +10,7 @@
 #include "phasar/Utils/Soundness.h"
 
 #include "llvm/ADT/StringSwitch.h"
+#include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
 
 std::string psr::toString(Soundness S) {
@@ -22,6 +23,7 @@ std::string psr::toString(Soundness S) {
   case Soundness::Invalid:
     return "Invalid";
   }
+  llvm_unreachable("All soundness flags handled in the switch above");
 }
 
 psr::Soundness psr::toSoundness(llvm::StringRef S) {

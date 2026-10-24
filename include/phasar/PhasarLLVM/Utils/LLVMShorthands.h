@@ -17,15 +17,27 @@
 #ifndef PHASAR_PHASARLLVM_UTILS_LLVMSHORTHANDS_H
 #define PHASAR_PHASARLLVM_UTILS_LLVMSHORTHANDS_H
 
+#include "phasar/Utils/BitSet.h"
 #include "phasar/Utils/Utilities.h"
 
+#include "llvm/ADT/ArrayRef.h"
+#include "llvm/ADT/SmallBitVector.h"
+#include "llvm/ADT/SmallPtrSet.h"
+#include "llvm/ADT/SmallVector.h"
+#include "llvm/BinaryFormat/Dwarf.h"
 #include "llvm/IR/Argument.h"
+#include "llvm/IR/CFG.h"
 #include "llvm/IR/Constants.h"
+#include "llvm/IR/DebugInfoMetadata.h"
+#include "llvm/IR/GlobalObject.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Type.h"
 #include "llvm/Support/Casting.h"
 
+#include <concepts>
+#include <functional>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace llvm {
@@ -42,6 +54,8 @@ class CallInst;
 class AllocaInst;
 class DIType;
 class DIDerivedType;
+class DICompositeType;
+class DataLayout;
 } // namespace llvm
 
 namespace psr {
@@ -53,14 +67,15 @@ class LLVMProjectIRDB;
  * @return True, if given LLVM Type is a struct like this %TSi = type <{ i64 }>.
  * False, otherwise.
  */
-bool isIntegerLikeType(const llvm::Type *T) noexcept;
+[[nodiscard]] bool isIntegerLikeType(const llvm::Type *T) noexcept;
 
 /**
  * @brief Checks if the given LLVM Value is either a alloca instruction or a
  * heap allocation function, e.g. new, new[], malloc, realloc or calloc.
  */
-bool isAllocaInstOrHeapAllocaFunction(const llvm::Value *V) noexcept;
-bool isHeapAllocatingFunction(const llvm::Function *F) noexcept;
+[[nodiscard]] bool
+isAllocaInstOrHeapAllocaFunction(const llvm::Value *V) noexcept;
+[[nodiscard]] bool isHeapAllocatingFunction(const llvm::Function *F) noexcept;
 
 /// Returns true if the provided function and the function type are both not
 /// null and have the same number of parameters and the same return type. If the
@@ -70,6 +85,9 @@ bool isHeapAllocatingFunction(const llvm::Function *F) noexcept;
 ///
 /// \note This function is less useful in practice than you may think. Consider
 /// using isConsistentCall() instead.
+LLVM_DEPRECATED("With opaque pointers, this function is not very useful. Use "
+                "isConsistentCall() instead.",
+                "psr::isConsistentCall")
 bool matchesSignature(const llvm::Function *F, const llvm::FunctionType *FType,
                       bool ExactMatch = true);
 
@@ -79,10 +97,14 @@ bool matchesSignature(const llvm::Function *F, const llvm::FunctionType *FType,
 ///
 /// \note This function is less useful in practice than you may think. Consider
 /// using isConsistentCall() instead.
+LLVM_DEPRECATED("With opaque pointers, this function is not very useful. Use "
+                "isConsistentCall() instead.",
+                "psr::isConsistentCall")
 bool matchesSignature(const llvm::FunctionType *FType1,
                       const llvm::FunctionType *FType2);
 
-llvm::ModuleSlotTracker &getModuleSlotTrackerFor(const llvm::Value *V);
+[[nodiscard]] llvm::ModuleSlotTracker &
+getModuleSlotTrackerFor(const llvm::Value *V);
 
 /**
  * @brief Returns a string representation of a LLVM Value.
@@ -100,7 +122,7 @@ llvm::ModuleSlotTracker &getModuleSlotTrackerFor(const llvm::Value *V);
  * @brief Same as llvmIRToString() but tries to shorten the
  *        resulting string
  */
-std::string llvmIRToShortString(const llvm::Value *V);
+[[nodiscard]] std::string llvmIRToShortString(const llvm::Value *V);
 
 /**
  * @brief Returns a string-representation of a LLVM type.
@@ -211,7 +233,7 @@ const llvm::Instruction *getNthTermInstruction(const llvm::Function *F,
 const llvm::StoreInst *getNthStoreInstruction(const llvm::Function *F,
                                               unsigned StoNo);
 
-llvm::SmallVector<const llvm::Instruction *, 2>
+[[nodiscard]] llvm::SmallVector<const llvm::Instruction *, 2>
 getAllExitPoints(const llvm::Function *F, bool IncludeResume = true);
 void appendAllExitPoints(
     const llvm::Function *F,
@@ -254,13 +276,14 @@ std::size_t computeModuleHash(const llvm::Module *M);
  * @brief True, iff V is the compiler-generated guard variable for the
  * thread-safe initialization of function-local static variables.
  */
-bool isGuardVariable(const llvm::Value *V);
+[[nodiscard]] bool isGuardVariable(const llvm::Value *V);
 
 /**
  * @brief True, iff V is the compiler-generated branch that leads to the lazy
  * initialization of a function-local static variable.
  */
-bool isStaticVariableLazyInitializationBranch(const llvm::BranchInst *Inst);
+[[nodiscard]] bool
+isStaticVariableLazyInitializationBranch(const llvm::BranchInst *Inst);
 
 [[nodiscard]] inline bool
 definitelyContainsNoPointerFast(const llvm::Type *Ty) noexcept {
@@ -295,6 +318,40 @@ definitelyContainsNoPointer(const llvm::Type *Ty) noexcept {
          definitelyContainsNoPointer(Val->getType());
 }
 
+/// Strips pointer-cast and alias wrappers from \p V, then invokes \p Handler
+/// for each concrete underlying value:
+///   - If \p V is not a ConstantExpr after stripping, Handler is called once
+///     with the stripped value.
+///   - If \p V is a ConstantExpr, the expression tree is walked and Handler
+///     is called for each GlobalObject leaf.
+template <std::invocable<const llvm::Value *> HandlerT>
+void forEachPointerOperand(const llvm::Value *V, HandlerT Handler) {
+  V = V->stripPointerCastsAndAliases();
+  const auto *CExpr = llvm::dyn_cast<llvm::ConstantExpr>(V);
+  if (!CExpr) [[likely]] {
+    std::invoke(Handler, V);
+    return;
+  }
+
+  llvm::SmallPtrSet<const llvm::Value *, 4> Seen = {V};
+  llvm::SmallVector<const llvm::User *> WL = {CExpr};
+  do {
+    const auto *Curr = WL.pop_back_val();
+    for (const auto *Op : Curr->operand_values()) {
+      if (definitelyContainsNoPointer(Op) || !Seen.insert(Op).second) {
+        continue;
+      }
+      if (const auto *GObj = llvm::dyn_cast<llvm::GlobalObject>(Op)) {
+        std::invoke(Handler, static_cast<const llvm::Value *>(GObj));
+        continue;
+      }
+      if (const auto *OpUser = llvm::dyn_cast<llvm::User>(Op)) {
+        WL.push_back(OpUser);
+      }
+    }
+  } while (!WL.empty());
+}
+
 /// Approximates, whether the given LLVM value may be address-taken, i.e.,
 /// whether its pointer value is used for other purposes than just
 /// store/load/gep.
@@ -302,6 +359,12 @@ definitelyContainsNoPointer(const llvm::Type *Ty) noexcept {
 /// This check is designed to be rather lightweight and may therefore not be
 /// precise in all cases.
 [[nodiscard]] bool isAddressTakenVariable(const llvm::Value *Var) noexcept;
+
+/// Like \c isAddressTakenVariable but runs the full use-traversal for
+/// function arguments regardless of their attributes.  Use this when the
+/// caller has already established that \p Arg is allocation-site-like (e.g.,
+/// for PAG field-sensitivity of pointer parameters).
+[[nodiscard]] bool isAddressTakenArg(const llvm::Argument *Arg) noexcept;
 
 /**
  * Tests for <https://llvm.org/docs/LangRef.html#llvm-var-annotation-intrinsic>
@@ -311,7 +374,7 @@ definitelyContainsNoPointer(const llvm::Type *Ty) noexcept {
  */
 bool isVarAnnotationIntrinsic(const llvm::Function *F);
 
-inline const llvm::Function *getFunction(const llvm::Value *V) {
+[[nodiscard]] inline const llvm::Function *getFunction(const llvm::Value *V) {
   if (!V) {
     return nullptr;
   }
@@ -323,13 +386,54 @@ inline const llvm::Function *getFunction(const llvm::Value *V) {
   }
   return nullptr;
 }
-inline const llvm::Function *getFunction(const llvm::Instruction *Inst) {
+[[nodiscard]] inline const llvm::Function *
+getFunction(const llvm::Instruction *Inst) {
   if (!Inst) {
     return nullptr;
   }
 
   return Inst->getFunction();
 }
+
+[[nodiscard]] inline bool isStartInst(const llvm::Instruction *Inst) {
+  return
+#if LLVM_VERSION_MAJOR <= 18
+      !Inst->getPrevNonDebugInstruction()
+#else
+      !Inst->getPrevNode()
+#endif
+      && llvm::pred_empty(Inst->getParent());
+}
+
+[[nodiscard]] const llvm::DIType *stripMemberAndTypedef(const llvm::DIType *Ty);
+
+[[nodiscard]] inline bool isPointerTy(const llvm::DIType *Ty) {
+  if (const auto *DerivedTy =
+          llvm::dyn_cast<llvm::DIDerivedType>(stripMemberAndTypedef(Ty))) {
+    return DerivedTy->getTag() == llvm::dwarf::DW_TAG_pointer_type ||
+           DerivedTy->getTag() == llvm::dwarf::DW_TAG_reference_type;
+  }
+  return false;
+}
+
+struct PointerIndicesCache {
+  std::unordered_map<const llvm::DIType *,
+                     BitSet<uint32_t, llvm::SmallBitVector>>
+      Cache;
+};
+
+[[nodiscard]] BitSet<uint32_t, llvm::SmallBitVector>
+getPointerIndicesOfType(const llvm::DIType *Ty, const llvm::DataLayout &DL);
+
+[[nodiscard]] BitSet<uint32_t, llvm::SmallBitVector> &
+getPointerIndicesOfType(const llvm::DIType *Ty, const llvm::DataLayout &DL,
+                        PointerIndicesCache &PIC);
+
+[[nodiscard]] bool walkLoadChainTo(const llvm::Value *Start,
+                                   const llvm::Value *Target,
+                                   const llvm::DataLayout &DL,
+                                   uint32_t MaxDepth,
+                                   llvm::function_ref<void(int64_t)> OnDeref);
 
 /**
  * Retrieves String annotation value as per
@@ -360,6 +464,17 @@ getVaListTagOrNull(const llvm::Function &Fun);
 [[nodiscard]] bool isVaListAlloca(const llvm::AllocaInst &Alloc);
 
 [[nodiscard]] const llvm::DIType *stripPointerTypes(const llvm::DIType *DITy);
+
+/// Walk a constant initializer along a GEP index path and return the
+/// \c Function* at the leaf, or nullptr.
+///
+/// \p Indices mirrors GEP index semantics:
+///   - \c Indices[0] is the outer "pointer-array" index:
+///     \c ConstantArray -> selects the element; \c ConstantStruct ->
+///     must be 0 (pointer-arithmetic no-op, struct is not an array).
+///   - \c Indices[1+] navigate recursively through ConstantAggregate.
+[[nodiscard]] const llvm::Function *
+walkConstInitPath(const llvm::Constant *Init, llvm::ArrayRef<uint64_t> Indices);
 } // namespace psr
 
 #endif

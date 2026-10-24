@@ -14,6 +14,7 @@ if(BUILD_PHASAR_CLANG)
     if(PHASAR_IN_TREE)
         add_dependencies(phasar_interface intrinsics_gen)
     endif()
+
     add_subdirectory(PhasarClang)
 endif()
 
@@ -37,25 +38,28 @@ set(PHASAR_LINK_LIBS
     phasar_llvm_mono
     phasar_llvm_pathsensitivity
     phasar_llvm_dataflow
+    phasar_llvm_monoifds
     phasar_llvm_db
     phasar_llvm_domain
     phasar_llvm_pointer
     phasar_llvm_typehierarchy
     phasar_llvm_utils
 
-    phasar_pass
     phasar_passes
     phasar_pointer
     phasar_taintconfig
     phasar_typehierarchy
     phasar_utils
 )
+
 if(BUILD_PHASAR_CLANG)
     list(APPEND PHASAR_LINK_LIBS phasar_clang)
 endif()
+
 if(TARGET phasar_db)
     list(APPEND PHASAR_LINK_LIBS phasar_db)
 endif()
+
 if(PHASAR_USE_SVF)
     list(APPEND PHASAR_LINK_LIBS phasar_llvm_pointer_svf)
 endif()

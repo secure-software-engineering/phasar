@@ -1,0 +1,81 @@
+set(PHASAR_INSTALL_MANIFEST "@CMAKE_CURRENT_BINARY_DIR@/install_manifest.txt")
+
+if (NOT EXISTS "${PHASAR_INSTALL_MANIFEST}")
+  message(FATAL_ERROR
+    "Cannot find install manifest: ${PHASAR_INSTALL_MANIFEST}. "
+    "Run the install target before uninstalling."
+  )
+endif()
+
+file(READ "${PHASAR_INSTALL_MANIFEST}" PHASAR_INSTALLED_FILES)
+string(REGEX REPLACE "\n" ";" PHASAR_INSTALLED_FILES "${PHASAR_INSTALLED_FILES}")
+
+foreach (PHASAR_INSTALLED_FILE IN LISTS PHASAR_INSTALLED_FILES)
+  if ("${PHASAR_INSTALLED_FILE}" STREQUAL "")
+    continue()
+  endif()
+
+  set(PHASAR_UNINSTALL_FILE "$ENV{DESTDIR}${PHASAR_INSTALLED_FILE}")
+
+  if (EXISTS "${PHASAR_UNINSTALL_FILE}" OR IS_SYMLINK "${PHASAR_UNINSTALL_FILE}")
+    message(STATUS "Removing ${PHASAR_UNINSTALL_FILE}")
+    execute_process(
+      COMMAND "@CMAKE_COMMAND@" -E remove -f "${PHASAR_UNINSTALL_FILE}"
+      RESULT_VARIABLE PHASAR_REMOVE_RESULT
+    )
+
+    if (NOT "${PHASAR_REMOVE_RESULT}" STREQUAL "0")
+      message(FATAL_ERROR "Failed to remove ${PHASAR_UNINSTALL_FILE}")
+    endif()
+  else()
+    message(STATUS "File does not exist: ${PHASAR_UNINSTALL_FILE}")
+  endif()
+endforeach()
+
+function(phasar_remove_empty_directories PHASAR_DIRECTORY)
+  if (NOT IS_DIRECTORY "${PHASAR_DIRECTORY}" OR IS_SYMLINK "${PHASAR_DIRECTORY}")
+    return()
+  endif()
+
+  file(GLOB PHASAR_DIRECTORY_CHILDREN
+    LIST_DIRECTORIES true
+    "${PHASAR_DIRECTORY}/*"
+    "${PHASAR_DIRECTORY}/.[!.]*"
+    "${PHASAR_DIRECTORY}/..?*"
+  )
+
+  foreach (PHASAR_CHILD IN LISTS PHASAR_DIRECTORY_CHILDREN)
+    phasar_remove_empty_directories("${PHASAR_CHILD}")
+  endforeach()
+
+  file(GLOB PHASAR_REMAINING_CHILDREN
+    LIST_DIRECTORIES true
+    "${PHASAR_DIRECTORY}/*"
+    "${PHASAR_DIRECTORY}/.[!.]*"
+    "${PHASAR_DIRECTORY}/..?*"
+  )
+
+  if (NOT PHASAR_REMAINING_CHILDREN)
+    message(STATUS "Removing empty directory ${PHASAR_DIRECTORY}")
+    file(REMOVE_RECURSE "${PHASAR_DIRECTORY}")
+  else()
+    message(STATUS "Not removing non-empty directory ${PHASAR_DIRECTORY}")
+  endif()
+endfunction()
+
+set(PHASAR_OWNED_INSTALL_DIRECTORIES
+  "@CMAKE_INSTALL_FULL_INCLUDEDIR@/phasar"
+  "@CMAKE_INSTALL_FULL_LIBDIR@/cmake/phasar"
+  "@CMAKE_INSTALL_FULL_LIBDIR@/phasar"
+)
+
+set(PHASAR_CONFIG_INSTALL_DIR "@PHASAR_CONFIG_INSTALL_DIR@")
+if (IS_ABSOLUTE "${PHASAR_CONFIG_INSTALL_DIR}")
+  list(APPEND PHASAR_OWNED_INSTALL_DIRECTORIES "${PHASAR_CONFIG_INSTALL_DIR}")
+else()
+  list(APPEND PHASAR_OWNED_INSTALL_DIRECTORIES "@CMAKE_INSTALL_PREFIX@/${PHASAR_CONFIG_INSTALL_DIR}")
+endif()
+
+foreach (PHASAR_OWNED_INSTALL_DIRECTORY IN LISTS PHASAR_OWNED_INSTALL_DIRECTORIES)
+  phasar_remove_empty_directories("$ENV{DESTDIR}${PHASAR_OWNED_INSTALL_DIRECTORY}")
+endforeach()

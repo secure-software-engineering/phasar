@@ -95,7 +95,8 @@ static bool isTypeMatchForFunctionArgument(llvm::Type *Actual,
   }
   // For PointerType delegate into its element type
   if (llvm::isa<llvm::PointerType>(Actual)) {
-    // If formal argument is void *, we can pass anything.
+// If formal argument is void *, we can pass anything.
+#if LLVM_VERSION_MAJOR <= 16
     if (Actual->isOpaquePointerTy() || Formal->isOpaquePointerTy() ||
         Formal->getNonOpaquePointerElementType()->isIntegerTy(8)) {
       return true;
@@ -103,6 +104,10 @@ static bool isTypeMatchForFunctionArgument(llvm::Type *Actual,
     return isTypeMatchForFunctionArgument(
         Actual->getNonOpaquePointerElementType(),
         Formal->getNonOpaquePointerElementType());
+#endif
+    // XXX: Add better heuristics for the commented code above that are LLVM>16
+    // compatible
+    return true;
   }
   // For structs, Formal needs to be somehow contained in Actual.
   if (llvm::isa<llvm::StructType>(Actual)) {
@@ -498,6 +503,24 @@ bool psr::isGuardVariable(const llvm::Value *V) {
   return false;
 }
 
+static bool isGuardVariableLoadOperand(const llvm::Value *V) {
+  if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(V)) {
+    return Load->isAtomic() && psr::isGuardVariable(Load->getPointerOperand());
+  }
+
+  if (const auto *Cast = llvm::dyn_cast<llvm::CastInst>(V)) {
+    return isGuardVariableLoadOperand(Cast->getOperand(0));
+  }
+
+  if (const auto *BinOp = llvm::dyn_cast<llvm::BinaryOperator>(V);
+      BinOp && BinOp->getOpcode() == llvm::Instruction::And) {
+    return isGuardVariableLoadOperand(BinOp->getOperand(0)) ||
+           isGuardVariableLoadOperand(BinOp->getOperand(1));
+  }
+
+  return false;
+}
+
 static bool isAllocationSiteOrSimilar(const llvm::Value *V) {
   if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(V)) {
     return Arg->hasStructRetAttr();
@@ -505,16 +528,9 @@ static bool isAllocationSiteOrSimilar(const llvm::Value *V) {
   return isAllocaInstOrHeapAllocaFunction(V);
 }
 
-bool psr::isAddressTakenVariable(const llvm::Value *Var) noexcept {
-  if (!Var) {
-    return false;
-  }
-  if (!isAllocationSiteOrSimilar(Var)) {
-    return true;
-  }
-
-  llvm::SmallVector<const llvm::Value *> WL = {Var};
-  llvm::SmallDenseSet<const llvm::Value *> Seen = {Var};
+static bool isAddressTakenImpl(const llvm::Value *Root) noexcept {
+  llvm::SmallVector<const llvm::Value *> WL = {Root};
+  llvm::SmallDenseSet<const llvm::Value *> Seen = {Root};
 
   while (!WL.empty()) {
     const auto *CurrVal = WL.pop_back_val();
@@ -555,6 +571,20 @@ bool psr::isAddressTakenVariable(const llvm::Value *Var) noexcept {
   return false;
 }
 
+bool psr::isAddressTakenVariable(const llvm::Value *Var) noexcept {
+  if (!Var) {
+    return false;
+  }
+  if (!isAllocationSiteOrSimilar(Var)) {
+    return true;
+  }
+  return isAddressTakenImpl(Var);
+}
+
+bool psr::isAddressTakenArg(const llvm::Argument *Arg) noexcept {
+  return isAddressTakenImpl(Arg);
+}
+
 bool psr::isStaticVariableLazyInitializationBranch(
     const llvm::BranchInst *Inst) {
   if (Inst->isUnconditional()) {
@@ -566,13 +596,11 @@ bool psr::isStaticVariableLazyInitializationBranch(
   if (auto *Cmp = llvm::dyn_cast<llvm::ICmpInst>(Condition);
       Cmp && llvm::ICmpInst::isEquality(Cmp->getPredicate())) {
     for (auto *Op : Cmp->operand_values()) {
-      if (auto *Load = llvm::dyn_cast<llvm::LoadInst>(Op);
-          Load && Load->isAtomic()) {
+      if (isGuardVariableLoadOperand(Op)) {
+        return true;
+      }
 
-        if (isGuardVariable(Load->getPointerOperand())) {
-          return true;
-        }
-      } else if (auto *Call = llvm::dyn_cast<llvm::CallBase>(Op)) {
+      if (auto *Call = llvm::dyn_cast<llvm::CallBase>(Op)) {
         auto *CalledFunction = Call->getCalledFunction();
         if (CalledFunction &&
             CalledFunction->getName() == "__cxa_guard_acquire") {
@@ -603,6 +631,172 @@ bool psr::isVarAnnotationIntrinsic(const llvm::Function *F) {
   static constexpr llvm::StringLiteral KVarAnnotationName(
       "llvm.var.annotation");
   return F->getName() == KVarAnnotationName;
+}
+
+const llvm::DIType *psr::stripMemberAndTypedef(const llvm::DIType *Ty) {
+  while (const auto *DerivedTy = llvm::dyn_cast<llvm::DIDerivedType>(Ty)) {
+    if (DerivedTy->getTag() == llvm::dwarf::DW_TAG_typedef ||
+        DerivedTy->getTag() == llvm::dwarf::DW_TAG_member) {
+      Ty = DerivedTy->getBaseType();
+      continue;
+    }
+    break;
+  }
+  return Ty;
+}
+
+static const llvm::DICompositeType *isCompositeTy(const llvm::DIType *Ty) {
+  return llvm::dyn_cast<llvm::DICompositeType>(stripMemberAndTypedef(Ty));
+}
+
+BitSet<uint32_t, llvm::SmallBitVector> &
+psr::getPointerIndicesOfType(const llvm::DIType *Ty, const llvm::DataLayout &DL,
+                             PointerIndicesCache &PIC) {
+  auto [It, Inserted] = PIC.Cache.try_emplace(Ty);
+  auto &Ret = It->second;
+
+  if (!Inserted) {
+    return Ret;
+  }
+
+  // XXX: Does every type provide a meaningful getSizeInBits?
+  auto PointerSize = DL.getPointerSizeInBits();
+  auto MaxNumPointers = Ty->getSizeInBits() / PointerSize;
+  if (!MaxNumPointers) {
+    return Ret;
+  }
+
+  if (isPointerTy(Ty)) {
+    Ret.insert(0);
+    return Ret;
+  }
+
+  const auto *CompTy = isCompositeTy(Ty);
+  if (!CompTy) {
+    return Ret;
+  }
+
+  Ret.reserve(MaxNumPointers);
+
+  auto Tag = CompTy->getTag();
+
+  if (Tag == llvm::dwarf::DW_TAG_array_type) {
+    auto *ElemTy = CompTy->getBaseType();
+    const auto *ArrayLenRange =
+        llvm::cast<llvm::DISubrange>(CompTy->getElements()[0]);
+    auto ArrayLenBound = ArrayLenRange->getCount();
+    if (const auto *ArrayLenCInt =
+            ArrayLenBound.dyn_cast<llvm::ConstantInt *>()) {
+      auto ArrayLen = ArrayLenCInt->getSExtValue();
+      // Count is -1 for flexible array members;
+      if (ArrayLen < 0) {
+        return Ret;
+      }
+
+      auto ElemSize = int64_t(ElemTy->getSizeInBits());
+      auto ElemPtrs = getPointerIndicesOfType(ElemTy, DL, PIC);
+      if (ElemPtrs.empty()) {
+        return Ret;
+      }
+
+      // XXX: Optimize:
+      for (int64_t I = 0, Offs = 0; I < ArrayLen; ++I, Offs += ElemSize) {
+        ElemPtrs.foreach ([&](uint32_t Idx) { Ret.insert(Offs + Idx); });
+      }
+    }
+
+    return Ret;
+  }
+
+  if (Tag == llvm::dwarf::DW_TAG_structure_type ||
+      Tag == llvm::dwarf::DW_TAG_class_type) {
+
+    auto Elems = CompTy->getElements();
+    uint64_t Offs = 0;
+    for (auto *Elem : Elems) {
+      auto *ElemTy = llvm::dyn_cast<llvm::DIType>(Elem);
+      if (!ElemTy) {
+        continue;
+      }
+
+      scope_exit IncOffs = [&] { Offs += ElemTy->getSizeInBits(); };
+
+      if (Elem->getTag() != llvm::dwarf::DW_TAG_inheritance &&
+          Elem->getTag() != llvm::dwarf::DW_TAG_member) {
+        continue;
+      }
+
+      auto &ElemPtrs = getPointerIndicesOfType(ElemTy, DL, PIC);
+      if (!ElemPtrs.empty()) {
+        ElemPtrs.foreach ([&](uint32_t Idx) { Ret.insert(Offs + Idx); });
+      }
+    }
+    return Ret;
+  }
+
+  // fallback
+  return Ret;
+}
+
+BitSet<uint32_t, llvm::SmallBitVector>
+psr::getPointerIndicesOfType(const llvm::DIType *Ty,
+                             const llvm::DataLayout &DL) {
+  PointerIndicesCache PIC;
+  return std::move(getPointerIndicesOfType(Ty, DL, PIC));
+}
+
+bool psr::walkLoadChainTo(const llvm::Value *Start, const llvm::Value *Target,
+                          const llvm::DataLayout &DL, uint32_t MaxDepth,
+                          llvm::function_ref<void(int64_t)> OnDeref) {
+  const llvm::Value *Cur = Start;
+  for (unsigned Depth = 0; Depth < MaxDepth && Cur != Target; ++Depth) {
+    const auto *LI = llvm::dyn_cast<llvm::LoadInst>(Cur);
+    if (!LI) {
+      break;
+    }
+
+    llvm::APInt Offset(64, 0);
+    const auto *Stripped =
+        LI->getPointerOperand()->stripAndAccumulateConstantOffsets(
+            DL, Offset, /*AllowNonInbounds=*/true);
+    const auto *Base = Stripped->stripPointerCastsAndAliases();
+    int64_t ByteOffset = llvm::isa<llvm::GEPOperator>(Stripped)
+                             ? INT64_MIN // non-constant GEP
+                             : Offset.getSExtValue();
+
+    // -O0 mem2reg artifact: clang copies every argument/local into an alloca
+    // and re-loads it at each use. If the alloca has exactly one store and
+    // that store holds Target, the load is a transparent SSA copy -- not a
+    // real dereference of Target. Skipping OnDeref here keeps the indirection
+    // depth consistent with post-mem2reg IR (where the alloca disappears).
+    // Require Offset==0 and no other stores to avoid spurious kills when the
+    // alloca is reassigned to a different pointer.
+    if (const auto *AI = llvm::dyn_cast<llvm::AllocaInst>(Base);
+        AI && Offset.isZero()) {
+      bool HasTargetStore = false;
+      bool HasOtherStore = false;
+      for (const auto *U : AI->users()) {
+        const auto *SI = llvm::dyn_cast<llvm::StoreInst>(U);
+        if (!SI || SI->getPointerOperand() != AI) {
+          continue;
+        }
+        if (SI->getValueOperand() == Target) {
+          HasTargetStore = true;
+        } else {
+          HasOtherStore = true;
+          break;
+        }
+      }
+      if (HasTargetStore && !HasOtherStore) {
+        Cur = Target;
+        break;
+      }
+    }
+
+    OnDeref(ByteOffset);
+    Cur = Base;
+  }
+  return Cur == Target;
 }
 
 llvm::StringRef
@@ -733,4 +927,35 @@ const llvm::DIType *psr::stripPointerTypes(const llvm::DIType *DITy) {
     DITy = DerivedTy->getBaseType();
   }
   return DITy;
+}
+
+const llvm::Function *psr::walkConstInitPath(const llvm::Constant *Init,
+                                             llvm::ArrayRef<uint64_t> Indices) {
+  if (Indices.empty()) {
+    return llvm::dyn_cast<llvm::Function>(Init->stripPointerCastsAndAliases());
+  }
+  const uint64_t Idx0 = Indices[0];
+  const llvm::Constant *Elem = nullptr;
+  if (const auto *CA = llvm::dyn_cast<llvm::ConstantArray>(Init)) {
+    if (Idx0 >= CA->getNumOperands()) {
+      return nullptr;
+    }
+    Elem = CA->getOperand(Idx0);
+  } else if (llvm::isa<llvm::ConstantStruct>(Init)) {
+    if (Idx0 != 0) {
+      return nullptr;
+    }
+    Elem = Init; // struct: idx0 is pointer-arithmetic no-op, stay here
+  } else {
+    return nullptr;
+  }
+  for (const uint64_t Idx : Indices.drop_front(1)) {
+    const auto *Agg = llvm::dyn_cast<llvm::ConstantAggregate>(Elem);
+    if (!Agg || Idx >= Agg->getNumOperands()) {
+      return nullptr;
+    }
+    Elem = Agg->getOperand(Idx);
+  }
+  return llvm::dyn_cast_or_null<llvm::Function>(
+      Elem->stripPointerCastsAndAliases());
 }

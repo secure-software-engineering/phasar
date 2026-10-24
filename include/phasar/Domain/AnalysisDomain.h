@@ -13,6 +13,7 @@
 #include "phasar/ControlFlow/CFG.h"
 #include "phasar/Domain/IRDomain.h"
 
+#include <concepts>
 #include <type_traits>
 
 namespace psr {
@@ -29,8 +30,8 @@ concept IsAnalysisDomain = IRDomain<T> && requires() {
   requires std::same_as<typename T::t_t, typename T::ir_t::t_t>;
   requires std::same_as<typename T::db_t, typename T::ir_t::db_t>;
 
-  typename T::c_t;
-  requires CFG<typename T::c_t>;
+  // typename T::c_t;
+  // requires CFG<typename T::c_t>;
 };
 
 /// AnalysisDomain - This class should be specialized by different static
@@ -72,7 +73,7 @@ struct AnalysisDomain {
   // Inter-procedural control flow --- Specifies the type of the
   // inter-procedural control-flow graph to be used.
   using i_t = void;
-  // The ProjectIRDB type to use. Must inherit from the ProjectIRDBBase CRTP
+  // The ProjectIRDB type to use. Must conform to the ProjectIRDB concept
   // template
   using db_t = void;
   // Lattice element --- Specifies the type of the underlying lattice; the value
@@ -84,23 +85,32 @@ struct AnalysisDomain {
 
 enum class BinaryDomain;
 
+template <typename T>
+concept HasValueDomain = requires() {
+  typename T::l_t;
+  requires(!std::is_void_v<typename T::l_t>);
+};
+
 namespace detail {
-template <typename AnalysisDomainTy, typename ValueTy = BinaryDomain>
-struct HasBinaryValueDomain : std::false_type {};
-template <typename AnalysisDomainTy>
-struct HasBinaryValueDomain<AnalysisDomainTy, typename AnalysisDomainTy::l_t>
-    : std::true_type {};
+template <typename T>
+concept HasBinaryValueDomain =
+    requires() { requires std::same_as<typename T::l_t, BinaryDomain>; };
 
 template <typename AnalysisDomainTy>
 struct WithBinaryValueDomainExtender : AnalysisDomainTy {
   using l_t = BinaryDomain;
 };
 
+template <typename AnalysisDomainTy>
+using ValueDomainAdder =
+    std::conditional_t<HasValueDomain<AnalysisDomainTy>, AnalysisDomainTy,
+                       WithBinaryValueDomainExtender<AnalysisDomainTy>>;
+
 } // namespace detail
 
 template <typename AnalysisDomainTy>
 using WithBinaryValueDomain =
-    std::conditional_t<detail::HasBinaryValueDomain<AnalysisDomainTy>::value,
+    std::conditional_t<detail::HasBinaryValueDomain<AnalysisDomainTy>,
                        AnalysisDomainTy,
                        detail::WithBinaryValueDomainExtender<AnalysisDomainTy>>;
 

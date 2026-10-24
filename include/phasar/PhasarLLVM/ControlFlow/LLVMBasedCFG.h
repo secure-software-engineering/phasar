@@ -11,6 +11,7 @@
 #define PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDCFG_H_
 
 #include "phasar/ControlFlow/CFGBase.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallVector.h"
@@ -76,7 +77,9 @@ protected:
   [[nodiscard]] bool isExitInstImpl(n_t Inst) const noexcept {
     return llvm::isa<llvm::ReturnInst>(Inst);
   }
-  [[nodiscard]] bool isStartPointImpl(n_t Inst) const noexcept;
+  [[nodiscard]] bool isStartPointImpl(n_t Inst) const noexcept {
+    return isStartInst(Inst);
+  }
   [[nodiscard]] bool isFieldLoadImpl(n_t Inst) const noexcept;
   [[nodiscard]] bool isFieldStoreImpl(n_t Inst) const noexcept;
   [[nodiscard]] bool isFallThroughSuccessorImpl(n_t Inst,

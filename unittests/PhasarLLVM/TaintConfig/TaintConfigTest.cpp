@@ -242,7 +242,7 @@ TEST_F(TaintConfigTest, Array_01_Json) {
 
   const llvm::Value *I = testingLocInIR(
       OperandOf{1, LineColFunOp{8, 9, "main", llvm::Instruction::Store}}, IR);
-  ASSERT_TRUE(TConfig.isSource(I));
+  ASSERT_TRUE(TConfig.isSource(I)) << psr::llvmIRToString(I);
 }
 
 TEST_F(TaintConfigTest, Array_02_Json) {
@@ -253,9 +253,12 @@ TEST_F(TaintConfigTest, Array_02_Json) {
   psr::LLVMProjectIRDB IR({PathToJsonTaintConfigTestCode + File});
   //   IR.emitPreprocessedIR(llvm::outs(), false);
   psr::LLVMTaintConfig TConfig(IR, JsonConfig);
+
+  TConfig.print(llvm::errs());
+
   const llvm::Value *I = testingLocInIR(
       OperandOf{1, LineColFunOp{9, 9, "main", llvm::Instruction::Store}}, IR);
-  ASSERT_TRUE(TConfig.isSource(I));
+  ASSERT_TRUE(TConfig.isSource(I)) << psr::llvmIRToString(I);
 }
 
 TEST_F(TaintConfigTest, Basic_01_Json) {
@@ -335,6 +338,29 @@ TEST_F(TaintConfigTest, DataMember_01_Json) {
   //   IR.emitPreprocessedIR(llvm::outs(), false);
   const llvm::Value *I = testingLocInIR(LineColFun{3, 7, "_ZN1XC2Ev"}, IR);
   ASSERT_TRUE(TConfig.isSource(I));
+}
+
+TEST_F(TaintConfigTest, DataMember_02_Json) {
+  // Regression test for
+  // https://github.com/secure-software-engineering/phasar/issues/835 Two
+  // structs (X and Y) both have a field named "A". Only X::A is configured as a
+  // source. Verify X::A GEPs are sources and Y::A GEPs are not.
+  const std::string File = "data_member_02_cpp_dbg.ll";
+  const std::string Config = "data_member_02_config.json";
+  auto JsonConfig =
+      psr::parseTaintConfig(PathToJsonTaintConfigTestCode + Config);
+  psr::LLVMProjectIRDB IR({PathToJsonTaintConfigTestCode + File});
+  psr::LLVMTaintConfig TConfig(IR, JsonConfig);
+
+  // GEP for X::A in X's default constructor — should be source
+  const llvm::Value *XFieldA =
+      testingLocInIR(LineColFun{7, 7, "_ZN1XC2Ev"}, IR);
+  ASSERT_TRUE(TConfig.isSource(XFieldA));
+
+  // GEP for Y::A in Y's default constructor — must NOT be source
+  const llvm::Value *YFieldA =
+      testingLocInIR(LineColFun{3, 7, "_ZN1YC2Ev"}, IR);
+  ASSERT_FALSE(TConfig.isSource(YFieldA));
 }
 
 TEST_F(TaintConfigTest, FunMember_01_Json) {

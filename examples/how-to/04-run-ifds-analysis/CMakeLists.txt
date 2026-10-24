@@ -20,11 +20,11 @@ target_link_libraries(run-ifds-analysis-ifds-solver PRIVATE phasar::phasar)
 
 if (TARGET run_sample_programs)
   add_custom_target(run_run_ifds_analysis
-    DEPENDS run-ifds-analysis-simple run-ifds-analysis-helper-analyses run-ifds-analysis-otf-reporter run-ifds-analysis-ifds-solver
-    COMMAND $<TARGET_FILE:run-ifds-analysis-simple> "${CMAKE_CURRENT_LIST_DIR}/../../llvm-hello-world/target/taint.ll"
-    COMMAND $<TARGET_FILE:run-ifds-analysis-helper-analyses> "${CMAKE_CURRENT_LIST_DIR}/../../llvm-hello-world/target/taint.ll"
-    COMMAND $<TARGET_FILE:run-ifds-analysis-otf-reporter> "${CMAKE_CURRENT_LIST_DIR}/../../llvm-hello-world/target/taint.ll"
-    COMMAND $<TARGET_FILE:run-ifds-analysis-ifds-solver> "${CMAKE_CURRENT_LIST_DIR}/../../llvm-hello-world/target/taint.ll"
+    DEPENDS run-ifds-analysis-simple run-ifds-analysis-helper-analyses run-ifds-analysis-otf-reporter run-ifds-analysis-ifds-solver LLFileGeneration
+    COMMAND $<TARGET_FILE:run-ifds-analysis-simple> "${CMAKE_CURRENT_BINARY_DIR}/../llvm-hello-world/target/taint_cpp_dbg.ll"
+    COMMAND $<TARGET_FILE:run-ifds-analysis-helper-analyses> "${CMAKE_CURRENT_BINARY_DIR}/../llvm-hello-world/target/taint_cpp_dbg.ll"
+    COMMAND $<TARGET_FILE:run-ifds-analysis-otf-reporter> "${CMAKE_CURRENT_BINARY_DIR}/../llvm-hello-world/target/taint_cpp_dbg.ll"
+    COMMAND $<TARGET_FILE:run-ifds-analysis-ifds-solver> "${CMAKE_CURRENT_BINARY_DIR}/../llvm-hello-world/target/taint_cpp_dbg.ll"
   )
 
   add_dependencies(run_sample_programs run_run_ifds_analysis)

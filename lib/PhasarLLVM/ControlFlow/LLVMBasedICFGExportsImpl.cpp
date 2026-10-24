@@ -75,9 +75,14 @@ LLVMBasedICFG::exportICFGAsDot(bool WithSourceCodeInfo) const {
       assert(BB && !BB->empty());
       const auto *InterTo = &BB->front();
 
+#if LLVM_VERSION_MAJOR <= 18
       if (IgnoreDbgInstructions && llvm::isa<llvm::DbgInfoIntrinsic>(InterTo)) {
         InterTo = InterTo->getNextNonDebugInstruction(false);
       }
+#else
+      (void)IgnoreDbgInstructions;
+#endif
+
       // createEdge(From, InterTo);
       OS << intptr_t(CS) << "->" << intptr_t(InterTo) << ";\n";
 
@@ -238,9 +243,11 @@ struct GetIR {
                                       llvm::BasicBlock::const_iterator End) {
     assert(It != End);
 
+#if LLVM_VERSION_MAJOR <= 18
     if (It->isDebugOrPseudoInst()) {
       return llvmIRToStableString(It->getNextNonDebugInstruction());
     }
+#endif
 
     return llvmIRToStableString(&*It);
   }

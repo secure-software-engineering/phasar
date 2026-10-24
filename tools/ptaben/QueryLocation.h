@@ -22,5 +22,8 @@ struct QueryLocation {
   QueryId Id{};
   const llvm::Instruction *Inst{};
   AliasQueryType QueryType{};
+
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const QueryLocation &Result);
 };
 } // namespace psr::ptaben

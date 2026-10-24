@@ -16,6 +16,17 @@ enum class AliasAnalysisType {
   Invalid
 };
 
+[[nodiscard]] constexpr bool isAndersenOTFAA(AliasAnalysisType AATy) noexcept {
+  switch (AATy) {
+  case AliasAnalysisType::AndersenOTF:
+  case AliasAnalysisType::AndersenOTFCtx:
+  case AliasAnalysisType::AndersenOTFDynCtx:
+    return true;
+  default:
+    return false;
+  }
+}
+
 std::string toString(AliasAnalysisType PA);
 
 AliasAnalysisType toAliasAnalysisType(llvm::StringRef S);

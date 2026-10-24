@@ -1,8 +1,10 @@
 #ifndef PHASAR_DATAFLOW_IFDSIDE_SOLVER_ITERATIVEIDESOLVER_H
 #define PHASAR_DATAFLOW_IFDSIDE_SOLVER_ITERATIVEIDESOLVER_H
 
+#include "phasar/ControlFlow/SparseCFGProvider.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
 #include "phasar/DataFlow/IfdsIde/Solver/Compressor.h"
+#include "phasar/DataFlow/IfdsIde/Solver/ESGEdgeKind.h"
 #include "phasar/DataFlow/IfdsIde/Solver/EdgeFunctionCache.h"
 #include "phasar/DataFlow/IfdsIde/Solver/FlowEdgeFunctionCacheNG.h"
 #include "phasar/DataFlow/IfdsIde/Solver/FlowFunctionCache.h"
@@ -17,11 +19,13 @@
 #include "phasar/Domain/BinaryDomain.h"
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/EmptyBaseOptimizationUtils.h"
+#include "phasar/Utils/Lazy.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Printer.h"
 #include "phasar/Utils/StableVector.h"
 #include "phasar/Utils/TableWrappers.h"
 #include "phasar/Utils/TypeTraits.h"
+#include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/DenseMapInfo.h"
@@ -39,6 +43,7 @@
 #include <atomic>
 #include <chrono>
 #include <cstdint>
+#include <iterator>
 #include <memory>
 #include <string>
 #include <type_traits>
@@ -53,8 +58,9 @@ namespace psr {
 /// Applications: An Experience Report"
 /// (<https://doi.org/10.4230/LIPIcs.ECOOP.2024.36>) by Schiebel, Sattler,
 /// Schubert, Apel, and Bodden.
-template <typename ProblemTy,
-          typename StaticSolverConfigTy = DefaultIDESolverConfig<ProblemTy>>
+template <IFDSProblem ProblemTy,
+          typename StaticSolverConfigTy = DefaultIDESolverConfig<ProblemTy>,
+          ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t>
 class IterativeIDESolver
     : private SolverStatsSelector<StaticSolverConfigTy>,
       private detail::IterativeIDESolverResults<
@@ -63,14 +69,13 @@ class IterativeIDESolver
           std::conditional_t<StaticSolverConfigTy::ComputeValues,
                              typename ProblemTy::ProblemAnalysisDomain::l_t,
                              BinaryDomain>>,
-      public IterativeIDESolverBase<
-          StaticSolverConfigTy,
-          typename StaticSolverConfigTy::template EdgeFunctionPtrType<
-              typename ProblemTy::ProblemAnalysisDomain::l_t>>,
+      public IterativeIDESolverBase<StaticSolverConfigTy,
+                                    typename ProblemTy::EdgeFunctionType>,
       public IDESolverAPIMixin<
-          IterativeIDESolver<ProblemTy, StaticSolverConfigTy>> {
+          IterativeIDESolver<ProblemTy, StaticSolverConfigTy, ICFGTy>> {
 
-  friend IDESolverAPIMixin<IterativeIDESolver<ProblemTy, StaticSolverConfigTy>>;
+  friend IDESolverAPIMixin<
+      IterativeIDESolver<ProblemTy, StaticSolverConfigTy, ICFGTy>>;
 
 public:
   using domain_t = typename ProblemTy::ProblemAnalysisDomain;
@@ -81,15 +86,13 @@ public:
   using v_t = typename domain_t::v_t;
   using l_t = std::conditional_t<StaticSolverConfigTy::ComputeValues,
                                  typename domain_t::l_t, BinaryDomain>;
-  using i_t = typename domain_t::i_t;
+  using i_t = ICFGTy;
 
   using config_t = StaticSolverConfigTy;
 
 private:
-  using base_t = IterativeIDESolverBase<
-      StaticSolverConfigTy,
-      typename StaticSolverConfigTy::template EdgeFunctionPtrType<
-          typename domain_t::l_t>>;
+  using base_t = IterativeIDESolverBase<StaticSolverConfigTy,
+                                        typename ProblemTy::EdgeFunctionType>;
 
   using base_results_t = detail::IterativeIDESolverResults<n_t, d_t, l_t>;
 
@@ -124,31 +127,14 @@ private:
 
   using typename base_t::summaries_t;
 
-  static inline constexpr JumpFunctionGCMode EnableJumpFunctionGC =
+  static constexpr JumpFunctionGCMode EnableJumpFunctionGC =
       StaticSolverConfigTy::EnableJumpFunctionGC;
 
-  static inline ProblemTy &assertNotNull(ProblemTy *Problem) noexcept {
-    /// Dereferencing a nullptr is UB, so after initializing this->Problem the
-    /// null-check might be optimized away to the literal 'true'.
-    /// However, we still want to pass a pointer to the ctor to make clear that
-    /// the _reference_ of the problem is captured.
-    assert(Problem &&
-           "IterativeIDESolver: The IDETabulationProblem must not be null!");
-    return *Problem;
-  }
-
-  static inline const i_t &assertNotNull(const i_t *ICFG) noexcept {
-    /// Dereferencing a nullptr is UB, so after initializing this->ICFG the
-    /// null-check might be optimized away to the literal 'true'.
-    /// However, we still want to pass a pointer to the ctor to make clear that
-    /// the _reference_ of the problem is captured.
-    assert(ICFG && "IterativeIDESolver: The ICFG must not be null!");
-    return *ICFG;
-  }
-
 public:
-  IterativeIDESolver(ProblemTy *Problem, const i_t *ICFG) noexcept
-      : Problem(assertNotNull(Problem)), ICFG(assertNotNull(ICFG)) {}
+  IterativeIDESolver(ProblemTy *Problem, const ICFGTy *ICFG,
+                     StaticSolverConfigTy /*Config*/ = {}) noexcept
+      : Problem(assertNotNull(Problem)), ICFG(assertNotNull(ICFG)),
+        PathData(StaticSolverConfigTy::initPathData(assertNotNull(Problem))) {}
 
   auto solve() & {
     solveImpl();
@@ -170,54 +156,17 @@ public:
   }
 
   void dumpResults(llvm::raw_ostream &OS = llvm::outs()) const {
-    OS << "\n***************************************************************\n"
-       << "*                  Raw IDESolver results                      *\n"
-       << "***************************************************************\n";
-    auto Cells = this->base_results_t::ValTab_cellVec();
-    if (Cells.empty()) {
-      OS << "No results computed!\n";
-      return;
-    }
+    getSolverResults().dumpResults(ICFG, OS);
+  }
 
-    std::sort(Cells.begin(), Cells.end(), [](const auto &Lhs, const auto &Rhs) {
-      if constexpr (std::is_same_v<n_t, const llvm::Instruction *>) {
-        return StringIDLess{}(getMetaDataID(Lhs.getRowKey()),
-                              getMetaDataID(Rhs.getRowKey()));
-      } else {
-        // If non-LLVM IR is used
-        return Lhs.getRowKey() < Rhs.getRowKey();
-      }
-    });
-
-    n_t Prev{};
-    n_t Curr{};
-    f_t PrevFn{};
-    f_t CurrFn{};
-
-    for (const auto &Cell : Cells) {
-      Curr = Cell.getRowKey();
-      CurrFn = ICFG.getFunctionOf(Curr);
-      if (PrevFn != CurrFn) {
-        PrevFn = CurrFn;
-        OS << "\n\n============ Results for function '" +
-                  ICFG.getFunctionName(CurrFn) + "' ============\n";
-      }
-      if (Prev != Curr) {
-        Prev = Curr;
-        std::string NString = NToString(Curr);
-        std::string Line(NString.size(), '-');
-
-        OS << "\n\nN: " << NString << "\n---" << Line << '\n';
-      }
-      OS << "\tD: " << DToString(Cell.getColumnKey());
-      if constexpr (ComputeValues) {
-        OS << " | V: " << LToString(Cell.getValue());
-      }
-
-      OS << '\n';
-    }
-
-    OS << '\n';
+  [[nodiscard]] const auto &getPathAwareData() const & noexcept {
+    return PathData;
+  }
+  [[nodiscard]] auto getPathAwareData() && noexcept {
+    return std::move(PathData);
+  }
+  [[nodiscard]] auto consumePathAwareData() noexcept {
+    return std::move(PathData);
   }
 
   [[nodiscard]] IterativeIDESolverStats getStats() const noexcept
@@ -337,6 +286,10 @@ private:
       }
     }
 
+    // Flow functions are not consulted after Phase I ends; release them early
+    // to reduce peak memory. Edge functions are kept until
+    // performValuePropagation clears the whole cache, as they may still be
+    // needed for summary queries.
     FECache.clearFlowFunctions();
     SourceFactAndFuncToInterJob.clear();
     WorkList.clear();
@@ -369,8 +322,6 @@ private:
   }
 
   void performDataflowFactPropagation() {
-    // submitInitialSeeds();
-
     std::atomic_bool Finished = true;
     do {
       /// NOTE: Have a separate function on the worklist to process it, to
@@ -418,9 +369,9 @@ private:
 
   void performValuePropagation() {
     if constexpr (ComputeValues) {
-      /// NOTE: We can already clear the EFCache here, as we are not querying
-      /// any edge function in Phase II; The EFs that are in use are kept alive
-      /// by their shared_ptr
+      /// NOTE: Safe to clear here: Phase II only reads EdgeFunction values
+      /// from the JumpFunctions table, which stores them by value. Neither
+      /// flow functions nor the EdgeFunctionCache are consulted in Phase II.
       FECache.clear();
 
       submitInitialValues();
@@ -449,9 +400,9 @@ private:
 
   void submitInitialSeeds() {
     auto Seeds = Problem.initialSeeds();
-    EdgeFunctionPtrType IdFun = [] {
+    EdgeFunctionPtrType IdFun = [&] {
       if constexpr (ComputeValues) {
-        return EdgeIdentity<l_t>{};
+        return Problem.identity();
       } else {
         return EdgeFunctionPtrType{};
       }
@@ -462,9 +413,8 @@ private:
       auto Fun = FunCompressor.getOrInsert(ICFG.getFunctionOf(Inst));
       for (const auto &[Fact, Val] : SeedMap) {
         auto FactId = FactCompressor.getOrInsert(Fact);
-        auto &JumpFns = JumpFunctions[InstId];
 
-        storeResultsAndPropagate(JumpFns, InstId, FactId, FactId, Fun, IdFun);
+        storeResultsAndPropagate(InstId, FactId, FactId, Fun, IdFun);
       }
     }
   }
@@ -514,9 +464,9 @@ private:
     }
   }
 
-  bool storeResultsAndPropagate(SummaryEdges &JumpFns, uint32_t SuccId,
-                                uint32_t SourceFact, uint32_t LocalFact,
-                                uint32_t FunId, EdgeFunctionPtrType LocalEF)
+  bool storeResultsAndPropagate(uint32_t SuccId, uint32_t SourceFact,
+                                uint32_t LocalFact, uint32_t FunId,
+                                EdgeFunctionPtrType LocalEF)
     requires ComputeValues
   {
 
@@ -525,6 +475,14 @@ private:
       // killed fact
       return false;
     }
+
+    if constexpr (has_advanceToNextUser_v<i_t, d_t>) {
+      auto &&FactSucc = ICFG.advanceToNextUser(NodeCompressor[SuccId],
+                                               FactCompressor[LocalFact]);
+      SuccId = NodeCompressor.getOrInsert(PSR_FWD(FactSucc));
+    }
+
+    auto &JumpFns = JumpFunctions[SuccId];
 
     auto &EF = JumpFns.getOrCreate(combineIds(SourceFact, LocalFact));
     if (!EF) {
@@ -572,11 +530,19 @@ private:
     return false;
   }
 
-  bool storeResultsAndPropagate(SummaryEdges &JumpFns, uint32_t SuccId,
-                                uint32_t SourceFact, uint32_t LocalFact,
-                                uint32_t FunId, EdgeFunctionPtrType /*LocalEF*/)
+  bool storeResultsAndPropagate(uint32_t SuccId, uint32_t SourceFact,
+                                uint32_t LocalFact, uint32_t FunId,
+                                EdgeFunctionPtrType /*LocalEF*/)
     requires(!ComputeValues)
   {
+
+    if constexpr (has_advanceToNextUser_v<i_t, d_t>) {
+      auto &&FactSucc = ICFG.advanceToNextUser(NodeCompressor[SuccId],
+                                               FactCompressor[LocalFact]);
+      SuccId = NodeCompressor.getOrInsert(PSR_FWD(FactSucc));
+    }
+    auto &JumpFns = JumpFunctions[SuccId];
+
     if (JumpFns.insert(combineIds(SourceFact, LocalFact)).second) {
       WorkList.emplace(PropagationJob{{}, SuccId, SourceFact, LocalFact});
 
@@ -696,7 +662,7 @@ private:
                                      combineIds(AtInstructionId, SuccId))
               .computeTargets(CSFact);
 
-      auto &JumpFns = JumpFunctions[SuccId];
+      saveEdges(AtInstruction, Succ, CSFact, Facts, ESGEdgeKind::Normal);
 
       for (ByConstRef<d_t> Fact : Facts) {
         auto FactId = FactCompressor.getOrInsert(Fact);
@@ -712,7 +678,7 @@ private:
           }
         }();
 
-        storeResultsAndPropagate(JumpFns, SuccId, SourceFactId, FactId, FunId,
+        storeResultsAndPropagate(SuccId, SourceFactId, FactId, FunId,
                                  std::move(EF));
       }
     }
@@ -744,20 +710,21 @@ private:
                           EdgeFunctionPtrType SourceEF, uint32_t FunId) {
     const auto &Callees = ICFG.getCalleesOfCallAt(AtInstruction);
 
-    applyCallToReturnFlow(AtInstruction, AtInstructionId, SourceFactId,
-                          PropagatedFactId, SourceEF, Callees, FunId);
+    bool HasNoCalleeInformation =
+        handleOrDeferCallFlow(AtInstruction, AtInstructionId, SourceFactId,
+                              PropagatedFactId, SourceEF, Callees, FunId);
 
-    handleOrDeferCallFlow(AtInstruction, AtInstructionId, SourceFactId,
-                          PropagatedFactId, std::move(SourceEF), Callees,
-                          FunId);
+    applyCallToReturnFlow(AtInstruction, AtInstructionId, SourceFactId,
+                          PropagatedFactId, std::move(SourceEF), Callees, FunId,
+                          HasNoCalleeInformation);
   }
 
   template <typename CalleesTy>
-  void applyCallToReturnFlow(ByConstRef<n_t> AtInstruction,
-                             uint32_t AtInstructionId, uint32_t SourceFactId,
-                             uint32_t PropagatedFactId,
-                             EdgeFunctionPtrType SourceEF,
-                             const CalleesTy &Callees, uint32_t FunId) {
+  void
+  applyCallToReturnFlow(ByConstRef<n_t> AtInstruction, uint32_t AtInstructionId,
+                        uint32_t SourceFactId, uint32_t PropagatedFactId,
+                        EdgeFunctionPtrType SourceEF, const CalleesTy &Callees,
+                        uint32_t FunId, bool HasNoCalleeInformation) {
     auto CSFact = FactCompressor[PropagatedFactId];
 
     for (ByConstRef<n_t> RetSite : ICFG.getReturnSitesOfCallAt(AtInstruction)) {
@@ -768,7 +735,9 @@ private:
                            combineIds(AtInstructionId, RetSiteId))
                        .computeTargets(CSFact);
 
-      auto &JumpFns = JumpFunctions[RetSiteId];
+      saveEdges(AtInstruction, RetSite, CSFact, Facts,
+                HasNoCalleeInformation ? ESGEdgeKind::SkipUnknownFn
+                                       : ESGEdgeKind::CallToRet);
 
       for (ByConstRef<d_t> Fact : Facts) {
         auto FactId = FactCompressor.getOrInsert(Fact);
@@ -785,8 +754,8 @@ private:
           }
         }();
 
-        storeResultsAndPropagate(JumpFns, RetSiteId, SourceFactId, FactId,
-                                 FunId, std::move(EF));
+        storeResultsAndPropagate(RetSiteId, SourceFactId, FactId, FunId,
+                                 std::move(EF));
       }
     }
 
@@ -794,12 +763,13 @@ private:
   }
 
   template <typename CalleesTy>
-  void handleOrDeferCallFlow(ByConstRef<n_t> AtInstruction,
+  bool handleOrDeferCallFlow(ByConstRef<n_t> AtInstruction,
                              uint32_t AtInstructionId, uint32_t SourceFactId,
                              uint32_t PropagatedFactId,
                              EdgeFunctionPtrType SourceEF,
                              const CalleesTy &Callees, uint32_t FunId) {
     auto CSFact = FactCompressor[PropagatedFactId];
+    bool HasNoCalleeInformation = true;
     for (ByConstRef<f_t> Callee : Callees) {
       auto CalleeId = FunCompressor.getOrInsert(Callee);
       auto SummaryFF =
@@ -809,9 +779,11 @@ private:
       if (SummaryFF == nullptr) {
         /// No summary. Start inTRA propagation for the callee and defer
         /// return-propagation
-        deferCallFlow(AtInstruction, AtInstructionId, SourceFactId, CSFact,
-                      PropagatedFactId, SourceEF, Callee, CalleeId, FunId);
+        HasNoCalleeInformation =
+            deferCallFlow(AtInstruction, AtInstructionId, SourceFactId, CSFact,
+                          PropagatedFactId, SourceEF, Callee, CalleeId, FunId);
       } else {
+        HasNoCalleeInformation = false;
         /// Apply SummaryFF and ignore this CSCallee pair in the
         /// inter-propagation
         applySummaryFlow(SummaryFF.computeTargets(CSFact), AtInstruction,
@@ -819,6 +791,7 @@ private:
                          PropagatedFactId, SourceEF, FunId);
       }
     }
+    return HasNoCalleeInformation;
   }
 
   void countSummaryLinearSearch(size_t SearchLen, size_t NumSummaries) {
@@ -869,10 +842,6 @@ private:
         auto ExitId = NodeCompressor.getOrInsert(ExitInst);
 
         if constexpr (!UseEndSummaryTab) {
-          // Summaries = JumpFunctions[ExitId].cellVec([FactId](const auto &Kvp)
-          // {
-          //   return splitId(Kvp.first).first == FactId;
-          // });
           Summaries = JumpFunctions[ExitId].allOf(
               [](uint64_t Key) { return splitId(Key).first; }, FactId,
               [](uint64_t Key) { return splitId(Key).second; });
@@ -890,7 +859,7 @@ private:
     }
   }
 
-  void deferCallFlow(ByConstRef<n_t> AtInstruction, uint32_t AtInstructionId,
+  bool deferCallFlow(ByConstRef<n_t> AtInstruction, uint32_t AtInstructionId,
                      uint32_t SourceFactId, ByConstRef<d_t> CSFact,
                      uint32_t CSFactId, EdgeFunctionPtrType SourceEF,
                      ByConstRef<f_t> Callee, uint32_t CalleeId,
@@ -901,17 +870,22 @@ private:
                                  combineIds(AtInstructionId, CalleeId))
             .computeTargets(CSFact);
 
-    EdgeFunctionPtrType IdEF = [] {
+    EdgeFunctionPtrType IdEF = [&] {
       if constexpr (ComputeValues) {
-        return EdgeIdentity<l_t>{};
+        return Problem.identity();
       } else {
         return EdgeFunctionPtrType{};
       }
     }();
-    for (ByConstRef<n_t> SP : ICFG.getStartPointsOf(Callee)) {
+
+    auto &&StartPoints = ICFG.getStartPointsOf(Callee);
+    bool HasNoCalleeInformation = std::empty(StartPoints);
+
+    for (ByConstRef<n_t> SP : StartPoints) {
       auto SPId = NodeCompressor.getOrInsert(SP);
-      auto &JumpFn = JumpFunctions[SPId];
-      // bool HasResults = !JumpFn.empty();
+
+      saveEdges(AtInstruction, SP, CSFact, CalleeFacts, ESGEdgeKind::Call);
+
       for (ByConstRef<d_t> Fact : CalleeFacts) {
         auto FactId = FactCompressor.getOrInsert(Fact);
 
@@ -927,9 +901,7 @@ private:
           }
         }();
 
-        storeResultsAndPropagate(JumpFn, SPId, FactId, FactId, CalleeId, IdEF);
-
-        // CallWL.insert(combineIds(FactId, CalleeId));
+        storeResultsAndPropagate(SPId, FactId, FactId, CalleeId, IdEF);
 
         auto It = &AllInterPropagationsOwner.emplace_back(InterPropagationJob{
             CallEF, SourceFactId, CalleeId, AtInstructionId, FactId});
@@ -962,6 +934,7 @@ private:
         }
       }
     }
+    return HasNoCalleeInformation;
   }
 
   template <typename SummaryFactsTy>
@@ -972,7 +945,9 @@ private:
                         uint32_t FunId) {
     for (ByConstRef<n_t> RetSite : ICFG.getReturnSitesOfCallAt(AtInstruction)) {
       auto RetSiteId = NodeCompressor.getOrInsert(RetSite);
-      auto &JumpFns = JumpFunctions[RetSiteId];
+
+      saveEdges(AtInstruction, RetSite, CSFact, SummaryFacts,
+                ESGEdgeKind::Summary);
 
       for (ByConstRef<d_t> Fact : SummaryFacts) {
         auto FactId = FactCompressor.getOrInsert(Fact);
@@ -989,8 +964,8 @@ private:
           }
         }();
 
-        storeResultsAndPropagate(JumpFns, RetSiteId, SourceFactId, FactId,
-                                 FunId, std::move(EF));
+        storeResultsAndPropagate(RetSiteId, SourceFactId, FactId, FunId,
+                                 std::move(EF));
       }
     }
   }
@@ -1007,16 +982,17 @@ private:
           Problem, CallSite, Callee, ExitInst, RetSite,
           combineIds(CSId, ExitId), combineIds(CalleeId, RSId));
 
-      auto &RSJumpFns = JumpFunctions[RSId];
-
       for (const auto &Summary : Summaries) {
         uint32_t SummaryFactId{Summary.first};
         auto SummaryFact = FactCompressor[SummaryFactId];
         auto RetFacts = RetFF.computeTargets(SummaryFact);
+
+        saveEdges(ExitInst, RetSite, SummaryFact, RetFacts, ESGEdgeKind::Ret);
+
         for (ByConstRef<d_t> RetFact : RetFacts) {
           auto RetFactId = FactCompressor.getOrInsert(RetFact);
 
-          auto EF = [&]() mutable {
+          auto EF = [&] {
             if constexpr (ComputeValues) {
               auto RetEF = FECache.getReturnEdgeFunction(
                   Problem, CallSite, Callee, ExitInst, SummaryFact, RetSite,
@@ -1029,8 +1005,8 @@ private:
             }
           }();
 
-          storeResultsAndPropagate(RSJumpFns, RSId, SourceFact, RetFactId,
-                                   CallerId, std::move(EF));
+          storeResultsAndPropagate(RSId, SourceFact, RetFactId, CallerId,
+                                   std::move(EF));
         }
       }
     }
@@ -1081,10 +1057,6 @@ private:
         /// map we are iterating over is bad
 
         if constexpr (!UseEndSummaryTab) {
-          // Summaries = JumpFunctions[ExitId].cellVec(
-          //     [SPFactId{SPFactId}](const auto &Kvp) {
-          //       return splitId(Kvp.first).first == SPFactId;
-          //     });
           Summaries = JumpFunctions[ExitId].allOf(
               [](uint64_t Key) { return splitId(Key).first; }, SPFactId,
               [](uint64_t Key) { return splitId(Key).second; });
@@ -1311,8 +1283,6 @@ private:
   }
 
   void cleanupInterJobsFor(unsigned FunId) {
-    /// XXX: Use std::erase_if when upgrading to C++20
-
     auto Cells = SourceFactAndFuncToInterJob.cells();
     for (auto Iter = Cells.begin(), End = Cells.end(); Iter != End;) {
       auto It = Iter++;
@@ -1353,6 +1323,13 @@ private:
     }
   }
 
+  void saveEdges(ByConstRef<n_t> SourceNode, ByConstRef<n_t> SinkStmt,
+                 ByConstRef<d_t> SourceVal, const auto &DestVals,
+                 ESGEdgeKind Kind) {
+    StaticSolverConfigTy::template saveEdges<domain_t>(
+        PathData, SourceNode, SinkStmt, SourceVal, DestVals, Kind);
+  }
+
   static constexpr uint64_t combineIds(uint32_t LHS, uint32_t RHS) noexcept {
     return (uint64_t(LHS) << 32) | RHS;
   }
@@ -1361,7 +1338,7 @@ private:
   }
 
   ProblemTy &Problem;
-  const i_t &ICFG;
+  const ICFGTy &ICFG;
 
   Compressor<f_t> FunCompressor{};
 
@@ -1403,11 +1380,10 @@ private:
   llvm::OwningArrayRef<size_t> RefCountPerFunction{};
   llvm::BitVector CandidateFunctionsForGC{};
 
-  // FlowFunctionCache<ProblemTy, StaticSolverConfigTy::AutoAddZero> FFCache{
-  //     &MRes};
-  // EdgeFunctionCache<ProblemTy> EFCache{&MRes};
-
   flow_edge_function_cache_t FECache{Problem};
+
+  [[no_unique_address]]
+  typename config_t::template PathTrackingData<domain_t> PathData;
 };
 
 } // namespace psr

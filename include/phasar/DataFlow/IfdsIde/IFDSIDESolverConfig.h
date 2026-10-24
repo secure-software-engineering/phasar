@@ -40,45 +40,71 @@ enum class SolverConfigOptions : uint32_t {
 };
 
 /// \brief Configuration options for the solving process of IFDS/IDE problems
-struct IFDSIDESolverConfig {
-  IFDSIDESolverConfig() noexcept = default;
-  IFDSIDESolverConfig(SolverConfigOptions Options) noexcept;
+class IFDSIDESolverConfig {
+public:
+  constexpr IFDSIDESolverConfig() noexcept = default;
+  constexpr IFDSIDESolverConfig(SolverConfigOptions Options) noexcept
+      : Options(Options) {}
 
   /// Returns whether the solver should handle unbalanced returns (default:
   /// false)
-  [[nodiscard]] bool followReturnsPastSeeds() const;
+  [[nodiscard]] constexpr bool followReturnsPastSeeds() const noexcept {
+    return hasFlag(Options, SolverConfigOptions::FollowReturnsPastSeeds);
+  }
   /// Returns whether the solver should automatically insert an identityFlow
   /// propagation for the special zero value (default: true)
-  [[nodiscard]] bool autoAddZero() const;
+  [[nodiscard]] constexpr bool autoAddZero() const noexcept {
+    return hasFlag(Options, SolverConfigOptions::AutoAddZero);
+  }
   /// Returns whether the IDE solver should perform IDE's phase 2 (default:
   /// true). You may want to turn this off for IFDS analyses.
-  [[nodiscard]] bool computeValues() const;
+  [[nodiscard]] constexpr bool computeValues() const noexcept {
+    return hasFlag(Options, SolverConfigOptions::ComputeValues);
+  }
   /// Returns, whether the solver should record all ESG edges (default: false)
   /// \note This option may severly hurt the solver's performance
-  [[nodiscard]] bool recordEdges() const;
+  [[nodiscard]] constexpr bool recordEdges() const noexcept {
+    return hasFlag(Options, SolverConfigOptions::RecordEdges);
+  }
   /// Returns, whether the solver should emit the ESG as DOT graph on the
   /// command-line (default: false)
-  [[nodiscard]] bool emitESG() const;
+  [[nodiscard]] constexpr bool emitESG() const noexcept {
+    return hasFlag(Options, SolverConfigOptions::EmitESG);
+  }
   /// Currently unused
-  [[nodiscard]] bool computePersistedSummaries() const;
+  [[nodiscard]] constexpr bool computePersistedSummaries() const noexcept {
+    return hasFlag(Options, SolverConfigOptions::ComputePersistedSummaries);
+  }
 
   /// \see followReturnsPastSeeds
-  void setFollowReturnsPastSeeds(bool Set = true);
+  constexpr void setFollowReturnsPastSeeds(bool Set = true) {
+    setFlag(Options, SolverConfigOptions::FollowReturnsPastSeeds, Set);
+  }
   /// \see autoAddZero
-  void setAutoAddZero(bool Set = true);
+  constexpr void setAutoAddZero(bool Set = true) {
+    setFlag(Options, SolverConfigOptions::AutoAddZero, Set);
+  }
   /// \see computeValues
-  void setComputeValues(bool Set = true);
+  constexpr void setComputeValues(bool Set = true) {
+    setFlag(Options, SolverConfigOptions::ComputeValues, Set);
+  }
   /// \see recordEdges
-  void setRecordEdges(bool Set = true);
+  constexpr void setRecordEdges(bool Set = true) {
+    setFlag(Options, SolverConfigOptions::RecordEdges, Set);
+  }
   /// \see emitESG
-  void setEmitESG(bool Set = true);
+  constexpr void setEmitESG(bool Set = true) {
+    setFlag(Options, SolverConfigOptions::EmitESG, Set);
+  }
   /// \see computePersistedSummaries
-  void setComputePersistedSummaries(bool Set = true);
+  constexpr void setComputePersistedSummaries(bool Set = true) {
+    setFlag(Options, SolverConfigOptions::ComputePersistedSummaries, Set);
+  }
 
-  void setConfig(SolverConfigOptions Opt);
+  constexpr void setConfig(SolverConfigOptions Opt) { Options = Opt; }
 
   friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
-                                       const IFDSIDESolverConfig &SC);
+                                       IFDSIDESolverConfig SC);
 
 private:
   SolverConfigOptions Options =

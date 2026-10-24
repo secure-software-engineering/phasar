@@ -168,7 +168,7 @@ struct OperandOf {
   LineColFunOp Inst{};
 
   friend bool operator<(OperandOf R1, OperandOf R2) noexcept {
-    return std::tie(R1.OperandIndex, R2.Inst) <
+    return std::tie(R1.OperandIndex, R1.Inst) <
            std::tie(R2.OperandIndex, R2.Inst);
   }
   friend bool operator==(OperandOf R1, OperandOf R2) noexcept {
@@ -309,6 +309,8 @@ getInstAtOrNull(const llvm::Function *F, uint32_t ReqLine,
     }
 
     auto [Line, Column] = psr::getLineAndColFromIR(&I);
+    // llvm::errs() << "For Inst at " << Line << ":" << Column << ": "
+    //              << llvmIRToString(&I) << '\n';
     if (Line == ReqLine && (ReqColumn == 0 || ReqColumn == Column) &&
         std::invoke(Pred, &I)) {
       return &I;

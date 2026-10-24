@@ -11,14 +11,20 @@
 #define PHASAR_UTILS_UTILITIES_H_
 
 #include "phasar/Utils/ByRef.h"
+#include "phasar/Utils/Macros.h"
 #include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/Support/Compiler.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include <algorithm>
+#include <concepts>
+#include <functional>
+#include <iterator>
 #include <optional>
 #include <set>
+#include <source_location>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -135,7 +141,12 @@ void intersectWith(ContainerTy &Dest, const OtherContainerTy &Src) {
     if (Src.count(*It)) {
       ++It;
     } else {
-      It = Dest.erase(It);
+      if constexpr (std::is_void_v<decltype(Dest.erase(It))>) {
+        auto OldIt = It++;
+        Dest.erase(OldIt);
+      } else {
+        It = Dest.erase(It);
+      }
     }
   }
 }
@@ -150,8 +161,9 @@ struct StringIDLess {
 /// See <https://en.cppreference.com/w/cpp/experimental/scope_exit/scope_exit>
 template <typename Fn> class scope_exit { // NOLINT
 public:
-  template <typename FFn, typename = decltype(std::declval<FFn>()())>
-  scope_exit(FFn &&F) noexcept(std::is_nothrow_constructible_v<Fn, FFn &&>)
+  template <std::invocable<> FFn>
+  constexpr scope_exit(FFn &&F) noexcept(
+      std::is_nothrow_constructible_v<Fn, FFn &&>)
       : F(std::forward<FFn>(F)) {}
 
   ~scope_exit() noexcept { F(); }
@@ -278,23 +290,32 @@ template <typename T> constexpr auto copyOrRef(T &Val) noexcept {
   }
 }
 
-struct identity {
+struct [[deprecated("Use IdentityFn from TypeTraits.h instead")]] identity {
   template <typename T> decltype(auto) operator()(T &&Val) const noexcept {
     return std::forward<T>(Val);
   }
 };
 
-template <is_llvm_printable_v T>
-llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
-                              const std::optional<T> &Opt) {
-  if (Opt) {
-    OS << *Opt;
-  } else {
-    OS << "<none>";
+struct FirstFn {
+  [[nodiscard]] constexpr decltype(auto)
+  operator()(const auto &PairLike) const noexcept {
+    if constexpr (requires { PairLike.first; }) {
+      return PairLike.first;
+    } else {
+      return std::get<0>(PairLike);
+    }
   }
-
-  return OS;
-}
+};
+struct SecondFn {
+  [[nodiscard]] constexpr decltype(auto)
+  operator()(const auto &PairLike) const noexcept {
+    if constexpr (requires { PairLike.second; }) {
+      return PairLike.second;
+    } else {
+      return std::get<1>(PairLike);
+    }
+  }
+};
 
 template <typename T>
   requires(!std::is_pointer_v<T>)
@@ -323,6 +344,60 @@ template <typename T> void assertAllNotNull([[maybe_unused]] const T &Range) {
   assertNotNull(Range);
   for (const auto &Elem : Range) {
     assertNotNull(Elem);
+  }
+}
+
+[[nodiscard]] std::string locToString(std::source_location Loc);
+
+template <typename CompareFn = std::less<>>
+constexpr void sortUnique(auto &Range, CompareFn Cmp = {}) {
+  auto It = llvm::adl_begin(Range);
+  auto End = llvm::adl_end(Range);
+  std::sort(It, End, std::move(Cmp));
+  Range.erase(std::unique(It, End), End);
+}
+
+/// \brief Similar to std::minmax, but returns by value
+template <typename T>
+[[nodiscard]] constexpr std::pair<T, T> minmaxVal(T First, T Second) noexcept {
+  if (std::less<T>{}(Second, First)) {
+    return {std::move(Second), std::move(First)};
+  }
+
+  return {std::move(First), std::move(Second)};
+}
+
+template <typename FnT, typename... ArgsT>
+  requires(std::invocable<FnT, ArgsT...>)
+[[nodiscard]] constexpr auto invokeControlFlow(
+    FnT &&Fn,
+    ArgsT &&...Args) noexcept(std::is_nothrow_invocable_v<FnT, ArgsT...>) {
+  using ResultT = std::invoke_result_t<FnT, ArgsT...>;
+  if constexpr (std::is_void_v<ResultT>) {
+    std::invoke(PSR_FWD(Fn), PSR_FWD(Args)...);
+    return std::bool_constant<true>{};
+  } else {
+    static_assert(std::convertible_to<ResultT, bool>);
+    return std::invoke(PSR_FWD(Fn), PSR_FWD(Args)...);
+  }
+}
+
+template <typename FnT, typename RangeT>
+constexpr auto foreachInRange(RangeT &&Range, FnT &&Fn) {
+  using std::begin;
+  using ElemT = decltype(*begin(Range));
+  using ResultT = std::invoke_result_t<FnT, ElemT>;
+  if constexpr (std::is_void_v<ResultT>) {
+    using std::end;
+    std::for_each(begin(Range), end(Range), copyOrRef(Fn));
+    return std::bool_constant<true>{};
+  } else {
+    for (auto &&Elem : PSR_FWD(Range)) {
+      if (!std::invoke(Fn, PSR_FWD(Elem))) {
+        return false;
+      }
+    }
+    return true;
   }
 }
 

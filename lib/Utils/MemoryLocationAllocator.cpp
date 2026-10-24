@@ -27,8 +27,12 @@ MemoryLocationAllocator::Block::create(Block *Next, size_t NumPointerEntries) {
 
   auto *Ret = new (RetBytes) Block(Next);
 
-  __asan_poison_memory_region(Ret->getTrailingObjects<void *>(),
-                              NumPointerEntries * sizeof(void *));
+  [[maybe_unused]] auto *DataPtr = Ret->getTrailingObjects
+#if LLVM_VERSION_MAJOR <= 20
+                                   <void *>
+#endif
+                                   ();
+  __asan_poison_memory_region(DataPtr, NumPointerEntries * sizeof(void *));
 
   return Ret;
 }
@@ -36,8 +40,12 @@ MemoryLocationAllocator::Block::create(Block *Next, size_t NumPointerEntries) {
 void MemoryLocationAllocator::Block::destroy(
     MemoryLocationAllocator::Block *Blck,
     [[maybe_unused]] size_t NumPointerEntries) {
-  __asan_unpoison_memory_region(Blck->getTrailingObjects<void *>(),
-                                NumPointerEntries * sizeof(void *));
+  [[maybe_unused]] auto *DataPtr = Blck->getTrailingObjects
+#if LLVM_VERSION_MAJOR <= 20
+                                   <void *>
+#endif
+                                   ();
+  __asan_unpoison_memory_region(DataPtr, NumPointerEntries * sizeof(void *));
   delete[] reinterpret_cast<void **>(Blck);
 }
 
@@ -55,7 +63,11 @@ MemoryLocationAllocator::MemoryLocationAllocator(size_t InitialCapacity,
   }
 
   Root = Block::create(nullptr, this->InitialCapacity);
-  Pos = Root->getTrailingObjects<void *>();
+  Pos = Root->getTrailingObjects
+#if LLVM_VERSION_MAJOR <= 20
+        <void *>
+#endif
+        ();
   End = Pos + this->InitialCapacity;
 }
 
@@ -85,7 +97,11 @@ MemoryLocationAllocator::allocate(size_t NumBytes) {
 
   if (LLVM_UNLIKELY(End - Curr < ptrdiff_t(NumPointersRequired))) {
     Root = Rt = Block::create(Rt, DynamicBlockSize);
-    Pos = Curr = Rt->getTrailingObjects<void *>();
+    Pos = Curr = Rt->getTrailingObjects
+#if LLVM_VERSION_MAJOR <= 20
+                 <void *>
+#endif
+                 ();
     End = Curr + DynamicBlockSize;
   }
 

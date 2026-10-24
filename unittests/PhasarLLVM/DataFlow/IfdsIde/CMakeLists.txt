@@ -7,7 +7,9 @@ set(IfdsIdeSources
   InteractiveIDESolverTest.cpp
   SparseIDESolverTest.cpp
   IterativeIDESolverTest.cpp
+  DFISolverTest.cpp
   CFLFieldSensTest.cpp
+  WPDSSolverTest.cpp
 )
 
 foreach(TEST_SRC ${IfdsIdeSources})

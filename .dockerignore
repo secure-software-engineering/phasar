@@ -1,7 +1,7 @@
 *
-!.git
 !cmake/
 !config/
+!external/
 !include/
 !lib/
 !test/

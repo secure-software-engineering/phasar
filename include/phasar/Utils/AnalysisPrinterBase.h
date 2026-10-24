@@ -14,11 +14,11 @@ namespace psr {
 /// \brief A generic class that serves as the basis for a custom analysis
 /// printer implementation.
 template <typename AnalysisDomainTy> class AnalysisPrinterBase {
+public:
   using n_t = typename AnalysisDomainTy::n_t;
   using d_t = typename AnalysisDomainTy::d_t;
   using l_t = typename AnalysisDomainTy::l_t;
 
-public:
   template <typename D = d_t, typename L = l_t>
   void onResult(n_t Instr, D &&DfFact, L &&LatticeElement,
                 DataFlowAnalysisType AnalysisType) {

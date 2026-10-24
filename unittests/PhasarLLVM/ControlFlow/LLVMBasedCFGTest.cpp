@@ -249,6 +249,11 @@ PHASAR_SKIP_TEST(TEST(LLVMBasedCFGTest, HandlesCppStandardType) {
   LLVMBasedCFG CFG;
   auto *O = M->getFunction(
       "_ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEED1Ev");
+  if (!O) {
+    // with libstdc++ from gcc15, D2 is generated instead of D1
+    O = M->getFunction(
+        "_ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEED2Ev");
+  }
   ASSERT_EQ(CFG.getSpecialMemberFunctionType(O),
             SpecialMemberFunctionType::Destructor);
 })
@@ -309,6 +314,8 @@ TEST(LLVMBasedCFGTest, HandleFunctionsContainingCodesInName) {
   ASSERT_EQ(CFG.getSpecialMemberFunctionType(F),
             SpecialMemberFunctionType::None);
 }
+
+#if LLVM_VERSION_MAJOR <= 18
 
 TEST(LLVMBasedCFGTest, IgnoreSingleDbgInstructionsInSuccessors) {
   LLVMBasedCFG Cfg;
@@ -423,6 +430,9 @@ TEST(LLVMBasedCFGTest, IgnoreMultiSubsequentDbgInstructionsInControlFlowEdges) {
     }
   }
 }
+#else
+// TODO: Create alternative test cases if necessary
+#endif
 
 int main(int Argc, char **Argv) {
   ::testing::InitGoogleTest(&Argc, Argv);

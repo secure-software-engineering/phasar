@@ -6,6 +6,9 @@ add_phasar_library(phasar_dataflow_pathsensitivity
   LINK_PRIVATE
     nlohmann_json::nlohmann_json
 
+  LLVM_LINK_COMPONENTS
+    Support
+
   MODULE_FILES
     PathSensitivity.cppm
 )

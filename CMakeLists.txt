@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.14...3.28)
+cmake_minimum_required (VERSION 3.23...4.2) # 3.23+ needed by FILE_SET (https://cmake.org/cmake/help/latest/command/target_sources.html#file-sets)
 
 # Avoid IPO/LTO Warnings:
 cmake_policy(SET CMP0069 NEW)
@@ -8,11 +8,9 @@ set(CMAKE_POLICY_DEFAULT_CMP0069 NEW)
 cmake_policy(SET CMP0077 NEW)
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
-if ("${CMAKE_VERSION}" GREATER_EQUAL "3.21")
-  # Allow overwriting cache variables of external projects from this CMakeLists file
-  cmake_policy(SET CMP0126 NEW)
-  set(CMAKE_POLICY_DEFAULT_CMP0126 NEW)
-endif()
+# Allow overwriting cache variables of external projects from this CMakeLists file
+cmake_policy(SET CMP0126 NEW)
+set(CMAKE_POLICY_DEFAULT_CMP0126 NEW)
 
 # Allow portable use of CMAKE_VISIBILITY_INLINES_HIDDEN not only for shared libraries
 cmake_policy(SET CMP0063 NEW)
@@ -23,7 +21,7 @@ if (DEFINED LLVM_MAIN_SRC_DIR)
   set(PHASAR_IN_TREE 1)
 endif()
 
-set(PHASAR_VERSION 2604)
+set(PHASAR_VERSION 2610)
 if (NOT PHASAR_IN_TREE)
   project (phasar
     LANGUAGES C CXX
@@ -74,7 +72,9 @@ set(RELEASE_CONFIGURATIONS RELWITHDEBINFO RELEASE CACHE INTERNAL "" FORCE)
 
 string(APPEND CMAKE_CXX_FLAGS " -MP -fstack-protector-strong -ffunction-sections -fdata-sections -pipe")
 string(APPEND CMAKE_CXX_FLAGS_DEBUG " -fno-omit-frame-pointer")
+string(APPEND CMAKE_C_FLAGS_DEBUG " -fno-omit-frame-pointer")
 string(APPEND CMAKE_CXX_FLAGS_RELWITHDEBINFO " -fno-omit-frame-pointer")
+string(APPEND CMAKE_C_FLAGS_RELWITHDEBINFO " -fno-omit-frame-pointer")
 string(APPEND CMAKE_CXX_FLAGS_RELEASE "")
 
 option(CMAKE_VISIBILITY_INLINES_HIDDEN "Hide inlined functions from the DSO table (default ON)" ON)
@@ -123,6 +123,7 @@ if (NOT "${PHASAR_TARGET_ARCH_INTERNAL}" STREQUAL "")
   if (MARCH_SUPPORTED)
     message(STATUS "Target architecture '${PHASAR_TARGET_ARCH_INTERNAL}' enabled")
     string(APPEND CMAKE_CXX_FLAGS_RELEASE " -march=${PHASAR_TARGET_ARCH_INTERNAL}")
+    string(APPEND CMAKE_C_FLAGS_RELEASE " -march=${PHASAR_TARGET_ARCH_INTERNAL}")
   else()
     message(WARNING "Target architecture '${PHASAR_TARGET_ARCH_INTERNAL}' not supported. Fallback to generic build")
   endif()
@@ -158,6 +159,7 @@ if(PHASAR_ALLOW_LTO_IN_RELEASE_BUILD)
 endif()
 
 option(PHASAR_BUILD_UNITTESTS "Build all tests (default is ON)" ${PHASAR_BUILD_OPTIONAL_TARGETS_DEFAULT})
+option(PHASAR_ENABLE_INTEGRATIONTESTS "Enable LIT integration tests (default is ON)" ${PHASAR_BUILD_OPTIONAL_TARGETS_DEFAULT})
 
 option(PHASAR_BUILD_OPENSSL_TS_UNITTESTS "Build OPENSSL typestate tests (require OpenSSL, default is OFF)" OFF)
 
@@ -197,18 +199,16 @@ if (PHASAR_ENABLE_PIC)
 endif (PHASAR_ENABLE_PIC)
 
 # PAMM
-if (NOT PHASAR_ENABLE_PAMM)
-  set(PHASAR_ENABLE_PAMM "Off" CACHE STRING "Enable the performance measurement mechanism ('Off', 'Core' or 'Full', default is 'Off')" FORCE)
-  set_property(CACHE PHASAR_ENABLE_PAMM PROPERTY STRINGS "Off" "Core" "Full")
-endif()
-if(PHASAR_ENABLE_PAMM STREQUAL "Core" AND NOT PHASAR_BUILD_UNITTESTS)
+set(PHASAR_ENABLE_PAMM "Off" CACHE STRING "Enable the performance measurement mechanism ('Off', 'Core' or 'Full', default is 'Off')")
+set_property(CACHE PHASAR_ENABLE_PAMM PROPERTY STRINGS "Off" "Core" "Full")
+option(PHASAR_THREAD_SAFE_PAMM "Use a thread-safe version of PAMM, if PAMM is enabled" ON)
+
+if(PHASAR_ENABLE_PAMM STREQUAL "Core")
   set(PAMM_CORE ON)
   message(STATUS "PAMM metric severity level: Core")
-elseif(PHASAR_ENABLE_PAMM STREQUAL "Full" AND NOT PHASAR_BUILD_UNITTESTS)
+elseif(PHASAR_ENABLE_PAMM STREQUAL "Full")
   set(PAMM_FULL ON)
   message(STATUS "PAMM metric severity level: Full")
-elseif(PHASAR_BUILD_UNITTESTS AND (PHASAR_ENABLE_PAMM STREQUAL "Core" OR PHASAR_ENABLE_PAMM STREQUAL "Full"))
-  message(WARNING "PAMM metric severity level: Off (due to unittests)")
 else()
   message(STATUS "PAMM metric severity level: Off")
 endif()
@@ -225,16 +225,6 @@ endif()
 
 if (PHASAR_USE_CONAN)
 elseif (NOT PHASAR_IN_TREE)
-  # RPATH
-  set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
-
-  if (NOT "${CMAKE_INSTALL_LIBDIR}" STREQUAL "lib")
-    message(STATUS "Detected CMAKE_INSTALL_LIBDIR that deviates from 'lib': ${CMAKE_INSTALL_LIBDIR}. Add ${CMAKE_INSTALL_PREFIX}/lib to the RPATH as json-schema-validator needs it")
-    list(APPEND CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib)
-  endif()
-
-  set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-
   # Export set
   set(PHASAR_DEPS_EXPORT_SET PhasarDepsExports)
 else()
@@ -280,11 +270,15 @@ include(add_nlohmann_json)
 add_nlohmann_json()
 add_json_schema_validator()
 
+# TBB
+find_package(TBB QUIET) # needed by GCC
+set(PHASAR_USE_TBB ${TBB_FOUND})
+
 # Coverage
 if (CODE_COVERAGE)
   set(CODE_COVERAGE_SCRIPT "${CMAKE_CURRENT_BINARY_DIR}/code-coverage.cmake")
-  file(DOWNLOAD "https://raw.githubusercontent.com/StableCoder/cmake-scripts/refs/tags/25.08/code-coverage.cmake" "${CODE_COVERAGE_SCRIPT}"
-    EXPECTED_HASH SHA256=cad4dd2bdf944f77627687e0298debc8341bfdeffaf949937f319c7c4ff3fdaf
+  file(DOWNLOAD "https://raw.githubusercontent.com/StableCoder/cmake-scripts/c012a75c255e57523c9e2faacd86356439318542/code-coverage.cmake" "${CODE_COVERAGE_SCRIPT}"
+    EXPECTED_HASH SHA256=21caeb58c8270b00a15c58b06cab72255467f9917d07df5a5042259bbcdfd1ab
     TLS_VERIFY ON
     STATUS CODE_COVERAGE_SCRIPT_DOWNLOAD_STATUS
   )
@@ -338,6 +332,15 @@ set(PHASAR_LLVM_VERSION 16 CACHE STRING "The LLVM major-version that PhASAR shou
 
 include(add_llvm)
 add_llvm()
+
+# Roaring
+
+find_package(roaring QUIET CONFIG)
+if(NOT TARGET roaring::roaring)
+  set(ENABLE_ROARING_TESTS OFF)
+  add_subdirectory(external/CRoaring)
+  set(PHASAR_PROVIDE_CROARING ON)
+endif()
 
 # SVF
 option(PHASAR_USE_SVF "Use SVF for more options in alias analysis (default is OFF)" OFF)
@@ -425,6 +428,9 @@ target_sources(phasar_interface INTERFACE
   BASE_DIRS "${PHASAR_SRC_DIR}/include" "${PHASAR_BINARY_DIR}/include"
   FILES ${PHASAR_PUBLIC_HEADERS} "${PHASAR_BINARY_DIR}/include/phasar/Config/phasar-config.h"
 )
+if (TARGET TBB::tbb)
+  target_link_libraries(phasar_interface INTERFACE TBB::tbb) # needed by GCC
+endif()
 
 # Some preprocessor symbols that need to be available in phasar sources, but should not be installed
 add_cxx_compile_definitions(PHASAR_SRC_DIR="${CMAKE_SOURCE_DIR}")
@@ -537,6 +543,20 @@ install(
         "${CMAKE_CURRENT_BINARY_DIR}/phasarConfigVersion.cmake"
   DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/phasar"
 )
+
+if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR AND NOT TARGET uninstall)
+  configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+    @ONLY
+  )
+
+  add_custom_target(uninstall
+    COMMAND "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+    COMMENT "Uninstalling PhASAR"
+    VERBATIM
+  )
+endif()
 
 # If the Phasar shared object libraries are not installed into a system folder
 # the so libs must be added manually to the linker search path and the linker

@@ -8,6 +8,7 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TaintConfig/LLVMTaintConfig.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Pointer/AliasInfoBase.h"
 
 #include "llvm/ADT/StringRef.h"
 #include "llvm/IR/InstrTypes.h"
@@ -16,6 +17,8 @@
 #include "gtest/gtest.h"
 
 using namespace psr;
+
+static_assert(IsAliasInfo<FilteredLLVMAliasSet>);
 
 namespace {
 

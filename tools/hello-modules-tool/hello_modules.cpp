@@ -11,7 +11,6 @@ import phasar.dataflow;
 import phasar.db;
 import phasar.domain;
 import phasar.llvm;
-import phasar.phasarpass;
 import phasar.pointer;
 import phasar.typehierarchy;
 import phasar.utils;

@@ -42,8 +42,12 @@ AbstractMemoryLocationImpl::AbstractMemoryLocationImpl(
     const llvm::Value *Baseptr, llvm::ArrayRef<ptrdiff_t> Offsets,
     unsigned Lifetime) noexcept
     : AbstractMemoryLocationStorage(Baseptr, Lifetime, Offsets.size()) {
-  memcpy(this->getTrailingObjects<ptrdiff_t>(), Offsets.data(),
-         Offsets.size() * sizeof(ptrdiff_t));
+  memcpy(this->getTrailingObjects
+#if LLVM_VERSION_MAJOR <= 20
+         <ptrdiff_t>
+#endif
+         (),
+         Offsets.data(), Offsets.size() * sizeof(ptrdiff_t));
 }
 
 bool AbstractMemoryLocationImpl::isZero() const {
@@ -51,7 +55,12 @@ bool AbstractMemoryLocationImpl::isZero() const {
 }
 
 llvm::ArrayRef<ptrdiff_t> AbstractMemoryLocationImpl::offsets() const {
-  return llvm::ArrayRef(this->getTrailingObjects<ptrdiff_t>(), NumOffsets);
+  return llvm::ArrayRef(this->getTrailingObjects
+#if LLVM_VERSION_MAJOR <= 20
+                        <ptrdiff_t>
+#endif
+                        (),
+                        NumOffsets);
 }
 
 auto AbstractMemoryLocationImpl::computeOffset(const llvm::DataLayout &DL,

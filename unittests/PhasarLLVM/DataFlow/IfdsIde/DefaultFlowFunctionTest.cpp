@@ -1,3 +1,4 @@
+#include "phasar/DataFlow/IfdsIde/InitialSeeds.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/DefaultAliasAwareIDEProblem.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/DefaultNoAliasIDEProblem.h"
@@ -32,9 +33,7 @@ public:
   IDEAliasImpl(LLVMProjectIRDB *IRDB)
       : DefaultAliasAwareIFDSProblem(IRDB, &PT, {}, {}), AS(IRDB) {};
 
-  [[nodiscard]] InitialSeeds<n_t, d_t, l_t> initialSeeds() override {
-    return {};
-  };
+  [[nodiscard]] InitialSeeds<n_t, d_t, l_t> initialSeeds() { return {}; };
 
 private:
   LLVMAliasSet AS;
@@ -50,9 +49,7 @@ public:
   IDENoAliasImpl(LLVMProjectIRDB *IRDB)
       : DefaultNoAliasIFDSProblem(IRDB, {}, {}) {};
 
-  [[nodiscard]] InitialSeeds<n_t, d_t, l_t> initialSeeds() override {
-    return {};
-  };
+  [[nodiscard]] InitialSeeds<n_t, d_t, l_t> initialSeeds() { return {}; };
 };
 
 class IDEReachableAllocationSitesImpl
@@ -62,9 +59,7 @@ public:
       : DefaultReachableAllocationSitesIFDSProblem(IRDB, &PT, {}, {}),
         AS(IRDB) {};
 
-  [[nodiscard]] InitialSeeds<n_t, d_t, l_t> initialSeeds() override {
-    return {};
-  };
+  [[nodiscard]] InitialSeeds<n_t, d_t, l_t> initialSeeds() { return {}; };
 
 private:
   LLVMAliasSet AS;
