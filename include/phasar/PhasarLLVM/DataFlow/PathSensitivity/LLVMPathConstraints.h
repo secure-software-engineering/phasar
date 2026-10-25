@@ -25,7 +25,11 @@ class AllocaInst;
 class LoadInst;
 class GetElementPtrInst;
 class PHINode;
+#if LLVM_VERSION_MAJOR >= 23
+class CondBrInst;
+#else
 class BranchInst;
+#endif
 class CmpInst;
 class BinaryOperator;
 class CallBase;
@@ -72,8 +76,13 @@ private:
   [[nodiscard]] ConstraintAndVariables
   handlePhiInstruction(const llvm::PHINode *Phi);
 
-  [[nodiscard]] ConstraintAndVariables
-  handleCondBrInst(const llvm::BranchInst *Br, const llvm::Instruction *Succ);
+  [[nodiscard]] ConstraintAndVariables handleCondBrInst(
+#if LLVM_VERSION_MAJOR >= 23
+      const llvm::CondBrInst *Br,
+#else
+      const llvm::BranchInst *Br,
+#endif
+      const llvm::Instruction *Succ);
 
   [[nodiscard]] ConstraintAndVariables handleCmpInst(const llvm::CmpInst *Cmp);
 

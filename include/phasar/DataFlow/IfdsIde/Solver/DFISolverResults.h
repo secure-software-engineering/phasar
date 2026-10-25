@@ -188,8 +188,8 @@ class [[gsl::Pointer]] DFISolverResults
   friend detail::DFISolverResultsBase<DFISolverResults<N, D>, N, D>;
 
 public:
-  explicit DFISolverResults(const detail::DFIResultsData<N, D> *Data
-                                PSR_LIFETIME_CAPTURE_BY(this)) noexcept
+  explicit DFISolverResults(
+      const detail::DFIResultsData<N, D> *Data PSR_LIFETIMEBOUND) noexcept
       : Data(Data) {
     assert(Data != nullptr);
   }

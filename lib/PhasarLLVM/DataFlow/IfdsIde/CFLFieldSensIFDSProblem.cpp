@@ -811,8 +811,8 @@ getResultEF(llvm::PointerIntPair<const CFLFieldSensEdgeFunctionImpl *, 2>
     assert(Ptr.getPointer() == Ptr.getOpaqueValue() &&
            "Zero-tag does not pollute the alignment bits");
     return CFLFieldSensEdgeFunction{
-        static_cast<const CFLFieldSensEdgeFunctionImpl *>(
-            Ptr.getOpaqueValue())};
+        static_cast<const CFLFieldSensEdgeFunctionImpl *>(Ptr.getOpaqueValue()),
+    };
   case AllBottomId:
     GetResultEFBot++;
     return AllBottom<l_t>{};

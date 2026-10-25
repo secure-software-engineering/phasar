@@ -31,6 +31,7 @@
 #include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/GlobalObject.h"
 #include "llvm/IR/Instruction.h"
+#include "llvm/IR/Instructions.h"
 #include "llvm/IR/Type.h"
 #include "llvm/Support/Casting.h"
 
@@ -48,7 +49,12 @@ class ModuleSlotTracker;
 class Argument;
 class Instruction;
 class StoreInst;
+#if LLVM_VERSION_MAJOR >= 23
+class CondBrInst;
+class UncondBrInst;
+#else
 class BranchInst;
+#endif
 class Module;
 class CallInst;
 class AllocaInst;
@@ -278,12 +284,28 @@ std::size_t computeModuleHash(const llvm::Module *M);
  */
 [[nodiscard]] bool isGuardVariable(const llvm::Value *V);
 
+#if LLVM_VERSION_MAJOR >= 23
+[[nodiscard]] constexpr bool
+isStaticVariableLazyInitializationBranch(const llvm::UncondBrInst * /*Inst*/) {
+  return false;
+}
+
+/**
+ * @brief True, iff V is the compiler-generated branch that leads to the lazy
+ * initialization of a function-local static variable.
+ */
+[[nodiscard]] bool
+isStaticVariableLazyInitializationBranch(const llvm::CondBrInst *Inst);
+
+#else
 /**
  * @brief True, iff V is the compiler-generated branch that leads to the lazy
  * initialization of a function-local static variable.
  */
 [[nodiscard]] bool
 isStaticVariableLazyInitializationBranch(const llvm::BranchInst *Inst);
+
+#endif
 
 [[nodiscard]] inline bool
 definitelyContainsNoPointerFast(const llvm::Type *Ty) noexcept {
@@ -475,6 +497,32 @@ getVaListTagOrNull(const llvm::Function &Fun);
 ///   - \c Indices[1+] navigate recursively through ConstantAggregate.
 [[nodiscard]] const llvm::Function *
 walkConstInitPath(const llvm::Constant *Init, llvm::ArrayRef<uint64_t> Indices);
+
+[[nodiscard]] inline bool
+isUnconditionalBranch(const llvm::Instruction *Inst) noexcept {
+#if LLVM_VERSION_MAJOR >= 23
+  return llvm::isa_and_present<llvm::UncondBrInst>(Inst);
+#else
+  if (const auto *Br = llvm::dyn_cast_if_present<llvm::BranchInst>(Inst)) {
+    return !Br->isConditional();
+  }
+  return false;
+#endif
+}
+
+[[nodiscard]] inline const llvm::Value *
+getBranchConditionOrNull(const llvm::Instruction *Inst) noexcept {
+#if LLVM_VERSION_MAJOR >= 23
+  if (const auto *CBr = llvm::dyn_cast_if_present<llvm::CondBrInst>(Inst)) {
+    return CBr->getCondition();
+  }
+#else
+  if (const auto *Br = llvm::dyn_cast_if_present<llvm::BranchInst>(Inst)) {
+    return Br->getCondition();
+  }
+#endif
+  return nullptr;
+}
 } // namespace psr
 
 #endif

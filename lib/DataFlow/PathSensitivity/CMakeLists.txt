@@ -5,6 +5,7 @@ add_phasar_library(phasar_dataflow_pathsensitivity
 
   LINK_PRIVATE
     nlohmann_json::nlohmann_json
+    z3
 
   LLVM_LINK_COMPONENTS
     Support

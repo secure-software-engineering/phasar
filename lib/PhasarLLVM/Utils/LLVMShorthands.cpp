@@ -586,12 +586,18 @@ bool psr::isAddressTakenArg(const llvm::Argument *Arg) noexcept {
 }
 
 bool psr::isStaticVariableLazyInitializationBranch(
-    const llvm::BranchInst *Inst) {
-  if (Inst->isUnconditional()) {
+#if LLVM_VERSION_MAJOR >= 23
+    const llvm::CondBrInst *Inst
+#else
+    const llvm::BranchInst *Inst
+#endif
+) {
+  if (isUnconditionalBranch(Inst)) {
     return false;
   }
 
-  auto *Condition = Inst->getCondition();
+  auto *Condition = getBranchConditionOrNull(Inst);
+  assert(Condition != nullptr);
 
   if (auto *Cmp = llvm::dyn_cast<llvm::ICmpInst>(Condition);
       Cmp && llvm::ICmpInst::isEquality(Cmp->getPredicate())) {
