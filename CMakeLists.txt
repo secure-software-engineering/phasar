@@ -21,7 +21,7 @@ if(DEFINED LLVM_MAIN_SRC_DIR)
   set(PHASAR_IN_TREE 1)
 endif()
 
-set(PHASAR_VERSION 2604)
+set(PHASAR_VERSION 2610)
 
 if(NOT PHASAR_IN_TREE)
   project(phasar
@@ -281,8 +281,8 @@ set(PHASAR_USE_TBB ${TBB_FOUND})
 # Coverage
 if(CODE_COVERAGE)
   set(CODE_COVERAGE_SCRIPT "${CMAKE_CURRENT_BINARY_DIR}/code-coverage.cmake")
-  file(DOWNLOAD "https://raw.githubusercontent.com/StableCoder/cmake-scripts/refs/tags/25.08/code-coverage.cmake" "${CODE_COVERAGE_SCRIPT}"
-    EXPECTED_HASH SHA256=cad4dd2bdf944f77627687e0298debc8341bfdeffaf949937f319c7c4ff3fdaf
+  file(DOWNLOAD "https://raw.githubusercontent.com/StableCoder/cmake-scripts/c012a75c255e57523c9e2faacd86356439318542/code-coverage.cmake" "${CODE_COVERAGE_SCRIPT}"
+    EXPECTED_HASH SHA256=21caeb58c8270b00a15c58b06cab72255467f9917d07df5a5042259bbcdfd1ab
     TLS_VERIFY ON
     STATUS CODE_COVERAGE_SCRIPT_DOWNLOAD_STATUS
   )
