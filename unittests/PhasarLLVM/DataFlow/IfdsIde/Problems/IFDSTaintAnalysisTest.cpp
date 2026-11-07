@@ -157,6 +157,65 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_06) {
   compare(TaintProblem->Leaks, GroundTruth);
 }
 
+// Ternary operator, compiled with -O1: the tainted value reaches the sink
+// through a select instruction
+TEST_F(IFDSTaintAnalysisTest, TaintTest_Select_01) {
+  initialize({PathToLlFiles + "dummy_source_sink/taint_select_01_cpp_dbg.ll"});
+  IFDSSolver TaintSolver(&*TaintProblem, &HA->getICFG());
+  TaintSolver.solve();
+
+  auto Entry = LineColFun{7, 3, "main"};
+  auto EntryTwo = LineColFunOp{6, 11, "main", llvm::Instruction::Select};
+  GroundTruthTy GroundTruth{{Entry, {EntryTwo}}};
+
+  compare(TaintProblem->Leaks, GroundTruth);
+}
+
+// Same ternary operator after mem2reg: the tainted value reaches the sink
+// through a phi instruction
+TEST_F(IFDSTaintAnalysisTest, TaintTest_Select_01_m2r) {
+  initialize(
+      {PathToLlFiles + "dummy_source_sink/taint_select_01_cpp_m2r_dbg.ll"});
+  IFDSSolver TaintSolver(&*TaintProblem, &HA->getICFG());
+  TaintSolver.solve();
+
+  auto Entry = LineColFun{7, 3, "main"};
+  auto EntryTwo = LineColFunOp{6, 11, "main", llvm::Instruction::PHI};
+  GroundTruthTy GroundTruth{{Entry, {EntryTwo}}};
+
+  compare(TaintProblem->Leaks, GroundTruth);
+}
+
+// Conditional assignment, compiled with -O1: SimplifyCFG turns the if into a
+// select instruction
+TEST_F(IFDSTaintAnalysisTest, TaintTest_Select_02) {
+  initialize({PathToLlFiles + "dummy_source_sink/taint_select_02_cpp_dbg.ll"});
+  IFDSSolver TaintSolver(&*TaintProblem, &HA->getICFG());
+  TaintSolver.solve();
+
+  auto Entry = LineColFun{10, 3, "main"};
+  // Column 0 matches any column: LLVM versions attach the select to either
+  // the `if` or the condition on line 7
+  auto EntryTwo = LineColFunOp{7, 0, "main", llvm::Instruction::Select};
+  GroundTruthTy GroundTruth{{Entry, {EntryTwo}}};
+
+  compare(TaintProblem->Leaks, GroundTruth);
+}
+
+// A select between two constants must not be tainted, even if a tainted value
+// exists. Only the direct flow into the second sink is a leak.
+TEST_F(IFDSTaintAnalysisTest, TaintTest_Select_03) {
+  initialize({PathToLlFiles + "dummy_source_sink/taint_select_03_cpp_dbg.ll"});
+  IFDSSolver TaintSolver(&*TaintProblem, &HA->getICFG());
+  TaintSolver.solve();
+
+  auto Entry = LineColFun{8, 3, "main"};
+  auto EntryTwo = LineColFunOp{5, 11, "main", llvm::Instruction::Call};
+  GroundTruthTy GroundTruth{{Entry, {EntryTwo}}};
+
+  compare(TaintProblem->Leaks, GroundTruth);
+}
+
 TEST_F(IFDSTaintAnalysisTest, SRetTest_01) {
   initialize({PathToLlFiles + "dummy_source_sink/sret_c_dbg.ll"});
   IFDSSolver TaintSolver(&*TaintProblem, &HA->getICFG());

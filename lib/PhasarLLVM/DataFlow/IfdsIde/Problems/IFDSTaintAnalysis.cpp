@@ -360,6 +360,30 @@ auto IFDSTaintAnalysis::getNormalFlowFunction(n_t Curr,
     });
   }
 
+  // A select yields one of its two value operands: if either is tainted, the
+  // result may be tainted. (The condition is not tracked; that would be an
+  // implicit flow.)
+  if (const auto *Select = llvm::dyn_cast<llvm::SelectInst>(Curr)) {
+    return lambdaFlow([Select](d_t Source) -> container_type {
+      if (Source == Select->getTrueValue() ||
+          Source == Select->getFalseValue()) {
+        return {Source, Select};
+      }
+      return {Source};
+    });
+  }
+
+  // A phi merges values from predecessor blocks: if any incoming value is
+  // tainted, the merged value may be tainted.
+  if (const auto *Phi = llvm::dyn_cast<llvm::PHINode>(Curr)) {
+    return lambdaFlow([Phi](d_t Source) -> container_type {
+      if (llvm::is_contained(Phi->incoming_values(), Source)) {
+        return {Source, Phi};
+      }
+      return {Source};
+    });
+  }
+
   // Otherwise we do not care and leave everything as it is
   return identityFlow();
 }
