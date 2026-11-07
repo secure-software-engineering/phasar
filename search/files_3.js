@@ -4,7 +4,7 @@ var searchData=
   ['dataflowanalysistype_2edef_1',['DataFlowAnalysisType.def',['../DataFlowAnalysisType_8def.html',1,'']]],
   ['dataflowanalysistype_2eh_2',['DataFlowAnalysisType.h',['../DataFlowAnalysisType_8h.html',1,'']]],
   ['dataflowenvironment_2eh_3',['DataFlowEnvironment.h',['../DataFlowEnvironment_8h.html',1,'']]],
-  ['db_2eh_4',['db.h',['../DB_8h.html',1,'(Global Namespace)'],['../PhasarLLVM_2DB_8h.html',1,'(Global Namespace)']]],
+  ['db_2eh_4',['db.h',['../PhasarLLVM_2DB_8h.html',1,'(Global Namespace)'],['../DB_8h.html',1,'(Global Namespace)']]],
   ['debugoutput_2eh_5',['DebugOutput.h',['../DebugOutput_8h.html',1,'']]],
   ['defaultaliasawareideproblem_2eh_6',['DefaultAliasAwareIDEProblem.h',['../DefaultAliasAwareIDEProblem_8h.html',1,'']]],
   ['defaultallocsitesawareideproblem_2eh_7',['DefaultAllocSitesAwareIDEProblem.h',['../DefaultAllocSitesAwareIDEProblem_8h.html',1,'']]],
