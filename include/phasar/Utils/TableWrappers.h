@@ -458,9 +458,7 @@ public:
 
 #if LLVM_VERSION_MAJOR >= 23
   /// Erases all cells for which P(Cell) returns true.
-  template <typename Pred> void eraseIf(Pred P) {
-    Map.remove_if(std::move(P));
-  }
+  template <typename Pred> void eraseIf(Pred P) { Map.remove_if(std::move(P)); }
 #endif
 
   DenseTable1d() noexcept = default;
