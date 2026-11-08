@@ -210,38 +210,40 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>  };</div>
 <div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span> </div>
 <div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>  <span class="keyword">struct </span>ReachableAllocationSitesKeyDMI {</div>
-<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>    <span class="keyword">static</span> ReachableAllocationSitesKey getEmptyKey() noexcept {</div>
-<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>      <span class="keywordflow">return</span> {{}, llvm::DenseMapInfo&lt;v_t&gt;::getEmptyKey()};</div>
-<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>    }</div>
-<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>    <span class="keyword">static</span> ReachableAllocationSitesKey getTombstoneKey() noexcept {</div>
-<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>      <span class="keywordflow">return</span> {{}, llvm::DenseMapInfo&lt;v_t&gt;::getTombstoneKey()};</div>
-<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>    }</div>
-<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>    <span class="keyword">static</span> <span class="keyword">auto</span> getHashValue(ReachableAllocationSitesKey Key) <span class="keyword">noexcept</span> {</div>
-<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>      <span class="keywordflow">return</span> llvm::hash_combine(Key.FunAndIntraProcOnly.getOpaqueValue(),</div>
-<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>                                Key.Value);</div>
-<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>    }</div>
-<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>    <span class="keyword">static</span> <span class="keywordtype">bool</span> isEqual(ReachableAllocationSitesKey Key1,</div>
-<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>                        ReachableAllocationSitesKey Key2) <span class="keyword">noexcept</span> {</div>
-<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>      <span class="keywordflow">return</span> Key1.FunAndIntraProcOnly == Key2.FunAndIntraProcOnly &amp;&amp;</div>
-<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>             Key1.Value == Key2.Value;</div>
-<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>    }</div>
-<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>  };</div>
-<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span> </div>
-<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>  <a class="code hl_typedef" href="namespacepsr.html#a3c1552869e9fb75d14f0aefbd844aed2">LLVMAliasIteratorRef</a> AS;</div>
-<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>  <a class="code hl_typedef" href="classpsr_1_1AliasSetOwner.html#af2acb5dffaf3f9197638e85fb0a89326">AliasSetOwner&lt;AliasSetTy&gt;::memory_resource_type</a> MRes;</div>
-<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>  AliasSetOwner&lt;AliasSetTy&gt; Owner;</div>
-<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>  llvm::DenseMap&lt;std::pair&lt;const llvm::Function *, v_t&gt;, <a class="code hl_typedef" href="classpsr_1_1CachedLLVMAliasIterator.html#afc5c66db42db48d80592bd807ed6e8cf">AliasSetPtrTy</a>&gt;</div>
-<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>      AliasSetMap;</div>
-<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>  llvm::DenseMap&lt;ReachableAllocationSitesKey, std::unique_ptr&lt;AliasSetTy&gt;,</div>
-<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>                 ReachableAllocationSitesKeyDMI&gt;</div>
-<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>      ReachableAllocationSitesMap;</div>
-<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>};</div>
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span><span class="preprocessor">#if LLVM_VERSION_MAJOR &lt; 23</span></div>
+<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>    <span class="keyword">static</span> ReachableAllocationSitesKey getEmptyKey() noexcept {</div>
+<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>      <span class="keywordflow">return</span> {{}, llvm::DenseMapInfo&lt;v_t&gt;::getEmptyKey()};</div>
+<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>    }</div>
+<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>    <span class="keyword">static</span> ReachableAllocationSitesKey getTombstoneKey() noexcept {</div>
+<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>      <span class="keywordflow">return</span> {{}, llvm::DenseMapInfo&lt;v_t&gt;::getTombstoneKey()};</div>
+<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>    }</div>
+<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>    <span class="keyword">static</span> <span class="keyword">auto</span> getHashValue(ReachableAllocationSitesKey Key) <span class="keyword">noexcept</span> {</div>
+<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>      <span class="keywordflow">return</span> llvm::hash_combine(Key.FunAndIntraProcOnly.getOpaqueValue(),</div>
+<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>                                Key.Value);</div>
+<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>    }</div>
+<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>    <span class="keyword">static</span> <span class="keywordtype">bool</span> isEqual(ReachableAllocationSitesKey Key1,</div>
+<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>                        ReachableAllocationSitesKey Key2) <span class="keyword">noexcept</span> {</div>
+<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>      <span class="keywordflow">return</span> Key1.FunAndIntraProcOnly == Key2.FunAndIntraProcOnly &amp;&amp;</div>
+<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>             Key1.Value == Key2.Value;</div>
+<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>    }</div>
+<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>  };</div>
+<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span> </div>
+<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>  <a class="code hl_typedef" href="namespacepsr.html#a3c1552869e9fb75d14f0aefbd844aed2">LLVMAliasIteratorRef</a> AS;</div>
+<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>  <a class="code hl_typedef" href="classpsr_1_1AliasSetOwner.html#af2acb5dffaf3f9197638e85fb0a89326">AliasSetOwner&lt;AliasSetTy&gt;::memory_resource_type</a> MRes;</div>
+<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>  AliasSetOwner&lt;AliasSetTy&gt; Owner;</div>
+<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>  llvm::DenseMap&lt;std::pair&lt;const llvm::Function *, v_t&gt;, <a class="code hl_typedef" href="classpsr_1_1CachedLLVMAliasIterator.html#afc5c66db42db48d80592bd807ed6e8cf">AliasSetPtrTy</a>&gt;</div>
+<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>      AliasSetMap;</div>
+<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>  llvm::DenseMap&lt;ReachableAllocationSitesKey, std::unique_ptr&lt;AliasSetTy&gt;,</div>
+<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>                 ReachableAllocationSitesKeyDMI&gt;</div>
+<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>      ReachableAllocationSitesMap;</div>
+<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>};</div>
 </div>
-<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span> </div>
-<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span><span class="keyword">static_assert</span>(IsAliasInfo&lt;CachedLLVMAliasIterator&gt;);</div>
-<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>} <span class="comment">// namespace psr</span></div>
-<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span> </div>
-<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span><span class="preprocessor">#endif </span><span class="comment">// PHASAR_PHASARLLVM_POINTER_CACHEDALIASITERATOR_H</span></div>
+<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span> </div>
+<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span><span class="keyword">static_assert</span>(IsAliasInfo&lt;CachedLLVMAliasIterator&gt;);</div>
+<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>} <span class="comment">// namespace psr</span></div>
+<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span> </div>
+<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span><span class="preprocessor">#endif </span><span class="comment">// PHASAR_PHASARLLVM_POINTER_CACHEDALIASITERATOR_H</span></div>
 <div class="ttc" id="aAliasAnalysisType_8h_html"><div class="ttname"><a href="AliasAnalysisType_8h.html">AliasAnalysisType.h</a></div></div>
 <div class="ttc" id="aAliasInfoBase_8h_html"><div class="ttname"><a href="AliasInfoBase_8h.html">AliasInfoBase.h</a></div></div>
 <div class="ttc" id="aAliasInfoTraits_8h_html"><div class="ttname"><a href="AliasInfoTraits_8h.html">AliasInfoTraits.h</a></div></div>
@@ -288,7 +290,7 @@ $(document).ready(function() { init_codefold(0); });
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Nov 7 2026 12:32:11 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sun Nov 8 2026 12:22:02 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

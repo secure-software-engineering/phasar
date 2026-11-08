@@ -2143,6 +2143,10 @@ requires std::is_same_v&lt;typename ContainerTy::value_type, const llvm::Value *
 <tr class="separator:a03415155db9f1bbab43632f0135bd1ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0ad874a190afec188e3ea187ab861870" id="r_a0ad874a190afec188e3ea187ab861870"><td class="memItemLeft" align="right" valign="top">const llvm::Function *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a0ad874a190afec188e3ea187ab861870">walkConstInitPath</a> (const llvm::Constant *Init, llvm::ArrayRef&lt; uint64_t &gt; Indices)</td></tr>
 <tr class="separator:a0ad874a190afec188e3ea187ab861870"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a037cabbd1bc8e84167a6e1b5e1a234f6" id="r_a037cabbd1bc8e84167a6e1b5e1a234f6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a037cabbd1bc8e84167a6e1b5e1a234f6">isUnconditionalBranch</a> (const llvm::Instruction *Inst) noexcept</td></tr>
+<tr class="separator:a037cabbd1bc8e84167a6e1b5e1a234f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac7359ec5dfe7007fc814c68f1b91541d" id="r_ac7359ec5dfe7007fc814c68f1b91541d"><td class="memItemLeft" align="right" valign="top">const llvm::Value *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#ac7359ec5dfe7007fc814c68f1b91541d">getBranchConditionOrNull</a> (const llvm::Instruction *Inst) noexcept</td></tr>
+<tr class="separator:ac7359ec5dfe7007fc814c68f1b91541d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7518dcba6885a11ec993ba54c1dd57a9" id="r_a7518dcba6885a11ec993ba54c1dd57a9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structpsr_1_1UsedGlobalsHolder.html">UsedGlobalsHolder</a>&lt; const llvm::GlobalVariable * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a7518dcba6885a11ec993ba54c1dd57a9">computeUsedGlobals</a> (const llvm::Module &amp;Mod, const <a class="el" href="classpsr_1_1Compressor.html">Compressor</a>&lt; const llvm::Function *, FunctionId &gt; &amp;Functions, const <a class="el" href="structpsr_1_1SCCHolder.html">SCCHolder</a>&lt; FunctionId &gt; &amp;SCCs, const <a class="el" href="structpsr_1_1SCCDependencyGraph.html">SCCDependencyGraph</a>&lt; FunctionId &gt; &amp;Callers)</td></tr>
 <tr class="separator:a7518dcba6885a11ec993ba54c1dd57a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aeb4308d80da14f871c0b973f038c9b76" id="r_aeb4308d80da14f871c0b973f038c9b76"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structpsr_1_1UsedGlobalsHolder.html">UsedGlobalsHolder</a>&lt; const llvm::GlobalVariable * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#aeb4308d80da14f871c0b973f038c9b76">computeUsedGlobals</a> (const ProjectIRDB auto &amp;IRDB, const <a class="el" href="classpsr_1_1Compressor.html">Compressor</a>&lt; const llvm::Function *, FunctionId &gt; &amp;Functions, const <a class="el" href="structpsr_1_1SCCHolder.html">SCCHolder</a>&lt; FunctionId &gt; &amp;SCCs, const <a class="el" href="structpsr_1_1SCCDependencyGraph.html">SCCDependencyGraph</a>&lt; FunctionId &gt; &amp;Callers)</td></tr>
@@ -2732,7 +2736,7 @@ template&lt;typename Container &gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TypeTraits_8h_source.html#l00240">240</a> of file <a class="el" href="TypeTraits_8h_source.html">TypeTraits.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TypeTraits_8h_source.html#l00242">242</a> of file <a class="el" href="TypeTraits_8h_source.html">TypeTraits.h</a>.</p>
 
 </div>
 </div>
@@ -2876,7 +2880,7 @@ template&lt;typename <a class="el" href="classAnalysisDomainTy.html">AnalysisDom
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IDEInstInteractionAnalysis_8h_source.html#l01202">1202</a> of file <a class="el" href="IDEInstInteractionAnalysis_8h_source.html">IDEInstInteractionAnalysis.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDEInstInteractionAnalysis_8h_source.html#l01206">1206</a> of file <a class="el" href="IDEInstInteractionAnalysis_8h_source.html">IDEInstInteractionAnalysis.h</a>.</p>
 
 </div>
 </div>
@@ -4428,7 +4432,7 @@ template&lt;has_adl_join T&gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TypeTraits_8h_source.html#l00288">288</a> of file <a class="el" href="TypeTraits_8h_source.html">TypeTraits.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TypeTraits_8h_source.html#l00290">290</a> of file <a class="el" href="TypeTraits_8h_source.html">TypeTraits.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="LatticeDomain_8h_source.html#l00190">psr::JoinLatticeTraits&lt; LatticeDomain&lt; L &gt; &gt;::join()</a>.</p>
 
@@ -4452,7 +4456,7 @@ template&lt;has_adl_to_string_v T&gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TypeTraits_8h_source.html#l00282">282</a> of file <a class="el" href="TypeTraits_8h_source.html">TypeTraits.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TypeTraits_8h_source.html#l00284">284</a> of file <a class="el" href="TypeTraits_8h_source.html">TypeTraits.h</a>.</p>
 
 <p class="reference">References <a class="el" href="namespacepsr.html#a44202ae7e19e7ae3bd454149976c364a">to_string()</a>.</p>
 
@@ -7264,7 +7268,7 @@ template&lt;typename L , typename ConcreteEF &gt; </div>
 
 <p class="definition">Definition at line <a class="el" href="EdgeFunctionUtils_8h_source.html#l00227">227</a> of file <a class="el" href="EdgeFunctionUtils_8h_source.html">EdgeFunctionUtils.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="EdgeFunctionUtils_8h_source.html#l00503">psr::ConstantEdgeFunction&lt; L &gt;::compose()</a>, <a class="el" href="EdgeFunctionUtils_8h_source.html#l00274">psr::EdgeFunctionComposer&lt; L &gt;::compose()</a>, <a class="el" href="XTaintEdgeFunctionBase_8h_source.html#l00030">psr::XTaint::EdgeFunctionBase&lt; Derived &gt;::compose()</a>, <a class="el" href="EdgeFunctionUtils_8h_source.html#l00333">psr::JoinEdgeFunction&lt; L, N &gt;::compose()</a>, and <a class="el" href="IDEInstInteractionAnalysis_8h_source.html#l01006">psr::IDEInstInteractionAnalysisT&lt; EdgeFactType, SyntacticAnalysisOnly, EnableIndirectTaints &gt;::extend()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="EdgeFunctionUtils_8h_source.html#l00503">psr::ConstantEdgeFunction&lt; L &gt;::compose()</a>, <a class="el" href="EdgeFunctionUtils_8h_source.html#l00274">psr::EdgeFunctionComposer&lt; L &gt;::compose()</a>, <a class="el" href="XTaintEdgeFunctionBase_8h_source.html#l00030">psr::XTaint::EdgeFunctionBase&lt; Derived &gt;::compose()</a>, <a class="el" href="EdgeFunctionUtils_8h_source.html#l00333">psr::JoinEdgeFunction&lt; L, N &gt;::compose()</a>, and <a class="el" href="IDEInstInteractionAnalysis_8h_source.html#l01010">psr::IDEInstInteractionAnalysisT&lt; EdgeFactType, SyntacticAnalysisOnly, EnableIndirectTaints &gt;::extend()</a>.</p>
 
 </div>
 </div>
@@ -7351,7 +7355,7 @@ template&lt;typename L , uint8_t N = 0, typename ConcreteEF &gt; </div>
 
 <p class="reference">References <a class="el" href="EdgeFunctionUtils_8h_source.html#l00385">psr::JoinEdgeFunction&lt; L, N &gt;::create()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="IDEInstInteractionAnalysis_8h_source.html#l01026">psr::IDEInstInteractionAnalysisT&lt; EdgeFactType, SyntacticAnalysisOnly, EnableIndirectTaints &gt;::combine()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="IDEInstInteractionAnalysis_8h_source.html#l01030">psr::IDEInstInteractionAnalysisT&lt; EdgeFactType, SyntacticAnalysisOnly, EnableIndirectTaints &gt;::combine()</a>.</p>
 
 </div>
 </div>
@@ -7422,11 +7426,11 @@ template&lt;typename L &gt; </div>
 <p>Approximates, whether the given LLVM type may not contain a pointer. This check is designed to be extremely lightweight and is therefore not very precise.</p>
 <dl class="section return"><dt>Returns</dt><dd>True, iff it can be proven that Ty does <em>not</em> contain a pointer </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00304">304</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00326">326</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
 
-<p class="reference">References <a class="el" href="LLVMShorthands_8h_source.html#l00289">definitelyContainsNoPointerFast()</a>, and <a class="el" href="namespacepsr_1_1detail.html#a2a884f2fee0e2ce1b0d8c14b2f14c06f">psr::detail::definitelyContainsNoPointerImpl()</a>.</p>
+<p class="reference">References <a class="el" href="LLVMShorthands_8h_source.html#l00311">definitelyContainsNoPointerFast()</a>, and <a class="el" href="namespacepsr_1_1detail.html#a2a884f2fee0e2ce1b0d8c14b2f14c06f">psr::detail::definitelyContainsNoPointerImpl()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="LLVMShorthands_8h_source.html#l00316">definitelyContainsNoPointer()</a>, <a class="el" href="LLVMShorthands_8h_source.html#l00328">forEachPointerOperand()</a>, <a class="el" href="LLVMGlobalInitCache_8h_source.html#l00043">psr::GlobalInitCache::getOrCreate()</a>, <a class="el" href="LLVMPointerSemantics_8h_source.html#l00147">psr::PunnedABICache::isCoercedPointer()</a>, <a class="el" href="LLVMPointerSemantics_8h_source.html#l00058">isPunnedPointerAccess()</a>, and <a class="el" href="LLVMPointerSemantics_8h_source.html#l00092">psr::LLVMMemoryAccess::mayTransferPointer()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="LLVMShorthands_8h_source.html#l00338">definitelyContainsNoPointer()</a>, <a class="el" href="LLVMShorthands_8h_source.html#l00350">forEachPointerOperand()</a>, <a class="el" href="LLVMGlobalInitCache_8h_source.html#l00043">psr::GlobalInitCache::getOrCreate()</a>, <a class="el" href="LLVMPointerSemantics_8h_source.html#l00147">psr::PunnedABICache::isCoercedPointer()</a>, <a class="el" href="LLVMPointerSemantics_8h_source.html#l00058">isPunnedPointerAccess()</a>, and <a class="el" href="LLVMPointerSemantics_8h_source.html#l00092">psr::LLVMMemoryAccess::mayTransferPointer()</a>.</p>
 
 </div>
 </div>
@@ -7456,9 +7460,9 @@ template&lt;typename L &gt; </div>
 <p>Approximates, whether the given LLVM value may not contain a pointer. This check is designed to be extremely lightweight and is therefore not very precise.</p>
 <dl class="section return"><dt>Returns</dt><dd>True, iff it can be proven that Val does <em>not</em> contain a pointer </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00316">316</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00338">338</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
 
-<p class="reference">References <a class="el" href="LLVMShorthands_8h_source.html#l00304">definitelyContainsNoPointer()</a>.</p>
+<p class="reference">References <a class="el" href="LLVMShorthands_8h_source.html#l00326">definitelyContainsNoPointer()</a>.</p>
 
 </div>
 </div>
@@ -7486,9 +7490,9 @@ template&lt;typename L &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00289">289</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00311">311</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="LLVMShorthands_8h_source.html#l00304">definitelyContainsNoPointer()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="LLVMShorthands_8h_source.html#l00326">definitelyContainsNoPointer()</a>.</p>
 
 </div>
 </div>
@@ -7616,7 +7620,7 @@ template&lt;typename ProblemTy , typename ICFGTy , typename StaticSolverConfigTy
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="JumpFunctions_8h_source.html#l00078">psr::JumpFunctions&lt; AnalysisDomainTy, Container &gt;::addFunction()</a>, <a class="el" href="IDESolver_8h_source.html#l01465">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::computeAndPrintStatistics()</a>, <a class="el" href="InitialSeeds_8h_source.html#l00085">psr::InitialSeeds&lt; N, D, L &gt;::dump()</a>, <a class="el" href="IDESolver_8h_source.html#l01628">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::emitESGAsDot()</a>, <a class="el" href="IDEInstInteractionAnalysis_8h_source.html#l01064">psr::IDEInstInteractionAnalysisT&lt; EdgeFactType, SyntacticAnalysisOnly, EnableIndirectTaints &gt;::emitTextReport()</a>, <a class="el" href="IDESolver_8h_source.html#l00202">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::getAsJson()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00307">psr::FlowEdgeFunctionCache&lt; ProblemTy &gt;::getCallEdgeFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00380">psr::FlowEdgeFunctionCache&lt; ProblemTy &gt;::getCallToRetEdgeFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00276">psr::FlowEdgeFunctionCache&lt; ProblemTy &gt;::getNormalEdgeFunction()</a>, <a class="el" href="IfdsIdeRuleProvider_8h_source.html#l00061">psr::wpds::IfdsIdeRuleProvider&lt; ProblemT, ICFGTy, ComputeWeights &gt;::getNormalRules()</a>, <a class="el" href="IfdsIdeRuleProvider_8h_source.html#l00176">psr::wpds::IfdsIdeRuleProvider&lt; ProblemT, ICFGTy, ComputeWeights &gt;::getPopRules()</a>, <a class="el" href="IfdsIdeRuleProvider_8h_source.html#l00125">psr::wpds::IfdsIdeRuleProvider&lt; ProblemT, ICFGTy, ComputeWeights &gt;::getPushRules()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00343">psr::FlowEdgeFunctionCache&lt; ProblemTy &gt;::getReturnEdgeFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00419">psr::FlowEdgeFunctionCache&lt; ProblemTy &gt;::getSummaryEdgeFunction()</a>, <a class="el" href="IDESolver_8h_source.html#l00805">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::jumpFunction()</a>, <a class="el" href="IDESolver_8h_source.html#l00841">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::pathEdgeProcessingTask()</a>, <a class="el" href="IDESolver_8h_source.html#l01392">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::printComputedPathEdges()</a>, <a class="el" href="IDESolver_8h_source.html#l01370">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::printEndSummaryTab()</a>, <a class="el" href="IDESolver_8h_source.html#l01352">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::printIncomingTab()</a>, <a class="el" href="JumpFunctions_8h_source.html#l00211">psr::JumpFunctions&lt; AnalysisDomainTy, Container &gt;::printJumpFunctions()</a>, <a class="el" href="JumpFunctions_8h_source.html#l00242">psr::JumpFunctions&lt; AnalysisDomainTy, Container &gt;::printNonEmptyForwardLookup()</a>, <a class="el" href="JumpFunctions_8h_source.html#l00257">psr::JumpFunctions&lt; AnalysisDomainTy, Container &gt;::printNonEmptyLookupByTargetNode()</a>, <a class="el" href="JumpFunctions_8h_source.html#l00227">psr::JumpFunctions&lt; AnalysisDomainTy, Container &gt;::printNonEmptyReverseLookup()</a>, <a class="el" href="IDESolver_8h_source.html#l00476">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::processCall()</a>, <a class="el" href="IDESolver_8h_source.html#l01268">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::propagate()</a>, <a class="el" href="IDESolver_8h_source.html#l00787">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::setVal()</a>, <a class="el" href="IDESolver_8h_source.html#l00970">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::submitInitialSeeds()</a>, and <a class="el" href="IDESolver_8h_source.html#l00923">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::submitInitialValues()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="JumpFunctions_8h_source.html#l00078">psr::JumpFunctions&lt; AnalysisDomainTy, Container &gt;::addFunction()</a>, <a class="el" href="IDESolver_8h_source.html#l01465">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::computeAndPrintStatistics()</a>, <a class="el" href="InitialSeeds_8h_source.html#l00085">psr::InitialSeeds&lt; N, D, L &gt;::dump()</a>, <a class="el" href="IDESolver_8h_source.html#l01628">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::emitESGAsDot()</a>, <a class="el" href="IDEInstInteractionAnalysis_8h_source.html#l01068">psr::IDEInstInteractionAnalysisT&lt; EdgeFactType, SyntacticAnalysisOnly, EnableIndirectTaints &gt;::emitTextReport()</a>, <a class="el" href="IDESolver_8h_source.html#l00202">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::getAsJson()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00307">psr::FlowEdgeFunctionCache&lt; ProblemTy &gt;::getCallEdgeFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00380">psr::FlowEdgeFunctionCache&lt; ProblemTy &gt;::getCallToRetEdgeFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00276">psr::FlowEdgeFunctionCache&lt; ProblemTy &gt;::getNormalEdgeFunction()</a>, <a class="el" href="IfdsIdeRuleProvider_8h_source.html#l00061">psr::wpds::IfdsIdeRuleProvider&lt; ProblemT, ICFGTy, ComputeWeights &gt;::getNormalRules()</a>, <a class="el" href="IfdsIdeRuleProvider_8h_source.html#l00176">psr::wpds::IfdsIdeRuleProvider&lt; ProblemT, ICFGTy, ComputeWeights &gt;::getPopRules()</a>, <a class="el" href="IfdsIdeRuleProvider_8h_source.html#l00125">psr::wpds::IfdsIdeRuleProvider&lt; ProblemT, ICFGTy, ComputeWeights &gt;::getPushRules()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00343">psr::FlowEdgeFunctionCache&lt; ProblemTy &gt;::getReturnEdgeFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00419">psr::FlowEdgeFunctionCache&lt; ProblemTy &gt;::getSummaryEdgeFunction()</a>, <a class="el" href="IDESolver_8h_source.html#l00805">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::jumpFunction()</a>, <a class="el" href="IDESolver_8h_source.html#l00841">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::pathEdgeProcessingTask()</a>, <a class="el" href="IDESolver_8h_source.html#l01392">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::printComputedPathEdges()</a>, <a class="el" href="IDESolver_8h_source.html#l01370">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::printEndSummaryTab()</a>, <a class="el" href="IDESolver_8h_source.html#l01352">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::printIncomingTab()</a>, <a class="el" href="JumpFunctions_8h_source.html#l00211">psr::JumpFunctions&lt; AnalysisDomainTy, Container &gt;::printJumpFunctions()</a>, <a class="el" href="JumpFunctions_8h_source.html#l00242">psr::JumpFunctions&lt; AnalysisDomainTy, Container &gt;::printNonEmptyForwardLookup()</a>, <a class="el" href="JumpFunctions_8h_source.html#l00257">psr::JumpFunctions&lt; AnalysisDomainTy, Container &gt;::printNonEmptyLookupByTargetNode()</a>, <a class="el" href="JumpFunctions_8h_source.html#l00227">psr::JumpFunctions&lt; AnalysisDomainTy, Container &gt;::printNonEmptyReverseLookup()</a>, <a class="el" href="IDESolver_8h_source.html#l00476">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::processCall()</a>, <a class="el" href="IDESolver_8h_source.html#l01268">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::propagate()</a>, <a class="el" href="IDESolver_8h_source.html#l00787">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::setVal()</a>, <a class="el" href="IDESolver_8h_source.html#l00970">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::submitInitialSeeds()</a>, and <a class="el" href="IDESolver_8h_source.html#l00923">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::submitInitialValues()</a>.</p>
 
 </div>
 </div>
@@ -8087,9 +8091,9 @@ template&lt;std::invocable&lt; const llvm::Value * &gt; HandlerT&gt; </div>
 <li>If <code>V</code> is a ConstantExpr, the expression tree is walked and Handler is called for each GlobalObject leaf. </li>
 </ul>
 
-<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00328">328</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00350">350</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
 
-<p class="reference">References <a class="el" href="LLVMShorthands_8h_source.html#l00304">definitelyContainsNoPointer()</a>.</p>
+<p class="reference">References <a class="el" href="LLVMShorthands_8h_source.html#l00326">definitelyContainsNoPointer()</a>.</p>
 
 </div>
 </div>
@@ -8256,6 +8260,34 @@ template&lt;detail::IsSomehowPrintable F&gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="ac7359ec5dfe7007fc814c68f1b91541d" name="ac7359ec5dfe7007fc814c68f1b91541d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac7359ec5dfe7007fc814c68f1b91541d">&#9670;&#160;</a></span>getBranchConditionOrNull()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const llvm::Value * psr::getBranchConditionOrNull </td>
+          <td>(</td>
+          <td class="paramtype">const llvm::Instruction *&#160;</td>
+          <td class="paramname"><em>Inst</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00514">514</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
 
 </div>
 </div>
@@ -8600,7 +8632,7 @@ requires std::is_default_constructible_v&lt;T&gt;</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00390">390</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00412">412</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
 
 </div>
 </div>
@@ -8628,7 +8660,7 @@ requires std::is_default_constructible_v&lt;T&gt;</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00377">377</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00399">399</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="LLVMRawAAResults_8h_source.html#l00226">psr::LLVMLocalRawAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, <a class="el" href="LLVMRawAAResults_8h_source.html#l00232">psr::LLVMLocalRawAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, <a class="el" href="LLVMRawAAResults_8h_source.html#l00220">psr::LLVMLocalRawAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, and <a class="el" href="LLVMRawAAResults_8h_source.html#l00193">psr::LLVMLocalRawAliasIteratorMixin&lt; Derived, AAResT &gt;::getRawAliasSet()</a>.</p>
 
@@ -8677,7 +8709,7 @@ requires std::is_default_constructible_v&lt;T&gt;</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="IDEInstInteractionAnalysis_8h_source.html#l01064">psr::IDEInstInteractionAnalysisT&lt; EdgeFactType, SyntacticAnalysisOnly, EnableIndirectTaints &gt;::emitTextReport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="IDEInstInteractionAnalysis_8h_source.html#l01068">psr::IDEInstInteractionAnalysisT&lt; EdgeFactType, SyntacticAnalysisOnly, EnableIndirectTaints &gt;::emitTextReport()</a>.</p>
 
 </div>
 </div>
@@ -11340,7 +11372,7 @@ template&lt;typename IdT  = size_t&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="IDEInstInteractionAnalysis_8h_source.html#l01100">psr::IDEInstInteractionAnalysisT&lt; EdgeFactType, SyntacticAnalysisOnly, EnableIndirectTaints &gt;::getAllVariables()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="IDEInstInteractionAnalysis_8h_source.html#l01104">psr::IDEInstInteractionAnalysisT&lt; EdgeFactType, SyntacticAnalysisOnly, EnableIndirectTaints &gt;::getAllVariables()</a>.</p>
 
 </div>
 </div>
@@ -11561,7 +11593,7 @@ template&lt;typename IdT  = size_t&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00410">410</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00432">432</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
 
 <p class="reference">References <a class="el" href="namespacepsr.html#a4d2d980af08e299e8d6cb6b219b78a2d">stripMemberAndTypedef()</a>.</p>
 
@@ -11611,7 +11643,7 @@ template&lt;typename IdT  = size_t&gt; </div>
 
 <p class="definition">Definition at line <a class="el" href="LLVMPointerSemantics_8h_source.html#l00058">58</a> of file <a class="el" href="LLVMPointerSemantics_8h_source.html">LLVMPointerSemantics.h</a>.</p>
 
-<p class="reference">References <a class="el" href="LLVMShorthands_8h_source.html#l00304">definitelyContainsNoPointer()</a>, and <a class="el" href="LLVMPointerSemantics_8h_source.html#l00038">mayHidePointer()</a>.</p>
+<p class="reference">References <a class="el" href="LLVMShorthands_8h_source.html#l00326">definitelyContainsNoPointer()</a>, and <a class="el" href="LLVMPointerSemantics_8h_source.html#l00038">mayHidePointer()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="LLVMPointerSemantics_8h_source.html#l00103">asMemoryAccess()</a>.</p>
 
@@ -11695,7 +11727,7 @@ template&lt;typename IdT  = size_t&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00398">398</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00420">420</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
 
 </div>
 </div>
@@ -11734,6 +11766,34 @@ template&lt;typename IdT  = size_t&gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="a037cabbd1bc8e84167a6e1b5e1a234f6" name="a037cabbd1bc8e84167a6e1b5e1a234f6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a037cabbd1bc8e84167a6e1b5e1a234f6">&#9670;&#160;</a></span>isUnconditionalBranch()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classbool.html">bool</a> psr::isUnconditionalBranch </td>
+          <td>(</td>
+          <td class="paramtype">const llvm::Instruction *&#160;</td>
+          <td class="paramname"><em>Inst</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00502">502</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
 
 </div>
 </div>
@@ -11873,7 +11933,7 @@ template&lt;typename FF &gt; </div>
 
 <p>Same as <a class="el" href="namespacepsr.html#ad5a75f4cae1c54079d849c1581cb3156" title="Returns a string representation of a LLVM Value.">llvmIRToString()</a> but tries to shorten the resulting string. </p>
 
-<p class="reference">Referenced by <a class="el" href="IDEInstInteractionAnalysis_8h_source.html#l00748">psr::IDEInstInteractionAnalysisT&lt; EdgeFactType, SyntacticAnalysisOnly, EnableIndirectTaints &gt;::getNormalEdgeFunction()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="IDEInstInteractionAnalysis_8h_source.html#l00752">psr::IDEInstInteractionAnalysisT&lt; EdgeFactType, SyntacticAnalysisOnly, EnableIndirectTaints &gt;::getNormalEdgeFunction()</a>.</p>
 
 </div>
 </div>
@@ -11915,7 +11975,7 @@ template&lt;typename FF &gt; </div>
 
 <p>Returns a string representation of a LLVM Value. </p>
 
-<p class="reference">Referenced by <a class="el" href="GenericSolverResults_8h_source.html#l00197">checkSREquality()</a>, <a class="el" href="IDEInstInteractionAnalysis_8h_source.html#l00748">psr::IDEInstInteractionAnalysisT&lt; EdgeFactType, SyntacticAnalysisOnly, EnableIndirectTaints &gt;::getNormalEdgeFunction()</a>, <a class="el" href="IDEInstInteractionAnalysis_8h_source.html#l00650">psr::IDEInstInteractionAnalysisT&lt; EdgeFactType, SyntacticAnalysisOnly, EnableIndirectTaints &gt;::getStrongUpdateStoreEF()</a>, <a class="el" href="DebugOutput_8h_source.html#l00041">psr::detail::printHelper()</a>, <a class="el" href="LLVMSolverResults_8h_source.html#l00095">psr::detail::resultAtInLLVMSSAImpl()</a>, and <a class="el" href="LLVMSolverResults_8h_source.html#l00032">psr::detail::resultsAtInLLVMSSAImpl()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="GenericSolverResults_8h_source.html#l00197">checkSREquality()</a>, <a class="el" href="IDEInstInteractionAnalysis_8h_source.html#l00752">psr::IDEInstInteractionAnalysisT&lt; EdgeFactType, SyntacticAnalysisOnly, EnableIndirectTaints &gt;::getNormalEdgeFunction()</a>, <a class="el" href="IDEInstInteractionAnalysis_8h_source.html#l00654">psr::IDEInstInteractionAnalysisT&lt; EdgeFactType, SyntacticAnalysisOnly, EnableIndirectTaints &gt;::getStrongUpdateStoreEF()</a>, <a class="el" href="DebugOutput_8h_source.html#l00041">psr::detail::printHelper()</a>, <a class="el" href="LLVMSolverResults_8h_source.html#l00095">psr::detail::resultAtInLLVMSSAImpl()</a>, and <a class="el" href="LLVMSolverResults_8h_source.html#l00032">psr::detail::resultsAtInLLVMSSAImpl()</a>.</p>
 
 </div>
 </div>
@@ -12130,7 +12190,7 @@ template&lt;typename AAResT &gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="IDEFeatureTaintAnalysis_8h_source.html#l00219">psr::FeatureTaintGenerator::createEdgeFactPrinter()</a>, <a class="el" href="InitialSeeds_8h_source.html#l00085">psr::InitialSeeds&lt; N, D, L &gt;::dump()</a>, <a class="el" href="IDEInstInteractionAnalysis_8h_source.html#l01064">psr::IDEInstInteractionAnalysisT&lt; EdgeFactType, SyntacticAnalysisOnly, EnableIndirectTaints &gt;::emitTextReport()</a>, <a class="el" href="IDESolver_8h_source.html#l00202">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::getAsJson()</a>, <a class="el" href="IDEInstInteractionAnalysis_8h_source.html#l01134">psr::IDEInstInteractionAnalysisT&lt; EdgeFactType, SyntacticAnalysisOnly, EnableIndirectTaints &gt;::printEdgeFactImpl()</a>, <a class="el" href="IDESolver_8h_source.html#l00787">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::setVal()</a>, <a class="el" href="IDEFeatureTaintAnalysis_8h_source.html#l00142">psr::IDEFeatureTaintEdgeFact::str()</a>, <a class="el" href="IDESolver_8h_source.html#l00970">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::submitInitialSeeds()</a>, and <a class="el" href="IDESolver_8h_source.html#l00923">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::submitInitialValues()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="IDEFeatureTaintAnalysis_8h_source.html#l00227">psr::FeatureTaintGenerator::createEdgeFactPrinter()</a>, <a class="el" href="InitialSeeds_8h_source.html#l00085">psr::InitialSeeds&lt; N, D, L &gt;::dump()</a>, <a class="el" href="IDEInstInteractionAnalysis_8h_source.html#l01068">psr::IDEInstInteractionAnalysisT&lt; EdgeFactType, SyntacticAnalysisOnly, EnableIndirectTaints &gt;::emitTextReport()</a>, <a class="el" href="IDESolver_8h_source.html#l00202">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::getAsJson()</a>, <a class="el" href="IDEInstInteractionAnalysis_8h_source.html#l01138">psr::IDEInstInteractionAnalysisT&lt; EdgeFactType, SyntacticAnalysisOnly, EnableIndirectTaints &gt;::printEdgeFactImpl()</a>, <a class="el" href="IDESolver_8h_source.html#l00787">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::setVal()</a>, <a class="el" href="IDEFeatureTaintAnalysis_8h_source.html#l00150">psr::IDEFeatureTaintEdgeFact::str()</a>, <a class="el" href="IDESolver_8h_source.html#l00970">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::submitInitialSeeds()</a>, and <a class="el" href="IDESolver_8h_source.html#l00923">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::submitInitialValues()</a>.</p>
 
 </div>
 </div>
@@ -12684,7 +12744,7 @@ template&lt;detail::IsSomehowPrintable N&gt; </div>
 
 <p class="reference">References <a class="el" href="Printer_8h_source.html#l00033">psr::detail::printSomehow()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="JumpFunctions_8h_source.html#l00078">psr::JumpFunctions&lt; AnalysisDomainTy, Container &gt;::addFunction()</a>, <a class="el" href="IDESolver_8h_source.html#l01465">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::computeAndPrintStatistics()</a>, <a class="el" href="InitialSeeds_8h_source.html#l00085">psr::InitialSeeds&lt; N, D, L &gt;::dump()</a>, <a class="el" href="InterMonoSolver_8h_source.html#l00396">psr::InterMonoSolver&lt; AnalysisDomainTy, K &gt;::dumpResults()</a>, <a class="el" href="IDESolver_8h_source.html#l01628">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::emitESGAsDot()</a>, <a class="el" href="IDEInstInteractionAnalysis_8h_source.html#l01064">psr::IDEInstInteractionAnalysisT&lt; EdgeFactType, SyntacticAnalysisOnly, EnableIndirectTaints &gt;::emitTextReport()</a>, <a class="el" href="IDESolver_8h_source.html#l00202">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::getAsJson()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00307">psr::FlowEdgeFunctionCache&lt; ProblemTy &gt;::getCallEdgeFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00164">psr::FlowEdgeFunctionCache&lt; ProblemTy &gt;::getCallFlowFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00380">psr::FlowEdgeFunctionCache&lt; ProblemTy &gt;::getCallToRetEdgeFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00223">psr::FlowEdgeFunctionCache&lt; ProblemTy &gt;::getCallToRetFlowFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00276">psr::FlowEdgeFunctionCache&lt; ProblemTy &gt;::getNormalEdgeFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00135">psr::FlowEdgeFunctionCache&lt; ProblemTy &gt;::getNormalFlowFunction()</a>, <a class="el" href="IfdsIdeRuleProvider_8h_source.html#l00061">psr::wpds::IfdsIdeRuleProvider&lt; ProblemT, ICFGTy, ComputeWeights &gt;::getNormalRules()</a>, <a class="el" href="IfdsIdeRuleProvider_8h_source.html#l00176">psr::wpds::IfdsIdeRuleProvider&lt; ProblemT, ICFGTy, ComputeWeights &gt;::getPopRules()</a>, <a class="el" href="IfdsIdeRuleProvider_8h_source.html#l00125">psr::wpds::IfdsIdeRuleProvider&lt; ProblemT, ICFGTy, ComputeWeights &gt;::getPushRules()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00192">psr::FlowEdgeFunctionCache&lt; ProblemTy &gt;::getRetFlowFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00343">psr::FlowEdgeFunctionCache&lt; ProblemTy &gt;::getReturnEdgeFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00419">psr::FlowEdgeFunctionCache&lt; ProblemTy &gt;::getSummaryEdgeFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00261">psr::FlowEdgeFunctionCache&lt; ProblemTy &gt;::getSummaryFlowFunction()</a>, <a class="el" href="IDESolver_8h_source.html#l00805">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::jumpFunction()</a>, <a class="el" href="IDESolver_8h_source.html#l00841">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::pathEdgeProcessingTask()</a>, <a class="el" href="CallStringCTX_8h_source.html#l00074">psr::CallStringCTX&lt; N, K &gt;::print()</a>, <a class="el" href="IDESolver_8h_source.html#l01392">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::printComputedPathEdges()</a>, <a class="el" href="IDESolver_8h_source.html#l01370">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::printEndSummaryTab()</a>, <a class="el" href="IDESolver_8h_source.html#l01352">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::printIncomingTab()</a>, <a class="el" href="JumpFunctions_8h_source.html#l00211">psr::JumpFunctions&lt; AnalysisDomainTy, Container &gt;::printJumpFunctions()</a>, <a class="el" href="JumpFunctions_8h_source.html#l00242">psr::JumpFunctions&lt; AnalysisDomainTy, Container &gt;::printNonEmptyForwardLookup()</a>, <a class="el" href="JumpFunctions_8h_source.html#l00257">psr::JumpFunctions&lt; AnalysisDomainTy, Container &gt;::printNonEmptyLookupByTargetNode()</a>, <a class="el" href="JumpFunctions_8h_source.html#l00227">psr::JumpFunctions&lt; AnalysisDomainTy, Container &gt;::printNonEmptyReverseLookup()</a>, <a class="el" href="InterMonoSolver_8h_source.html#l00090">psr::InterMonoSolver&lt; AnalysisDomainTy, K &gt;::printWorkList()</a>, <a class="el" href="IDESolver_8h_source.html#l00476">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::processCall()</a>, <a class="el" href="InterMonoSolver_8h_source.html#l00225">psr::InterMonoSolver&lt; AnalysisDomainTy, K &gt;::processCall()</a>, <a class="el" href="IDESolver_8h_source.html#l01018">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::processExit()</a>, <a class="el" href="InterMonoSolver_8h_source.html#l00289">psr::InterMonoSolver&lt; AnalysisDomainTy, K &gt;::processExit()</a>, <a class="el" href="InterMonoSolver_8h_source.html#l00181">psr::InterMonoSolver&lt; AnalysisDomainTy, K &gt;::processNormal()</a>, <a class="el" href="IDESolver_8h_source.html#l00681">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::processNormalFlow()</a>, <a class="el" href="IDESolver_8h_source.html#l01268">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::propagate()</a>, <a class="el" href="IDESolver_8h_source.html#l00787">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::setVal()</a>, <a class="el" href="IDESolver_8h_source.html#l00970">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::submitInitialSeeds()</a>, and <a class="el" href="IDESolver_8h_source.html#l00923">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::submitInitialValues()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="JumpFunctions_8h_source.html#l00078">psr::JumpFunctions&lt; AnalysisDomainTy, Container &gt;::addFunction()</a>, <a class="el" href="IDESolver_8h_source.html#l01465">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::computeAndPrintStatistics()</a>, <a class="el" href="InitialSeeds_8h_source.html#l00085">psr::InitialSeeds&lt; N, D, L &gt;::dump()</a>, <a class="el" href="InterMonoSolver_8h_source.html#l00396">psr::InterMonoSolver&lt; AnalysisDomainTy, K &gt;::dumpResults()</a>, <a class="el" href="IDESolver_8h_source.html#l01628">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::emitESGAsDot()</a>, <a class="el" href="IDEInstInteractionAnalysis_8h_source.html#l01068">psr::IDEInstInteractionAnalysisT&lt; EdgeFactType, SyntacticAnalysisOnly, EnableIndirectTaints &gt;::emitTextReport()</a>, <a class="el" href="IDESolver_8h_source.html#l00202">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::getAsJson()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00307">psr::FlowEdgeFunctionCache&lt; ProblemTy &gt;::getCallEdgeFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00164">psr::FlowEdgeFunctionCache&lt; ProblemTy &gt;::getCallFlowFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00380">psr::FlowEdgeFunctionCache&lt; ProblemTy &gt;::getCallToRetEdgeFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00223">psr::FlowEdgeFunctionCache&lt; ProblemTy &gt;::getCallToRetFlowFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00276">psr::FlowEdgeFunctionCache&lt; ProblemTy &gt;::getNormalEdgeFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00135">psr::FlowEdgeFunctionCache&lt; ProblemTy &gt;::getNormalFlowFunction()</a>, <a class="el" href="IfdsIdeRuleProvider_8h_source.html#l00061">psr::wpds::IfdsIdeRuleProvider&lt; ProblemT, ICFGTy, ComputeWeights &gt;::getNormalRules()</a>, <a class="el" href="IfdsIdeRuleProvider_8h_source.html#l00176">psr::wpds::IfdsIdeRuleProvider&lt; ProblemT, ICFGTy, ComputeWeights &gt;::getPopRules()</a>, <a class="el" href="IfdsIdeRuleProvider_8h_source.html#l00125">psr::wpds::IfdsIdeRuleProvider&lt; ProblemT, ICFGTy, ComputeWeights &gt;::getPushRules()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00192">psr::FlowEdgeFunctionCache&lt; ProblemTy &gt;::getRetFlowFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00343">psr::FlowEdgeFunctionCache&lt; ProblemTy &gt;::getReturnEdgeFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00419">psr::FlowEdgeFunctionCache&lt; ProblemTy &gt;::getSummaryEdgeFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00261">psr::FlowEdgeFunctionCache&lt; ProblemTy &gt;::getSummaryFlowFunction()</a>, <a class="el" href="IDESolver_8h_source.html#l00805">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::jumpFunction()</a>, <a class="el" href="IDESolver_8h_source.html#l00841">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::pathEdgeProcessingTask()</a>, <a class="el" href="CallStringCTX_8h_source.html#l00074">psr::CallStringCTX&lt; N, K &gt;::print()</a>, <a class="el" href="IDESolver_8h_source.html#l01392">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::printComputedPathEdges()</a>, <a class="el" href="IDESolver_8h_source.html#l01370">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::printEndSummaryTab()</a>, <a class="el" href="IDESolver_8h_source.html#l01352">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::printIncomingTab()</a>, <a class="el" href="JumpFunctions_8h_source.html#l00211">psr::JumpFunctions&lt; AnalysisDomainTy, Container &gt;::printJumpFunctions()</a>, <a class="el" href="JumpFunctions_8h_source.html#l00242">psr::JumpFunctions&lt; AnalysisDomainTy, Container &gt;::printNonEmptyForwardLookup()</a>, <a class="el" href="JumpFunctions_8h_source.html#l00257">psr::JumpFunctions&lt; AnalysisDomainTy, Container &gt;::printNonEmptyLookupByTargetNode()</a>, <a class="el" href="JumpFunctions_8h_source.html#l00227">psr::JumpFunctions&lt; AnalysisDomainTy, Container &gt;::printNonEmptyReverseLookup()</a>, <a class="el" href="InterMonoSolver_8h_source.html#l00090">psr::InterMonoSolver&lt; AnalysisDomainTy, K &gt;::printWorkList()</a>, <a class="el" href="IDESolver_8h_source.html#l00476">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::processCall()</a>, <a class="el" href="InterMonoSolver_8h_source.html#l00225">psr::InterMonoSolver&lt; AnalysisDomainTy, K &gt;::processCall()</a>, <a class="el" href="IDESolver_8h_source.html#l01018">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::processExit()</a>, <a class="el" href="InterMonoSolver_8h_source.html#l00289">psr::InterMonoSolver&lt; AnalysisDomainTy, K &gt;::processExit()</a>, <a class="el" href="InterMonoSolver_8h_source.html#l00181">psr::InterMonoSolver&lt; AnalysisDomainTy, K &gt;::processNormal()</a>, <a class="el" href="IDESolver_8h_source.html#l00681">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::processNormalFlow()</a>, <a class="el" href="IDESolver_8h_source.html#l01268">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::propagate()</a>, <a class="el" href="IDESolver_8h_source.html#l00787">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::setVal()</a>, <a class="el" href="IDESolver_8h_source.html#l00970">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::submitInitialSeeds()</a>, and <a class="el" href="IDESolver_8h_source.html#l00923">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::submitInitialValues()</a>.</p>
 
 </div>
 </div>
@@ -13939,7 +13999,7 @@ template&lt;typename T &gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TypeTraits_8h_source.html#l00275">275</a> of file <a class="el" href="TypeTraits_8h_source.html">TypeTraits.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TypeTraits_8h_source.html#l00277">277</a> of file <a class="el" href="TypeTraits_8h_source.html">TypeTraits.h</a>.</p>
 
 </div>
 </div>
@@ -14346,7 +14406,7 @@ template&lt;typename CompareFn  = std::less&lt;&gt;&gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="LLVMShorthands_8h_source.html#l00410">isPointerTy()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="LLVMShorthands_8h_source.html#l00432">isPointerTy()</a>.</p>
 
 </div>
 </div>
@@ -14567,7 +14627,7 @@ template&lt;<a class="el" href="classsize__t.html">size_t</a> N&gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="TypeTraits_8h_source.html#l00282">adl_to_string()</a>, <a class="el" href="IDESolver_8h_source.html#l01628">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::emitESGAsDot()</a>, <a class="el" href="PointerAssignmentGraph_8h_source.html#l00290">psr::pag::TracingPBStrategy::onAddEdge()</a>, <a class="el" href="AnalysisProperties_8h_source.html#l00028">operator&lt;&lt;()</a>, and <a class="el" href="CSTDFILEIOTypeStateDescription_8h_source.html#l00033">operator&lt;&lt;()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="TypeTraits_8h_source.html#l00284">adl_to_string()</a>, <a class="el" href="IDESolver_8h_source.html#l01628">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::emitESGAsDot()</a>, <a class="el" href="PointerAssignmentGraph_8h_source.html#l00290">psr::pag::TracingPBStrategy::onAddEdge()</a>, <a class="el" href="AnalysisProperties_8h_source.html#l00028">operator&lt;&lt;()</a>, and <a class="el" href="CSTDFILEIOTypeStateDescription_8h_source.html#l00033">operator&lt;&lt;()</a>.</p>
 
 </div>
 </div>
@@ -15746,7 +15806,7 @@ template&lt;typename G , <a class="el" href="classbool.html">bool</a> Iterative 
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="EntryPointUtils_8h_source.html#l00103">addSeedsForStartingPoints()</a>, <a class="el" href="EntryPointUtils_8h_source.html#l00076">addSeedsForStartingPoints()</a>, <a class="el" href="EntryPointUtils_8h_source.html#l00114">addSeedsForStartingPoints()</a>, <a class="el" href="EntryPointUtils_8h_source.html#l00089">addSeedsForStartingPoints()</a>, <a class="el" href="EntryPointUtils_8h_source.html#l00026">psr::detail::forallStartingPoints()</a>, <a class="el" href="EntryPointUtils_8h_source.html#l00060">forallStartingPoints()</a>, <a class="el" href="EntryPointUtils_8h_source.html#l00067">forallStartingPoints()</a>, <a class="el" href="EntryPointUtils_8h_source.html#l00042">psr::detail::forallStartingPoints()</a>, <a class="el" href="PhasarLLVM_2HelperAnalyses_8h_source.html#l00083">psr::HelperAnalyses::getEntryPoints()</a>, <a class="el" href="IntraMonoSolver_8h_source.html#l00054">psr::IntraMonoSolver&lt; AnalysisDomainTy &gt;::initialize()</a>, and <a class="el" href="IDEInstInteractionAnalysis_8h_source.html#l00612">psr::IDEInstInteractionAnalysisT&lt; EdgeFactType, SyntacticAnalysisOnly, EnableIndirectTaints &gt;::initialSeeds()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="EntryPointUtils_8h_source.html#l00103">addSeedsForStartingPoints()</a>, <a class="el" href="EntryPointUtils_8h_source.html#l00076">addSeedsForStartingPoints()</a>, <a class="el" href="EntryPointUtils_8h_source.html#l00114">addSeedsForStartingPoints()</a>, <a class="el" href="EntryPointUtils_8h_source.html#l00089">addSeedsForStartingPoints()</a>, <a class="el" href="EntryPointUtils_8h_source.html#l00026">psr::detail::forallStartingPoints()</a>, <a class="el" href="EntryPointUtils_8h_source.html#l00060">forallStartingPoints()</a>, <a class="el" href="EntryPointUtils_8h_source.html#l00067">forallStartingPoints()</a>, <a class="el" href="EntryPointUtils_8h_source.html#l00042">psr::detail::forallStartingPoints()</a>, <a class="el" href="PhasarLLVM_2HelperAnalyses_8h_source.html#l00083">psr::HelperAnalyses::getEntryPoints()</a>, <a class="el" href="IntraMonoSolver_8h_source.html#l00054">psr::IntraMonoSolver&lt; AnalysisDomainTy &gt;::initialize()</a>, and <a class="el" href="IDEInstInteractionAnalysis_8h_source.html#l00616">psr::IDEInstInteractionAnalysisT&lt; EdgeFactType, SyntacticAnalysisOnly, EnableIndirectTaints &gt;::initialSeeds()</a>.</p>
 
 </div>
 </div>
@@ -15800,8 +15860,10 @@ template&lt;typename T &gt; </div>
 </table>
 </div><div class="memdoc">
 <b>Initial value:</b><div class="fragment"><div class="line">= <span class="keyword">requires</span>(<span class="keyword">const</span> T &amp;Val) {</div>
+<div class="line"> </div>
 <div class="line">  { llvm::DenseMapInfo&lt;T&gt;::getEmptyKey() } -&gt; std::same_as&lt;T&gt;;</div>
 <div class="line">  { llvm::DenseMapInfo&lt;T&gt;::getTombstoneKey() } -&gt; std::same_as&lt;T&gt;;</div>
+<div class="line"> </div>
 <div class="line">  { llvm::DenseMapInfo&lt;T&gt;::getHashValue(Val) } -&gt; std::convertible_to&lt;size_t&gt;;</div>
 <div class="line">  { llvm::DenseMapInfo&lt;T&gt;::isEqual(Val, Val) } -&gt; std::convertible_to&lt;bool&gt;;</div>
 <div class="line">}</div>
@@ -15863,7 +15925,7 @@ template&lt;typename T &gt; </div>
 <div class="line">    std::is_trivially_copyable_v&lt;T&gt;</div>
 </div><!-- fragment --><p>True if T can be relocated by copying its bytes (e.g. via memcpy) without invoking the move constructor or destructor on the source. Uses Clang's builtin trait when available (P1144 / P2786), which covers types like std::unique_ptr that are trivially relocatable but not trivially copyable. Falls back to std::is_trivially_copyable_v on other compilers. </p>
 
-<p class="definition">Definition at line <a class="el" href="TypeTraits_8h_source.html#l00311">311</a> of file <a class="el" href="TypeTraits_8h_source.html">TypeTraits.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TypeTraits_8h_source.html#l00313">313</a> of file <a class="el" href="TypeTraits_8h_source.html">TypeTraits.h</a>.</p>
 
 </div>
 </div>
@@ -15988,14 +16050,14 @@ template&lt;typename Var , typename T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TypeTraits_8h_source.html#l00237">237</a> of file <a class="el" href="TypeTraits_8h_source.html">TypeTraits.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TypeTraits_8h_source.html#l00239">239</a> of file <a class="el" href="TypeTraits_8h_source.html">TypeTraits.h</a>.</p>
 
 </div>
 </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Nov 7 2026 12:32:12 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sun Nov 8 2026 12:22:03 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

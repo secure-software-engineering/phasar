@@ -102,6 +102,7 @@ $(function() {
 <code>#include &quot;llvm/IR/DebugInfoMetadata.h&quot;</code><br />
 <code>#include &quot;llvm/IR/GlobalObject.h&quot;</code><br />
 <code>#include &quot;llvm/IR/Instruction.h&quot;</code><br />
+<code>#include &quot;llvm/IR/Instructions.h&quot;</code><br />
 <code>#include &quot;llvm/IR/Type.h&quot;</code><br />
 <code>#include &quot;llvm/Support/Casting.h&quot;</code><br />
 <code>#include &lt;concepts&gt;</code><br />
@@ -257,11 +258,15 @@ Functions</h2></td></tr>
 <tr class="separator:a03415155db9f1bbab43632f0135bd1ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0ad874a190afec188e3ea187ab861870" id="r_a0ad874a190afec188e3ea187ab861870"><td class="memItemLeft" align="right" valign="top">const llvm::Function *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a0ad874a190afec188e3ea187ab861870">psr::walkConstInitPath</a> (const llvm::Constant *Init, llvm::ArrayRef&lt; uint64_t &gt; Indices)</td></tr>
 <tr class="separator:a0ad874a190afec188e3ea187ab861870"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a037cabbd1bc8e84167a6e1b5e1a234f6" id="r_a037cabbd1bc8e84167a6e1b5e1a234f6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a037cabbd1bc8e84167a6e1b5e1a234f6">psr::isUnconditionalBranch</a> (const llvm::Instruction *Inst) noexcept</td></tr>
+<tr class="separator:a037cabbd1bc8e84167a6e1b5e1a234f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac7359ec5dfe7007fc814c68f1b91541d" id="r_ac7359ec5dfe7007fc814c68f1b91541d"><td class="memItemLeft" align="right" valign="top">const llvm::Value *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#ac7359ec5dfe7007fc814c68f1b91541d">psr::getBranchConditionOrNull</a> (const llvm::Instruction *Inst) noexcept</td></tr>
+<tr class="separator:ac7359ec5dfe7007fc814c68f1b91541d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Nov 7 2026 12:32:12 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sun Nov 8 2026 12:22:03 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
