@@ -81,7 +81,7 @@ template <> struct DenseMapInfo<psr::vta::TAGNode> {
   using Variable = psr::vta::Variable;
   using Field = psr::vta::Field;
   using Return = psr::vta::Return;
-
+#if LLVM_VERSION_MAJOR < 23
   inline static TAGNode getEmptyKey() noexcept {
     return {Variable{llvm::DenseMapInfo<const llvm::Value *>::getEmptyKey()}};
   }
@@ -89,6 +89,7 @@ template <> struct DenseMapInfo<psr::vta::TAGNode> {
     return {
         Variable{llvm::DenseMapInfo<const llvm::Value *>::getTombstoneKey()}};
   }
+#endif
   inline static bool isEqual(TAGNode L, TAGNode R) noexcept { return L == R; }
   inline static auto getHashValue(TAGNode TN) noexcept {
     if (const auto *Var = std::get_if<Variable>(&TN.Label)) {

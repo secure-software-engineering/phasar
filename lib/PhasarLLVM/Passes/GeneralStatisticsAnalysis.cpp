@@ -112,7 +112,11 @@ GeneralStatisticsAnalysis::runOnModule(const llvm::Module &M) {
         if (llvm::isa<llvm::PHINode>(I)) {
           ++Stats.PhiNodes;
         }
+#if LLVM_VERSION_MAJOR >= 23
+        if (llvm::isa<llvm::UncondBrInst, llvm::CondBrInst>(I)) {
+#else
         if (llvm::isa<llvm::BranchInst>(I)) {
+#endif
           ++Stats.Branches;
         }
         if (llvm::isa<llvm::SwitchInst>(I)) {

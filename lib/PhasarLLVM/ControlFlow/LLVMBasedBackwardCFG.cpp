@@ -12,6 +12,7 @@
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 
 #include "llvm/IR/Instructions.h"
+#include "llvm/Support/Casting.h"
 
 namespace psr {
 
@@ -47,7 +48,7 @@ auto LLVMBasedBackwardCFG::getPredsOfImpl(n_t Inst) const
   return this->base_t::getSuccsOfImpl(Inst);
 }
 
-auto LLVMBasedBackwardCFG ::getSuccsOfImpl(n_t Inst) const
+auto LLVMBasedBackwardCFG::getSuccsOfImpl(n_t Inst) const
     -> llvm::SmallVector<n_t, 2> {
   if (BackwardRetToFunction.count(Inst)) {
     return {};
@@ -63,7 +64,7 @@ auto LLVMBasedBackwardCFG ::getSuccsOfImpl(n_t Inst) const
   return Ret;
 }
 
-auto LLVMBasedBackwardCFG ::getAllControlFlowEdgesImpl(f_t Fun) const
+auto LLVMBasedBackwardCFG::getAllControlFlowEdgesImpl(f_t Fun) const
     -> std::vector<std::pair<n_t, n_t>> {
   std::vector<std::pair<const llvm::Instruction *, const llvm::Instruction *>>
       Edges;
@@ -90,37 +91,49 @@ auto LLVMBasedBackwardCFG ::getAllControlFlowEdgesImpl(f_t Fun) const
   return Edges;
 }
 
-auto LLVMBasedBackwardCFG ::getStartPointsOfImpl(f_t Fun) const
+auto LLVMBasedBackwardCFG::getStartPointsOfImpl(f_t Fun) const
     -> llvm::SmallVector<n_t, 2> {
   return this->base_t::getExitPointsOfImpl(Fun);
 }
 
-auto LLVMBasedBackwardCFG ::getExitPointsOfImpl(f_t Fun) const
+auto LLVMBasedBackwardCFG::getExitPointsOfImpl(f_t Fun) const
     -> llvm::SmallVector<n_t, 2> {
   return BackwardRets.empty()
              ? this->base_t::getStartPointsOfImpl(Fun)
              : llvm::SmallVector<n_t, 2>{BackwardRets.lookup(Fun)};
 }
 
-bool LLVMBasedBackwardCFG ::isExitInstImpl(n_t Inst) const noexcept {
+bool LLVMBasedBackwardCFG::isExitInstImpl(n_t Inst) const noexcept {
   return BackwardRetToFunction.empty() ? this->base_t::isStartPointImpl(Inst)
                                        : BackwardRetToFunction.count(Inst);
 }
 
-bool LLVMBasedBackwardCFG ::isStartPointImpl(n_t Inst) const noexcept {
+bool LLVMBasedBackwardCFG::isStartPointImpl(n_t Inst) const noexcept {
   return this->base_t::isExitInstImpl(Inst);
 }
 
-bool LLVMBasedBackwardCFG ::isFallThroughSuccessorImpl(
+bool LLVMBasedBackwardCFG::isFallThroughSuccessorImpl(
     n_t /*Inst*/, n_t /*Succ*/) const noexcept {
   assert(false && "FallThrough not valid in LLVM IR");
   return false;
 }
-bool LLVMBasedBackwardCFG ::isBranchTargetImpl(n_t Inst,
-                                               n_t Succ) const noexcept {
-  if (const auto *B = llvm::dyn_cast<llvm::BranchInst>(Succ)) {
+bool LLVMBasedBackwardCFG::isBranchTargetImpl(n_t Inst,
+                                              n_t Succ) const noexcept {
+#if LLVM_VERSION_MAJOR >= 23
+  if (const auto *Br = llvm::dyn_cast<llvm::UncondBrInst>(Succ)) {
+    return Inst == &Br->getSuccessor()->front();
+  }
+#endif
+
+  if (const auto *B = llvm::dyn_cast<
+#if LLVM_VERSION_MAJOR >= 23
+          llvm::CondBrInst
+#else
+          llvm::BranchInst
+#endif
+          >(Succ)) {
     for (const auto *BB : B->successors()) {
-      if (Inst == &(BB->front())) {
+      if (Inst == &BB->front()) {
         return true;
       }
     }

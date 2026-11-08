@@ -72,12 +72,15 @@ struct DummyFieldSensitiveAbstractObject {
 };
 struct DFSAODenseMapInfo {
   using o_t = DummyFieldSensitiveAbstractObject;
+
+#if LLVM_VERSION_MAJOR < 23
   static o_t getEmptyKey() noexcept {
     return {llvm::DenseMapInfo<const llvm::Value *>::getEmptyKey(), {}};
   }
   static o_t getTombstoneKey() noexcept {
     return {llvm::DenseMapInfo<const llvm::Value *>::getTombstoneKey(), {}};
   }
+#endif
   static auto getHashValue(ByConstRef<o_t> Obj) noexcept {
     return llvm::hash_combine(Obj.V, Obj.AccessPath[0], Obj.AccessPath[1],
                               Obj.AccessPath[2]);

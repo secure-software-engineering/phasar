@@ -22,10 +22,17 @@ auto LLVMPathConstraints::internalGetConstraintAndVariablesFromEdge(
     const llvm::Instruction *From, const llvm::Instruction *To)
     -> std::optional<ConstraintAndVariables> {
   LLVMBasedCFG CF(IgnoreDebugInstructions);
+#if LLVM_VERSION_MAJOR >= 23
+  const auto *BI = llvm::dyn_cast<llvm::CondBrInst>(From);
+  if (!BI) {
+    return std::nullopt;
+  }
+#else
   const auto *BI = llvm::dyn_cast<llvm::BranchInst>(From);
   if (!BI || !BI->isConditional()) {
     return std::nullopt;
   }
+#endif
 
 #if LLVM_VERSION_MAJOR <= 18
   if (IgnoreDebugInstructions) {
@@ -158,18 +165,21 @@ auto LLVMPathConstraints::handlePhiInstruction(const llvm::PHINode *Phi)
   return Z3Expr.try_emplace(Phi, CAV).first->second;
 }
 
-auto LLVMPathConstraints::handleCondBrInst(const llvm::BranchInst *Br,
-                                           const llvm::Instruction *Succ)
-    -> ConstraintAndVariables {
+auto LLVMPathConstraints::handleCondBrInst(
+#if LLVM_VERSION_MAJOR >= 23
+    const llvm::CondBrInst *Br,
+#else
+    const llvm::BranchInst *Br,
+#endif
+    const llvm::Instruction *Succ) -> ConstraintAndVariables {
   // llvm::outs() << "handleCondBrInst\n";
   auto Search = Z3Expr.find(Br);
   if (Search != Z3Expr.end()) {
     return Search->second;
   }
   const auto *Cond = Br->getCondition();
-  // yes, the true label is indeed operand 2
-  const auto *IfTrue = llvm::dyn_cast<llvm::BasicBlock>(Br->getOperand(2));
-  const auto *IfFalse = llvm::dyn_cast<llvm::BasicBlock>(Br->getOperand(1));
+  const auto *IfTrue = Br->getSuccessor(0);
+  const auto *IfFalse = Br->getSuccessor(1);
 
   auto GetFirstInst = [IgnoreDebugInstructions{IgnoreDebugInstructions}](
                           const llvm::BasicBlock *BB) {
@@ -178,6 +188,8 @@ auto LLVMPathConstraints::handleCondBrInst(const llvm::BranchInst *Br,
     if (IgnoreDebugInstructions && llvm::isa<llvm::DbgInfoIntrinsic>(Ret)) {
       Ret = Ret->getNextNonDebugInstruction(false);
     }
+#else
+    (void)IgnoreDebugInstructions;
 #endif
     return Ret;
   };

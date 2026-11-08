@@ -34,12 +34,12 @@ public:
 
   // Passed AI should already be FilteredAliasSet or similar
   explicit AliasCache(
-      LLVMAliasIteratorRef AI PSR_LIFETIME_CAPTURE_BY(this),
+      LLVMAliasIteratorRef AI PSR_LIFETIMEBOUND,
       llvm::function_ref<bool(const llvm::Value *)> SkipSeedsCallBack
-          PSR_LIFETIME_CAPTURE_BY(this),
+          PSR_LIFETIMEBOUND,
       const UsedGlobalsHolder<const llvm::GlobalVariable *>::GlobalSet
-          *PermittedGlobals PSR_LIFETIME_CAPTURE_BY(this),
-      std::pmr::memory_resource *MRes PSR_LIFETIME_CAPTURE_BY(this))
+          *PermittedGlobals PSR_LIFETIMEBOUND,
+      std::pmr::memory_resource *MRes PSR_LIFETIMEBOUND)
       : AI(AI), SkipSeedsCallBack(SkipSeedsCallBack),
         PermittedGlobals(&assertNotNull(PermittedGlobals)),
         Cache(&assertNotNull(MRes)) {}
