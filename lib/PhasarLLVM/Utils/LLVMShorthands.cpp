@@ -81,6 +81,27 @@ bool psr::isHeapAllocatingFunction(const llvm::Function *Fun) noexcept {
   return isHeapAllocatingFunction(FunName);
 }
 
+std::pair<const llvm::Value *, int32_t>
+psr::getBaseAndOffset(const llvm::Value *V, const llvm::DataLayout &DL) {
+  static constexpr int32_t TopOffset = INT32_MIN;
+
+  llvm::APInt Offset(64, 0);
+  const auto *Base = V->stripAndAccumulateConstantOffsets(
+      DL, Offset, /*AllowNonInbounds=*/true);
+
+  if (llvm::isa<llvm::GEPOperator>(Base)) {
+    // non-constant GEP
+    return {Base->stripPointerCastsAndAliases(), TopOffset};
+  }
+
+  auto RawOffsVal = Offset.getSExtValue();
+  auto OffsVal = RawOffsVal <= INT32_MAX && RawOffsVal >= INT32_MIN
+                     ? int32_t(RawOffsVal)
+                     : TopOffset;
+
+  return {Base->stripPointerCastsAndAliases(), OffsVal};
+}
+
 // For C-style polymorphism we need to check whether a callee candidate would
 // be able to sanely access the formal argument.
 static bool isTypeMatchForFunctionArgument(llvm::Type *Actual,

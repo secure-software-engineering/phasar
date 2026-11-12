@@ -3,9 +3,13 @@
 #include "phasar/Config/Configuration.h"
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/IotaIterator.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Macros.h"
 
+#include "llvm/ADT/DenseSet.h"
+#include "llvm/ADT/STLExtras.h"
+#include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/IR/AssemblyAnnotationWriter.h"
 #include "llvm/IR/GlobalVariable.h"
@@ -19,6 +23,7 @@
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/WithColor.h"
 
+#include <algorithm>
 #include <charconv>
 #include <memory>
 #include <system_error>
@@ -165,6 +170,7 @@ void LLVMProjectIRDB::initInstructionIds() {
 
 /// We really don't need an LLVM Pass for this...
 void LLVMProjectIRDB::preprocessModule(llvm::Module *NonConstMod) {
+  IsPreprocessed = true;
   size_t Id = 0;
   auto &Context = NonConstMod->getContext();
   for (auto &Global : NonConstMod->globals()) {
@@ -338,6 +344,86 @@ void LLVMProjectIRDB::insertFunction(llvm::Function *F, bool DoPreprocessing) {
       ++Id;
     }
   }
+  assert(InstToId.size() == IdToInst.size());
+}
+
+void LLVMProjectIRDB::updateInstructionIds() {
+  assert(isValid());
+
+  llvm::DenseSet<const llvm::Value *> Present;
+  for (const auto &Fun : *Mod) {
+    for (const auto &Inst : llvm::instructions(Fun)) {
+      Present.insert(&Inst);
+    }
+  }
+
+  // Removed instructions are dangling, so only compare their addresses
+  llvm::SmallVector<size_t> FreeIds;
+  for (auto Id : psr::iota<size_t>(IdToInst.size())) {
+    if (!Present.contains(IdToInst[Id])) {
+      InstToId.erase(IdToInst[Id]);
+      IdToInst[Id] = nullptr;
+      FreeIds.push_back(Id);
+    }
+  }
+
+  // Hand out the smallest free ids first
+  std::ranges::reverse(FreeIds);
+
+  for (const auto &Fun : *Mod) {
+    for (const auto &Inst : llvm::instructions(Fun)) {
+      auto [It, Inserted] = InstToId.try_emplace(&Inst, 0);
+      if (!Inserted) {
+        continue;
+      }
+      if (FreeIds.empty()) {
+        It->second = IdToInst.size();
+        IdToInst.push_back(&Inst);
+      } else {
+        It->second = FreeIds.pop_back_val();
+        IdToInst[It->second] = &Inst;
+      }
+    }
+  }
+
+  // More instructions were removed than added: move the highest ids into the
+  // remaining holes
+  std::ranges::reverse(FreeIds);
+  for (auto Hole : FreeIds) {
+    while (IdToInst.size() > IdOffset && IdToInst.back() == nullptr) {
+      IdToInst.pop_back();
+    }
+    if (Hole >= IdToInst.size()) {
+      break;
+    }
+    const auto *Inst = IdToInst.pop_back_val();
+    IdToInst[Hole] = Inst;
+    InstToId[Inst] = Hole;
+  }
+  while (IdToInst.size() > IdOffset && IdToInst.back() == nullptr) {
+    IdToInst.pop_back();
+  }
+
+  if (IsPreprocessed) {
+    auto &Context = Mod->getContext();
+    for (auto &Fun : *Mod) {
+      for (auto &Inst : llvm::instructions(Fun)) {
+        auto IdStr = std::to_string(InstToId.lookup(&Inst));
+        // Also covers instructions that were cloned together with their id or
+        // that reuse the address of a removed instruction
+        const auto *Node = Inst.getMetadata(PhasarConfig::MetaDataKind());
+        if (!Node ||
+            llvm::cast<llvm::MDString>(Node->getOperand(0))->getString() !=
+                IdStr) {
+          Inst.setMetadata(
+              PhasarConfig::MetaDataKind(),
+              llvm::MDNode::get(Context, llvm::MDString::get(Context, IdStr)));
+        }
+      }
+    }
+  }
+
+  ModulesToSlotTracker::updateMSTForModule(Mod.get());
   assert(InstToId.size() == IdToInst.size());
 }
 

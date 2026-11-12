@@ -44,6 +44,14 @@ public:
   static constexpr llvm::StringLiteral NonDetValuePrefix =
       "__psrCRuntimeNonDetValue";
 
+  static constexpr llvm::StringLiteral QuickExitCallerName =
+      "__psrQuickExitCaller";
+
+  /// A global that a registration (on_exit, __cxa_atexit) fills with the
+  /// non-constant argument its exit handler gets
+  static constexpr llvm::StringLiteral ExitHandlerArgName =
+      "__psrExitHandlerArg";
+
   /// @brief Function that creates a new global model and inserts it into the
   /// IRDB. The returned function is the global model that was inserted.
   /// @param[in, out] IRDB IR database that will have the global model
