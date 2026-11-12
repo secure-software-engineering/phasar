@@ -234,6 +234,143 @@ TEST(LLVMBasedICFGExternCallbackTest, CallbackAttributeIndirect) {
                        /*ExpectIndirectCallbackCall*/ true);
 }
 
+TEST(LLVMBasedICFGExternCallbackTest, Qsort) {
+  doExternCallbackTest("call_graphs/extern_callback_qsort_c.ll", "qsort", "cmp",
+                       /*ExpectIndirectCallbackCall*/ false,
+                       /*ExpectedCallbackArgs*/ 2);
+}
+
+TEST(LLVMBasedICFGExternCallbackTest, QsortPassesArrayElements) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "call_graphs/extern_callback_qsort_c.ll");
+  ASSERT_EQ(1U, ExternCallbackModel::rewriteCalls(IRDB));
+  const auto *Model = getGeneratedModel(IRDB, "qsort");
+  ASSERT_NE(nullptr, Model);
+  const auto *Cmp = IRDB.getFunctionDefinition("cmp");
+  ASSERT_NE(nullptr, Cmp);
+
+  const llvm::CallBase *CallbackCall = nullptr;
+  for (const auto &Inst : llvm::instructions(Model)) {
+    if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(&Inst);
+        Call && Call->getCalledFunction() == Cmp) {
+      CallbackCall = Call;
+    }
+  }
+  ASSERT_NE(nullptr, CallbackCall);
+  // Each argument is base + nmemb * sizeof(int): any element of the array
+  for (const auto &Arg : CallbackCall->args()) {
+    const auto *Elem = llvm::dyn_cast<llvm::GetElementPtrInst>(Arg.get());
+    ASSERT_NE(nullptr, Elem);
+    EXPECT_EQ(Model->getArg(0), Elem->getPointerOperand());
+    EXPECT_EQ(Model->getArg(1), Elem->getOperand(1));
+    const auto *ElemTy =
+        llvm::dyn_cast<llvm::ArrayType>(Elem->getSourceElementType());
+    ASSERT_NE(nullptr, ElemTy);
+    EXPECT_EQ(sizeof(int), ElemTy->getNumElements());
+  }
+}
+
+TEST(LLVMBasedICFGExternCallbackTest, SearchBrokers) {
+  constexpr llvm::StringLiteral File =
+      "call_graphs/extern_callback_search_c.ll";
+  doExternCallbackTest(File, "bsearch", "cmpB", false, 2);
+  doExternCallbackTest(File, "lfind", "cmpL", false, 2);
+  doExternCallbackTest(File, "qsort_r", "cmpR", false, 3);
+}
+
+TEST(LLVMBasedICFGExternCallbackTest, LfindLoadsTheCount) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "call_graphs/extern_callback_search_c.ll");
+  ASSERT_EQ(3U, ExternCallbackModel::rewriteCalls(IRDB));
+  const auto *Model = getGeneratedModel(IRDB, "lfind");
+  ASSERT_NE(nullptr, Model);
+  const auto *Cmp = IRDB.getFunctionDefinition("cmpL");
+  ASSERT_NE(nullptr, Cmp);
+  const llvm::CallBase *CallbackCall = nullptr;
+  for (const auto &Inst : llvm::instructions(Model)) {
+    if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(&Inst);
+        Call && Call->getCalledFunction() == Cmp) {
+      CallbackCall = Call;
+    }
+  }
+  ASSERT_NE(nullptr, CallbackCall);
+  // cmpL(key, base + *nmemp * size)
+  EXPECT_EQ(Model->getArg(0), CallbackCall->getArgOperand(0));
+  const auto *Elem =
+      llvm::dyn_cast<llvm::GetElementPtrInst>(CallbackCall->getArgOperand(1));
+  ASSERT_NE(nullptr, Elem);
+  EXPECT_EQ(Model->getArg(1), Elem->getPointerOperand());
+  const auto *Count = llvm::dyn_cast<llvm::LoadInst>(Elem->getOperand(1));
+  ASSERT_NE(nullptr, Count);
+  EXPECT_EQ(Model->getArg(2), Count->getPointerOperand());
+}
+
+TEST(LLVMBasedICFGExternCallbackTest, Scandir) {
+  constexpr llvm::StringLiteral File =
+      "call_graphs/extern_callback_scandir_c.ll";
+  doExternCallbackTest(File, "scandir", "keep");
+  doExternCallbackTest(File, "scandir", "byName", false, 2);
+}
+
+TEST(LLVMBasedICFGExternCallbackTest, ScandirPassesListEntries) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "call_graphs/extern_callback_scandir_c.ll");
+  ASSERT_EQ(1U, ExternCallbackModel::rewriteCalls(IRDB));
+  const auto *Model = getGeneratedModel(IRDB, "scandir");
+  ASSERT_NE(nullptr, Model);
+  const auto *Keep = IRDB.getFunctionDefinition("keep");
+  const auto *ByName = IRDB.getFunctionDefinition("byName");
+  ASSERT_NE(nullptr, Keep);
+  ASSERT_NE(nullptr, ByName);
+
+  const llvm::CallBase *Broker = nullptr;
+  const llvm::CallBase *KeepCall = nullptr;
+  const llvm::CallBase *ByNameCall = nullptr;
+  for (const auto &Inst : llvm::instructions(Model)) {
+    const auto *Call = llvm::dyn_cast<llvm::CallBase>(&Inst);
+    if (!Call) {
+      continue;
+    }
+    const auto *Callee = Call->getCalledFunction();
+    if (Callee && Callee->getName() == "scandir") {
+      Broker = Call;
+    } else if (Callee == Keep) {
+      KeepCall = Call;
+    } else if (Callee == ByName) {
+      ByNameCall = Call;
+    }
+  }
+  ASSERT_NE(nullptr, Broker);
+  ASSERT_NE(nullptr, KeepCall);
+  ASSERT_NE(nullptr, ByNameCall);
+
+  // An element of *namelist, indexed by scandir's result
+  const auto IsEntrySlot = [&](const llvm::Value *V) {
+    const auto *Elem = llvm::dyn_cast<llvm::GetElementPtrInst>(V);
+    if (!Elem || Elem->getOperand(1) != Broker) {
+      return false;
+    }
+    const auto *List =
+        llvm::dyn_cast<llvm::LoadInst>(Elem->getPointerOperand());
+    return List && List->getPointerOperand() == Model->getArg(1);
+  };
+  // keep(entry), byName(&entry, &entry)
+  const auto *Entry =
+      llvm::dyn_cast<llvm::LoadInst>(KeepCall->getArgOperand(0));
+  ASSERT_NE(nullptr, Entry);
+  EXPECT_TRUE(IsEntrySlot(Entry->getPointerOperand()));
+  for (const auto &Arg : ByNameCall->args()) {
+    EXPECT_TRUE(IsEntrySlot(Arg.get()));
+  }
+}
+
+TEST(LLVMBasedICFGExternCallbackTest, MiscBrokers) {
+  constexpr llvm::StringLiteral File = "call_graphs/extern_callback_misc_c.ll";
+  doExternCallbackTest(File, "thrd_create", "thrdWorker");
+  doExternCallbackTest(File, "dl_iterate_phdr", "visitObj", false, 3);
+  doExternCallbackTest(File, "nftw", "visitFile", false, 4);
+}
+
 TEST(LLVMBasedICFGExternCallbackTest, CallGraphBuilderResolverOverload) {
   doExternCallbackCallGraphBuilderTest(
       "call_graphs/extern_callback_pthread_c.ll", "pthread_create", "worker");

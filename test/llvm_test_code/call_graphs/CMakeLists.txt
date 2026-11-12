@@ -5,15 +5,20 @@ set(NoMem2regSources
 	extern_callback_invalid_metadata_arg.c
 	extern_callback_kmpc_fork_call.c
 	extern_callback_kmpc_fork_teams.c
+	extern_callback_misc.c
 	extern_callback_mismatched_callback_arity.c
 	extern_callback_non_pointer_callee_arg.c
 	extern_callback_pthread.c
 	extern_callback_pthread_indirect.c
 	extern_callback_pthread_multiple.c
+	extern_callback_qsort.c
+	extern_callback_scandir.c
+	extern_callback_search.c
 	extern_callback_too_few_broker_args.c
 	function_pointer_1.c
 	function_pointer_2.cpp
 	function_pointer_3.cpp
+	global_initializer_fptr_1.c
 	special_member_functions_1.cpp
 	static_callsite_10.cpp
 	static_callsite_11.cpp
