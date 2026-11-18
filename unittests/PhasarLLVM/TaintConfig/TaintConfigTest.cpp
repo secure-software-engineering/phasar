@@ -59,12 +59,13 @@ TEST_F(TaintConfigTest, Basic_01) {
   const std::string File = "basic_01_c_dbg.ll";
   psr::LLVMProjectIRDB IR({PathToAttrTaintConfigTestCode + File});
   psr::LLVMTaintConfig Config(IR);
-  llvm::outs() << Config << '\n';
+  llvm::errs() << Config << '\n';
   const auto *Bar = IR.getFunction("bar");
   assert(Bar);
   for (const auto &User : Bar->users()) {
     if (llvm::isa<llvm::CallBase>(User)) {
-      ASSERT_TRUE(Config.isSource(User));
+      ASSERT_TRUE(Config.isSource(User))
+          << "Unexpected no source: " << psr::llvmIRToString(User);
     }
   }
   const auto *Baz = IR.getFunction("baz");
@@ -157,12 +158,8 @@ TEST_F(TaintConfigTest, FunMember_02) {
   ASSERT_TRUE(TConfig.isSource(I4));
   // TODO sink annotation is missing for destructor
   const auto *Sanitizer = IR.getFunction("_ZN1X5sanitEv");
-  assert(Sanitizer);
-  for (const auto &User : Sanitizer->users()) {
-    if (llvm::isa<llvm::CallBase>(User)) {
-      ASSERT_TRUE(TConfig.isSanitizer(User));
-    }
-  }
+  ASSERT_TRUE(Sanitizer);
+  EXPECT_TRUE(TConfig.isSanitizer(Sanitizer->getArg(0)));
 }
 
 TEST_F(TaintConfigTest, NameMangling_01) {

@@ -12,9 +12,13 @@
 
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfigBase.h"
 
-#include "llvm/IR/Instruction.h"
+#include "llvm/ADT/DenseSet.h"
 
-#include <unordered_set>
+namespace llvm {
+class Instruction;
+class Value;
+class Function;
+} // namespace llvm
 
 namespace psr {
 class LLVMTaintConfig;
@@ -44,7 +48,9 @@ public:
   void addTaintCategory(const llvm::Value *Val, llvm::StringRef AnnotationStr);
   void addTaintCategory(const llvm::Value *Val, TaintCategory Annotation);
 
-  bool isAnnotatedFunction(const llvm::Function *Func) const;
+  bool isSourceFunction(const llvm::Function *Func) const;
+  bool isSinkFunction(const llvm::Function *Func) const;
+  bool isSanitizerFunction(const llvm::Function *Func) const;
 
 private:
   [[nodiscard]] bool isSourceImpl(const llvm::Value *V) const;
@@ -102,12 +108,12 @@ private:
                        const TaintConfigData &Config);
 
   // --- data members
-
-  std::map<const llvm::Function *, TaintCategory> AnnotatedValues;
-
-  std::unordered_set<const llvm::Value *> SourceValues;
-  std::unordered_set<const llvm::Value *> SinkValues;
-  std::unordered_set<const llvm::Value *> SanitizerValues;
+  llvm::DenseSet<const llvm::Function *> AnnotatedSourceFunctions;
+  llvm::DenseSet<const llvm::Function *> AnnotatedSinkFunctions;
+  llvm::DenseSet<const llvm::Function *> AnnotatedSanitizerFunctions;
+  llvm::DenseSet<const llvm::Value *> SourceValues;
+  llvm::DenseSet<const llvm::Value *> SinkValues;
+  llvm::DenseSet<const llvm::Value *> SanitizerValues;
 };
 
 extern template class TaintConfigBase<LLVMTaintConfig>;

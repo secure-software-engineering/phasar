@@ -43,7 +43,7 @@ void forallGeneratedFacts(
     return;
   }
 
-  if (Config.isAnnotatedFunction(Callee)) {
+  if (Config.isSourceFunction(Callee)) {
     std::invoke(WithGenFact, CB);
   }
 
@@ -66,7 +66,6 @@ void collectGeneratedFacts(ContainerTy &Dest, const LLVMTaintConfig &Config,
   }
 
   if (Config.isSource(CB)) {
-    llvm::outs() << "Dest.insert(CB)\n";
     Dest.insert(CB);
   }
 
@@ -74,13 +73,12 @@ void collectGeneratedFacts(ContainerTy &Dest, const LLVMTaintConfig &Config,
     return;
   }
 
-  if (Config.isAnnotatedFunction(Callee)) {
+  if (Config.isSourceFunction(Callee)) {
     Dest.insert(CB);
   }
 
   for (unsigned I = 0, End = Callee->arg_size(); I < End; ++I) {
     if (Config.isSource(Callee->getArg(I))) {
-      llvm::outs() << "Dest.insert(CB->getArgOperand(I))\n";
       Dest.insert(CB->getArgOperand(I));
     }
   }
@@ -101,7 +99,15 @@ void forallLeakedFacts(const LLVMTaintConfig &Config, const llvm::CallBase *CB,
   if (!Callee) {
     return;
   }
-  for (unsigned I = 0, End = Callee->arg_size(); I < End; ++I) {
+  if (Config.isSinkFunction(Callee)) {
+    auto *LeakParam = CB->getArgOperand(Callee->hasStructRetAttr());
+    assert(LeakParam);
+    if (std::invoke(LeakIf, LeakParam)) {
+      std::invoke(WithLeakFact, LeakParam);
+    }
+  }
+
+  for (size_t I = 0, End = Callee->arg_size(); I < End; ++I) {
     if (Config.isSink(Callee->getArg(I)) &&
         std::invoke(LeakIf, CB->getArgOperand(I))) {
       std::invoke(WithLeakFact, CB->getArgOperand(I));
@@ -125,7 +131,16 @@ void collectLeakedFacts(ContainerTy &Dest, const LLVMTaintConfig &Config,
   if (!Callee) {
     return;
   }
-  for (unsigned I = 0, End = Callee->arg_size(); I < End; ++I) {
+
+  if (Config.isSinkFunction(Callee)) {
+    auto *LeakParam = CB->getArgOperand(Callee->hasStructRetAttr());
+    assert(LeakParam);
+    if (std::invoke(LeakIf, LeakParam)) {
+      Dest.insert(LeakParam);
+    }
+  }
+
+  for (size_t I = 0, End = Callee->arg_size(); I < End; ++I) {
     if (Config.isSink(Callee->getArg(I)) && LeakIf(CB->getArgOperand(I))) {
       Dest.insert(CB->getArgOperand(I));
     }
@@ -149,7 +164,14 @@ void collectSanitizedFacts(ContainerTy &Dest, const LLVMTaintConfig &Config,
   if (!Callee) {
     return;
   }
-  for (unsigned I = 0, End = Callee->arg_size(); I < End; ++I) {
+
+  if (Config.isSanitizerFunction(Callee)) {
+    auto *SaniParam = CB->getArgOperand(Callee->hasStructRetAttr());
+    assert(SaniParam);
+    Dest.insert(SaniParam);
+  }
+
+  for (size_t I = 0, End = Callee->arg_size(); I < End; ++I) {
     if (Config.isSanitizer(Callee->getArg(I))) {
       Dest.insert(CB->getArgOperand(I));
     }
