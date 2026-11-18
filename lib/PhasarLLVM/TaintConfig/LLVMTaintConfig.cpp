@@ -10,6 +10,7 @@
 #include "phasar/PhasarLLVM/TaintConfig/LLVMTaintConfig.h"
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMVFTableProvider.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfigBase.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfigData.h"
@@ -23,13 +24,17 @@
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringMap.h"
+#include "llvm/IR/Argument.h"
 #include "llvm/IR/DebugInfo.h"
+#include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/InstIterator.h"
+#include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Metadata.h"
-
-#include <string>
+#include "llvm/IR/Value.h"
+#include "llvm/Support/Casting.h"
+#include "llvm/Support/raw_ostream.h"
 
 namespace psr {
 
@@ -222,7 +227,6 @@ LLVMTaintConfig::LLVMTaintConfig(const psr::LLVMProjectIRDB &Code,
 }
 
 LLVMTaintConfig::LLVMTaintConfig(const psr::LLVMProjectIRDB &AnnotatedCode) {
-
   llvm::SmallVector<const llvm::Function *, 1> VarAnnotations{};
   llvm::SmallVector<const llvm::Function *, 1> PtrAnnotations{};
   for (const auto *F : AnnotatedCode.getAllFunctions()) {
@@ -249,21 +253,47 @@ LLVMTaintConfig::LLVMTaintConfig(const psr::LLVMProjectIRDB &AnnotatedCode) {
       }
     }
   }
+
   // handle "global" annotation declarations
   const auto *GlobalAnnotations =
       AnnotatedCode.getGlobalVariableDefinition("llvm.global.annotations");
+
   if (GlobalAnnotations) {
     for (const auto &Op : GlobalAnnotations->operands()) {
       if (auto *Array = llvm::dyn_cast<llvm::ConstantArray>(Op)) {
         for (auto &ArrayElem : Array->operands()) {
           if (auto *Struct = llvm::dyn_cast<llvm::ConstantStruct>(ArrayElem)) {
             GlobalAnnotation A(Struct);
-            // get annotation string an remove prefix "psr."
-            auto AnnotationStr = A.getAnnotationString().substr(4);
-            const auto *Fun = A.getFunction();
-            for (const auto &User : Fun->users()) {
-              if (llvm::isa<llvm::CallBase>(User)) {
-                addTaintCategory(User, AnnotationStr);
+            if (const auto *Fun = A.getFunction()) {
+              // get annotation string an remove prefix "psr."
+              auto AnnotStr = A.getAnnotationString().substr(4);
+              auto Kind = toTaintCategory(AnnotStr);
+              switch (Kind) {
+              case TaintCategory::None:
+                PHASAR_LOG_LEVEL(WARNING,
+                                 "Invalid taint category: '"
+                                     << A.getAnnotationString()
+                                     << "', expected one of psr.source, "
+                                        "psr.sink, psr.sanitizer");
+                break;
+              case TaintCategory::Source:
+                AnnotatedSourceFunctions.insert(Fun);
+                break;
+              case TaintCategory::Sink:
+              case TaintCategory::Sanitizer:
+                if (Fun->arg_size() <= Fun->hasStructRetAttr()) {
+                  PHASAR_LOG_LEVEL(
+                      WARNING,
+                      "Cannot annotate function '"
+                          << Fun->getName() << "' with '" << AnnotStr
+                          << "'; it would apply on the first argument, or the "
+                             "implicit 'this' pointer.");
+                  break;
+                }
+                (Kind == TaintCategory::Sink ? AnnotatedSinkFunctions
+                                             : AnnotatedSanitizerFunctions)
+                    .insert(Fun);
+                break;
               }
             }
           }
@@ -344,14 +374,54 @@ void LLVMTaintConfig::addTaintCategory(const llvm::Value *Val,
 // --- TaintConfigBase API function implementations
 //
 
+bool LLVMTaintConfig::isSourceFunction(const llvm::Function *Func) const {
+  return AnnotatedSourceFunctions.contains(Func);
+}
+
+bool LLVMTaintConfig::isSinkFunction(const llvm::Function *Func) const {
+  return AnnotatedSinkFunctions.contains(Func);
+}
+
+bool LLVMTaintConfig::isSanitizerFunction(const llvm::Function *Func) const {
+  return AnnotatedSanitizerFunctions.contains(Func);
+}
+
 bool LLVMTaintConfig::isSourceImpl(const llvm::Value *V) const {
-  return SourceValues.contains(V);
+  if (SourceValues.contains(V)) {
+    return true;
+  }
+
+  if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(V)) {
+    if (const auto *Callee = llvm::dyn_cast<llvm::Function>(
+            Call->getCalledOperand()->stripPointerCastsAndAliases())) {
+      return AnnotatedSourceFunctions.contains(Callee);
+    }
+  }
+  return false;
 }
+
 bool LLVMTaintConfig::isSinkImpl(const llvm::Value *V) const {
-  return SinkValues.contains(V);
+  if (SinkValues.contains(V)) {
+    return true;
+  }
+
+  if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(V);
+      Arg && Arg->getArgNo() == Arg->getParent()->hasStructRetAttr()) {
+    return AnnotatedSinkFunctions.contains(Arg->getParent());
+  }
+  return false;
 }
+
 bool LLVMTaintConfig::isSanitizerImpl(const llvm::Value *V) const {
-  return SanitizerValues.contains(V);
+  if (SanitizerValues.contains(V)) {
+    return true;
+  }
+
+  if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(V);
+      Arg && Arg->getArgNo() == Arg->getParent()->hasStructRetAttr()) {
+    return AnnotatedSanitizerFunctions.contains(Arg->getParent());
+  }
+  return false;
 }
 
 void LLVMTaintConfig::forAllGeneratedValuesAtImpl(
@@ -367,6 +437,10 @@ void LLVMTaintConfig::forAllGeneratedValuesAtImpl(
   }
 
   if (Callee) {
+    if (AnnotatedSourceFunctions.contains(Callee)) {
+      Handler(Inst);
+    }
+
     for (const auto &Arg : Callee->args()) {
       if (SourceValues.contains(&Arg)) {
         Handler(Inst->getOperand(Arg.getArgNo()));
@@ -402,6 +476,12 @@ void LLVMTaintConfig::forAllLeakCandidatesAtImpl(
   }
 
   if (Callee) {
+    if (isSinkFunction(Callee)) {
+      auto *LeakParam = Inst->getOperand(Callee->hasStructRetAttr());
+      assert(LeakParam);
+      Handler(LeakParam);
+    }
+
     for (const auto &Arg : Callee->args()) {
       if (SinkValues.contains(&Arg)) {
         Handler(Inst->getOperand(Arg.getArgNo()));
@@ -428,6 +508,12 @@ void LLVMTaintConfig::forAllSanitizedValuesAtImpl(
   }
 
   if (Callee) {
+    if (isSanitizerFunction(Callee)) {
+      auto *SaniParam = Inst->getOperand(Callee->hasStructRetAttr());
+      assert(SaniParam);
+      Handler(SaniParam);
+    }
+
     for (const auto &Arg : Callee->args()) {
       if (SanitizerValues.contains(&Arg)) {
         Handler(Inst->getOperand(Arg.getArgNo()));
@@ -444,10 +530,15 @@ bool LLVMTaintConfig::generatesValuesAtImpl(
     return true;
   }
 
-  if (Callee && llvm::any_of(Callee->args(), [this](const auto &Arg) {
-        return SourceValues.count(&Arg);
-      })) {
-    return true;
+  if (Callee) {
+    if (isSourceFunction(Callee)) {
+      return true;
+    }
+    if (llvm::any_of(Callee->args(), [this](const auto &Arg) {
+          return SourceValues.count(&Arg);
+        })) {
+      return true;
+    }
   }
 
   return SourceValues.contains(Inst) ||
@@ -464,9 +555,17 @@ bool LLVMTaintConfig::mayLeakValuesAtImpl(const llvm::Instruction *Inst,
     return true;
   }
 
-  return Callee && llvm::any_of(Callee->args(), [this](const auto &Arg) {
-           return SinkValues.count(&Arg);
-         });
+  if (!Callee) {
+    return false;
+  }
+
+  if (AnnotatedSinkFunctions.contains(Callee)) {
+    return true;
+  }
+
+  return llvm::any_of(Callee->args(), [this](const auto &Arg) {
+    return SinkValues.count(&Arg);
+  });
 }
 
 bool LLVMTaintConfig::sanitizesValuesAtImpl(
@@ -477,9 +576,17 @@ bool LLVMTaintConfig::sanitizesValuesAtImpl(
     return true;
   }
 
-  return Callee && llvm::any_of(Callee->args(), [this](const auto &Arg) {
-           return SanitizerValues.count(&Arg);
-         });
+  if (!Callee) {
+    return false;
+  }
+
+  if (AnnotatedSanitizerFunctions.contains(Callee)) {
+    return true;
+  }
+
+  return llvm::any_of(Callee->args(), [this](const auto &Arg) {
+    return SanitizerValues.count(&Arg);
+  });
 }
 
 TaintCategory LLVMTaintConfig::getCategoryImpl(const llvm::Value *V) const {
@@ -524,19 +631,34 @@ void LLVMTaintConfig::printImpl(llvm::raw_ostream &OS) const {
     OS << "empty\n";
     return;
   }
-  OS << "\n\tSourceCallBack registered: " << (bool)SourceCallBack << '\n';
-  OS << "\tSinkCallBack registered: " << (bool)SinkCallBack << '\n';
-  OS << "\tSources (" << SourceValues.size() << "):\n";
+  OS << "\n\tSourceCallBack registered: " << bool(SourceCallBack) << '\n';
+  OS << "\tSinkCallBack registered: " << bool(SinkCallBack) << '\n';
+  OS << "\tSource Values (" << SourceValues.size() << "):\n";
   for (const auto *SourceValue : SourceValues) {
     OS << "\t\t" << psr::llvmIRToString(SourceValue) << '\n';
   }
-  OS << "\tSinks (" << SinkValues.size() << "):\n";
+  OS << "\tSource Functions (" << AnnotatedSourceFunctions.size() << "):\n";
+  for (const auto *SrcFun : AnnotatedSourceFunctions) {
+    OS << "\t\t" << SrcFun->getName() << '\n';
+  }
+
+  OS << "\tSink Values (" << SinkValues.size() << "):\n";
   for (const auto *SinkValue : SinkValues) {
     OS << "\t\t" << psr::llvmIRToString(SinkValue) << '\n';
   }
-  OS << "\tSanitizers (" << SanitizerValues.size() << "):\n";
+  OS << "\tSink Functions (" << AnnotatedSinkFunctions.size() << "):\n";
+  for (const auto *SrcFun : AnnotatedSinkFunctions) {
+    OS << "\t\t" << SrcFun->getName() << '\n';
+  }
+
+  OS << "\tSanitizer Values (" << SanitizerValues.size() << "):\n";
   for (const auto *SanitizerValue : SanitizerValues) {
     OS << "\t\t" << psr::llvmIRToString(SanitizerValue) << '\n';
+  }
+  OS << "\tSanitizer Functions (" << AnnotatedSanitizerFunctions.size()
+     << "):\n";
+  for (const auto *SrcFun : AnnotatedSanitizerFunctions) {
+    OS << "\t\t" << SrcFun->getName() << '\n';
   }
 }
 

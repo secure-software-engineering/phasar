@@ -21,4 +21,6 @@ void controller::executeIFDSTaint(AnalysisController &Data) {
       Data.HA, &Config, Data.getEntryPoints(), false);
   IFDSSolver Solver(&Problem, &Data.HA.getICFG(), Data.SolverConfig);
   executeIfdsIdeAnalysisImpl(Solver, Data);
+
+  llvm::outs() << Config << "\n";
 }

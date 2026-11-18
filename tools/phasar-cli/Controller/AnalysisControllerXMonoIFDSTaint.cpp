@@ -29,6 +29,8 @@ void controller::executeMonoIFDSTaint(AnalysisController &Data) {
   //     .setCGSCCs(&Data.HA->getCGSCCs())
   //     .setFunctionCompressor(&Data.HA->getCompressedFunctions());
 
+  llvm::outs() << Config << "\n";
+
   monoifds::MonoIFDSSolver Solver(&TA, Data.HA);
 
   {

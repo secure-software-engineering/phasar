@@ -27,16 +27,18 @@ int main() {
 }
 
 // RUN: %phasar-cli --data-flow-analysis=ide-xtaint --module %llvm_test_code/xtaint/xtaint15_cpp_dbg.ll | FileCheck %s -check-prefix=ide-xtaint
-// ide-xtaint: No leaks found!
+// ide-xtaint: /xtaint/xtaint15.cpp:24:3:
 
 // RUN: %phasar-cli --data-flow-analysis=ifds-taint --module %llvm_test_code/xtaint/xtaint15_cpp_dbg.ll | FileCheck %s -check-prefix=ifds-taint
-// ifds-taint: No leaks found!
+// ifds-taint: /xtaint/xtaint15.cpp:23:3:
+// ifds-taint: /xtaint/xtaint15.cpp:24:3:
 
 // RUN: %phasar-cli --data-flow-analysis=ifds-fieldsens-taint --module %llvm_test_code/xtaint/xtaint15_cpp_dbg.ll | FileCheck %s -check-prefix=ifds-fieldsens-taint
-// ifds-fieldsens-taint: No leaks found!
+// ifds-fieldsens-taint: xtaint/xtaint15.cpp:24:3:
 
 // RUN: %phasar-cli --data-flow-analysis=monoifds-taint --module %llvm_test_code/xtaint/xtaint15_cpp_dbg.ll | FileCheck %s -check-prefix=monoifds-taint
-// monoifds-taint: No leaks found!
+// monoifds-taint: xtaint/xtaint15.cpp:24:3:
 
 // RUN: %phasar-cli --data-flow-analysis=sparse-ifds-taint --module %llvm_test_code/xtaint/xtaint15_cpp_dbg.ll | FileCheck %s -check-prefix=sparse-ifds-taint
-// sparse-ifds-taint: No leaks found!
+// sparse-ifds-taint: /xtaint/xtaint15.cpp:23:3:
+// sparse-ifds-taint: /xtaint/xtaint15.cpp:24:3:
