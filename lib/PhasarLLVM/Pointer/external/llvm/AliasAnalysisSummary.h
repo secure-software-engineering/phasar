@@ -247,6 +247,7 @@ instantiateExternalAttribute(ExternalAttribute EAttr, CallBase &Call);
 } // namespace cflaa
 
 template <> struct DenseMapInfo<cflaa::InstantiatedValue> {
+#if LLVM_VERSION_MAJOR < 23
   static inline cflaa::InstantiatedValue getEmptyKey() {
     return cflaa::InstantiatedValue{DenseMapInfo<Value *>::getEmptyKey(),
                                     DenseMapInfo<unsigned>::getEmptyKey()};
@@ -255,6 +256,7 @@ template <> struct DenseMapInfo<cflaa::InstantiatedValue> {
     return cflaa::InstantiatedValue{DenseMapInfo<Value *>::getTombstoneKey(),
                                     DenseMapInfo<unsigned>::getTombstoneKey()};
   }
+#endif
   static unsigned getHashValue(const cflaa::InstantiatedValue &IV) {
     return DenseMapInfo<std::pair<Value *, unsigned>>::getHashValue(
         std::make_pair(IV.Val, IV.DerefLevel));

@@ -178,12 +178,14 @@ template <> struct PointerLikeTypeTraits<psr::PAGVariable> {
 };
 
 template <> struct DenseMapInfo<psr::PAGVariable> {
+#if LLVM_VERSION_MAJOR < 23
   static psr::PAGVariable getEmptyKey() noexcept {
     return DenseMapInfo<const llvm::Value *>::getEmptyKey();
   }
   static psr::PAGVariable getTombstoneKey() noexcept {
     return DenseMapInfo<const llvm::Value *>::getTombstoneKey();
   }
+#endif
   static hash_code getHashValue(psr::PAGVariable V) noexcept {
     return hash_value(V);
   }

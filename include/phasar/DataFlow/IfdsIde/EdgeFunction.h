@@ -628,6 +628,7 @@ public:
     return EF.getHashCode();
   }
 
+#if LLVM_VERSION_MAJOR < 23
   static EdgeFunction getEmptyKey() noexcept {
     return EdgeFunction(nullptr,
                         {llvm::DenseMapInfo<const VTable *>::getEmptyKey(),
@@ -639,6 +640,7 @@ public:
                         {llvm::DenseMapInfo<const VTable *>::getTombstoneKey(),
                          AllocationPolicy::SmallObjectOptimized});
   }
+#endif
 
 private:
   struct VTable {
@@ -793,17 +795,20 @@ private:
 namespace llvm {
 
 template <typename L> struct DenseMapInfo<psr::EdgeFunction<L>> {
+#if LLVM_VERSION_MAJOR < 23
   static auto getEmptyKey() noexcept {
     return psr::EdgeFunction<L>::getEmptyKey();
   }
   static auto getTombstoneKey() noexcept {
     return psr::EdgeFunction<L>::getTombstoneKey();
   }
+#endif
   static auto getHashValue(const psr::EdgeFunction<L> &EF) noexcept {
     return EF.getHashCode();
   }
   static auto isEqual(const psr::EdgeFunction<L> &EF1,
                       const psr::EdgeFunction<L> &EF2) noexcept {
+#if LLVM_VERSION_MAJOR < 23
     if (EF1.referenceEquals(EF2)) {
       return true;
     }
@@ -813,7 +818,7 @@ template <typename L> struct DenseMapInfo<psr::EdgeFunction<L>> {
         EF1.referenceEquals(Tombstone) || EF2.referenceEquals(Tombstone)) {
       return false;
     }
-
+#endif
     return EF1 == EF2;
   }
 };

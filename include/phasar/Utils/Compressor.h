@@ -150,7 +150,7 @@ public:
     if (auto It = ToInt.find(&Elem); It != ToInt.end()) {
       return {It->second, false};
     }
-    auto Ret = Id(FromInt.size());
+    auto Ret = IdT(FromInt.size());
     auto *Ins = &FromInt.emplace_back(Elem);
     ToInt[Ins] = Ret;
     return {Ret, true};
@@ -235,10 +235,12 @@ private:
       if (LHS == RHS) {
         return true;
       }
+#if LLVM_VERSION_MAJOR < 23
       if (LHS == DSI::getEmptyKey() || LHS == DSI::getTombstoneKey() ||
           RHS == DSI::getEmptyKey() || RHS == DSI::getTombstoneKey()) {
         return false;
       }
+#endif
       if constexpr (has_llvm_dense_map_info<T>) {
         return llvm::DenseMapInfo<T>::isEqual(*LHS, *RHS);
       } else {

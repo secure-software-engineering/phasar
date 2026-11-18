@@ -22,6 +22,15 @@ set(taint_tests_mem2reg
   taint_01.cpp
   taint_06.cpp
   taint_exception_01.cpp
+  taint_select_01.cpp
+)
+
+# Compiled with -O1, so that SimplifyCFG turns branches into select
+# instructions
+set(taint_tests_opt
+  taint_select_01.cpp
+  taint_select_02.cpp
+  taint_select_03.cpp
 )
 
 
@@ -32,4 +41,8 @@ endforeach(TEST_SRC)
 
 foreach(TEST_SRC ${taint_tests_mem2reg})
   generate_ll_file(FILE ${TEST_SRC} MEM2REG DEBUG)
+endforeach(TEST_SRC)
+
+foreach(TEST_SRC ${taint_tests_opt})
+  generate_ll_file(FILE ${TEST_SRC} DEBUG O1)
 endforeach(TEST_SRC)

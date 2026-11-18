@@ -61,7 +61,9 @@ struct IDEFeatureTaintEdgeFact {
       : Taints(Taints) {}
   IDEFeatureTaintEdgeFact(uintptr_t Taints) noexcept
       : Taints(fromBits(Taints)) {}
-  explicit IDEFeatureTaintEdgeFact() noexcept { Taints.invalid(); }
+  explicit IDEFeatureTaintEdgeFact() noexcept {
+    // Taints.invalid();
+  }
 
   void unionWith(uintptr_t Facts) {
     size_t RequiredSize = llvm::bit_width(Facts);
@@ -72,26 +74,32 @@ struct IDEFeatureTaintEdgeFact {
                          sizeof(Facts) / sizeof(uint32_t));
   }
   void unionWith(const IDEFeatureTaintEdgeFact &Facts) {
-    if (Facts.isTop()) {
-      return;
-    }
+    // if (Facts.isTop()) {
+    //   return;
+    // }
     Taints |= Facts.Taints;
   }
 
   /// Checks whether this set contains no facts.
   /// Note: Top also counts as empty
-  [[nodiscard]] bool empty() const noexcept { return isTop() || Taints.none(); }
+  [[nodiscard]] bool empty() const noexcept {
+    return // isTop() ||
+        Taints.none();
+  }
   /// Returns the number of facts in this set.
   /// Note: Top counts as empty
   [[nodiscard]] size_t size() const noexcept {
-    if (isTop()) {
-      return 0;
-    }
+    // if (isTop()) {
+    //   return 0;
+    // }
     return Taints.count();
   }
 
   [[nodiscard]] bool isBottom() const noexcept { return Taints.empty(); }
-  [[nodiscard]] bool isTop() const noexcept { return Taints.isInvalid(); }
+  [[nodiscard]] bool isTop() const noexcept {
+    return // Taints.isInvalid();
+        false;
+  }
 
   [[nodiscard]] friend llvm::hash_code
   hash_value(const IDEFeatureTaintEdgeFact &BV) noexcept {
@@ -168,7 +176,7 @@ struct IDEFeatureTaintEdgeFact {
 
 template <> struct JoinLatticeTraits<IDEFeatureTaintEdgeFact> {
   static IDEFeatureTaintEdgeFact top() {
-    IDEFeatureTaintEdgeFact Ret{};
+    IDEFeatureTaintEdgeFact Ret{0};
     return Ret;
   }
   static IDEFeatureTaintEdgeFact bottom() {

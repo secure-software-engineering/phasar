@@ -103,12 +103,14 @@ private:
   };
 
   struct ReachableAllocationSitesKeyDMI {
+#if LLVM_VERSION_MAJOR < 23
     static ReachableAllocationSitesKey getEmptyKey() noexcept {
       return {{}, llvm::DenseMapInfo<v_t>::getEmptyKey()};
     }
     static ReachableAllocationSitesKey getTombstoneKey() noexcept {
       return {{}, llvm::DenseMapInfo<v_t>::getTombstoneKey()};
     }
+#endif
     static auto getHashValue(ReachableAllocationSitesKey Key) noexcept {
       return llvm::hash_combine(Key.FunAndIntraProcOnly.getOpaqueValue(),
                                 Key.Value);

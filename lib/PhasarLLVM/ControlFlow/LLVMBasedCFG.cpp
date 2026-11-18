@@ -91,7 +91,13 @@ auto detail::LLVMBasedCFGImpl<Derived>::getSuccsOfImpl(n_t I) const
   }
 #endif
 
-  if (const auto *Branch = llvm::dyn_cast<llvm::BranchInst>(I);
+  if (const auto *Branch = llvm::dyn_cast<
+#if LLVM_VERSION_MAJOR >= 23
+          llvm::CondBrInst
+#else
+          llvm::BranchInst
+#endif
+          >(I);
       Branch && isStaticVariableLazyInitializationBranch(Branch)) {
     // Skip the "already initialized" case, such that the analysis is always
     // aware of the initialized value.
@@ -214,12 +220,21 @@ template <typename Derived>
 bool detail::LLVMBasedCFGImpl<Derived>::isFallThroughSuccessorImpl(
     n_t Inst, n_t Succ) const noexcept {
   // assert(false && "FallThrough not valid in LLVM IR");
+#if LLVM_VERSION_MAJOR >= 23
+  if (const auto *UB = llvm::dyn_cast<llvm::UncondBrInst>(Inst)) {
+    return &UB->getSuccessor()->front() == Succ;
+  }
+  if (const auto *CB = llvm::dyn_cast<llvm::CondBrInst>(Inst)) {
+    return &CB->getSuccessor(1)->front() == Succ;
+  }
+#else
   if (const auto *B = llvm::dyn_cast<llvm::BranchInst>(Inst)) {
     if (B->isConditional()) {
       return &B->getSuccessor(1)->front() == Succ;
     }
     return &B->getSuccessor(0)->front() == Succ;
   }
+#endif
   return false;
 }
 

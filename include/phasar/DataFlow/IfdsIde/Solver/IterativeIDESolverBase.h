@@ -90,16 +90,20 @@ protected:
   };
 
   struct InterPropagationJobRefDSI {
+#if LLVM_VERSION_MAJOR < 23
     static InterPropagationJobRef getEmptyKey() noexcept {
       return {llvm::DenseMapInfo<InterPropagationJob *>::getEmptyKey()};
     }
     static InterPropagationJobRef getTombstoneKey() noexcept {
       return {llvm::DenseMapInfo<InterPropagationJob *>::getTombstoneKey()};
     }
+#endif
     static auto getHashValue(InterPropagationJobRef Job) noexcept {
       assert(Job.JobPtr != nullptr);
+#if LLVM_VERSION_MAJOR < 23
       assert(Job.JobPtr != getEmptyKey().JobPtr);
       assert(Job.JobPtr != getTombstoneKey().JobPtr);
+#endif
       return Job.JobPtr->getHashCode();
     }
     static bool isEqual(InterPropagationJobRef LHS,
@@ -107,12 +111,14 @@ protected:
       if (LHS.JobPtr == RHS.JobPtr) {
         return true;
       }
+#if LLVM_VERSION_MAJOR < 23
       if (LHS.JobPtr == getEmptyKey().JobPtr ||
           LHS.JobPtr == getTombstoneKey().JobPtr ||
           RHS.JobPtr == getEmptyKey().JobPtr ||
           RHS.JobPtr == getTombstoneKey().JobPtr) {
         return false;
       }
+#endif
 
       assert(LHS.JobPtr != nullptr);
       assert(RHS.JobPtr != nullptr);

@@ -273,8 +273,12 @@ public:
     // Handle indirect taints, i. e., propagate values that depend on branch
     // conditions whose operands are tainted.
     if constexpr (EnableIndirectTaints) {
+#if LLVM_VERSION_MAJOR >= 23
+      if (const auto *Br = llvm::dyn_cast<llvm::CondBrInst>(Curr)) {
+#else
       if (const auto *Br = llvm::dyn_cast<llvm::BranchInst>(Curr);
           Br && Br->isConditional()) {
+#endif
         // If the branch is conditional and its condition is tainted, then we
         // need to propagates the instructions that are depending on this
         // branch, too.
@@ -1206,6 +1210,7 @@ using IDEInstInteractionAnalysis = IDEInstInteractionAnalysisT<>;
 // Compatibility with llvm::DenseMap/DenseSet:
 namespace llvm {
 template <> struct DenseMapInfo<psr::IDEIIAFlowFact> {
+#if LLVM_VERSION_MAJOR < 23
   static psr::IDEIIAFlowFact getEmptyKey() {
     return psr::IDEIIAFlowFact(
         DenseMapInfo<const llvm::Value *>::getEmptyKey());
@@ -1214,8 +1219,10 @@ template <> struct DenseMapInfo<psr::IDEIIAFlowFact> {
     return psr::IDEIIAFlowFact(
         DenseMapInfo<const llvm::Value *>::getTombstoneKey());
   }
+#endif
   static bool isEqual(const psr::IDEIIAFlowFact &L,
                       const psr::IDEIIAFlowFact &R) {
+#if LLVM_VERSION_MAJOR < 23
     const auto *Empty = DenseMapInfo<const llvm::Value *>::getEmptyKey();
     const auto *TS = DenseMapInfo<const llvm::Value *>::getTombstoneKey();
     if (L.getBase() == Empty) {
@@ -1227,6 +1234,7 @@ template <> struct DenseMapInfo<psr::IDEIIAFlowFact> {
     if (R.getBase() == Empty || R.getBase() == TS) {
       return false;
     }
+#endif
     return L == R;
   }
   static unsigned getHashValue(const psr::IDEIIAFlowFact &FF) {
