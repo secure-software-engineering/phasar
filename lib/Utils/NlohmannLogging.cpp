@@ -26,25 +26,19 @@ private:
   llvm::raw_ostream &OS;
 };
 
-template <typename StringType = std::basic_string<char>>
-class LLVMOutputAdapter {
-public:
-  template <typename AllocatorType = std::allocator<char>>
-
-  LLVMOutputAdapter(llvm::raw_ostream &OS)
-      : OA(std::make_unique<LLVMOutputStreamAdapter>(OS)) {}
-
-  operator nlohmann::detail::output_adapter_t<char>() { return OA; }
-
-private:
-  nlohmann::detail::output_adapter_t<char> OA = nullptr;
-};
 } // namespace
 
 llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const nlohmann::json &J) {
   // do the actual serialization
-  nlohmann::detail::serializer<nlohmann::json> S{LLVMOutputAdapter(OS), ' '};
-  S.dump(J, true, false, 4);
+  LLVMOutputStreamAdapter Adapter(OS);
+  nlohmann::detail::serializer<nlohmann::json> S{
+      Adapter,
+      /*ichar=*/' ',
+      /*pretty_print_=*/true,
+      /*ensure_ascii_=*/false,
+      /*indent_step_=*/4,
+  };
+  S.dump(J);
   return OS;
 }
 
