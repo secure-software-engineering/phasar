@@ -24,7 +24,7 @@ The bootstrap script may ask for superuser permissions (to install the dependenc
 ### Requirements
 
 PhASAR requires the following system dependencies:
-- LLVM >=16
+- LLVM >= 16 (default 21)
   - We have tested PhASAR only with LLVM versions built with RTTI (runtime-type-info) enabled. Usually, this is no problem as the `llvm-dev` apt package ships with RTTI by default, but may be relevant if you wish to build LLVM from source.
 - C++20 compatible compiler, *we recommend clang >=20*
 - cmake >=3.23
@@ -104,7 +104,7 @@ When using CMake to compile PhASAR the following optional parameters can be used
 | **PHASAR_ENABLE_PIC** : BOOL | Build Position-Independed Code (default is ON) |
 | **PHASAR_ENABLE_WARNINGS** : BOOL | Enable compiler warnings (default is ON) |
 | **CMAKE_CXX_STANDARD** : INT|Adapt the used C++ standard (minimum required is 20)|
-| **PHASAR_LLVM_VERSION** : VERSION|The LLVM major-version to use. Can be between 16 and 22.1 (default is 16)|
+| **PHASAR_LLVM_VERSION** : VERSION|The LLVM major-version to use. Can be between 16 and 23.1 (default is 21)|
 | **PHASAR_USE_SVF** : BOOL| Enable using SVF points-to info from PhASAR. See [Use PhASAR with SVF](https://github.com/secure-software-engineering/phasar/wiki/FAQ#how-to-use-phasar-with-svf). Requires SVF installed (default OFF) |
 
 You can use these parameters either directly or modify the installer-script `bootstrap.sh`
