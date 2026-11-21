@@ -1,12 +1,12 @@
-ARG baseimage="ubuntu:24.04"
+ARG baseimage="ubuntu:26.04"
 FROM "$baseimage" AS build
 
 RUN --mount=type=bind,source=./utils/InstallAptDependencies.sh,target=/InstallAptDependencies.sh \
   set -eux; \
-  ./InstallAptDependencies.sh --noninteractive tzdata clang-20 libclang-rt-20-dev clang-tools-20 llvm-16-tools llvm-20-tools
+  ./InstallAptDependencies.sh --noninteractive tzdata clang-21 libclang-rt-21-dev clang-tools-21 llvm-21-tools
 
-ENV CC=/usr/bin/clang-20 \
-    CXX=/usr/bin/clang++-20
+ENV CC=/usr/bin/clang-21 \
+    CXX=/usr/bin/clang++-21
 
 FROM build
 
