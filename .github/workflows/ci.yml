@@ -10,6 +10,7 @@ on:
 # TODO test conan build
 jobs:
   build:
+    name: ${{ matrix.build }} (LLVM-${{ matrix.llvm-version }}, ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: true
