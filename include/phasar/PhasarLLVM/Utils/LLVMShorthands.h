@@ -83,6 +83,11 @@ class LLVMProjectIRDB;
 isAllocaInstOrHeapAllocaFunction(const llvm::Value *V) noexcept;
 [[nodiscard]] bool isHeapAllocatingFunction(const llvm::Function *F) noexcept;
 
+/// Strips potential pointer-arithmetic from V, accumulating the byte-offset.
+/// Offset is INT32_MIN if not constant.
+[[nodiscard]] std::pair<const llvm::Value *, int32_t>
+getBaseAndOffset(const llvm::Value *V, const llvm::DataLayout &DL);
+
 /// Returns true if the provided function and the function type are both not
 /// null and have the same number of parameters and the same return type. If the
 /// argument ExactMatch is set to true, which it is by default, the two provided

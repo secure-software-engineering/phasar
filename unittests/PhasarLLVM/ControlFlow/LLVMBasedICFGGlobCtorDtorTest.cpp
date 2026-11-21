@@ -228,6 +228,88 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, DtorTest1) {
                              }));
 }
 
+TEST_F(LLVMBasedICFGGlobCtorDtorTest, ExitHandlers) {
+  LLVMProjectIRDB IRDB(PathToLLFiles + "globals_exit_1_c.ll");
+  DIBasedTypeHierarchy TH(IRDB);
+  LLVMAliasSet PT(&IRDB);
+  LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,
+                     Soundness::Soundy, /*IncludeGlobals*/ true);
+
+  const auto *DtorCaller = IRDB.getFunction(
+      GlobalCtorsDtorsModel::DtorsCallerName.str() + ".globals_exit_1_c.ll");
+  ASSERT_NE(nullptr, DtorCaller);
+  EXPECT_TRUE(GlobalCtorsDtorsModel::isPhasarGenerated(*DtorCaller));
+  const auto *Main = IRDB.getFunctionDefinition("main");
+  ASSERT_NE(nullptr, Main);
+
+  const llvm::CallBase *AtExit = nullptr;
+  const llvm::CallBase *OnExit = nullptr;
+  for (const auto &Inst : llvm::instructions(DtorCaller)) {
+    if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(&Inst)) {
+      const auto Name = Call->getCalledFunction()->getName();
+      if (Name == "viaAtExit") {
+        AtExit = Call;
+      } else if (Name == "viaOnExit") {
+        OnExit = Call;
+      }
+    }
+  }
+  ASSERT_NE(nullptr, AtExit);
+  ASSERT_NE(nullptr, OnExit);
+  EXPECT_FALSE(ICFG.getCalleesOfCallAt(OnExit).empty());
+
+  // on_exit's argument goes through a slot that main fills when registering
+  const auto *Arg = llvm::dyn_cast<llvm::LoadInst>(OnExit->getArgOperand(1));
+  ASSERT_NE(nullptr, Arg);
+  const auto *Slot =
+      llvm::dyn_cast<llvm::GlobalVariable>(Arg->getPointerOperand());
+  ASSERT_NE(nullptr, Slot);
+  EXPECT_TRUE(
+      Slot->getName().starts_with(GlobalCtorsDtorsModel::ExitHandlerArgName));
+  const llvm::StoreInst *Fill = nullptr;
+  for (const auto &Inst : llvm::instructions(Main)) {
+    if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(&Inst);
+        Store && Store->getPointerOperand() == Slot) {
+      Fill = Store;
+    }
+  }
+  ASSERT_NE(nullptr, Fill);
+  const auto *Registration =
+      llvm::dyn_cast<llvm::CallBase>(Fill->getNextNode());
+  ASSERT_NE(nullptr, Registration);
+  EXPECT_EQ("on_exit", Registration->getCalledFunction()->getName());
+  EXPECT_EQ(Registration->getArgOperand(1), Fill->getValueOperand());
+  EXPECT_EQ(Fill, IRDB.getValueFromId(IRDB.getInstructionId(Fill)));
+
+  // at_quick_exit's handler runs right before quick_exit, not at exit
+  const auto *QuickCaller =
+      IRDB.getFunction(GlobalCtorsDtorsModel::QuickExitCallerName.str() +
+                       ".globals_exit_1_c.ll");
+  ASSERT_NE(nullptr, QuickCaller);
+  EXPECT_TRUE(GlobalCtorsDtorsModel::isPhasarGenerated(*QuickCaller));
+  bool CallsHandler = false;
+  for (const auto &Inst : llvm::instructions(QuickCaller)) {
+    if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(&Inst)) {
+      CallsHandler |= Call->getCalledFunction()->getName() == "viaQuickExit";
+    }
+  }
+  EXPECT_TRUE(CallsHandler);
+  for (const auto &Inst : llvm::instructions(Main)) {
+    const auto *Call = llvm::dyn_cast<llvm::CallBase>(&Inst);
+    if (Call && Call->getCalledFunction() &&
+        Call->getCalledFunction()->getName() == "quick_exit") {
+      const auto *Before = llvm::dyn_cast<llvm::CallBase>(Call->getPrevNode());
+      ASSERT_NE(nullptr, Before);
+      EXPECT_EQ(QuickCaller, Before->getCalledFunction());
+    }
+  }
+  for (const auto &Inst : llvm::instructions(DtorCaller)) {
+    if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(&Inst)) {
+      EXPECT_NE("viaQuickExit", Call->getCalledFunction()->getName());
+    }
+  }
+}
+
 TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest1) {
 
   LLVMProjectIRDB IRDB(PathToLLFiles + "globals_lca_1_cpp.ll");

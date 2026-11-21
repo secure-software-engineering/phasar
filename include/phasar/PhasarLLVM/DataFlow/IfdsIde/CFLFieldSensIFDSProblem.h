@@ -289,26 +289,6 @@ struct IFDSProblemConfig : LLVMIFDSAnalysisDomainDefault {
   // XXX: more
 };
 
-/// Utility to strip off potential pointer-arithmetic from V and accumulating
-/// the byte-offset.
-[[nodiscard]] inline std::pair<const llvm::Value *, int32_t>
-getBaseAndOffset(const llvm::Value *V, const llvm::DataLayout &DL) {
-  llvm::APInt Offset(64, 0);
-  int32_t OffsVal = AccessPath::TopOffset;
-  const auto *Base = V->stripAndAccumulateConstantOffsets(DL, Offset, true);
-
-  if (llvm::isa<llvm::GEPOperator>(Base)) {
-    return {Base->stripPointerCastsAndAliases(), AccessPath::TopOffset};
-  }
-
-  auto RawOffsVal = Offset.getSExtValue();
-  if (RawOffsVal <= INT32_MAX && RawOffsVal >= INT32_MIN) {
-    OffsVal = int32_t(RawOffsVal);
-  }
-
-  return {Base->stripPointerCastsAndAliases(), OffsVal};
-}
-
 /// Checks whether Fact holds at Inst in a field-sensitive way
 template <bool AllowDeepTaints = true, typename ResultsT>
 [[nodiscard]] inline bool holdsFactAt(const ResultsT &Results,

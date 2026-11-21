@@ -130,6 +130,10 @@ public:
   /// called twice for the same function. Use with care!
   void insertFunction(llvm::Function *F, bool DoPreprocessing = true);
 
+  /// Re-synchronizes the ids with the managed module after a transformation
+  /// added or removed instructions.
+  void updateInstructionIds();
+
   /// Returns the function that contains the given instruction Inst.
   ///
   /// \remark This function should eventually replace
@@ -218,6 +222,7 @@ private:
   std::unique_ptr<llvm::LLVMContext> Ctx;
   MaybeUniquePtr<llvm::Module> Mod = nullptr;
   size_t IdOffset = 0;
+  bool IsPreprocessed = false;
   llvm::SmallVector<const llvm::Value *, 0> IdToInst;
   llvm::DenseMap<const llvm::Value *, size_t> InstToId;
 };
