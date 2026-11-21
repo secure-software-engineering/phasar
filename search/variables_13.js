@@ -1,6 +1,23 @@
 var searchData=
 [
-  ['ufaaty_0',['UFAATy',['../structpsr_1_1HelperAnalysisConfig.html#a442f0297515e2003f8b797924d4d0f87',1,'psr::HelperAnalysisConfig']]],
-  ['useendsummarytab_1',['useendsummarytab',['../structpsr_1_1IDESolverConfigBase.html#aa1c3fbacbc2405b0632f492d96785800',1,'psr::IDESolverConfigBase::UseEndSummaryTab'],['../structpsr_1_1WithEndSummaryTab.html#a8745cb80c423b25b5c4ade11a54a469b',1,'psr::WithEndSummaryTab::UseEndSummaryTab']]],
-  ['userentryselectorname_2',['UserEntrySelectorName',['../classpsr_1_1GlobalCtorsDtorsModel.html#aaa8bb5bebe1fcd4628c7e13592ed1742',1,'psr::GlobalCtorsDtorsModel']]]
+  ['ta_0',['TA',['../structpsr_1_1monoifds_1_1TaintAnalysis_1_1LocalAnalysis.html#a4e0a08b1a68370abcd44e4873fc5d2d2',1,'psr::monoifds::TaintAnalysis::LocalAnalysis']]],
+  ['taints_1',['Taints',['../structpsr_1_1IDEFeatureTaintEdgeFact.html#a46ff8dfe4fa445f9601b9a2aa6ec81ea',1,'psr::IDEFeatureTaintEdgeFact']]],
+  ['target_2',['Target',['../structpsr_1_1DOTEdge.html#a0147772cf005fabe8bab1be1367b2739',1,'psr::DOTEdge']]],
+  ['targetfact_3',['TargetFact',['../structpsr_1_1IterativeIDESolverBase_1_1SummaryEdge.html#abfc6718e1fc6b5679ae1f8f018327c11',1,'psr::IterativeIDESolverBase::SummaryEdge']]],
+  ['tbaa_4',['TBAA',['../structpsr_1_1MemSSABundle.html#a6d14325c6400615d389d3a7223b05ed4',1,'psr::MemSSABundle']]],
+  ['th_5',['TH',['../classpsr_1_1CHAResolver.html#ad6da9bdee94c6c65275bf54c7634b0fc',1,'psr::CHAResolver']]],
+  ['to_6',['To',['../structpsr_1_1XTaint_1_1TransferEdgeFunction.html#ac824829b33121bafdaa2d328da1ab517',1,'psr::XTaint::TransferEdgeFunction']]],
+  ['topoffset_7',['topoffset',['../classpsr_1_1cfl__fieldsens_1_1FieldStringManager.html#a97155d0747f5fd30831feb38a3d6ba77',1,'psr::cfl_fieldsens::FieldStringManager::TopOffset'],['../structpsr_1_1cfl__fieldsens_1_1AccessPath.html#aa8fa04ad6b5c57e22a00656acfb4a2c6',1,'psr::cfl_fieldsens::AccessPath::TopOffset']]],
+  ['topvalue_8',['topvalue',['../structpsr_1_1AllTop.html#aa852f435c1164ce6151b7ca5a3fd5622',1,'psr::AllTop::TopValue'],['../classpsr_1_1glca_1_1EdgeValue.html#aeb2daf91c1d482d016aacd7db4ac77f9',1,'psr::glca::EdgeValue::TopValue']]],
+  ['totalnumlinearsearchforsummary_9',['TotalNumLinearSearchForSummary',['../structpsr_1_1IterativeIDESolverStats.html#a9ceb83f987d5a9f3066c003fdaf40b3b',1,'psr::IterativeIDESolverStats']]],
+  ['totalnumoperands_10',['TotalNumOperands',['../structpsr_1_1GeneralStatistics.html#a0d9ba42bb3261aea4fbc39c8e85a7f5d',1,'psr::GeneralStatistics']]],
+  ['totalnumpredecessorbbs_11',['TotalNumPredecessorBBs',['../structpsr_1_1GeneralStatistics.html#a25421e6b472c1d5fb4d96c327568243d',1,'psr::GeneralStatistics']]],
+  ['totalnumrelevantcalls_12',['TotalNumRelevantCalls',['../structpsr_1_1IterativeIDESolverStats.html#a7da80eb9bc0e1d8b322c22d739c3c50c',1,'psr::IterativeIDESolverStats']]],
+  ['totalnumsuccessorbbs_13',['TotalNumSuccessorBBs',['../structpsr_1_1GeneralStatistics.html#a94c556798bc61cc838da50e1b617b3d5',1,'psr::GeneralStatistics']]],
+  ['totalnumuses_14',['TotalNumUses',['../structpsr_1_1GeneralStatistics.html#a220fe35ca2210930ddb13ec916bc715a',1,'psr::GeneralStatistics']]],
+  ['transform_15',['Transform',['../structpsr_1_1cfl__fieldsens_1_1CFLFieldSensEdgeFunctionImpl.html#a83ce114f9f0499fa6100c8fdfb32396d',1,'psr::cfl_fieldsens::CFLFieldSensEdgeFunctionImpl']]],
+  ['transitivederivedindex_16',['TransitiveDerivedIndex',['../structpsr_1_1DIBasedTypeHierarchyData.html#a909d7085214a903910bb5d0711ee9957',1,'psr::DIBasedTypeHierarchyData']]],
+  ['tsf_17',['TSF',['../classpsr_1_1XTaint_1_1AnalysisBase.html#a91ad2abbf943b3a104ff77068955b691',1,'psr::XTaint::AnalysisBase']]],
+  ['typeentrypoints_18',['TypeEntryPoints',['../structpsr_1_1vta_1_1TypeAssignmentGraph.html#ae810885c5f6a7f22ebcca780890c5220',1,'psr::vta::TypeAssignmentGraph']]],
+  ['typesperscc_19',['TypesPerSCC',['../structpsr_1_1vta_1_1TypeAssignment.html#adf2bc0708c727b6a700972202d840cba',1,'psr::vta::TypeAssignment']]]
 ];

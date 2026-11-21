@@ -44,7 +44,7 @@ var searchData=
   ['getasjson_41',['getasjson',['../classpsr_1_1IDESolver.html#a373ab82001918ec216ed30f947c474eb',1,'psr::IDESolver::getAsJson()'],['../classpsr_1_1CachedLLVMAliasIterator.html#ab3971831348d59e3f5221f4cbe7084c4',1,'psr::CachedLLVMAliasIterator::getAsJson()']]],
   ['getaverage_42',['getAverage',['../structpsr_1_1Sampler.html#a4b8a0be648c61fe374edfda087146d00',1,'psr::Sampler']]],
   ['getbase_43',['getBase',['../classpsr_1_1IDEIIAFlowFact.html#ace1014382119bdbc8fe1788351b58cf4',1,'psr::IDEIIAFlowFact']]],
-  ['getbaseandoffset_44',['getBaseAndOffset',['../namespacepsr_1_1cfl__fieldsens.html#ae0622c7d353e108c006821344c0ff934',1,'psr::cfl_fieldsens']]],
+  ['getbaseandoffset_44',['getBaseAndOffset',['../namespacepsr.html#ac8db92d42c8b394c131db984f231d325',1,'psr']]],
   ['getbasepointer_45',['getBasePointer',['../classpsr_1_1LLVMBasePointerAliasSet.html#a15b67371b460924b0f2c141eb0f9bc0e',1,'psr::LLVMBasePointerAliasSet']]],
   ['getbasicblockordering_46',['getBasicBlockOrdering',['../classpsr_1_1XTaint_1_1IDEExtendedTaintAnalysis.html#aa58d0525deb1de7a31f96c1063b4a8ba',1,'psr::XTaint::IDEExtendedTaintAnalysis']]],
   ['getbits_47',['getbits',['../classpsr_1_1BitVectorSet.html#a460d5a2cffeeb78dee50a367ac4069df',1,'psr::BitVectorSet::getBits() const &amp;noexcept'],['../classpsr_1_1BitVectorSet.html#af5f9855983e127c1fd46564693d56684',1,'psr::BitVectorSet::getBits() &amp;noexcept'],['../classpsr_1_1BitVectorSet.html#afe4f6e1f7d3300a0d2253ee46b820094',1,'psr::BitVectorSet::getBits() &amp;&amp;noexcept']]],

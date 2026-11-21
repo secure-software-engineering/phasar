@@ -122,6 +122,10 @@ Static Public Attributes</h2></td></tr>
 <tr class="separator:aaa8bb5bebe1fcd4628c7e13592ed1742"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5b4fbb60aad21b321c78bd1617ea2e03" id="r_a5b4fbb60aad21b321c78bd1617ea2e03"><td class="memItemLeft" align="right" valign="top">static constexpr llvm::StringLiteral&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1GlobalCtorsDtorsModel.html#a5b4fbb60aad21b321c78bd1617ea2e03">NonDetValuePrefix</a></td></tr>
 <tr class="separator:a5b4fbb60aad21b321c78bd1617ea2e03"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac67f05e1a4d4d413e430506423017fdd" id="r_ac67f05e1a4d4d413e430506423017fdd"><td class="memItemLeft" align="right" valign="top">static constexpr llvm::StringLiteral&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1GlobalCtorsDtorsModel.html#ac67f05e1a4d4d413e430506423017fdd">QuickExitCallerName</a></td></tr>
+<tr class="separator:ac67f05e1a4d4d413e430506423017fdd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae3c756008fa7dfa53df9ce1846e47c79" id="r_ae3c756008fa7dfa53df9ce1846e47c79"><td class="memItemLeft" align="right" valign="top">static constexpr llvm::StringLiteral&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1GlobalCtorsDtorsModel.html#ae3c756008fa7dfa53df9ce1846e47c79">ExitHandlerArgName</a></td></tr>
+<tr class="separator:ae3c756008fa7dfa53df9ce1846e47c79"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Provides utilities to inject a function into the IR under analysis that captures global constructors and destructors as described in the 2021 Paper "Modeling the Effects of Global Variables in Data-Flow Analysis for
@@ -330,6 +334,33 @@ C/C++" by Schubert et al. </p>
 
 </div>
 </div>
+<a id="ae3c756008fa7dfa53df9ce1846e47c79" name="ae3c756008fa7dfa53df9ce1846e47c79"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae3c756008fa7dfa53df9ce1846e47c79">&#9670;&#160;</a></span>ExitHandlerArgName</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr llvm::StringLiteral psr::GlobalCtorsDtorsModel::ExitHandlerArgName</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">=</div>
+<div class="line">      <span class="stringliteral">&quot;__psrExitHandlerArg&quot;</span></div>
+</div><!-- fragment --><p>A global that a registration (on_exit, __cxa_atexit) fills with the non-constant argument its exit handler gets </p>
+
+<p class="definition">Definition at line <a class="el" href="GlobalCtorsDtorsModel_8h_source.html#l00052">52</a> of file <a class="el" href="GlobalCtorsDtorsModel_8h_source.html">GlobalCtorsDtorsModel.h</a>.</p>
+
+</div>
+</div>
 <a id="ad4f2604def76a7ff180465f4c4de4af4" name="ad4f2604def76a7ff180465f4c4de4af4"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad4f2604def76a7ff180465f4c4de4af4">&#9670;&#160;</a></span>ModelName</h2>
 
@@ -382,6 +413,32 @@ C/C++" by Schubert et al. </p>
 
 </div>
 </div>
+<a id="ac67f05e1a4d4d413e430506423017fdd" name="ac67f05e1a4d4d413e430506423017fdd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac67f05e1a4d4d413e430506423017fdd">&#9670;&#160;</a></span>QuickExitCallerName</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr llvm::StringLiteral psr::GlobalCtorsDtorsModel::QuickExitCallerName</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">=</div>
+<div class="line">      <span class="stringliteral">&quot;__psrQuickExitCaller&quot;</span></div>
+</div><!-- fragment -->
+<p class="definition">Definition at line <a class="el" href="GlobalCtorsDtorsModel_8h_source.html#l00047">47</a> of file <a class="el" href="GlobalCtorsDtorsModel_8h_source.html">GlobalCtorsDtorsModel.h</a>.</p>
+
+</div>
+</div>
 <a id="aaa8bb5bebe1fcd4628c7e13592ed1742" name="aaa8bb5bebe1fcd4628c7e13592ed1742"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aaa8bb5bebe1fcd4628c7e13592ed1742">&#9670;&#160;</a></span>UserEntrySelectorName</h2>
 
@@ -414,7 +471,7 @@ C/C++" by Schubert et al. </p>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Nov 8 2026 12:22:03 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Nov 21 2026 11:37:29 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

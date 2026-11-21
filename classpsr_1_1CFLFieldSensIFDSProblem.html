@@ -294,7 +294,7 @@ requires std::same_as&lt;<a class="el" href="namespacepsr.html#a0764173b796546aa
 class psr::CFLFieldSensIFDSProblem&lt; ProblemTy &gt;</div><p>An IFDS-Problem adaptor that makes any field-insensitive IFDS analysis field-sensitive. Just wrap your IFDS problem with <a class="el" href="classpsr_1_1CFLFieldSensIFDSProblem.html">CFLFieldSensIFDSProblem</a> and use the <a class="el" href="classpsr_1_1IterativeIDESolver.html">IterativeIDESolver</a> instead of the <a class="el" href="classpsr_1_1IFDSSolver.html" title="Solves the given IFDSTabulationProblem as described in the 1995 paper by Reps, Horwitz and Sagiv....">IFDSSolver</a>.</p>
 <p>The only thing to change in your usual IFDS problem is not to kill data-flow facts when only parts of the fields should be killed. This is now handled by the <a class="el" href="classpsr_1_1CFLFieldSensIFDSProblem.html">CFLFieldSensIFDSProblem</a>. For that, provide a problem definition with a proper killsAt() implementation. </p>
 
-<p class="definition">Definition at line <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html#l00540">540</a> of file <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html">CFLFieldSensIFDSProblem.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html#l00520">520</a> of file <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html">CFLFieldSensIFDSProblem.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="aea383dd37f9a0bb1a2ed1b13e99d5a5c" name="aea383dd37f9a0bb1a2ed1b13e99d5a5c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aea383dd37f9a0bb1a2ed1b13e99d5a5c">&#9670;&#160;</a></span>CFLFieldSensIFDSProblem() <span class="overload">[1/4]</span></h2>
@@ -333,7 +333,7 @@ template&lt;IFDSProblem ProblemTy&gt; </div>
 </div><div class="memdoc">
 <p>Constructs an <a class="el" href="classpsr_1_1IDETabulationProblem.html" title="The analysis problem interface for IDE problems (solvable by the IDESolver). Create a subclass from t...">IDETabulationProblem</a> with the usual arguments, forwarded from UserProblem </p>
 
-<p class="definition">Definition at line <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html#l00582">582</a> of file <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html">CFLFieldSensIFDSProblem.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html#l00562">562</a> of file <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html">CFLFieldSensIFDSProblem.h</a>.</p>
 
 </div>
 </div>
@@ -364,7 +364,7 @@ template&lt;IFDSProblem ProblemTy&gt; </div>
 </div><div class="memdoc">
 <p>Constructs an <a class="el" href="classpsr_1_1IDETabulationProblem.html" title="The analysis problem interface for IDE problems (solvable by the IDESolver). Create a subclass from t...">IDETabulationProblem</a> with the usual arguments, forwarded from UserProblem and tries to automatically derive the config from additional functions specified by UserProblem </p>
 
-<p class="definition">Definition at line <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html#l00593">593</a> of file <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html">CFLFieldSensIFDSProblem.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html#l00573">573</a> of file <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html">CFLFieldSensIFDSProblem.h</a>.</p>
 
 </div>
 </div>
@@ -462,7 +462,7 @@ template&lt;IFDSProblem ProblemTy&gt; </div>
 
 <p>The wrapped user-problem. </p>
 
-<p class="definition">Definition at line <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html#l00643">643</a> of file <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html">CFLFieldSensIFDSProblem.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html#l00623">623</a> of file <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html">CFLFieldSensIFDSProblem.h</a>.</p>
 
 </div>
 </div>
@@ -502,7 +502,7 @@ template&lt;IFDSProblem ProblemTy&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html#l00620">620</a> of file <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html">CFLFieldSensIFDSProblem.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html#l00600">600</a> of file <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html">CFLFieldSensIFDSProblem.h</a>.</p>
 
 </div>
 </div>
@@ -548,7 +548,7 @@ template&lt;IFDSProblem ProblemTy&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html#l00637">637</a> of file <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html">CFLFieldSensIFDSProblem.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html#l00617">617</a> of file <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html">CFLFieldSensIFDSProblem.h</a>.</p>
 
 </div>
 </div>
@@ -577,7 +577,7 @@ template&lt;IFDSProblem ProblemTy&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html#l00604">604</a> of file <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html">CFLFieldSensIFDSProblem.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html#l00584">584</a> of file <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html">CFLFieldSensIFDSProblem.h</a>.</p>
 
 </div>
 </div>
@@ -617,7 +617,7 @@ template&lt;IFDSProblem ProblemTy&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html#l00616">616</a> of file <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html">CFLFieldSensIFDSProblem.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html#l00596">596</a> of file <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html">CFLFieldSensIFDSProblem.h</a>.</p>
 
 </div>
 </div>
@@ -669,7 +669,7 @@ template&lt;IFDSProblem ProblemTy&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html#l00630">630</a> of file <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html">CFLFieldSensIFDSProblem.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html#l00610">610</a> of file <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html">CFLFieldSensIFDSProblem.h</a>.</p>
 
 </div>
 </div>
@@ -709,7 +709,7 @@ template&lt;IFDSProblem ProblemTy&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html#l00625">625</a> of file <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html">CFLFieldSensIFDSProblem.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html#l00605">605</a> of file <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html">CFLFieldSensIFDSProblem.h</a>.</p>
 
 </div>
 </div>
@@ -738,7 +738,7 @@ template&lt;IFDSProblem ProblemTy&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html#l00612">612</a> of file <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html">CFLFieldSensIFDSProblem.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html#l00592">592</a> of file <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html">CFLFieldSensIFDSProblem.h</a>.</p>
 
 <p class="reference">References <a class="el" href="classpsr_1_1cfl__fieldsens_1_1CFLFieldSensEdgeFunctions.html#a0c162540ac82bf9854bc3fe6a095a8b7">psr::cfl_fieldsens::CFLFieldSensEdgeFunctions::makeInitialSeeds()</a>.</p>
 
@@ -750,7 +750,7 @@ template&lt;IFDSProblem ProblemTy&gt; </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Nov 8 2026 12:22:03 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Nov 21 2026 11:37:29 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

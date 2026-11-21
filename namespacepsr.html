@@ -2033,6 +2033,8 @@ requires std::is_same_v&lt;typename ContainerTy::value_type, const llvm::Value *
 <tr class="memitem:a760f1365adfeb898b503d6bbfe646712" id="r_a760f1365adfeb898b503d6bbfe646712"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a760f1365adfeb898b503d6bbfe646712">isAllocaInstOrHeapAllocaFunction</a> (const llvm::Value *V) noexcept</td></tr>
 <tr class="memdesc:a760f1365adfeb898b503d6bbfe646712"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if the given LLVM Value is either a alloca instruction or a heap allocation function, e.g. new, new[], malloc, realloc or calloc.  <br /></td></tr>
 <tr class="separator:a760f1365adfeb898b503d6bbfe646712"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac8db92d42c8b394c131db984f231d325" id="r_ac8db92d42c8b394c131db984f231d325"><td class="memItemLeft" align="right" valign="top">std::pair&lt; const llvm::Value *, int32_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#ac8db92d42c8b394c131db984f231d325">getBaseAndOffset</a> (const llvm::Value *V, const llvm::DataLayout &amp;DL)</td></tr>
+<tr class="separator:ac8db92d42c8b394c131db984f231d325"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a515e5c0c4b97a2c1856189a00cf3a61a" id="r_a515e5c0c4b97a2c1856189a00cf3a61a"><td class="memItemLeft" align="right" valign="top">LLVM_DEPRECATED(&quot;With opaque pointers, this function is not very useful. Use &quot; &quot;<a class="el" href="namespacepsr.html#a1d7e8e0325ae290072875ea2a35f9332">isConsistentCall</a>() instead.&quot;, &quot;psr::isConsistentCall&quot;) <a class="el" href="classbool.html">bool</a> matchesSignature(const llvm LLVM_DEPRECATED(&quot;With opaque pointers, this function is not very useful. Use &quot; &quot;<a class="el" href="namespacepsr.html#a1d7e8e0325ae290072875ea2a35f9332">isConsistentCall</a>() instead.&quot;, &quot;psr::isConsistentCall&quot;) <a class="el" href="classbool.html">bool</a> matchesSignature(const llvm llvm::ModuleSlotTracker &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a515e5c0c4b97a2c1856189a00cf3a61a">getModuleSlotTrackerFor</a> (const llvm::Value *V)</td></tr>
 <tr class="separator:a515e5c0c4b97a2c1856189a00cf3a61a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad5a75f4cae1c54079d849c1581cb3156" id="r_ad5a75f4cae1c54079d849c1581cb3156"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#ad5a75f4cae1c54079d849c1581cb3156">llvmIRToString</a> (const llvm::Value *V)</td></tr>
@@ -7426,11 +7428,11 @@ template&lt;typename L &gt; </div>
 <p>Approximates, whether the given LLVM type may not contain a pointer. This check is designed to be extremely lightweight and is therefore not very precise.</p>
 <dl class="section return"><dt>Returns</dt><dd>True, iff it can be proven that Ty does <em>not</em> contain a pointer </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00326">326</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00331">331</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
 
-<p class="reference">References <a class="el" href="LLVMShorthands_8h_source.html#l00311">definitelyContainsNoPointerFast()</a>, and <a class="el" href="namespacepsr_1_1detail.html#a2a884f2fee0e2ce1b0d8c14b2f14c06f">psr::detail::definitelyContainsNoPointerImpl()</a>.</p>
+<p class="reference">References <a class="el" href="LLVMShorthands_8h_source.html#l00316">definitelyContainsNoPointerFast()</a>, and <a class="el" href="namespacepsr_1_1detail.html#a2a884f2fee0e2ce1b0d8c14b2f14c06f">psr::detail::definitelyContainsNoPointerImpl()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="LLVMShorthands_8h_source.html#l00338">definitelyContainsNoPointer()</a>, <a class="el" href="LLVMShorthands_8h_source.html#l00350">forEachPointerOperand()</a>, <a class="el" href="LLVMGlobalInitCache_8h_source.html#l00043">psr::GlobalInitCache::getOrCreate()</a>, <a class="el" href="LLVMPointerSemantics_8h_source.html#l00147">psr::PunnedABICache::isCoercedPointer()</a>, <a class="el" href="LLVMPointerSemantics_8h_source.html#l00058">isPunnedPointerAccess()</a>, and <a class="el" href="LLVMPointerSemantics_8h_source.html#l00092">psr::LLVMMemoryAccess::mayTransferPointer()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="LLVMShorthands_8h_source.html#l00343">definitelyContainsNoPointer()</a>, <a class="el" href="LLVMShorthands_8h_source.html#l00355">forEachPointerOperand()</a>, <a class="el" href="LLVMGlobalInitCache_8h_source.html#l00043">psr::GlobalInitCache::getOrCreate()</a>, <a class="el" href="LLVMPointerSemantics_8h_source.html#l00147">psr::PunnedABICache::isCoercedPointer()</a>, <a class="el" href="LLVMPointerSemantics_8h_source.html#l00058">isPunnedPointerAccess()</a>, and <a class="el" href="LLVMPointerSemantics_8h_source.html#l00092">psr::LLVMMemoryAccess::mayTransferPointer()</a>.</p>
 
 </div>
 </div>
@@ -7460,9 +7462,9 @@ template&lt;typename L &gt; </div>
 <p>Approximates, whether the given LLVM value may not contain a pointer. This check is designed to be extremely lightweight and is therefore not very precise.</p>
 <dl class="section return"><dt>Returns</dt><dd>True, iff it can be proven that Val does <em>not</em> contain a pointer </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00338">338</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00343">343</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
 
-<p class="reference">References <a class="el" href="LLVMShorthands_8h_source.html#l00326">definitelyContainsNoPointer()</a>.</p>
+<p class="reference">References <a class="el" href="LLVMShorthands_8h_source.html#l00331">definitelyContainsNoPointer()</a>.</p>
 
 </div>
 </div>
@@ -7490,9 +7492,9 @@ template&lt;typename L &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00311">311</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00316">316</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="LLVMShorthands_8h_source.html#l00326">definitelyContainsNoPointer()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="LLVMShorthands_8h_source.html#l00331">definitelyContainsNoPointer()</a>.</p>
 
 </div>
 </div>
@@ -8091,9 +8093,9 @@ template&lt;std::invocable&lt; const llvm::Value * &gt; HandlerT&gt; </div>
 <li>If <code>V</code> is a ConstantExpr, the expression tree is walked and Handler is called for each GlobalObject leaf. </li>
 </ul>
 
-<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00350">350</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00355">355</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
 
-<p class="reference">References <a class="el" href="LLVMShorthands_8h_source.html#l00326">definitelyContainsNoPointer()</a>.</p>
+<p class="reference">References <a class="el" href="LLVMShorthands_8h_source.html#l00331">definitelyContainsNoPointer()</a>.</p>
 
 </div>
 </div>
@@ -8263,6 +8265,35 @@ template&lt;detail::IsSomehowPrintable F&gt; </div>
 
 </div>
 </div>
+<a id="ac8db92d42c8b394c131db984f231d325" name="ac8db92d42c8b394c131db984f231d325"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac8db92d42c8b394c131db984f231d325">&#9670;&#160;</a></span>getBaseAndOffset()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::pair&lt; const llvm::Value *, int32_t &gt; psr::getBaseAndOffset </td>
+          <td>(</td>
+          <td class="paramtype">const llvm::Value *&#160;</td>
+          <td class="paramname"><em>V</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const llvm::DataLayout &amp;&#160;</td>
+          <td class="paramname"><em>DL</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Strips potential pointer-arithmetic from V, accumulating the byte-offset. Offset is INT32_MIN if not constant. </p>
+
+</div>
+</div>
 <a id="ac7359ec5dfe7007fc814c68f1b91541d" name="ac7359ec5dfe7007fc814c68f1b91541d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac7359ec5dfe7007fc814c68f1b91541d">&#9670;&#160;</a></span>getBranchConditionOrNull()</h2>
 
@@ -8287,7 +8318,7 @@ template&lt;detail::IsSomehowPrintable F&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00514">514</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00519">519</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
 
 </div>
 </div>
@@ -8632,7 +8663,7 @@ requires std::is_default_constructible_v&lt;T&gt;</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00412">412</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00417">417</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
 
 </div>
 </div>
@@ -8660,7 +8691,7 @@ requires std::is_default_constructible_v&lt;T&gt;</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00399">399</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00404">404</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="LLVMRawAAResults_8h_source.html#l00226">psr::LLVMLocalRawAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, <a class="el" href="LLVMRawAAResults_8h_source.html#l00232">psr::LLVMLocalRawAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, <a class="el" href="LLVMRawAAResults_8h_source.html#l00220">psr::LLVMLocalRawAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, and <a class="el" href="LLVMRawAAResults_8h_source.html#l00193">psr::LLVMLocalRawAliasIteratorMixin&lt; Derived, AAResT &gt;::getRawAliasSet()</a>.</p>
 
@@ -9378,7 +9409,7 @@ requires CanEfficientlyPassByValue&lt; typename std::remove_cvref_t&lt;MapT&gt;:
 
 <p class="reference">References <a class="el" href="Macros_8h_source.html#l00016">PSR_FWD</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html#l00345">psr::cfl_fieldsens::filterFieldSensFacts()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="CFLFieldSensIFDSProblem_8h_source.html#l00325">psr::cfl_fieldsens::filterFieldSensFacts()</a>.</p>
 
 </div>
 </div>
@@ -11593,7 +11624,7 @@ template&lt;typename IdT  = size_t&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00432">432</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00437">437</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
 
 <p class="reference">References <a class="el" href="namespacepsr.html#a4d2d980af08e299e8d6cb6b219b78a2d">stripMemberAndTypedef()</a>.</p>
 
@@ -11643,7 +11674,7 @@ template&lt;typename IdT  = size_t&gt; </div>
 
 <p class="definition">Definition at line <a class="el" href="LLVMPointerSemantics_8h_source.html#l00058">58</a> of file <a class="el" href="LLVMPointerSemantics_8h_source.html">LLVMPointerSemantics.h</a>.</p>
 
-<p class="reference">References <a class="el" href="LLVMShorthands_8h_source.html#l00326">definitelyContainsNoPointer()</a>, and <a class="el" href="LLVMPointerSemantics_8h_source.html#l00038">mayHidePointer()</a>.</p>
+<p class="reference">References <a class="el" href="LLVMShorthands_8h_source.html#l00331">definitelyContainsNoPointer()</a>, and <a class="el" href="LLVMPointerSemantics_8h_source.html#l00038">mayHidePointer()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="LLVMPointerSemantics_8h_source.html#l00103">asMemoryAccess()</a>.</p>
 
@@ -11727,7 +11758,7 @@ template&lt;typename IdT  = size_t&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00420">420</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00425">425</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
 
 </div>
 </div>
@@ -11793,7 +11824,7 @@ template&lt;typename IdT  = size_t&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00502">502</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00507">507</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
 
 </div>
 </div>
@@ -14406,7 +14437,7 @@ template&lt;typename CompareFn  = std::less&lt;&gt;&gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="LLVMShorthands_8h_source.html#l00432">isPointerTy()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="LLVMShorthands_8h_source.html#l00437">isPointerTy()</a>.</p>
 
 </div>
 </div>
@@ -16057,7 +16088,7 @@ template&lt;typename Var , typename T &gt; </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Nov 8 2026 12:22:03 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Nov 21 2026 11:37:29 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

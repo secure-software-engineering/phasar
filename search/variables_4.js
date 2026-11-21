@@ -11,6 +11,7 @@ var searchData=
   ['endsummarytabsize_8',['EndSummaryTabSize',['../structpsr_1_1IterativeIDESolverStats.html#ab3888ea1677ac672923dedac3efc7285',1,'psr::IterativeIDESolverStats']]],
   ['engaged_9',['Engaged',['../structpsr_1_1pag_1_1TracingPBStrategy.html#a3315e5aae7138ddf15b40defb86d53bd',1,'psr::pag::TracingPBStrategy']]],
   ['entrypoints_10',['entrypoints',['../classpsr_1_1IDETabulationProblem.html#a67b81d0a3bc0ec7c7b7e43dd2e1aff1f',1,'psr::IDETabulationProblem::EntryPoints'],['../classpsr_1_1IfdsIdeProblemMixin.html#a5ee6536e20f2ccbd2d57bcb766e79975',1,'psr::IfdsIdeProblemMixin::EntryPoints'],['../classpsr_1_1IntraMonoProblem.html#ab236dcae7b82a90b67f4b4fda01ed7bf',1,'psr::IntraMonoProblem::EntryPoints'],['../namespacepsr.html#abee833e16ef749173730713d144c91b1',1,'psr::EntryPoints']]],
-  ['externalfunctions_11',['ExternalFunctions',['../structpsr_1_1GeneralStatistics.html#a0a278396fad6c0bf7ebb12ac0bc00b32',1,'psr::GeneralStatistics']]],
-  ['externalglobals_12',['ExternalGlobals',['../structpsr_1_1GeneralStatistics.html#acc27ee599b0136947bb2829fc9bc7a23',1,'psr::GeneralStatistics']]]
+  ['exithandlerargname_11',['ExitHandlerArgName',['../classpsr_1_1GlobalCtorsDtorsModel.html#ae3c756008fa7dfa53df9ce1846e47c79',1,'psr::GlobalCtorsDtorsModel']]],
+  ['externalfunctions_12',['ExternalFunctions',['../structpsr_1_1GeneralStatistics.html#a0a278396fad6c0bf7ebb12ac0bc00b32',1,'psr::GeneralStatistics']]],
+  ['externalglobals_13',['ExternalGlobals',['../structpsr_1_1GeneralStatistics.html#acc27ee599b0136947bb2829fc9bc7a23',1,'psr::GeneralStatistics']]]
 ];
