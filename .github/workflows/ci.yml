@@ -80,7 +80,7 @@ jobs:
             -DPHASAR_USE_Z3=ON \
             -DPHASAR_BUILD_MODULES=ON \
             -DPHASAR_TARGET_ARCH="" \
-            -DPHASAR_ALLOW_LTO_IN_RELEASE_BUILD=OFF \ # made problems recently on ARM; cannot reproduce
+            -DPHASAR_ALLOW_LTO_IN_RELEASE_BUILD=OFF \
             -DPHASAR_LLVM_VERSION=${{ matrix.llvm-version }} \
             ${{ matrix.flags }} \
             -G Ninja
