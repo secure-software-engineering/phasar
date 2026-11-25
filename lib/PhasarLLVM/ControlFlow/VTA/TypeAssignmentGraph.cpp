@@ -19,11 +19,14 @@
 
 #include "llvm/ADT/SmallBitVector.h"
 #include "llvm/BinaryFormat/Dwarf.h"
+#include "llvm/IR/Constants.h"
+#include "llvm/IR/DataLayout.h"
 #include "llvm/IR/DebugInfo.h"
 #include "llvm/IR/InstIterator.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/IntrinsicInst.h"
 
+#include <concepts>
 #include <cstddef>
 #include <cstdint>
 #include <optional>
@@ -97,6 +100,192 @@ static void addGlobals(const LLVMProjectIRDB &IRDB, TypeAssignmentGraph &TAG) {
     }
 
     addTAGNode({Variable{&Glob}}, TAG);
+  }
+}
+
+static const llvm::DIType *stripTypedefsAndQualifiers(const llvm::DIType *Ty) {
+  while (const auto *DerivedTy =
+             llvm::dyn_cast_if_present<llvm::DIDerivedType>(Ty)) {
+    switch (DerivedTy->getTag()) {
+    case llvm::dwarf::DW_TAG_typedef:
+    case llvm::dwarf::DW_TAG_member:
+    case llvm::dwarf::DW_TAG_inheritance:
+    case llvm::dwarf::DW_TAG_const_type:
+    case llvm::dwarf::DW_TAG_volatile_type:
+    case llvm::dwarf::DW_TAG_restrict_type:
+    case llvm::dwarf::DW_TAG_atomic_type:
+      Ty = DerivedTy->getBaseType();
+      continue;
+    default:
+      return Ty;
+    }
+  }
+  return Ty;
+}
+
+/// Calls WithField for each composite type that encloses the bit at
+/// OffsetInBits of an object of type Ty, together with the byte offset
+/// relative to that composite.
+static void forEachEnclosingField(
+    const llvm::DIType *Ty, uint64_t OffsetInBits,
+    std::invocable<const llvm::DICompositeType *, size_t> auto WithField) {
+  const auto *CompTy = llvm::dyn_cast_if_present<llvm::DICompositeType>(
+      stripTypedefsAndQualifiers(Ty));
+  if (!CompTy) {
+    return;
+  }
+
+  auto Tag = CompTy->getTag();
+  if (Tag == llvm::dwarf::DW_TAG_array_type) {
+    std::invoke(WithField, CompTy, OffsetInBits / 8);
+
+    const auto *ElemTy = stripTypedefsAndQualifiers(CompTy->getBaseType());
+    if (!ElemTy || !ElemTy->getSizeInBits()) {
+      return;
+    }
+    forEachEnclosingField(ElemTy, OffsetInBits % ElemTy->getSizeInBits(),
+                          copyOrRef(WithField));
+    return;
+  }
+
+  if (Tag != llvm::dwarf::DW_TAG_structure_type &&
+      Tag != llvm::dwarf::DW_TAG_class_type &&
+      Tag != llvm::dwarf::DW_TAG_union_type) {
+    return;
+  }
+
+  std::invoke(WithField, CompTy, OffsetInBits / 8);
+
+  for (const auto *Elem : CompTy->getElements()) {
+    const auto *Member = llvm::dyn_cast<llvm::DIDerivedType>(Elem);
+    if (!Member || Member->isStaticMember() ||
+        (Member->getTag() != llvm::dwarf::DW_TAG_member &&
+         Member->getTag() != llvm::dwarf::DW_TAG_inheritance)) {
+      continue;
+    }
+
+    // DW_TAG_inheritance carries no size
+    auto MemberSize = Member->getSizeInBits();
+    if (!MemberSize) {
+      if (const auto *BaseTy = stripTypedefsAndQualifiers(Member)) {
+        MemberSize = BaseTy->getSizeInBits();
+      }
+    }
+
+    auto MemberOffset = Member->getOffsetInBits();
+    if (OffsetInBits >= MemberOffset &&
+        OffsetInBits - MemberOffset < MemberSize) {
+      forEachEnclosingField(Member->getBaseType(), OffsetInBits - MemberOffset,
+                            copyOrRef(WithField));
+    }
+  }
+}
+
+/// Calls WithLeaf for each non-aggregate constant in Init, together with its
+/// byte offset relative to Init.
+static void forEachInitializerLeaf(
+    const llvm::Constant *Init, uint64_t ByteOffset, const llvm::DataLayout &DL,
+    std::invocable<const llvm::Constant *, uint64_t> auto WithLeaf) {
+  if (const auto *Struct = llvm::dyn_cast<llvm::ConstantStruct>(Init)) {
+    const auto *Layout = DL.getStructLayout(Struct->getType());
+    for (const auto &[Idx, Op] : llvm::enumerate(Struct->operands())) {
+      forEachInitializerLeaf(llvm::cast<llvm::Constant>(Op),
+                             ByteOffset + Layout->getElementOffset(Idx), DL,
+                             copyOrRef(WithLeaf));
+    }
+    return;
+  }
+
+  if (const auto *Arr = llvm::dyn_cast<llvm::ConstantArray>(Init)) {
+    uint64_t ElemSize =
+        DL.getTypeAllocSize(Arr->getType()->getElementType()).getFixedValue();
+    for (const auto &[Idx, Op] : llvm::enumerate(Arr->operands())) {
+      forEachInitializerLeaf(llvm::cast<llvm::Constant>(Op),
+                             ByteOffset + Idx * ElemSize, DL,
+                             copyOrRef(WithLeaf));
+    }
+    return;
+  }
+
+  std::invoke(WithLeaf, Init, ByteOffset);
+}
+
+/// Models each pointer P in a global's initializer like a store of P into the
+/// global, resp. into the field of the global that holds P; see handleStore().
+static void addGlobalInitializers(const LLVMProjectIRDB &IRDB,
+                                  TypeAssignmentGraph &TAG,
+                                  LLVMAliasIteratorRef AI,
+                                  const llvm::DataLayout &DL) {
+  llvm::SmallVector<const llvm::Function *> Funs;
+  llvm::SmallVector<TAGNodeId> Froms;
+
+  for (const auto &Glob : IRDB.getModule()->globals()) {
+    // Globals without a node are filtered by addGlobals(), e.g., vtables.
+    // llvm.* globals, e.g., llvm.global_ctors, are never loaded from.
+    if (!Glob.hasInitializer() || Glob.getName().starts_with("llvm.") ||
+        !TAG.get({Variable{&Glob}})) {
+      continue;
+    }
+
+    const auto *GlobTy = getVarTypeFromIR(&Glob);
+    Funs.clear();
+    Froms.clear();
+
+    forEachInitializerLeaf(
+        Glob.getInitializer(), 0, DL,
+        [&](const llvm::Constant *Leaf, uint64_t ByteOffset) {
+          if (!Leaf->getType()->isPointerTy()) {
+            return;
+          }
+
+          const auto *Base = getBaseAndOffset(Leaf, DL).first;
+          const auto *Fun = llvm::dyn_cast<llvm::Function>(Base);
+          std::optional<TAGNodeId> From;
+          if (Fun) {
+            Funs.push_back(Fun);
+          } else {
+            From = TAG.get({Variable{Base}});
+            if (From) {
+              Froms.push_back(*From);
+            } else {
+              return;
+            }
+          }
+
+          forEachEnclosingField(
+              GlobTy, ByteOffset * 8,
+              [&](const llvm::DICompositeType *CompTy, size_t FieldOffset) {
+                for (auto Offs : {FieldOffset, SIZE_MAX}) {
+                  auto FldNodeId = TAG.get({Field{CompTy, Offs}});
+                  if (!FldNodeId) {
+                    continue;
+                  }
+                  if (Fun) {
+                    TAG.TypeEntryPoints[*FldNodeId].insert(Fun);
+                  } else {
+                    TAG.addEdge(*From, *FldNodeId);
+                  }
+                }
+              });
+        });
+
+    if (Funs.empty() && Froms.empty()) {
+      continue;
+    }
+
+    AI.forallAliasesOf(&Glob, nullptr, [&](const llvm::Value *Dest) {
+      auto DestNodeId = TAG.get({Variable{Dest}});
+      if (!DestNodeId) {
+        return;
+      }
+
+      if (!Funs.empty()) {
+        TAG.TypeEntryPoints[*DestNodeId].insert(Funs.begin(), Funs.end());
+      }
+      for (auto From : Froms) {
+        TAG.addEdge(From, *DestNodeId);
+      }
+    });
   }
 }
 
@@ -512,6 +701,8 @@ static auto computeTypeAssignmentGraphImpl(const LLVMProjectIRDB &IRDB,
                      [&TAG](const auto *Fun) { initializeWithFun(Fun, TAG); });
 
   TAG.Adj.resize(TAG.Nodes.size());
+
+  addGlobalInitializers(IRDB, TAG, AI, DL);
 
   ReachableFunctions(IRDB, [&](const auto *Fun) {
     buildTAGWithFun(Fun, TAG, BaseRes, AI, DL, VTP);

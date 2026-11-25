@@ -179,6 +179,20 @@ TEST_F(VTACallGraphTest, CallGraphs_FunctionPointer3) {
            {/*"_Z3bari",*/ "_Z3foov"}},
       });
 }
+TEST_F(VTACallGraphTest, CallGraphs_GlobalInitializerFPtr1) {
+  doAnalysisAndCompareResults(
+      "call_graphs/global_initializer_fptr_1_c_dbg.ll",
+      {
+          {LineColFunOp{32, 30, "callGlob", llvm::Instruction::Call}, {"glob"}},
+          {LineColFunOp{34, 29, "callArr", llvm::Instruction::Call},
+           {"arr0", "arr1"}},
+          {LineColFunOp{38, 10, "callDisp", llvm::Instruction::Call},
+           {"disp0", "disp1"}},
+          // VTA does not distinguish array elements
+          {LineColFunOp{41, 32, "callArrPtr", llvm::Instruction::Call},
+           {"arr0", "arr1"}},
+      });
+}
 TEST_F(VTACallGraphTest, CallGraphs_VirtualCall2) {
   doAnalysisAndCompareResults(
       "call_graphs/virtual_call_2_cpp_dbg.ll",

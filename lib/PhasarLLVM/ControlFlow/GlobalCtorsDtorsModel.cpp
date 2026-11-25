@@ -20,8 +20,11 @@
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/IR/Attributes.h"
+#include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
+#include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/IRBuilder.h"
+#include "llvm/IR/InstrTypes.h"
 
 #include <concepts>
 #include <functional>
@@ -83,49 +86,82 @@ void forEachGlobalCtorDtor(
   return Ret;
 }
 
-[[nodiscard]] auto collectRegisteredDtorsAtExit(const llvm::Module &Mod) {
-  llvm::SmallVector<llvm::FunctionCallee> Ret;
+/// A function registered to run at exit, e.g., by atexit
+struct ExitHandler {
+  llvm::Function *Callee{};
+  /// Constants, or slots (InSlot) that hold the value passed at registration
+  llvm::SmallVector<std::pair<llvm::Value *, bool>, 2> Args;
+};
 
-  auto *AtExitFn = Mod.getFunction("atexit");
-  if (!AtExitFn) {
+/// The calls to the function Name
+[[nodiscard]] llvm::SmallVector<llvm::CallBase *>
+callsTo(llvm::Module &Mod, llvm::StringRef Name) {
+  llvm::SmallVector<llvm::CallBase *> Ret;
+  auto *Fn = Mod.getFunction(Name);
+  if (!Fn) {
     return Ret;
   }
-
-  for (auto *User : AtExitFn->users()) {
+  for (auto *User : Fn->users()) {
     auto *Call = llvm::dyn_cast<llvm::CallBase>(User);
-    if (!Call) {
-      continue;
+    if (Call && Call->getCalledOperand()->stripPointerCasts() == Fn) {
+      Ret.push_back(Call);
     }
+  }
+  return Ret;
+}
 
-    auto *DtorOp = llvm::dyn_cast_or_null<llvm::Function>(
+[[nodiscard]] std::pair<llvm::Value *, bool>
+captureArg(llvm::CallBase *Registration, llvm::Value *Arg) {
+  if (llvm::isa<llvm::Constant>(Arg)) {
+    return {Arg, false};
+  }
+  auto &Mod = *Registration->getModule();
+  auto *Slot =
+      new llvm::GlobalVariable(Mod, Arg->getType(), /*isConstant*/ false,
+                               llvm::GlobalValue::InternalLinkage,
+                               llvm::Constant::getNullValue(Arg->getType()),
+                               GlobalCtorsDtorsModel::ExitHandlerArgName);
+  llvm::IRBuilder<> IRB(Registration);
+  IRB.CreateStore(Arg, Slot);
+  return {Slot, true};
+}
+
+/// The handlers of atexit and on_exit
+[[nodiscard]] llvm::SmallVector<ExitHandler>
+collectRegisteredDtorsAtExit(llvm::Module &Mod) {
+  llvm::SmallVector<ExitHandler> Ret;
+
+  for (auto *Call : callsTo(Mod, "atexit")) {
+    if (auto *DtorOp = llvm::dyn_cast<llvm::Function>(
+            Call->getArgOperand(0)->stripPointerCastsAndAliases())) {
+      Ret.push_back({DtorOp, {}});
+    }
+  }
+
+  auto *Status =
+      llvm::UndefValue::get(llvm::Type::getInt32Ty(Mod.getContext()));
+  for (auto *Call : callsTo(Mod, "on_exit")) {
+    auto *DtorOp = llvm::dyn_cast<llvm::Function>(
         Call->getArgOperand(0)->stripPointerCastsAndAliases());
-    if (!DtorOp) {
-      continue;
+    if (DtorOp && Call->arg_size() == 2) {
+      Ret.push_back(
+          {DtorOp,
+           {{Status, false},
+            captureArg(
+                Call, Call->getArgOperand(1)->stripPointerCastsAndAliases())}});
     }
-
-    Ret.push_back(DtorOp);
   }
 
   return Ret;
 }
 
-[[nodiscard]] auto collectRegisteredDtorsForModule(const llvm::Module &Mod) {
+[[nodiscard]] llvm::SmallVector<ExitHandler>
+collectRegisteredDtorsForModule(llvm::Module &Mod) {
   // NOLINTNEXTLINE
-  llvm::SmallVector<std::pair<llvm::FunctionCallee, llvm::Value *>, 4>
-      RegisteredDtors, RegisteredLocalStaticDtors;
+  llvm::SmallVector<ExitHandler> RegisteredDtors, RegisteredLocalStaticDtors;
 
-  auto *CxaAtExitFn = Mod.getFunction("__cxa_atexit");
-  if (!CxaAtExitFn) {
-    return RegisteredDtors;
-  }
-
-  for (auto *User : CxaAtExitFn->users()) {
-    auto *Call = llvm::dyn_cast<llvm::CallBase>(User);
-    if (!Call) {
-      continue;
-    }
-
-    auto *DtorOp = llvm::dyn_cast_or_null<llvm::Function>(
+  for (auto *Call : callsTo(Mod, "__cxa_atexit")) {
+    auto *DtorOp = llvm::dyn_cast<llvm::Function>(
         Call->getArgOperand(0)->stripPointerCastsAndAliases());
     auto *DtorArgOp = Call->getArgOperand(1)->stripPointerCastsAndAliases();
 
@@ -133,10 +169,11 @@ void forEachGlobalCtorDtor(
       continue;
     }
 
+    ExitHandler Handler{DtorOp, {captureArg(Call, DtorArgOp)}};
     if (Call->getFunction()->getName().contains("__cxx_global_var_init")) {
-      RegisteredDtors.emplace_back(DtorOp, DtorArgOp);
+      RegisteredDtors.push_back(std::move(Handler));
     } else {
-      RegisteredLocalStaticDtors.emplace_back(DtorOp, DtorArgOp);
+      RegisteredLocalStaticDtors.push_back(std::move(Handler));
     }
   }
 
@@ -148,6 +185,45 @@ void forEachGlobalCtorDtor(
   return RegisteredDtors;
 }
 
+/// Calls Handler with its arguments; false if they do not fit its type
+bool callHandler(llvm::IRBuilder<> &IRB, const ExitHandler &Handler) {
+  auto *FTy = Handler.Callee->getFunctionType();
+  if (FTy->getNumParams() != Handler.Args.size()) {
+    PHASAR_LOG_LEVEL(WARNING, "Detected exit handler with incompatible "
+                              "signature: Function "
+                                  << Handler.Callee->getName() << " expects "
+                                  << FTy->getNumParams() << " parameters, got "
+                                  << Handler.Args.size());
+    return false;
+  }
+
+  llvm::SmallVector<llvm::Value *, 2> Args;
+  for (auto [Idx, ArgAndSlot] : llvm::enumerate(Handler.Args)) {
+    auto [Arg, InSlot] = ArgAndSlot;
+    if (InSlot) {
+      auto *Slot = llvm::cast<llvm::GlobalVariable>(Arg);
+      Arg = IRB.CreateLoad(Slot->getValueType(), Slot);
+    }
+    auto *ExpectedArgType = FTy->getParamType(Idx);
+    if (Arg->getType() != ExpectedArgType) {
+      if (!Arg->getType()->canLosslesslyBitCastTo(ExpectedArgType)) {
+        PHASAR_LOG_LEVEL(
+            WARNING,
+            "Detected exit handler with incompatible signature: Function "
+                << Handler.Callee->getName() << " passed parameter "
+                << llvmIRToString(Arg) << " of incompatible type: Expected "
+                << llvmTypeToString(ExpectedArgType, true) << " vs Got"
+                << llvmTypeToString(Arg->getType(), true));
+        return false;
+      }
+      Arg = IRB.CreateBitOrPointerCast(Arg, ExpectedArgType);
+    }
+    Args.push_back(Arg);
+  }
+  IRB.CreateCall(Handler.Callee, Args);
+  return true;
+}
+
 [[nodiscard]] std::string getReducedModuleName(const llvm::Module &M) {
   auto Name = M.getName().str();
   if (auto Idx = Name.find_last_of('/'); Idx != std::string::npos) {
@@ -157,51 +233,64 @@ void forEachGlobalCtorDtor(
   return Name;
 }
 
-[[nodiscard]] llvm::Function *createDtorCallerForModule(
-    llvm::Module &Mod,
-    llvm::ArrayRef<std::pair<llvm::FunctionCallee, llvm::Value *>>
-        RegisteredDtors,
-    llvm::ArrayRef<llvm::FunctionCallee> RegisteredDtorsAtExit) {
-
-  auto *PhasarDtorCaller = llvm::cast<llvm::Function>(
-      Mod.getOrInsertFunction((GlobalCtorsDtorsModel::DtorsCallerName +
-                               llvm::Twine('.') + getReducedModuleName(Mod))
-                                  .str(),
-                              llvm::Type::getVoidTy(Mod.getContext()))
+/// A function named Prefix.<module> that calls Handlers in reverse order
+[[nodiscard]] llvm::Function *
+createHandlerCaller(llvm::Module &Mod, llvm::StringRef Prefix,
+                    llvm::ArrayRef<ExitHandler> Handlers,
+                    llvm::ArrayRef<ExitHandler> First) {
+  auto *Caller = llvm::cast<llvm::Function>(
+      Mod.getOrInsertFunction(
+             (Prefix + llvm::Twine('.') + getReducedModuleName(Mod)).str(),
+             llvm::Type::getVoidTy(Mod.getContext()))
           .getCallee());
 
-  auto *BB =
-      llvm::BasicBlock::Create(Mod.getContext(), "entry", PhasarDtorCaller);
+  auto *BB = llvm::BasicBlock::Create(Mod.getContext(), "entry", Caller);
 
   llvm::IRBuilder<> IRB(BB);
 
-  for (auto FunCallee : llvm::reverse(RegisteredDtorsAtExit)) {
-    IRB.CreateCall(FunCallee, {});
+  for (const auto &Handler : llvm::reverse(First)) {
+    callHandler(IRB, Handler);
   }
-
-  for (auto [FunCallee, Arg] : llvm::reverse(RegisteredDtors)) {
-    assert(FunCallee.getFunctionType()->getNumParams() == 1);
-    auto *ExpectedArgType = FunCallee.getFunctionType()->getParamType(0);
-
-    if (Arg->getType() != ExpectedArgType) {
-      if (!Arg->getType()->canLosslesslyBitCastTo(ExpectedArgType)) {
-        PHASAR_LOG_LEVEL(
-            WARNING,
-            "Detected registered dtor with incompatible signature: Function "
-                << FunCallee.getCallee()->getName() << " passed parameter "
-                << llvmIRToString(Arg) << " of incompatible type: Expected "
-                << llvmTypeToString(ExpectedArgType, true) << " vs Got"
-                << llvmTypeToString(Arg->getType(), true));
-        continue;
-      }
-      Arg = IRB.CreateBitOrPointerCast(Arg, ExpectedArgType);
-    }
-    IRB.CreateCall(FunCallee, {Arg});
+  for (const auto &Handler : llvm::reverse(Handlers)) {
+    callHandler(IRB, Handler);
   }
 
   IRB.CreateRetVoid();
 
-  return PhasarDtorCaller;
+  return Caller;
+}
+
+[[nodiscard]] llvm::Function *
+createDtorCallerForModule(llvm::Module &Mod,
+                          llvm::ArrayRef<ExitHandler> RegisteredDtors,
+                          llvm::ArrayRef<ExitHandler> RegisteredDtorsAtExit) {
+  return createHandlerCaller(Mod, GlobalCtorsDtorsModel::DtorsCallerName,
+                             RegisteredDtors, RegisteredDtorsAtExit);
+}
+
+/// The handlers of at_quick_exit run when quick_exit is called, not at normal
+/// termination: each call to quick_exit first calls the returned function.
+/// Null if there are none.
+[[nodiscard]] llvm::Function *buildQuickExitModel(llvm::Module &Mod) {
+  llvm::SmallVector<ExitHandler> Handlers;
+  for (auto *Call : callsTo(Mod, "at_quick_exit")) {
+    if (auto *Fn = llvm::dyn_cast<llvm::Function>(
+            Call->getArgOperand(0)->stripPointerCastsAndAliases())) {
+      Handlers.push_back({Fn, {}});
+    }
+  }
+  const auto QuickExits = callsTo(Mod, "quick_exit");
+  if (Handlers.empty() || QuickExits.empty()) {
+    return nullptr;
+  }
+
+  auto *Caller = createHandlerCaller(
+      Mod, GlobalCtorsDtorsModel::QuickExitCallerName, Handlers, {});
+  for (auto *QuickExit : QuickExits) {
+    llvm::IRBuilder<> IRB(QuickExit);
+    IRB.CreateCall(Caller);
+  }
+  return Caller;
 }
 
 [[nodiscard]] llvm::Function *collectRegisteredDtors(
@@ -339,11 +428,20 @@ GlobalCtorsDtorsModel::collectGlobalCtorsDtors(const llvm::Module &M) {
 llvm::Function *GlobalCtorsDtorsModel::buildModel(
     LLVMProjectIRDB &IRDB, llvm::ArrayRef<llvm::Function *> UserEntryPoints) {
   auto &M = *IRDB.getModule();
+  const auto NumGlobals = M.global_size();
   auto GlobalCtors = collectGlobalCtors(M);
   auto GlobalDtors = collectGlobalDtors(M);
   auto *RegisteredDtorCaller = collectRegisteredDtors(GlobalDtors, M);
   if (RegisteredDtorCaller) {
     IRDB.insertFunction(RegisteredDtorCaller);
+  }
+  auto *QuickExitCaller = buildQuickExitModel(M);
+  if (QuickExitCaller) {
+    IRDB.insertFunction(QuickExitCaller);
+  }
+  // Stores into argument slots and calls before quick_exit
+  if (QuickExitCaller || M.global_size() != NumGlobals) {
+    IRDB.updateInstructionIds();
   }
 
   auto [GlobalCleanupFn, Inserted] =
@@ -481,8 +579,9 @@ bool GlobalCtorsDtorsModel::isPhasarGenerated(
   }
 
   llvm::StringRef FunctionName = F.getName();
-  const auto Cases = {ModelName, DtorModelName, DtorsCallerName,
-                      UserEntrySelectorName, NonDetValuePrefix};
+  const auto Cases = {ModelName,         DtorModelName,
+                      DtorsCallerName,   UserEntrySelectorName,
+                      NonDetValuePrefix, QuickExitCallerName};
   return llvm::any_of(Cases, [FunctionName](llvm::StringLiteral Case) {
     return FunctionName.starts_with(Case);
   });

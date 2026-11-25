@@ -628,7 +628,7 @@ IFDSTaintAnalysis::KillsAtFn::operator()(n_t Curr, d_t CurrNode) const {
   const auto &DL = Self->IRDB->getModule()->getDataLayout();
 
   for (const auto *KillFact : Kill) {
-    auto [BasePtr, Offset] = psr::cfl_fieldsens::getBaseAndOffset(KillFact, DL);
+    auto [BasePtr, Offset] = psr::getBaseAndOffset(KillFact, DL);
     if (BasePtr == CurrNode) {
       return Offset;
     }
