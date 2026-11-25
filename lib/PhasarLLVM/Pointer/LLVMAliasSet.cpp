@@ -48,6 +48,7 @@
 #include <chrono>
 #include <cstdlib>
 #include <memory>
+#include <numeric>
 #include <utility>
 
 namespace psr {
