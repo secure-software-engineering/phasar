@@ -1,7 +1,6 @@
 set(XTAINT_DBG_SOURCES
     xtaint01.cpp
     xtaint01_json.cpp
-
     # xtaint01_json.cpp
     xtaint02.cpp
     xtaint03.cpp
@@ -26,6 +25,8 @@ set(XTAINT_DBG_SOURCES
     xtaint21.cpp
     xtaint22.cpp
     xtaint23.cpp
+    xtaint24.cpp
+    xtaint25.cpp
 )
 
 foreach(TEST_SRC ${XTAINT_DBG_SOURCES})
