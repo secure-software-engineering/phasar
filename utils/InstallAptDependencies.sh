@@ -2,7 +2,7 @@
 set -euo pipefail
 
 noninteractive="false"
-LLVM_IR_VERSION=16
+LLVM_IR_VERSION=21
 
 # Parsing command-line-parameters
 # See "https://stackoverflow.com/questions/192249/how-do-i-parse-command-line-arguments-in-bash" as a reference
@@ -31,7 +31,7 @@ case $key in
     echo ""
     echo "OPTIONS:"
     echo -e "\t--noninteractive,-ni\t- Non-interactive mode for apt"
-    echo -e "\t--llvm-version=<value>\t- The LLVM major-version to use (16 or 17, default is 16)"
+    echo -e "\t--llvm-version=<value>\t- The LLVM major-version to use (16 - 23, default is 21)"
     exit 0
     ;;
     *) # unknown option
@@ -43,8 +43,8 @@ done
 set -- "${POSITIONAL[@]}" # restore positional parameters
 # End - Parsing command-line-parameters
 
-if [ "$LLVM_IR_VERSION" -lt "16" ] || [ "$LLVM_IR_VERSION" -gt "22" ]; then
-    echo "Invalid LLVM version: $LLVM_IR_VERSION, expected a version between 16 and 22" >&2
+if [ "$LLVM_IR_VERSION" -lt "16" ] || [ "$LLVM_IR_VERSION" -gt "23" ]; then
+    echo "Invalid LLVM version: $LLVM_IR_VERSION, expected a version between 16 and 23" >&2
     exit 1
 fi
 

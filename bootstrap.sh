@@ -6,10 +6,10 @@ source ./utils/safeCommandsSet.sh
 
 readonly PHASAR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 PHASAR_INSTALL_DIR="/usr/local/phasar"
-LLVM_INSTALL_DIR="/usr/local/llvm-16"
+LLVM_INSTALL_DIR="/usr/local/llvm-21"
 
 NUM_THREADS=$(nproc)
-LLVM_RELEASE=llvmorg-16.0.6
+LLVM_RELEASE=llvmorg-21.0.8
 DO_UNIT_TEST=true
 DO_INSTALL=false
 BUILD_TYPE=Release

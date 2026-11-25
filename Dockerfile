@@ -1,12 +1,12 @@
-ARG baseimage="ubuntu:24.04"
+ARG baseimage="ubuntu:26.04"
 FROM "$baseimage" AS build
 
 RUN --mount=type=bind,source=./utils/InstallAptDependencies.sh,target=/InstallAptDependencies.sh \
   set -eux; \
-  ./InstallAptDependencies.sh --noninteractive tzdata clang-20 libclang-rt-20-dev clang-tools-20 llvm-16-tools llvm-20-tools
+  ./InstallAptDependencies.sh --noninteractive tzdata clang-21 libclang-rt-21-dev clang-tools-21 llvm-21-tools
 
-ENV CC=/usr/bin/clang-20 \
-    CXX=/usr/bin/clang++-20
+ENV CC=/usr/bin/clang-21 \
+    CXX=/usr/bin/clang++-21
 
 FROM build
 
@@ -22,8 +22,8 @@ RUN --mount=type=bind,source=.,target=/usr/src/phasar,rw \
     -DCMAKE_BUILD_TYPE=Release \
     -DPHASAR_TARGET_ARCH="" \
     -DPHASAR_ENABLE_SANITIZERS=ON \
-    -DBUILD_PHASAR_CLANG=ON \
     -DPHASAR_USE_Z3=ON \
+    -DPHASAR_ALLOW_LTO_IN_RELEASE_BUILD=OFF \
     -DPHASAR_BUILD_UNITTESTS=$RUN_TESTS \
     -DPHASAR_BUILD_IR=$RUN_TESTS \
     -DPHASAR_ENABLE_INTEGRATIONTESTS=$RUN_TESTS \
